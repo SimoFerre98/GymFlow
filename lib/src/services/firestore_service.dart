@@ -145,6 +145,27 @@ class FirestoreService {
     await _db.collection('sessions').doc(session.id).set(session.toMap());
   }
 
+  Future<WorkoutSession?> getLastSession(
+    String userId,
+    String templateId,
+  ) async {
+    final snapshot = await _db
+        .collection('sessions')
+        .where('userId', isEqualTo: userId)
+        .where('workoutTemplateId', isEqualTo: templateId)
+        .orderBy('startTime', descending: true)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return WorkoutSession.fromMap(
+        snapshot.docs.first.data(),
+        snapshot.docs.first.id,
+      );
+    }
+    return null;
+  }
+
   Stream<List<WorkoutSession>> getUserSessions(String userId) {
     return _db
         .collection('sessions')

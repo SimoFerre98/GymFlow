@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../models/session.dart';
 import '../../core/utils/statistics_helper.dart';
 import '../widgets/charts/activity_chart.dart';
+import '../widgets/charts/workout_type_pie_chart.dart';
 import '../widgets/app_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -102,8 +103,19 @@ class DashboardScreen extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          // Chart
+          // Activity Chart
           ActivityChart(weeklyData: weeklyData),
+          const SizedBox(height: 24),
+          const Text(
+            'Workout Distribution',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          // Pie Chart
+          WorkoutTypePieChart(
+            data: StatisticsHelper.getWorkoutTypeDistribution(sessions),
+          ),
+          const SizedBox(height: 30),
         ],
       ),
     );
@@ -118,7 +130,6 @@ class DashboardScreen extends StatelessWidget {
   ) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

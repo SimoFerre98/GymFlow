@@ -35,8 +35,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
       }
     });
 
-    // Create a copy of exercises for this session
-    // Note: detailed deep copy logic might be needed for production
+    // Initialize with template values
     _sessionExercises = widget.workout.exercises.map((e) {
       return WorkoutExercise(
         exerciseId: e.exerciseId,
@@ -52,6 +51,55 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
             .toList(),
       );
     }).toList();
+
+    // Try to load last session data
+    _loadLastSessionData();
+  }
+
+  Future<void> _loadLastSessionData() async {
+    final user = AuthService().currentUser;
+    if (user == null) return;
+
+    final lastSession = await FirestoreService().getLastSession(
+      user.uid,
+      widget.workout.id,
+    );
+
+    if (lastSession != null && mounted) {
+      setState(() {
+        for (var i = 0; i < _sessionExercises.length; i++) {
+          final currentEx = _sessionExercises[i];
+          // Find matching exercise in last session
+          final lastEx = lastSession.exercises.firstWhere(
+            (e) => e.exerciseId == currentEx.exerciseId,
+            orElse: () =>
+                WorkoutExercise(exerciseId: '', exerciseName: '', sets: []),
+          );
+
+          if (lastEx.sets.isNotEmpty) {
+            // Update weights/reps but keep isCompleted false
+            // We try to match set counts, or take the last set's weight if we have more sets now
+            for (var j = 0; j < currentEx.sets.length; j++) {
+              if (j < lastEx.sets.length) {
+                currentEx.sets[j].weight = lastEx.sets[j].weight;
+                currentEx.sets[j].reps = lastEx.sets[j].reps;
+              } else {
+                // If we have more sets now, use the last set's weight of prev session
+                currentEx.sets[j].weight = lastEx.sets.last.weight;
+                currentEx.sets[j].reps = lastEx.sets.last.reps;
+              }
+            }
+          }
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Weights loaded from last session!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -138,7 +186,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
         ],
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80),
+        padding: const EdgeInsets.only(bottom: 120),
         itemCount: _sessionExercises.length,
         itemBuilder: (context, index) {
           final exercise = _sessionExercises[index];
@@ -148,10 +196,52 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    exercise.exerciseName,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          exercise.exerciseName,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () {
+                          // Confirm deletion
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Remove Exercise?'),
+                              content: const Text(
+                                'Remove this exercise from the current session?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    setState(() {
+                                      _sessionExercises.removeAt(index);
+                                    });
+                                  },
+                                  child: const Text(
+                                    'Remove',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 Table(

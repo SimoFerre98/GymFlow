@@ -85,7 +85,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         indicatorColor: primaryColor.withOpacity(0.2),
@@ -108,15 +108,15 @@ class AppTheme {
       fillColor: fill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(color: borderColor),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         borderSide: const BorderSide(color: primaryColor, width: 2),
       ),
     );
@@ -128,7 +128,7 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         elevation: 4,
         shadowColor: primaryColor.withOpacity(0.4),

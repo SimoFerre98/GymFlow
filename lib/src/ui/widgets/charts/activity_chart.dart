@@ -121,8 +121,8 @@ class ActivityChart extends StatelessWidget {
               ),
               width: 16,
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(6),
-                topRight: Radius.circular(6),
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
               ),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
