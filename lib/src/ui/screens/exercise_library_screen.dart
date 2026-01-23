@@ -91,10 +91,70 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Open dialog to add custom exercise
-        },
+        onPressed: _showAddExerciseDialog,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _showAddExerciseDialog() {
+    final nameController = TextEditingController();
+    ExerciseType selectedType = ExerciseType.strength;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('New Custom Exercise'),
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Exercise Name'),
+                ),
+                const SizedBox(height: 16),
+                DropdownButton<ExerciseType>(
+                  value: selectedType,
+                  isExpanded: true,
+                  onChanged: (val) => setState(() => selectedType = val!),
+                  items: ExerciseType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type.name.toUpperCase()),
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) return;
+
+              final exercise = Exercise(
+                id: '',
+                userId: _auth.currentUser?.uid,
+                name: nameController.text.trim(),
+                description: 'Custom exercise',
+                type: selectedType,
+                musclesTargeted: [],
+                isCustom: true,
+              );
+
+              await _firestore.addExercise(exercise);
+              if (mounted) Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

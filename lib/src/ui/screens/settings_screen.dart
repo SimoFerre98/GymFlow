@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/services/auth_service.dart';
+import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:provider/provider.dart';
+import 'package:gymflow/src/core/providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -40,7 +43,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
             },
           ),
-          // TODO: Add Theme selection here when ThemeProvider is implemented
+          ListTile(
+            title: const Text('Load Default Exercises'),
+            leading: const Icon(Icons.cloud_upload_outlined),
+            onTap: () async {
+              await FirestoreService().seedDefaultExercises();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Default exercises loaded!')),
+                );
+              }
+            },
+          ),
+          // Theme Selection
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return Column(
+                children: [
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16.0, top: 8.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Theme',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  RadioListTile<ThemeMode>(
+                    title: const Text('System Default'),
+                    value: ThemeMode.system,
+                    groupValue: themeProvider.themeMode,
+                    onChanged: (val) => themeProvider.setThemeMode(val!),
+                  ),
+                  RadioListTile<ThemeMode>(
+                    title: const Text('Light Mode'),
+                    value: ThemeMode.light,
+                    groupValue: themeProvider.themeMode,
+                    onChanged: (val) => themeProvider.setThemeMode(val!),
+                  ),
+                  RadioListTile<ThemeMode>(
+                    title: const Text('Dark Mode'),
+                    value: ThemeMode.dark,
+                    groupValue: themeProvider.themeMode,
+                    onChanged: (val) => themeProvider.setThemeMode(val!),
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

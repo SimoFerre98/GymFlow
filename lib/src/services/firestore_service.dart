@@ -8,25 +8,97 @@ class FirestoreService {
 
   // --- Exercises ---
 
-  // Get all exercises (Global + Custom)
+  // Get all exercises (Global + Custom for this user)
   Stream<List<Exercise>> getExercises(String userId) {
-    // This is simplified. In reality you might want to merge two streams or queries
-    // For now assuming all exercises are in one collection, distinguished by isCustom and userId (implied ownership)
     return _db
         .collection('exercises')
-        .where('isCustom', isEqualTo: false)
+        .where(
+          Filter.or(
+            Filter('isCustom', isEqualTo: false),
+            Filter('userId', isEqualTo: userId),
+          ),
+        )
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
               .map((doc) => Exercise.fromMap(doc.data(), doc.id))
               .toList(),
         );
-
-    // TODO: Add logic to fetch custom exercises for the specific user
   }
 
   Future<void> addExercise(Exercise exercise) async {
     await _db.collection('exercises').add(exercise.toMap());
+  }
+
+  Future<void> seedDefaultExercises() async {
+    final existing = await _db.collection('exercises').limit(1).get();
+    if (existing.docs.isNotEmpty) return; // Already seeded
+
+    final defaults = [
+      Exercise(
+        id: '',
+        name: 'Bench Press',
+        description: 'Chest compound',
+        type: ExerciseType.strength,
+        musclesTargeted: ['Chest', 'Triceps'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Squat',
+        description: 'Leg compound',
+        type: ExerciseType.strength,
+        musclesTargeted: ['Quads', 'Glutes'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Deadlift',
+        description: 'Back compound',
+        type: ExerciseType.strength,
+        musclesTargeted: ['Back', 'Hamstrings'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Overhead Press',
+        description: 'Shoulder compound',
+        type: ExerciseType.strength,
+        musclesTargeted: ['Shoulders'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Pull Up',
+        description: 'Back compound',
+        type: ExerciseType.strength,
+        musclesTargeted: ['Back', 'Biceps'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Dumbbell Curl',
+        description: 'Bicep isolation',
+        type: ExerciseType.hypertrophy,
+        musclesTargeted: ['Biceps'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Tricep Extension',
+        description: 'Tricep isolation',
+        type: ExerciseType.hypertrophy,
+        musclesTargeted: ['Triceps'],
+      ),
+      Exercise(
+        id: '',
+        name: 'Running',
+        description: 'Cardio',
+        type: ExerciseType.cardio,
+        musclesTargeted: ['Legs', 'Heart'],
+      ),
+    ];
+
+    final batch = _db.batch();
+    for (var ex in defaults) {
+      final doc = _db.collection('exercises').doc();
+      batch.set(doc, ex.toMap()..['id'] = doc.id); // Set ID securely
+    }
+    await batch.commit();
   }
 
   // --- Workouts ---
