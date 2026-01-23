@@ -3,14 +3,18 @@ import 'package:gymflow/src/core/theme/app_theme.dart';
 import 'package:gymflow/src/ui/auth_wrapper.dart';
 import 'package:provider/provider.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
+import 'package:gymflow/src/services/firestore_service.dart';
 
 class GymFlowApp extends StatelessWidget {
   const GymFlowApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider<FirestoreService>(create: (_) => FirestoreService()),
+      ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(

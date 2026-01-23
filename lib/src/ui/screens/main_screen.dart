@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:gymflow/src/ui/screens/calendar_screen.dart';
-import 'package:gymflow/src/ui/screens/history_screen.dart';
+import 'package:gymflow/src/ui/screens/dashboard_screen.dart';
 import 'package:gymflow/src/ui/screens/home_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -15,9 +15,9 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    const DashboardScreen(),
     const CalendarScreen(),
-    const HistoryScreen(),
+    const HomeScreen(),
   ];
 
   @override
@@ -30,9 +30,9 @@ class _MainScreenState extends State<MainScreen> {
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.fitness_center_outlined),
-            selectedIcon: Icon(Icons.fitness_center),
-            label: 'Workouts',
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           NavigationDestination(
             icon: Icon(Icons.calendar_today_outlined),
@@ -40,9 +40,9 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Calendar',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'History',
+            icon: Icon(Icons.fitness_center_outlined),
+            selectedIcon: Icon(Icons.fitness_center),
+            label: 'Workouts',
           ),
         ],
       ),

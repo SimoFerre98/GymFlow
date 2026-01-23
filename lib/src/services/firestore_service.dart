@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/session.dart';
+import 'package:gymflow/src/models/scheduled_workout.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -116,6 +117,14 @@ class FirestoreService {
         );
   }
 
+  Future<WorkoutTemplate?> getWorkout(String workoutId) async {
+    final doc = await _db.collection('workouts').doc(workoutId).get();
+    if (doc.exists && doc.data() != null) {
+      return WorkoutTemplate.fromMap(doc.data()!, doc.id);
+    }
+    return null;
+  }
+
   // Create/Update Workout
   Future<void> saveWorkout(WorkoutTemplate workout) async {
     if (workout.id.isEmpty) {
@@ -147,5 +156,38 @@ class FirestoreService {
               .map((doc) => WorkoutSession.fromMap(doc.data(), doc.id))
               .toList(),
         );
+  }
+
+  Future<void> deleteSession(String sessionId) async {
+    await _db.collection('sessions').doc(sessionId).delete();
+  }
+
+  // --- Scheduled Workouts ---
+
+  Stream<List<ScheduledWorkout>> getUserScheduledWorkouts(String userId) {
+    return _db
+        .collection('scheduled_workouts')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ScheduledWorkout.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
+
+  Future<void> scheduleWorkout(ScheduledWorkout schedule) async {
+    if (schedule.id.isEmpty) {
+      await _db.collection('scheduled_workouts').add(schedule.toMap());
+    } else {
+      await _db
+          .collection('scheduled_workouts')
+          .doc(schedule.id)
+          .set(schedule.toMap());
+    }
+  }
+
+  Future<void> deleteScheduledWorkout(String scheduleId) async {
+    await _db.collection('scheduled_workouts').doc(scheduleId).delete();
   }
 }

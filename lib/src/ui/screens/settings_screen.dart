@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 
@@ -32,6 +33,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Account'),
             subtitle: Text(AuthService().currentUser?.email ?? 'Not logged in'),
             leading: const Icon(Icons.person),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
           ),
           ListTile(
             title: const Text('Logout'),

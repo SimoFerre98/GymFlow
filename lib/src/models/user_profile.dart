@@ -4,7 +4,7 @@ class UserProfile {
   final String displayName;
   final double? weight;
   final double? height; // in cm
-  final String? profileImageUrl;
+  final String? photoUrl;
   final DateTime createdAt;
   final int streakDays;
 
@@ -14,7 +14,7 @@ class UserProfile {
     required this.displayName,
     this.weight,
     this.height,
-    this.profileImageUrl,
+    this.photoUrl,
     required this.createdAt,
     this.streakDays = 0,
   });
@@ -26,7 +26,7 @@ class UserProfile {
       'displayName': displayName,
       'weight': weight,
       'height': height,
-      'profileImageUrl': profileImageUrl,
+      'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
       'streakDays': streakDays,
     };
@@ -39,7 +39,7 @@ class UserProfile {
       displayName: map['displayName'] ?? 'User',
       weight: map['weight']?.toDouble(),
       height: map['height']?.toDouble(),
-      profileImageUrl: map['profileImageUrl'],
+      photoUrl: map['photoUrl'],
       createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
       streakDays: map['streakDays'] ?? 0,
     );
