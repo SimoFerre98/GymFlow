@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
+import 'package:gymflow/src/models/session.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -55,5 +56,24 @@ class FirestoreService {
   // Delete Workout
   Future<void> deleteWorkout(String workoutId) async {
     await _db.collection('workouts').doc(workoutId).delete();
+  }
+
+  // --- Sessions ---
+
+  Future<void> saveSession(WorkoutSession session) async {
+    await _db.collection('sessions').doc(session.id).set(session.toMap());
+  }
+
+  Stream<List<WorkoutSession>> getUserSessions(String userId) {
+    return _db
+        .collection('sessions')
+        .where('userId', isEqualTo: userId)
+        .orderBy('startTime', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => WorkoutSession.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
   }
 }
