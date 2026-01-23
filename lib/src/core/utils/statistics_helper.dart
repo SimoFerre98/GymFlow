@@ -92,4 +92,20 @@ class StatisticsHelper {
 
     return streak;
   }
+
+  static Map<String, int> getWorkoutTypeDistribution(
+    List<WorkoutSession> sessions,
+  ) {
+    final Map<String, int> distribution = {};
+    for (var session in sessions) {
+      final type = session.workoutType;
+      // Capitalize first letter
+      final key = type.isNotEmpty
+          ? '${type[0].toUpperCase()}${type.substring(1)}'
+          : 'Other';
+
+      distribution[key] = (distribution[key] ?? 0) + 1;
+    }
+    return distribution;
+  }
 }

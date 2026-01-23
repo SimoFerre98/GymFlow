@@ -9,6 +9,7 @@ class WorkoutSession {
   final DateTime? endTime;
   final List<WorkoutExercise> exercises;
   final String? notes;
+  final String workoutType; // 'strength', 'cardio', etc.
 
   WorkoutSession({
     required this.id,
@@ -19,6 +20,7 @@ class WorkoutSession {
     this.endTime,
     required this.exercises,
     this.notes,
+    this.workoutType = 'strength', // Default
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +33,7 @@ class WorkoutSession {
       'endTime': endTime?.toIso8601String(),
       'exercises': exercises.map((e) => e.toMap()).toList(),
       'notes': notes,
+      'workoutType': workoutType,
     };
   }
 
@@ -50,6 +53,7 @@ class WorkoutSession {
               .toList() ??
           [],
       notes: map['notes'],
+      workoutType: map['workoutType'] ?? 'strength',
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
+import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -36,6 +37,17 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.emoji_events),
+            title: const Text('Achievements'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const GamificationScreen()),
               );
             },
           ),

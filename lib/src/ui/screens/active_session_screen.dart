@@ -68,28 +68,45 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     return "$hours:$minutes:$seconds";
   }
 
+  bool _isSaving = false;
+
   Future<void> _finishWorkout() async {
+    if (_isSaving) return;
+
     final user = AuthService().currentUser;
     if (user == null) return;
 
-    final session = WorkoutSession(
-      id: const Uuid().v4(), // Client-side ID or let Firestore generate
-      userId: user.uid,
-      workoutTemplateId: widget.workout.id,
-      workoutName: widget.workout.name,
-      startTime: DateTime.now().subtract(_stopwatch.elapsed),
-      endTime: DateTime.now(),
-      exercises: _sessionExercises,
-    );
+    setState(() => _isSaving = true);
 
-    // Save to Firestore (We need to add saveSession to FirestoreService first)
-    await FirestoreService().saveSession(session);
-
-    if (mounted) {
-      Navigator.pop(context); // Return to Home
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Workout Saved! Great job! 🎉')),
+    try {
+      final session = WorkoutSession(
+        id: const Uuid().v4(),
+        userId: user.uid,
+        workoutTemplateId: widget.workout.id,
+        workoutName: widget.workout.name,
+        startTime: DateTime.now().subtract(_stopwatch.elapsed),
+        endTime: DateTime.now(),
+        exercises: _sessionExercises,
       );
+
+      await FirestoreService().saveSession(session);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Workout Saved! Great job! 🎉')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving workout: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -108,16 +125,30 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
         ),
         centerTitle: true,
         actions: [
-          TextButton(
-            onPressed: _finishWorkout,
-            child: const Text(
-              'FINISH',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          _isSaving
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                )
+              : TextButton(
+                  onPressed: _finishWorkout,
+                  child: const Text(
+                    'FINISH',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
         ],
       ),
       body: ListView.builder(
