@@ -7,6 +7,11 @@ class UserProfile {
   final String? photoUrl;
   final DateTime createdAt;
   final int streakDays;
+  final String? gymName;
+  final String? gymAddress;
+  final double? gymLat;
+  final double? gymLng;
+  final DateTime? subscriptionExpiry;
 
   UserProfile({
     required this.id,
@@ -17,6 +22,11 @@ class UserProfile {
     this.photoUrl,
     required this.createdAt,
     this.streakDays = 0,
+    this.gymName,
+    this.gymAddress,
+    this.gymLat,
+    this.gymLng,
+    this.subscriptionExpiry,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +39,11 @@ class UserProfile {
       'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
       'streakDays': streakDays,
+      'gymName': gymName,
+      'gymAddress': gymAddress,
+      'gymLat': gymLat,
+      'gymLng': gymLng,
+      'subscriptionExpiry': subscriptionExpiry?.toIso8601String(),
     };
   }
 
@@ -42,6 +57,13 @@ class UserProfile {
       photoUrl: map['photoUrl'],
       createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
       streakDays: map['streakDays'] ?? 0,
+      gymName: map['gymName'],
+      gymAddress: map['gymAddress'],
+      gymLat: map['gymLat']?.toDouble(),
+      gymLng: map['gymLng']?.toDouble(),
+      subscriptionExpiry: map['subscriptionExpiry'] != null
+          ? DateTime.tryParse(map['subscriptionExpiry'])
+          : null,
     );
   }
 }

@@ -62,10 +62,12 @@ class WorkoutTypePieChart extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       '${entry.key} ($percentage%)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white70,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : Colors.black87,
                       ),
                     ),
                   ],

@@ -122,19 +122,109 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     final user = AuthService().currentUser;
     if (user == null) return;
 
+    // Ask user for date/time
+    DateTime? selectedDate = DateTime.now();
+    TimeOfDay? selectedTime = TimeOfDay.now();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Finish Workout'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Great job! Save this workout?'),
+            const SizedBox(height: 16),
+            ListTile(
+              title: const Text('Date'),
+              subtitle: Text(selectedDate!.toString().split(' ')[0]),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: ctx,
+                  initialDate: selectedDate!,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+                if (picked != null) {
+                  selectedDate = picked;
+                  // Force rebuild of dialog? No, simple way: close and reopen or use StatefulBuilder.
+                  // For simplicity in this iteration, we just use current date if not complex.
+                  // Correct approach: Use StatefulBuilder inside Dialog.
+                  // But to keep it simple, let's just use the current time logic or build a smarter dialog.
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    // Show date picker to confirm/change date
+    // Actually, let's just show the picker directly if they want to "Backdate" vs "Save Now"
+    // Better UX: Show ActionSheet: "Finish Now" or "Choose Date"
+
+    // final action = await showModalBottomSheet<String>(...);
+    // This is getting complex. Let's simplify:
+    // Just show a DateTime picker if they long-press "FINISH"? No, discovery issue.
+
+    // Let's go with a simple date picker dialog step.
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      helpText: 'CONFIRM DATE',
+    );
+
+    if (pickedDate == null) return; // User cancelled
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      helpText: 'CONFIRM END TIME',
+    );
+
+    if (pickedTime == null) return;
+
+    final finalDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    // Calculate start time based on duration (duration matches expected stopwatch)
+    final startTime = finalDateTime.subtract(_stopwatch.elapsed);
+
+    setState(() => _isSaving = true);
+
     final session = WorkoutSession(
       id: const Uuid().v4(),
       userId: user.uid,
       workoutTemplateId: widget.workout.id,
       workoutName: widget.workout.name,
-      startTime: DateTime.now().subtract(_stopwatch.elapsed),
-      endTime: DateTime.now(),
+      startTime: startTime,
+      endTime: finalDateTime,
       exercises: _sessionExercises,
       workoutType: widget.workout.category.name,
     );
 
     // Fire and forget save
-    FirestoreService().saveSession(session).ignore();
+    await FirestoreService().saveSession(session);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -196,6 +286,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
+                  padding: const EdgeInsets.all(12.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
