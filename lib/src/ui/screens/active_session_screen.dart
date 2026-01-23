@@ -71,42 +71,28 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
   bool _isSaving = false;
 
   Future<void> _finishWorkout() async {
-    if (_isSaving) return;
-
     final user = AuthService().currentUser;
     if (user == null) return;
 
-    setState(() => _isSaving = true);
+    final session = WorkoutSession(
+      id: const Uuid().v4(),
+      userId: user.uid,
+      workoutTemplateId: widget.workout.id,
+      workoutName: widget.workout.name,
+      startTime: DateTime.now().subtract(_stopwatch.elapsed),
+      endTime: DateTime.now(),
+      exercises: _sessionExercises,
+      workoutType: widget.workout.category.name,
+    );
 
-    try {
-      final session = WorkoutSession(
-        id: const Uuid().v4(),
-        userId: user.uid,
-        workoutTemplateId: widget.workout.id,
-        workoutName: widget.workout.name,
-        startTime: DateTime.now().subtract(_stopwatch.elapsed),
-        endTime: DateTime.now(),
-        exercises: _sessionExercises,
+    // Fire and forget save
+    FirestoreService().saveSession(session).ignore();
+
+    if (mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Great job! Workout saved. 💪')),
       );
-
-      await FirestoreService().saveSession(session);
-
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Workout Saved! Great job! 🎉')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving workout: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
     }
   }
 
