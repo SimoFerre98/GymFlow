@@ -57,11 +57,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
             length: 2,
             child: Column(
               children: [
-                const TabBar(
-                  tabs: [
-                    Tab(text: "Overview"),
-                    Tab(text: "History"),
-                  ],
+                // Custom Tab Selector (Premium Segmented Control)
+                Container(
+                  height: 50,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TabBar(
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: Theme.of(context).primaryColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.grey[600],
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                    dividerColor:
+                        Colors.transparent, // Remove default underline
+                    tabs: const [
+                      Tab(text: 'Overview'),
+                      Tab(text: 'History'),
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: TabBarView(
@@ -109,7 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: _buildStatContent(
                     'Workouts',
                     sessions.length.toString(),
-                    Icons.fitness_center,
+                    Icons.fitness_center_rounded,
                     Colors.blue,
                     isLoading,
                   ),
@@ -121,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: _buildStatContent(
                     'Streak',
                     '$streak Days',
-                    Icons.local_fire_department,
+                    Icons.local_fire_department_rounded,
                     Colors.orange,
                     isLoading,
                   ),
@@ -137,11 +182,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(
                 child: _buildBentoCard(
                   child: _buildStatContent(
-                    'Total Volume',
+                    'Volume',
                     isLoading
                         ? '0'
                         : '${(StatisticsHelper.calculateTotalVolume(sessions) / 1000).toStringAsFixed(1)}k',
-                    Icons.monitor_weight_outlined,
+                    Icons.scale_rounded,
                     Colors.purple,
                     isLoading,
                     suffix: ' kg',
@@ -152,13 +197,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(
                 child: _buildBentoCard(
                   child: _buildStatContent(
-                    'Avg RPE',
+                    'Avg Intensity',
                     isLoading
                         ? '0'
                         : StatisticsHelper.calculateAverageRPE(
                             sessions,
                           ).toStringAsFixed(1),
-                    Icons.speed,
+                    Icons.speed_rounded,
                     Colors.redAccent,
                     isLoading,
                     suffix: '/10',
@@ -365,19 +410,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildHistoryTab(List<WorkoutSession> sessions, bool isLoading) {
     if (isLoading) {
-      return ListView.builder(
+      return ListView.separated(
+        padding: const EdgeInsets.all(20),
         itemCount: 5,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              leading: CircleAvatar(backgroundColor: Colors.grey[300]),
-              title: Container(height: 16, width: 100, color: Colors.grey[300]),
-              subtitle: Container(
-                height: 12,
-                width: 150,
-                color: Colors.grey[300],
-              ),
+          return Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(16),
             ),
           );
         },
@@ -385,7 +427,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     if (sessions.isEmpty) {
-      return const Center(child: Text("No workouts yet. Start training!"));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              "No workouts yet",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[400],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Start training to see your history here.",
+              style: TextStyle(color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      );
     }
 
     // Sort by date desc
@@ -393,27 +456,155 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ..sort((a, b) => b.startTime.compareTo(a.startTime));
 
     return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       itemCount: sorted.length,
       itemBuilder: (context, index) {
         final session = sorted[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.check, color: Colors.white),
+        final isToday =
+            DateTime.now().difference(session.startTime).inDays == 0 &&
+            session.startTime.day == DateTime.now().day;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                // TODO: Detail view
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    // Date Badge
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: isToday
+                            ? Theme.of(context).primaryColor.withOpacity(0.1)
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(16),
+                        border: isToday
+                            ? Border.all(
+                                color: Theme.of(
+                                  context,
+                                ).primaryColor.withOpacity(0.5),
+                              )
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            DateFormat('dd').format(session.startTime),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: isToday
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.grey[800],
+                              height: 1.0,
+                            ),
+                          ),
+                          Text(
+                            DateFormat(
+                              'MMM',
+                            ).format(session.startTime).toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isToday
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            session.workoutName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: Colors.grey[500],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                DateFormat('HH:mm').format(session.startTime),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              if (session.durationSeconds > 0) ...[
+                                Icon(
+                                  Icons.timer_outlined,
+                                  size: 14,
+                                  color: Colors.grey[500],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${session.durationSeconds ~/ 60}m',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Status/Action
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_rounded,
+                        color: Colors.green,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            title: Text(
-              session.workoutName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              DateFormat('EEEE, MMM d @ HH:mm').format(session.startTime),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              // Detail view? For now just print or no-op
-            },
           ),
         );
       },

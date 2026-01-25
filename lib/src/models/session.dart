@@ -11,6 +11,11 @@ class WorkoutSession {
   final String? notes;
   final String workoutType; // 'strength', 'cardio', etc.
 
+  int get durationSeconds {
+    if (endTime == null) return 0;
+    return endTime!.difference(startTime).inSeconds;
+  }
+
   WorkoutSession({
     required this.id,
     required this.userId,
