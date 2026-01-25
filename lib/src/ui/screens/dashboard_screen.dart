@@ -95,219 +95,211 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isLoading,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Quick Stats Cards
+          // Greeting / Header could go here
+
+          // Row 1: Quick Stats (Small Bento Cards)
           Row(
             children: [
               Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Total Workouts',
-                  sessions.length.toString(),
-                  Icons.fitness_center,
-                  Colors.blue,
-                  isLoading,
+                child: _buildBentoCard(
+                  child: _buildStatContent(
+                    'Workouts',
+                    sessions.length.toString(),
+                    Icons.fitness_center,
+                    Colors.blue,
+                    isLoading,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildStatCard(
-                  context,
-                  'Current Streak',
-                  '$streak Days',
-                  Icons.local_fire_department,
-                  Colors.orange,
-                  isLoading,
+                child: _buildBentoCard(
+                  child: _buildStatContent(
+                    'Streak',
+                    '$streak Days',
+                    Icons.local_fire_department,
+                    Colors.orange,
+                    isLoading,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          // Gym Info Card
-          _buildGymInfoCard(), // Could also be skeletonized, but relies on Profile which is async too... leave for now or fix if verified slow.
-          const SizedBox(height: 24),
-          const Text(
-            'Weekly Activity',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          const SizedBox(height: 16),
+
+          // Row 2: Gym Map (Wide Bento Card)
+          if (_userProfile?.gymLat != null) ...[
+            _buildGymBentoCard(),
+            const SizedBox(height: 16),
+          ],
+
+          // Row 3: Charts (Medium Bento Cards)
+          // Using a Column for mobile, but styled as blocks
+          _buildBentoCard(
+            title: 'Weekly Activity',
+            child: SizedBox(
+              height: 200,
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : ActivityChart(weeklyData: weeklyData),
+            ),
           ),
           const SizedBox(height: 16),
-          // Activity Chart
-          isLoading
-              ? Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
+
+          _buildBentoCard(
+            title: 'Workout Types',
+            child: isLoading
+                ? const SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : WorkoutTypePieChart(
+                    data: StatisticsHelper.getWorkoutTypeDistribution(sessions),
                   ),
-                )
-              : ActivityChart(weeklyData: weeklyData),
-          const SizedBox(height: 24),
-          const Text(
-            'Workout Distribution',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
-          // Pie Chart
-          isLoading
-              ? Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12), // Circle for pie?
-                  ),
-                )
-              : WorkoutTypePieChart(
-                  data: StatisticsHelper.getWorkoutTypeDistribution(sessions),
-                ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 100), // Space for FAB/BottomNav
         ],
       ),
     );
   }
 
-  Widget _buildGymInfoCard() {
-    if (_userProfile?.gymName == null && _userProfile?.gymLat == null) {
-      return const SizedBox.shrink();
-    }
-
-    final daysLeft = _userProfile?.subscriptionExpiry
-        ?.difference(DateTime.now())
-        .inDays;
-
-    return Card(
-      elevation: 4,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          if (_userProfile?.gymLat != null && _userProfile?.gymLng != null)
-            SizedBox(
-              height: 150,
-              child: FlutterMap(
-                options: MapOptions(
-                  initialCenter: LatLng(
-                    _userProfile!.gymLat!,
-                    _userProfile!.gymLng!,
-                  ),
-                  initialZoom: 15.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.none,
-                  ), // Static map
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.gymflow.app',
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: LatLng(
-                          _userProfile!.gymLat!,
-                          _userProfile!.gymLng!,
-                        ),
-                        width: 80,
-                        height: 80,
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+  // Helper for Bento Card Style
+  Widget _buildBentoCard({
+    required Widget child,
+    String? title,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _userProfile?.gymName ?? 'My Gym',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (_userProfile?.gymAddress != null)
+                if (title != null) ...[
                   Text(
-                    _userProfile!.gymAddress!,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                const SizedBox(height: 10),
-                if (daysLeft != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: daysLeft > 0
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      daysLeft > 0
-                          ? '$daysLeft Days Remaining'
-                          : 'Subscription Expired',
-                      style: TextStyle(
-                        color: daysLeft > 0 ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                ],
+                child,
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context,
+  Widget _buildStatContent(
     String title,
     String value,
     IconData icon,
     Color color,
     bool isLoading,
   ) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
-            isLoading
-                ? Container(
-                    height: 24,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  )
-                : Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 24, color: color),
+        ),
+        const SizedBox(height: 16),
+        isLoading
+            ? Container(
+                height: 28,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              )
+            : Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  height: 1.0,
+                ),
+              ),
+        const SizedBox(height: 4),
+        Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+      ],
+    );
+  }
+
+  Widget _buildGymBentoCard() {
+    if (_userProfile?.gymLat == null) return const SizedBox.shrink();
+
+    // Simplified Map Card for Bento
+    return _buildBentoCard(
+      title: _userProfile?.gymName ?? 'My Gym',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          height: 150,
+          width: double.infinity,
+          child: FlutterMap(
+            options: MapOptions(
+              initialCenter: LatLng(
+                _userProfile!.gymLat!,
+                _userProfile!.gymLng!,
+              ),
+              initialZoom: 15.0,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.none,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.gymflow.app',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: LatLng(_userProfile!.gymLat!, _userProfile!.gymLng!),
+                    width: 40,
+                    height: 40,
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 40,
                     ),
                   ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

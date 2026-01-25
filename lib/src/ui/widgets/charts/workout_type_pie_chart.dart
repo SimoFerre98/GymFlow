@@ -17,67 +17,58 @@ class WorkoutTypePieChart extends StatelessWidget {
 
     final total = data.values.fold(0, (sum, val) => sum + val);
 
-    return AspectRatio(
-      aspectRatio: 1.3,
-      child: Row(
-        children: [
-          const SizedBox(height: 18),
-          Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: PieChart(
-                PieChartData(
-                  pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {},
-                  ),
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 40,
-                  sections: _showingSections(data, total),
-                ),
+    return Column(
+      children: [
+        SizedBox(
+          height: 180,
+          child: PieChart(
+            PieChartData(
+              pieTouchData: PieTouchData(
+                touchCallback: (FlTouchEvent event, pieTouchResponse) {},
               ),
+              borderData: FlBorderData(show: false),
+              sectionsSpace: 2, // Added space for 'cut' effect
+              centerSpaceRadius: 40,
+              sections: _showingSections(data, total),
             ),
           ),
-          const SizedBox(width: 28),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: data.entries.map((entry) {
-              final color = _getColor(entry.key);
-              final percentage = ((entry.value / total) * 100).toStringAsFixed(
-                1,
-              );
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 4.0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${entry.key} ($percentage%)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
+        ),
+        const SizedBox(height: 24),
+        // Legend
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: data.entries.map((entry) {
+            final color = _getColor(entry.key);
+            final percentage = ((entry.value / total) * 100).toStringAsFixed(1);
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color,
+                  ),
                 ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(width: 28),
-        ],
-      ),
+                const SizedBox(width: 6),
+                Text(
+                  '${entry.key} ($percentage%)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.color?.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
