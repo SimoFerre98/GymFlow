@@ -24,31 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double? _gymLat;
   double? _gymLng;
   DateTime? _subscriptionExpiry;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    final profile = await AuthService().getUserProfile();
-    if (profile != null) {
-      if (mounted) {
-        setState(() {
-          _gymNameController.text = profile.gymName ?? '';
-          _gymAddressController.text = profile.gymAddress ?? '';
-          _gymLat = profile.gymLat;
-          _gymLng = profile.gymLng;
-          _subscriptionExpiry = profile.subscriptionExpiry;
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
+  bool _isLoading =
+      true; // Use this to check if initial load is done for pristine check.
 
   @override
   void dispose() {
@@ -61,97 +38,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              children: [
-                _buildGymSection(),
-                const Divider(),
-                SwitchListTile(
-                  title: const Text('Notifications'),
-                  subtitle: const Text('Enable push notifications'),
-                  value: _notificationsEnabled,
-                  onChanged: (val) =>
-                      setState(() => _notificationsEnabled = val),
-                ),
-                const Divider(),
-                ListTile(
-                  title: const Text('Account'),
-                  subtitle: Text(
-                    AuthService().currentUser?.email ?? 'Not logged in',
-                  ),
-                  leading: const Icon(Icons.person),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+      body: StreamBuilder<UserProfile?>(
+        stream: AuthService().getUserProfileStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final profile = snapshot.data;
+          // Update controllers if profile changes and we aren't editing?
+          // For simplicity in this "view/edit" mix, we might need a more complex state management.
+          // However, to solve the "slow load", showing data immediately is key.
+          // Let's populate the controllers only if they are empty or if we want to sync.
+          // But editing text fields while a stream updates them is tricky (cursor jumps).
+          // OPTION: Load initial data from stream, then let user edit.
+          // But the user asked for "load things then update".
+
+          // Better approach for settings form:
+          // 1. Initial build: show loading or cached data.
+          // 2. If we receive data and controllers are "pristine" (not modified by user yet), update them.
+
+          // Actually, the simplest fix for "slow load" is just using the stream to SHOW the data.
+          // But here we have text fields.
+
+          // Let's rely on the fact that the stream emits the CACHED value immediately.
+          // So we can just use a FutureBuilder or similar, BUT `getUserProfile` was `get()`, forcing a network fetch if not configured to cache-first.
+          // Firestore `get()` usually fetches from server unless source is specified.
+          // `snapshots()` emits cache first.
+
+          if (profile != null &&
+              _gymNameController.text.isEmpty &&
+              !_isLoading) {
+            _gymNameController.text = profile.gymName ?? '';
+            _gymAddressController.text = profile.gymAddress ?? '';
+            _gymLat = profile.gymLat;
+            _gymLng = profile.gymLng;
+            _subscriptionExpiry = profile.subscriptionExpiry;
+          }
+
+          return ListView(
+            children: [
+              _buildGymSection(), // Pass context if needed, or remove arg if not used
+              const Divider(),
+              SwitchListTile(
+                title: const Text('Notifications'),
+                subtitle: const Text('Enable push notifications'),
+                value: _notificationsEnabled,
+                onChanged: (val) => setState(() => _notificationsEnabled = val),
+              ),
+              const Divider(),
+              ListTile(
+                title: const Text('Account'),
+                subtitle: Text(profile?.email ?? 'Not logged in'),
+                leading: const Icon(Icons.person),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                title: const Text('Logout'),
+                leading: const Icon(Icons.logout, color: Colors.red),
+                onTap: () async {
+                  await AuthService().signOut();
+                  if (context.mounted) {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  }
+                },
+              ),
+              ListTile(
+                title: const Text('Load Default Exercises'),
+                leading: const Icon(Icons.cloud_upload_outlined),
+                onTap: () async {
+                  await FirestoreService().seedDefaultExercises();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Default exercises loaded!'),
+                      ),
                     );
-                  },
-                ),
-                ListTile(
-                  title: const Text('Logout'),
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  onTap: () async {
-                    await AuthService().signOut();
-                    if (mounted) {
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                    }
-                  },
-                ),
-                ListTile(
-                  title: const Text('Load Default Exercises'),
-                  leading: const Icon(Icons.cloud_upload_outlined),
-                  onTap: () async {
-                    await FirestoreService().seedDefaultExercises();
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Default exercises loaded!'),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                // Theme Selection
-                Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) {
-                    return Column(
-                      children: [
-                        const Divider(),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 16.0, top: 8.0),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Theme',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                  }
+                },
+              ),
+              // Theme Selection
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, _) {
+                  return Column(
+                    children: [
+                      const Divider(),
+                      const Padding(
+                        padding: EdgeInsets.only(left: 16.0, top: 8.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Theme',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        RadioListTile<ThemeMode>(
-                          title: const Text('System Default'),
-                          value: ThemeMode.system,
-                          groupValue: themeProvider.themeMode,
-                          onChanged: (val) => themeProvider.setThemeMode(val!),
-                        ),
-                        RadioListTile<ThemeMode>(
-                          title: const Text('Light Mode'),
-                          value: ThemeMode.light,
-                          groupValue: themeProvider.themeMode,
-                          onChanged: (val) => themeProvider.setThemeMode(val!),
-                        ),
-                        RadioListTile<ThemeMode>(
-                          title: const Text('Dark Mode'),
-                          value: ThemeMode.dark,
-                          groupValue: themeProvider.themeMode,
-                          onChanged: (val) => themeProvider.setThemeMode(val!),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
+                      ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('System Default'),
+                        value: ThemeMode.system,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (val) => themeProvider.setThemeMode(val!),
+                      ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Light Mode'),
+                        value: ThemeMode.light,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (val) => themeProvider.setThemeMode(val!),
+                      ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Dark Mode'),
+                        value: ThemeMode.dark,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (val) => themeProvider.setThemeMode(val!),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

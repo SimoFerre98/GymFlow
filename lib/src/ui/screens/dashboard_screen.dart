@@ -46,13 +46,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: StreamBuilder<List<WorkoutSession>>(
         stream: firestore.getUserSessions(userId),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
+          final isLoading =
+              snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData;
           final sessions = snapshot.data ?? [];
           final weeklyData = StatisticsHelper.getWeeklyWorkoutCounts(sessions);
           final streak = StatisticsHelper.calculateCurrentStreak(sessions);
@@ -71,9 +67,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: TabBarView(
                     children: [
                       // Overview Tab
-                      _buildOverviewTab(context, sessions, weeklyData, streak),
+                      _buildOverviewTab(
+                        context,
+                        sessions,
+                        weeklyData,
+                        streak,
+                        isLoading,
+                      ),
                       // History Tab
-                      _buildHistoryTab(sessions),
+                      _buildHistoryTab(sessions, isLoading),
                     ],
                   ),
                 ),
@@ -90,6 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     List<WorkoutSession> sessions,
     Map<int, int> weeklyData,
     int streak,
+    bool isLoading,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -106,6 +109,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   sessions.length.toString(),
                   Icons.fitness_center,
                   Colors.blue,
+                  isLoading,
                 ),
               ),
               const SizedBox(width: 16),
@@ -116,13 +120,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   '$streak Days',
                   Icons.local_fire_department,
                   Colors.orange,
+                  isLoading,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
           // Gym Info Card
-          _buildGymInfoCard(),
+          _buildGymInfoCard(), // Could also be skeletonized, but relies on Profile which is async too... leave for now or fix if verified slow.
           const SizedBox(height: 24),
           const Text(
             'Weekly Activity',
@@ -130,7 +135,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
           // Activity Chart
-          ActivityChart(weeklyData: weeklyData),
+          isLoading
+              ? Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                )
+              : ActivityChart(weeklyData: weeklyData),
           const SizedBox(height: 24),
           const Text(
             'Workout Distribution',
@@ -138,9 +151,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
           // Pie Chart
-          WorkoutTypePieChart(
-            data: StatisticsHelper.getWorkoutTypeDistribution(sessions),
-          ),
+          isLoading
+              ? Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12), // Circle for pie?
+                  ),
+                )
+              : WorkoutTypePieChart(
+                  data: StatisticsHelper.getWorkoutTypeDistribution(sessions),
+                ),
           const SizedBox(height: 30),
         ],
       ),
@@ -255,6 +276,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String value,
     IconData icon,
     Color color,
+    bool isLoading,
   ) {
     return Card(
       elevation: 4,
@@ -264,10 +286,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(icon, size: 32, color: color),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            isLoading
+                ? Container(
+                    height: 24,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  )
+                : Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
             const SizedBox(height: 4),
             Text(
               title,
@@ -279,7 +313,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHistoryTab(List<WorkoutSession> sessions) {
+  Widget _buildHistoryTab(List<WorkoutSession> sessions, bool isLoading) {
+    if (isLoading) {
+      return ListView.builder(
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ListTile(
+              leading: CircleAvatar(backgroundColor: Colors.grey[300]),
+              title: Container(height: 16, width: 100, color: Colors.grey[300]),
+              subtitle: Container(
+                height: 12,
+                width: 150,
+                color: Colors.grey[300],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     if (sessions.isEmpty) {
       return const Center(child: Text("No workouts yet. Start training!"));
     }

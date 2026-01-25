@@ -3,32 +3,53 @@ import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
+import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // --- Exercises ---
 
+  // --- Exercises ---
+
   // Get all exercises (Global + Custom for this user)
   Stream<List<Exercise>> getExercises(String userId) {
-    return _db
+    final defaultsStream = _db
         .collection('exercises')
-        .where(
-          Filter.or(
-            Filter('isCustom', isEqualTo: false),
-            Filter('userId', isEqualTo: userId),
-          ),
-        )
+        .where('isCustom', isEqualTo: false)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => Exercise.fromMap(doc.data(), doc.id))
-              .toList(),
+          (s) => s.docs.map((d) => Exercise.fromMap(d.data(), d.id)).toList(),
         );
+
+    final customsStream = _db
+        .collection('exercises')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map(
+          (s) => s.docs.map((d) => Exercise.fromMap(d.data(), d.id)).toList(),
+        );
+
+    return Rx.combineLatest2<List<Exercise>, List<Exercise>, List<Exercise>>(
+      defaultsStream,
+      customsStream,
+      (defaults, customs) => [...defaults, ...customs],
+    );
   }
 
   Future<void> addExercise(Exercise exercise) async {
-    await _db.collection('exercises').add(exercise.toMap());
+    final doc = _db.collection('exercises').doc();
+    final newExercise = Exercise(
+      id: doc.id,
+      userId: exercise.userId,
+      name: exercise.name,
+      description: exercise.description,
+      type: exercise.type,
+      videoUrl: exercise.videoUrl,
+      musclesTargeted: exercise.musclesTargeted,
+      isCustom: true,
+    );
+    await doc.set(newExercise.toMap());
   }
 
   Future<void> seedDefaultExercises() async {

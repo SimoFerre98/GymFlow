@@ -85,6 +85,19 @@ class AuthService {
     return null;
   }
 
+  // Get User Profile Stream
+  Stream<UserProfile?> getUserProfileStream() {
+    final user = currentUser;
+    if (user == null) return Stream.value(null);
+
+    return _firestore.collection('users').doc(user.uid).snapshots().map((doc) {
+      if (doc.exists && doc.data() != null) {
+        return UserProfile.fromMap(doc.data()!, doc.id);
+      }
+      return null;
+    });
+  }
+
   Future<void> updateUserProfile(UserProfile profile) async {
     await _firestore
         .collection('users')
