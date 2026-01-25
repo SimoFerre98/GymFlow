@@ -8,6 +8,8 @@ class WorkoutProgram {
   final List<String> workoutIds; // IDs of WorkoutTemplates in this program
   final bool isActive;
   final DateTime createdAt;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   WorkoutProgram({
     required this.id,
@@ -17,6 +19,8 @@ class WorkoutProgram {
     required this.workoutIds,
     this.isActive = false,
     required this.createdAt,
+    this.startDate,
+    this.endDate,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +32,8 @@ class WorkoutProgram {
       'workoutIds': workoutIds,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
+      'startDate': startDate?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
     };
   }
 
@@ -40,6 +46,12 @@ class WorkoutProgram {
       workoutIds: List<String>.from(map['workoutIds'] ?? []),
       isActive: map['isActive'] ?? false,
       createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+      startDate: map['startDate'] != null
+          ? DateTime.tryParse(map['startDate'])
+          : null,
+      endDate: map['endDate'] != null
+          ? DateTime.tryParse(map['endDate'])
+          : null,
     );
   }
 }

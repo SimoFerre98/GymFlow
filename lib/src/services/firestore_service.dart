@@ -184,11 +184,13 @@ class FirestoreService {
   }
 
   // Create/Update Workout
-  Future<void> saveWorkout(WorkoutTemplate workout) async {
+  Future<String> saveWorkout(WorkoutTemplate workout) async {
     if (workout.id.isEmpty) {
-      await _db.collection('workouts').add(workout.toMap());
+      final docRef = await _db.collection('workouts').add(workout.toMap());
+      return docRef.id;
     } else {
       await _db.collection('workouts').doc(workout.id).update(workout.toMap());
+      return workout.id;
     }
   }
 

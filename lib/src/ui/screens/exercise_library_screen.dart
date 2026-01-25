@@ -15,6 +15,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
   final FirestoreService _firestore = FirestoreService();
   final AuthService _auth = AuthService();
   String _searchQuery = '';
+  final Set<ExerciseType> _selectedFilters = {};
 
   @override
   Widget build(BuildContext context) {
@@ -25,17 +26,72 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
       appBar: AppBar(title: const Text('Exercises')),
       body: Column(
         children: [
+          // Filter Chips Section
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: ExerciseType.values.map((type) {
+                final isSelected = _selectedFilters.contains(type);
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: FilterChip(
+                    label: Text(type.name.toUpperCase()),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedFilters.add(type);
+                        } else {
+                          _selectedFilters.remove(type);
+                        }
+                      });
+                    },
+                    backgroundColor: Theme.of(context).cardColor,
+                    selectedColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.2),
+                    checkmarkColor: Theme.of(context).colorScheme.primary,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).textTheme.bodyMedium?.color,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Search Exercise',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
               onChanged: (val) =>
                   setState(() => _searchQuery = val.toLowerCase()),
             ),
           ),
+          const SizedBox(height: 10),
           Expanded(
             child: StreamBuilder<List<Exercise>>(
               stream: _firestore.getExercises(user.uid),
@@ -50,29 +106,47 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
                 }
 
                 final exercises = snapshot.data!.where((e) {
-                  return e.name.toLowerCase().contains(_searchQuery);
+                  final matchesSearch = e.name.toLowerCase().contains(
+                    _searchQuery,
+                  );
+                  final matchesFilter =
+                      _selectedFilters.isEmpty ||
+                      _selectedFilters.contains(e.type);
+                  return matchesSearch && matchesFilter;
                 }).toList();
 
                 return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 80),
                   itemCount: exercises.length,
                   itemBuilder: (context, index) {
                     final exercise = exercises[index];
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 8,
+                        vertical: 6,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.secondary.withOpacity(0.2),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.secondary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
                           child: Icon(
                             Icons.fitness_center,
                             color: Theme.of(context).colorScheme.secondary,
+                            size: 20,
                           ),
                         ),
-                        title: Text(exercise.name),
+                        title: Text(
+                          exercise.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(exercise.type.name.toUpperCase()),
                         onTap: () {
                           if (widget.isSelecting) {
@@ -103,7 +177,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('New Custom Exercise'),
         content: StatefulBuilder(
           builder: (context, setState) {
@@ -132,7 +206,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -150,7 +224,10 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
               );
 
               await _firestore.addExercise(exercise);
-              if (mounted) Navigator.pop(context);
+              // Check if the dialog is still open/mounted before popping
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext);
+              }
             },
             child: const Text('Save'),
           ),

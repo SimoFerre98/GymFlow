@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -7,7 +8,8 @@ import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 
 class WorkoutCreatorScreen extends StatefulWidget {
   final WorkoutTemplate? workout; // If provided, we are editing
-  const WorkoutCreatorScreen({super.key, this.workout});
+  final String? parentProgramId;
+  const WorkoutCreatorScreen({super.key, this.workout, this.parentProgramId});
 
   @override
   State<WorkoutCreatorScreen> createState() => _WorkoutCreatorScreenState();
@@ -18,7 +20,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final List<WorkoutTemplateExercise> _exercises = [];
-  ExerciseType _selectedType = ExerciseType.strength;
+  ExerciseType _selectedType = ExerciseType.strength; // Main focus
   bool _isLoading = false;
 
   @override
@@ -46,17 +48,37 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       final user = AuthService().currentUser;
       if (user == null) throw Exception('User not logged in');
 
+      final workoutId = widget.workout?.id ?? '';
       final workout = WorkoutTemplate(
-        id: widget.workout?.id ?? '',
+        id: workoutId,
         userId: user.uid,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         exercises: _exercises,
         category: _selectedType,
+        parentProgramId: widget.parentProgramId,
       );
 
-      await FirestoreService().saveWorkout(workout);
-      if (mounted) Navigator.pop(context);
+      final service = FirestoreService();
+      final savedId = await service.saveWorkout(workout);
+
+      // If this is a new workout part of a program, update the program too
+      if (workoutId.isEmpty && widget.parentProgramId != null) {
+        // Fetch program to append ID
+        // Ideally we should have a specific method 'addWorkoutToProgram' in service
+        // But let's do safe fetch-update pattern here or rely on explicit service call.
+        // Actually, fetching whole program might be heavy? No, it's fine.
+        // Better: atomic arrayUnion update.
+
+        await FirebaseFirestore.instance
+            .collection('programs')
+            .doc(widget.parentProgramId)
+            .update({
+              'workoutIds': FieldValue.arrayUnion([savedId]),
+            });
+      }
+
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -66,6 +88,54 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  // Custom Filter Chip Widget for Category Selection
+  Widget _buildCategorySelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Focus Category',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: ExerciseType.values.map((type) {
+            final isSelected = _selectedType == type;
+            return FilterChip(
+              label: Text(type.name.toUpperCase()),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedType = type;
+                });
+              },
+              backgroundColor: Theme.of(context).cardColor,
+              selectedColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.3),
+              checkmarkColor: Theme.of(context).colorScheme.primary,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).textTheme.bodyMedium?.color,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 
   void _addExercise() async {
@@ -82,7 +152,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
           WorkoutTemplateExercise(
             exerciseId: result.id,
             exerciseName: result.name,
-            targetSets: 3, // Default
+            targetSets: 3,
             targetReps: "10",
           ),
         );
@@ -94,7 +164,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.workout == null ? 'New Workout' : 'Edit Workout'),
+        title: Text(widget.workout == null ? 'New Day' : 'Edit Day'),
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -106,78 +176,181 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
         key: _formKey,
         child: Column(
           children: [
-            Padding(
+            Container(
               padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(24),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
               child: Column(
                 children: [
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Workout Name',
+                    decoration: InputDecoration(
+                      labelText: 'Day Name (e.g. Push Day)',
+                      filled: true,
+                      fillColor: Theme.of(context).cardColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                     validator: (v) => v!.isEmpty ? 'Name required' : null,
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<ExerciseType>(
-                    value: _selectedType,
-                    decoration: const InputDecoration(labelText: 'Type'),
-                    items: ExerciseType.values.map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(type.name.toUpperCase()),
-                      );
-                    }).toList(),
-                    onChanged: (val) => setState(() => _selectedType = val!),
-                  ),
+                  _buildCategorySelector(),
                 ],
               ),
             ),
-            const Divider(),
+
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Exercises',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle, color: Colors.blue),
+                  ElevatedButton.icon(
                     onPressed: _addExercise,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+
             Expanded(
-              child: ReorderableListView(
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (oldIndex < newIndex) newIndex -= 1;
-                    final item = _exercises.removeAt(oldIndex);
-                    _exercises.insert(newIndex, item);
-                  });
-                },
-                children: [
-                  for (int index = 0; index < _exercises.length; index++)
-                    ListTile(
-                      key: ValueKey(_exercises[index]),
-                      title: Text(_exercises[index].exerciseName),
-                      subtitle: Text(
-                        '${_exercises[index].targetSets} Sets x ${_exercises[index].targetReps} Reps',
+              child: _exercises.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.fitness_center,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No exercises added yet',
+                            style: TextStyle(color: Colors.grey[500]),
+                          ),
+                        ],
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          setState(() => _exercises.removeAt(index));
-                        },
-                      ),
-                      onTap: () {
-                        // TODO: Edit Targets (Sets/Reps)
+                    )
+                  : ReorderableListView(
+                      buildDefaultDragHandles:
+                          false, // Hide default handles outside card
+                      padding: const EdgeInsets.only(bottom: 80),
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (oldIndex < newIndex) newIndex -= 1;
+                          final item = _exercises.removeAt(oldIndex);
+                          _exercises.insert(newIndex, item);
+                        });
                       },
+                      children: [
+                        for (int index = 0; index < _exercises.length; index++)
+                          Card(
+                            key: ValueKey(_exercises[index]),
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                left: 16,
+                                right: 8,
+                                top: 4,
+                                bottom: 4,
+                              ),
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                _exercises[index].exerciseName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '${_exercises[index].targetSets} Sets × ${_exercises[index].targetReps} Reps',
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.redAccent,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      setState(
+                                        () => _exercises.removeAt(index),
+                                      );
+                                    },
+                                  ),
+                                  ReorderableDragStartListener(
+                                    index: index,
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Icon(
+                                        Icons.drag_handle,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {
+                                // TODO: Edit Targets Dialog
+                              },
+                            ),
+                          ),
+                      ],
                     ),
-                ],
-              ),
             ),
           ],
         ),
