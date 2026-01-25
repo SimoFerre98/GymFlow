@@ -10,6 +10,7 @@ class WorkoutProgram {
   final DateTime createdAt;
   final DateTime? startDate;
   final DateTime? endDate;
+  final int color; // Color value
 
   WorkoutProgram({
     required this.id,
@@ -21,6 +22,7 @@ class WorkoutProgram {
     required this.createdAt,
     this.startDate,
     this.endDate,
+    this.color = 0xFF2196F3, // Default Blue
   });
 
   Map<String, dynamic> toMap() {
@@ -34,6 +36,7 @@ class WorkoutProgram {
       'createdAt': createdAt.toIso8601String(),
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
+      'color': color,
     };
   }
 
@@ -52,6 +55,7 @@ class WorkoutProgram {
       endDate: map['endDate'] != null
           ? DateTime.tryParse(map['endDate'])
           : null,
+      color: map['color'] ?? 0xFF2196F3,
     );
   }
 }

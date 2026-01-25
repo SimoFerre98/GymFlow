@@ -20,6 +20,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
   late TextEditingController _descController;
   DateTime? _startDate;
   DateTime? _endDate;
+  int _selectedColor = 0xFF2196F3;
   bool _isLoading = false;
 
   @override
@@ -31,6 +32,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
     );
     _startDate = widget.program?.startDate;
     _endDate = widget.program?.endDate;
+    _selectedColor = widget.program?.color ?? 0xFF2196F3;
   }
 
   @override
@@ -78,6 +80,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
         createdAt: widget.program?.createdAt ?? DateTime.now(),
         startDate: _startDate,
         endDate: _endDate,
+        color: _selectedColor,
       );
 
       await FirestoreService().saveProgram(program);
@@ -152,6 +155,62 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
               ),
               const SizedBox(height: 16),
 
+              _buildSection(
+                title: 'Color',
+                child: SizedBox(
+                  height: 50,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children:
+                        [
+                          0xFFF44336, // Red
+                          0xFFE91E63, // Pink
+                          0xFF9C27B0, // Purple
+                          0xFF2196F3, // Blue
+                          0xFF00BCD4, // Cyan
+                          0xFF4CAF50, // Green
+                          0xFFFFEB3B, // Yellow
+                          0xFFFF9800, // Orange
+                          0xFF795548, // Brown
+                          0xFF607D8B, // Blue Grey
+                        ].map((color) {
+                          final isSelected = _selectedColor == color;
+                          return GestureDetector(
+                            onTap: () => setState(() => _selectedColor = color),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                color: Color(color),
+                                shape: BoxShape.circle,
+                                border: isSelected
+                                    ? Border.all(color: Colors.white, width: 3)
+                                    : null,
+                                boxShadow: [
+                                  if (isSelected)
+                                    BoxShadow(
+                                      color: Color(color).withOpacity(0.5),
+                                      blurRadius: 8,
+                                      spreadRadius: 2,
+                                    ),
+                                ],
+                              ),
+                              child: isSelected
+                                  ? const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 20,
+                                    )
+                                  : null,
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Duration Card
               _buildSection(
                 title: 'Duration',
@@ -202,144 +261,148 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
               const SizedBox(height: 24),
 
               // Days Section (Workouts)
-              if (widget.program !=
-                  null) // Only allow adding days if program is saved (has ID)
-                _buildSection(
-                  title: 'Workout Days',
-                  child: Column(
-                    children: [
-                      StreamBuilder<List<WorkoutTemplate>>(
-                        stream: FirestoreService().getUserWorkouts(
-                          AuthService().currentUser!.uid,
-                        ),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData)
-                            return const LinearProgressIndicator();
+              if (widget.program != null)
+                StreamBuilder<WorkoutProgram>(
+                  stream: FirestoreService().getProgramStream(
+                    widget.program!.id,
+                  ),
+                  builder: (context, programSnapshot) {
+                    if (!programSnapshot.hasData)
+                      return const Center(child: CircularProgressIndicator());
 
-                          // Filter workouts that belong to this program
-                          // Note: In a real app with many workouts, we should query by parentProgramId
-                          // But for now client-side filtering is okay or we update the query.
-                          // Let's rely on looking up IDs in widget.program.workoutIds for order
+                    final currentProgram = programSnapshot.data!;
 
-                          final allWorkouts = snapshot.data!;
-                          final programWorkouts = <WorkoutTemplate>[];
+                    return _buildSection(
+                      title: 'Workout Days',
+                      child: Column(
+                        children: [
+                          StreamBuilder<List<WorkoutTemplate>>(
+                            stream: FirestoreService().getUserWorkouts(
+                              AuthService().currentUser!.uid,
+                            ),
+                            builder: (context, workoutsSnapshot) {
+                              if (!workoutsSnapshot.hasData)
+                                return const LinearProgressIndicator();
 
-                          // Map by ID for easy lookup
-                          final workoutMap = {
-                            for (var w in allWorkouts) w.id: w,
-                          };
+                              final allWorkouts = workoutsSnapshot.data!;
+                              final programWorkouts = <WorkoutTemplate>[];
 
-                          for (var id in widget.program!.workoutIds) {
-                            if (workoutMap.containsKey(id)) {
-                              programWorkouts.add(workoutMap[id]!);
-                            }
-                          }
+                              final workoutMap = {
+                                for (var w in allWorkouts) w.id: w,
+                              };
 
-                          if (programWorkouts.isEmpty) {
-                            return Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  style: BorderStyle.solid,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Center(
-                                child: Text('No days added yet'),
-                              ),
-                            );
-                          }
+                              // Use the live list of IDs from the program stream
+                              for (var id in currentProgram.workoutIds) {
+                                if (workoutMap.containsKey(id)) {
+                                  programWorkouts.add(workoutMap[id]!);
+                                }
+                              }
 
-                          return ReorderableListView(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            onReorder: (oldIndex, newIndex) async {
-                              if (oldIndex < newIndex) newIndex -= 1;
-                              final ids = List<String>.from(
-                                widget.program!.workoutIds,
-                              );
-                              final item = ids.removeAt(oldIndex);
-                              ids.insert(newIndex, item);
-
-                              // Update program with new order
-                              final updated = WorkoutProgram(
-                                id: widget.program!.id,
-                                userId: widget.program!.userId,
-                                name: widget.program!.name,
-                                description: widget.program!.description,
-                                workoutIds: ids,
-                                isActive: widget.program!.isActive,
-                                createdAt: widget.program!.createdAt,
-                                startDate: widget.program!.startDate,
-                                endDate: widget.program!.endDate,
-                              );
-                              await FirestoreService().saveProgram(updated);
-                              // Navigation replacement needed to update widget.program?
-                              // Ideally we should listen to the program stream or use setState if we modify local.
-                              // For simplicity, we just rely on the parent list updating or passing a Stream here?
-                              // Actually ProgramCreator receives a static 'program'.
-                              // To fix this properly, ProgramCreator should probably stream the program data
-                              // or we just pop back. For now, let's just update Firestore.
-                            },
-                            children: [
-                              for (final workout in programWorkouts)
-                                Card(
-                                  key: ValueKey(workout.id),
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 4,
+                              if (programWorkouts.isEmpty) {
+                                return Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey.withOpacity(0.3),
+                                      style: BorderStyle.solid,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.2),
-                                      child: Text(
-                                        '${programWorkouts.indexOf(workout) + 1}',
+                                  child: const Center(
+                                    child: Text('No days added yet'),
+                                  ),
+                                );
+                              }
+
+                              return ReorderableListView(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                onReorder: (oldIndex, newIndex) async {
+                                  if (oldIndex < newIndex) newIndex -= 1;
+                                  final ids = List<String>.from(
+                                    currentProgram.workoutIds,
+                                  );
+                                  final item = ids.removeAt(oldIndex);
+                                  ids.insert(newIndex, item);
+
+                                  // Update program with new order
+                                  final updated = WorkoutProgram(
+                                    id: currentProgram.id,
+                                    userId: currentProgram.userId,
+                                    name: currentProgram.name,
+                                    description: currentProgram.description,
+                                    workoutIds: ids,
+                                    isActive: currentProgram.isActive,
+                                    createdAt: currentProgram.createdAt,
+                                    startDate: currentProgram.startDate,
+                                    endDate: currentProgram.endDate,
+                                    color: currentProgram.color,
+                                  );
+                                  await FirestoreService().saveProgram(updated);
+                                },
+                                children: [
+                                  for (final workout in programWorkouts)
+                                    Card(
+                                      key: ValueKey(workout.id),
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 4,
                                       ),
-                                    ),
-                                    title: Text(workout.name),
-                                    subtitle: Text(
-                                      '${workout.exercises.length} Exercises',
-                                    ),
-                                    trailing: const Icon(Icons.drag_handle),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => WorkoutCreatorScreen(
-                                            workout: workout,
-                                            parentProgramId: widget.program!.id,
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.2),
+                                          child: Text(
+                                            '${programWorkouts.indexOf(workout) + 1}',
                                           ),
                                         ),
-                                      );
-                                    },
+                                        title: Text(workout.name),
+                                        subtitle: Text(
+                                          '${workout.exercises.length} Exercises',
+                                        ),
+                                        trailing: const Icon(Icons.drag_handle),
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  WorkoutCreatorScreen(
+                                                    workout: workout,
+                                                    parentProgramId:
+                                                        currentProgram.id,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => WorkoutCreatorScreen(
+                                      parentProgramId: currentProgram.id,
+                                    ),
                                   ),
-                                ),
-                            ],
-                          );
-                        },
+                                );
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text('Add Workout Day'),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => WorkoutCreatorScreen(
-                                  parentProgramId: widget.program!.id,
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Workout Day'),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
 
               if (widget.program == null)

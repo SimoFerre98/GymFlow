@@ -41,17 +41,7 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.fitness_center),
-            title: const Text('My Programs'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProgramListScreen()),
-              );
-            },
-          ),
+
           ListTile(
             leading: const Icon(Icons.emoji_events),
             title: const Text('Achievements'),

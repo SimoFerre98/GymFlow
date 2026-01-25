@@ -141,6 +141,13 @@ class FirestoreService {
         );
   }
 
+  Stream<WorkoutProgram> getProgramStream(String programId) {
+    return _db.collection('programs').doc(programId).snapshots().map((doc) {
+      if (!doc.exists) throw Exception('Program not found');
+      return WorkoutProgram.fromMap(doc.data()!, doc.id);
+    });
+  }
+
   Future<void> saveProgram(WorkoutProgram program) async {
     if (program.id.isEmpty) {
       final doc = _db.collection('programs').doc();

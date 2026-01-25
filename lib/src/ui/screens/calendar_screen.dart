@@ -12,6 +12,7 @@ import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -473,75 +474,134 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: StreamBuilder<List<WorkoutTemplate>>(
                   stream: _firestore.getUserWorkouts(userId),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                  builder: (context, workoutsSnapshot) {
+                    if (!workoutsSnapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    final workouts = snapshot.data!;
-                    if (workouts.isEmpty) {
-                      return const Center(
-                        child: Text("No templates found. Create one first!"),
-                      );
-                    }
 
-                    return ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: workouts.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final workout = workouts[index];
-                        return InkWell(
-                          onTap: () async {
-                            final date =
-                                (initialDate ?? _selectedDay ?? DateTime.now())
-                                    .copyWith(
-                                      hour: 12, // Default to noon
-                                      minute: 0,
-                                    );
+                    return StreamBuilder<List<WorkoutProgram>>(
+                      stream: _firestore.getUserPrograms(userId),
+                      builder: (context, programsSnapshot) {
+                        // We don't block on loading programs, just show default if not ready
+                        final programs = programsSnapshot.data ?? [];
+                        final workouts = workoutsSnapshot.data!;
 
-                            final schedule = ScheduledWorkout(
-                              id: '',
-                              userId: userId,
-                              workoutTemplateId: workout.id,
-                              workoutName: workout.name,
-                              scheduledDate: date,
-                            );
-                            await _firestore.scheduleWorkout(schedule);
-                            if (mounted) Navigator.pop(context);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.05),
+                        if (workouts.isEmpty) {
+                          return const Center(
+                            child: Text("No workouts found. Create one first!"),
+                          );
+                        }
+
+                        // Map programId -> Program for fast lookup
+                        final programMap = {for (var p in programs) p.id: p};
+
+                        return ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: workouts.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final workout = workouts[index];
+                            final parentProgram =
+                                workout.parentProgramId != null
+                                ? programMap[workout.parentProgramId]
+                                : null;
+
+                            // Use program color if available, else blue default
+                            final colorValue =
+                                parentProgram?.color ?? 0xFF2196F3;
+                            final color = Color(colorValue);
+
+                            return InkWell(
+                              onTap: () async {
+                                final date =
+                                    (initialDate ??
+                                            _selectedDay ??
+                                            DateTime.now())
+                                        .copyWith(
+                                          hour: 12, // Default to noon
+                                          minute: 0,
+                                        );
+
+                                final schedule = ScheduledWorkout(
+                                  id: '',
+                                  userId: userId,
+                                  workoutTemplateId: workout.id,
+                                  workoutName: workout.name,
+                                  scheduledDate: date,
+                                );
+                                await _firestore.scheduleWorkout(schedule);
+                                if (mounted) Navigator.of(context).pop();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.05),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: color.withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.fitness_center,
+                                        color: color,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            workout.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          if (parentProgram != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 4.0,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    decoration: BoxDecoration(
+                                                      color: color,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    parentProgram.name,
+                                                    style: TextStyle(
+                                                      color: Colors.grey[600],
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.fitness_center,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Text(
-                                  workout.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
                     );

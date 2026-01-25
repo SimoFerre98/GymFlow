@@ -213,20 +213,27 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
             onPressed: () async {
               if (nameController.text.isEmpty) return;
 
-              final exercise = Exercise(
-                id: '',
-                userId: _auth.currentUser?.uid,
-                name: nameController.text.trim(),
-                description: 'Custom exercise',
-                type: selectedType,
-                musclesTargeted: [],
-                isCustom: true,
-              );
+              try {
+                final exercise = Exercise(
+                  id: '',
+                  userId: _auth.currentUser?.uid,
+                  name: nameController.text.trim(),
+                  description: 'Custom exercise',
+                  type: selectedType,
+                  musclesTargeted: [],
+                  isCustom: true,
+                );
 
-              await _firestore.addExercise(exercise);
-              // Check if the dialog is still open/mounted before popping
-              if (dialogContext.mounted) {
-                Navigator.pop(dialogContext);
+                await _firestore.addExercise(exercise);
+
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              } catch (e) {
+                // Ignore or show error
+                debugPrint('Error saving exercise: $e');
+                // Ensure we pop even on error? Or let user retry?
+                // Better to let retry.
               }
             },
             child: const Text('Save'),
