@@ -3,6 +3,7 @@ import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
+import 'package:gymflow/src/models/workout_program.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
@@ -125,11 +126,47 @@ class FirestoreService {
 
   // --- Workouts ---
 
+  // --- Programs ("Schede") ---
+
+  Stream<List<WorkoutProgram>> getUserPrograms(String userId) {
+    return _db
+        .collection('programs')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => WorkoutProgram.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
+
+  Future<void> saveProgram(WorkoutProgram program) async {
+    if (program.id.isEmpty) {
+      final doc = _db.collection('programs').doc();
+      // Ensure we set the ID in the map if the model expects it,
+      // though fromMap usually handles id from doc.id.
+      // But creating a new model with the ID is cleaner.
+      await doc.set(program.toMap()..['id'] = doc.id);
+    } else {
+      await _db.collection('programs').doc(program.id).update(program.toMap());
+    }
+  }
+
+  Future<void> deleteProgram(String programId) async {
+    // Optional: Also delete workouts associated with it?
+    // For now, simple delete.
+    await _db.collection('programs').doc(programId).delete();
+  }
+
+  // --- Workouts ---
+
   // Get User's Workout Templates
   Stream<List<WorkoutTemplate>> getUserWorkouts(String userId) {
     return _db
         .collection('workouts')
         .where('userId', isEqualTo: userId)
+        // .orderBy('name') // Optional sorting
         .snapshots()
         .map(
           (snapshot) => snapshot.docs

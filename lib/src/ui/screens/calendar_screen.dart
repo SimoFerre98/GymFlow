@@ -196,13 +196,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 shape: BoxShape.circle,
               ),
             ),
-            headerStyle: const HeaderStyle(
+            headerStyle: HeaderStyle(
               formatButtonShowsNext: false,
               titleCentered: true,
-              formatButtonTextStyle: TextStyle(color: Colors.white),
+              formatButtonTextStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               titleTextStyle: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              leftChevronIcon: Icon(
+                Icons.chevron_left,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              rightChevronIcon: Icon(
+                Icons.chevron_right,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

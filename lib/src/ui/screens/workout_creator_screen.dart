@@ -17,7 +17,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final List<WorkoutExercise> _exercises = [];
+  final List<WorkoutTemplateExercise> _exercises = [];
   ExerciseType _selectedType = ExerciseType.strength;
   bool _isLoading = false;
 
@@ -47,7 +47,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       if (user == null) throw Exception('User not logged in');
 
       final workout = WorkoutTemplate(
-        id: widget.workout?.id ?? '', // Service handles new/update
+        id: widget.workout?.id ?? '',
         userId: user.uid,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -79,10 +79,11 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     if (result != null) {
       setState(() {
         _exercises.add(
-          WorkoutExercise(
+          WorkoutTemplateExercise(
             exerciseId: result.id,
             exerciseName: result.name,
-            sets: [WorkoutSet(weight: 0, reps: 0)], // Default 1 set
+            targetSets: 3, // Default
+            targetReps: "10",
           ),
         );
       });
@@ -162,7 +163,9 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     ListTile(
                       key: ValueKey(_exercises[index]),
                       title: Text(_exercises[index].exerciseName),
-                      subtitle: Text('${_exercises[index].sets.length} Sets'),
+                      subtitle: Text(
+                        '${_exercises[index].targetSets} Sets x ${_exercises[index].targetReps} Reps',
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
@@ -170,7 +173,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                         },
                       ),
                       onTap: () {
-                        // TODO: Edit Sets
+                        // TODO: Edit Targets (Sets/Reps)
                       },
                     ),
                 ],

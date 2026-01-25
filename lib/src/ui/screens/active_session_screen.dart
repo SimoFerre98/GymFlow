@@ -40,15 +40,11 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
       return WorkoutExercise(
         exerciseId: e.exerciseId,
         exerciseName: e.exerciseName,
-        sets: e.sets
-            .map(
-              (s) => WorkoutSet(
-                weight: s.weight,
-                reps: s.reps,
-                isCompleted: false,
-              ),
-            )
-            .toList(),
+        sets: List.generate(
+          e.targetSets,
+          (index) => WorkoutSet(weight: 0, reps: 0),
+        ),
+        notes: e.notes,
       );
     }).toList();
 
@@ -265,10 +261,10 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                 )
               : TextButton(
                   onPressed: _finishWorkout,
-                  child: const Text(
+                  child: Text(
                     'FINISH',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
