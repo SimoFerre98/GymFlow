@@ -109,11 +109,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
             builder: (context, snapshot) {
               final eventsMap = snapshot.data ?? {};
 
-              return Column(
-                children: [
-                  _buildGlassCalendar(eventsMap),
-                  const SizedBox(height: 16),
-                  Expanded(child: _buildEventList(eventsMap)),
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildGlassCalendar(eventsMap),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                  _buildEventListSliver(eventsMap),
+                  const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
                 ],
               );
             },
@@ -125,7 +133,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildGlassCalendar(Map<DateTime, List<dynamic>> eventsMap) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ), // Adjusted margin
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor.withOpacity(0.3),
         borderRadius: BorderRadius.circular(24),
@@ -200,8 +211,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildEventList(Map<DateTime, List<dynamic>> eventsMap) {
-    if (_selectedDay == null) return const Center(child: Text('Select a day'));
+  Widget _buildEventListSliver(Map<DateTime, List<dynamic>> eventsMap) {
+    if (_selectedDay == null) {
+      return const SliverFillRemaining(
+        child: Center(child: Text('Select a day')),
+      );
+    }
 
     final dateKey = DateTime(
       _selectedDay!.year,
@@ -211,51 +226,57 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final dailyEvents = eventsMap[dateKey] ?? [];
 
     if (dailyEvents.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.event_available,
-              size: 64,
-              color: Colors.grey.withOpacity(0.3),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'No workouts this day',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _showScheduleDialog(
-                context,
-                _auth.currentUser!.uid,
-                initialDate: _selectedDay,
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.event_available,
+                size: 64,
+                color: Colors.grey.withOpacity(0.3),
               ),
-              icon: const Icon(Icons.add),
-              label: const Text('Schedule Workout'),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+              const SizedBox(height: 16),
+              const Text(
+                'No workouts this day',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => _showScheduleDialog(
+                  context,
+                  _auth.currentUser!.uid,
+                  initialDate: _selectedDay,
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                icon: const Icon(Icons.add),
+                label: const Text('Schedule Workout'),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 40), // Extra space
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: dailyEvents.length,
-      itemBuilder: (context, index) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((context, index) {
         final event = dailyEvents[index];
-        return _buildEventCard(event);
-      },
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _buildEventCard(event),
+        );
+      }, childCount: dailyEvents.length),
     );
   }
 
