@@ -4,6 +4,7 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:gymflow/src/ui/screens/calendar_screen.dart';
 import 'package:gymflow/src/ui/screens/dashboard_screen.dart';
 import 'package:gymflow/src/ui/screens/home_screen.dart';
+import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -65,6 +66,23 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
+      floatingActionButton: _currentIndex == 2
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 30.0), // Adjusted height
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ProgramCreatorScreen(),
+                    ),
+                  );
+                },
+                label: const Text('New Program'),
+                icon: const Icon(Icons.add),
+              ),
+            )
+          : null,
     );
   }
 }

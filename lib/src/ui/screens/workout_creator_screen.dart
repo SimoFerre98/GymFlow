@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -70,12 +69,11 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
         // Actually, fetching whole program might be heavy? No, it's fine.
         // Better: atomic arrayUnion update.
 
-        await FirebaseFirestore.instance
-            .collection('programs')
-            .doc(widget.parentProgramId)
-            .update({
-              'workoutIds': FieldValue.arrayUnion([savedId]),
-            });
+        // Use service to ensure correct DB instance
+        await FirestoreService().addWorkoutToProgram(
+          widget.parentProgramId!,
+          savedId,
+        );
       }
 
       if (mounted) Navigator.of(context).pop();

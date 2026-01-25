@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -7,7 +8,10 @@ import 'package:gymflow/src/models/workout_program.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'gymflow',
+  );
 
   // --- Exercises ---
 
@@ -164,6 +168,12 @@ class FirestoreService {
     // Optional: Also delete workouts associated with it?
     // For now, simple delete.
     await _db.collection('programs').doc(programId).delete();
+  }
+
+  Future<void> addWorkoutToProgram(String programId, String workoutId) async {
+    await _db.collection('programs').doc(programId).update({
+      'workoutIds': FieldValue.arrayUnion([workoutId]),
+    });
   }
 
   // --- Workouts ---

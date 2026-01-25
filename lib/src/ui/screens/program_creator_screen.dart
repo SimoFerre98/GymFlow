@@ -5,6 +5,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ProgramCreatorScreen extends StatefulWidget {
   final WorkoutProgram? program;
@@ -262,145 +263,133 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
 
               // Days Section (Workouts)
               if (widget.program != null)
-                StreamBuilder<WorkoutProgram>(
-                  stream: FirestoreService().getProgramStream(
-                    widget.program!.id,
+                StreamBuilder<
+                  ({WorkoutProgram program, List<WorkoutTemplate> workouts})
+                >(
+                  stream: Rx.combineLatest2(
+                    FirestoreService().getProgramStream(widget.program!.id),
+                    FirestoreService().getUserWorkouts(
+                      AuthService().currentUser!.uid,
+                    ),
+                    (program, workouts) =>
+                        (program: program, workouts: workouts),
                   ),
-                  builder: (context, programSnapshot) {
-                    if (!programSnapshot.hasData)
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
 
-                    final currentProgram = programSnapshot.data!;
+                    final currentProgram = snapshot.data!.program;
+                    final allWorkouts = snapshot.data!.workouts;
 
-                    return _buildSection(
-                      title: 'Workout Days',
-                      child: Column(
-                        children: [
-                          StreamBuilder<List<WorkoutTemplate>>(
-                            stream: FirestoreService().getUserWorkouts(
-                              AuthService().currentUser!.uid,
+                    final programWorkouts = <WorkoutTemplate>[];
+
+                    final workoutMap = {for (var w in allWorkouts) w.id: w};
+
+                    // Use the live list of IDs from the program stream
+                    for (var id in currentProgram.workoutIds) {
+                      if (workoutMap.containsKey(id)) {
+                        programWorkouts.add(workoutMap[id]!);
+                      }
+                    }
+
+                    return Column(
+                      children: [
+                        if (programWorkouts.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.grey.withOpacity(0.3),
+                                style: BorderStyle.solid,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            builder: (context, workoutsSnapshot) {
-                              if (!workoutsSnapshot.hasData)
-                                return const LinearProgressIndicator();
+                            child: const Center(
+                              child: Text('No days added yet'),
+                            ),
+                          )
+                        else
+                          ReorderableListView(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            onReorder: (oldIndex, newIndex) async {
+                              if (oldIndex < newIndex) newIndex -= 1;
+                              final ids = List<String>.from(
+                                currentProgram.workoutIds,
+                              );
+                              final item = ids.removeAt(oldIndex);
+                              ids.insert(newIndex, item);
 
-                              final allWorkouts = workoutsSnapshot.data!;
-                              final programWorkouts = <WorkoutTemplate>[];
-
-                              final workoutMap = {
-                                for (var w in allWorkouts) w.id: w,
-                              };
-
-                              // Use the live list of IDs from the program stream
-                              for (var id in currentProgram.workoutIds) {
-                                if (workoutMap.containsKey(id)) {
-                                  programWorkouts.add(workoutMap[id]!);
-                                }
-                              }
-
-                              if (programWorkouts.isEmpty) {
-                                return Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey.withOpacity(0.3),
-                                      style: BorderStyle.solid,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
+                              final updated = WorkoutProgram(
+                                id: currentProgram.id,
+                                userId: currentProgram.userId,
+                                name: currentProgram.name,
+                                description: currentProgram.description,
+                                workoutIds: ids,
+                                isActive: currentProgram.isActive,
+                                createdAt: currentProgram.createdAt,
+                                startDate: currentProgram.startDate,
+                                endDate: currentProgram.endDate,
+                                color: currentProgram.color,
+                              );
+                              await FirestoreService().saveProgram(updated);
+                            },
+                            children: [
+                              for (final workout in programWorkouts)
+                                Card(
+                                  key: ValueKey(workout.id),
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 4,
                                   ),
-                                  child: const Center(
-                                    child: Text('No days added yet'),
-                                  ),
-                                );
-                              }
-
-                              return ReorderableListView(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                onReorder: (oldIndex, newIndex) async {
-                                  if (oldIndex < newIndex) newIndex -= 1;
-                                  final ids = List<String>.from(
-                                    currentProgram.workoutIds,
-                                  );
-                                  final item = ids.removeAt(oldIndex);
-                                  ids.insert(newIndex, item);
-
-                                  // Update program with new order
-                                  final updated = WorkoutProgram(
-                                    id: currentProgram.id,
-                                    userId: currentProgram.userId,
-                                    name: currentProgram.name,
-                                    description: currentProgram.description,
-                                    workoutIds: ids,
-                                    isActive: currentProgram.isActive,
-                                    createdAt: currentProgram.createdAt,
-                                    startDate: currentProgram.startDate,
-                                    endDate: currentProgram.endDate,
-                                    color: currentProgram.color,
-                                  );
-                                  await FirestoreService().saveProgram(updated);
-                                },
-                                children: [
-                                  for (final workout in programWorkouts)
-                                    Card(
-                                      key: ValueKey(workout.id),
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 4,
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.2),
+                                      child: Text(
+                                        '${programWorkouts.indexOf(workout) + 1}',
                                       ),
-                                      child: ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withOpacity(0.2),
-                                          child: Text(
-                                            '${programWorkouts.indexOf(workout) + 1}',
+                                    ),
+                                    title: Text(workout.name),
+                                    subtitle: Text(
+                                      '${workout.exercises.length} Exercises',
+                                    ),
+                                    trailing: const Icon(Icons.drag_handle),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => WorkoutCreatorScreen(
+                                            workout: workout,
+                                            parentProgramId: currentProgram.id,
                                           ),
                                         ),
-                                        title: Text(workout.name),
-                                        subtitle: Text(
-                                          '${workout.exercises.length} Exercises',
-                                        ),
-                                        trailing: const Icon(Icons.drag_handle),
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  WorkoutCreatorScreen(
-                                                    workout: workout,
-                                                    parentProgramId:
-                                                        currentProgram.id,
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => WorkoutCreatorScreen(
+                                    parentProgramId: currentProgram.id,
+                                  ),
+                                ),
                               );
                             },
+                            icon: const Icon(Icons.add),
+                            label: const Text('Add Workout Day'),
                           ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => WorkoutCreatorScreen(
-                                      parentProgramId: currentProgram.id,
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add Workout Day'),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   },
                 ),
