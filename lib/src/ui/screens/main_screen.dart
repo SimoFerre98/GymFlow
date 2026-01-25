@@ -68,7 +68,9 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: _currentIndex == 2
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 30.0), // Adjusted height
+              padding: const EdgeInsets.only(
+                bottom: 0.0,
+              ), // Anchored above the pill
               child: FloatingActionButton.extended(
                 onPressed: () {
                   Navigator.push(
@@ -78,7 +80,11 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 },
-                label: const Text('New Program'),
+                backgroundColor: Theme.of(context).primaryColor,
+                label: const Text(
+                  'New Program',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 icon: const Icon(Icons.add),
               ),
             )

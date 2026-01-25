@@ -3,6 +3,7 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
@@ -74,10 +75,8 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
         userId: user.uid,
         name: _nameController.text.trim(),
         description: _descController.text.trim(),
-        workoutIds:
-            widget.program?.workoutIds ??
-            [], // Preserve existing workouts if any
-        isActive: widget.program?.isActive ?? true, // Default active for new?
+        workoutIds: widget.program?.workoutIds ?? [],
+        isActive: widget.program?.isActive ?? true,
         createdAt: widget.program?.createdAt ?? DateTime.now(),
         startDate: _startDate,
         endDate: _endDate,
@@ -87,20 +86,12 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
       await FirestoreService().saveProgram(program);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Program saved! Now add some workout days.'),
-          ),
-        );
-        // If it's a new program, maybe navigate to day editor?
-        // For now, just pop back to list.
+        ToastUtils.showSuccess(context, 'Program saved successfully!');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ToastUtils.showError(context, 'Error saving program: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -286,10 +277,21 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
 
                     final workoutMap = {for (var w in allWorkouts) w.id: w};
 
-                    // Use the live list of IDs from the program stream
+                    // 1. Get ordered workouts from explicit list
                     for (var id in currentProgram.workoutIds) {
                       if (workoutMap.containsKey(id)) {
                         programWorkouts.add(workoutMap[id]!);
+                      }
+                    }
+
+                    // 2. Find orphans (workouts pointing to this program but not in list)
+                    final linkedWorkouts = allWorkouts
+                        .where((w) => w.parentProgramId == currentProgram.id)
+                        .toList();
+                    for (var w in linkedWorkouts) {
+                      if (!programWorkouts.any((pw) => pw.id == w.id)) {
+                        programWorkouts.add(w);
+                        // Optional: Auto-repair could happen here or on reorder
                       }
                     }
 

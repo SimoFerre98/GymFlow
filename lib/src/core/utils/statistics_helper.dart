@@ -93,6 +93,39 @@ class StatisticsHelper {
     return streak;
   }
 
+  static int calculateTotalVolume(List<WorkoutSession> sessions) {
+    int totalVolume = 0;
+    for (var session in sessions) {
+      for (var exercise in session.exercises) {
+        for (var set in exercise.sets) {
+          if (set.isCompleted && set.weight != null && set.reps != null) {
+            totalVolume += (set.weight! * set.reps!).toInt();
+          }
+        }
+      }
+    }
+    return totalVolume;
+  }
+
+  static double calculateAverageRPE(List<WorkoutSession> sessions) {
+    double totalRPE = 0;
+    int rpeCount = 0;
+
+    for (var session in sessions) {
+      for (var exercise in session.exercises) {
+        for (var set in exercise.sets) {
+          if (set.rpe != null && set.rpe! > 0) {
+            totalRPE += set.rpe!;
+            rpeCount++;
+          }
+        }
+      }
+    }
+
+    if (rpeCount == 0) return 0.0;
+    return totalRPE / rpeCount;
+  }
+
   static Map<String, int> getWorkoutTypeDistribution(
     List<WorkoutSession> sessions,
   ) {

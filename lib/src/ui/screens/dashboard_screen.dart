@@ -131,6 +131,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
 
+          // Row 1.5: Detailed Volume/RPE Stats
+          Row(
+            children: [
+              Expanded(
+                child: _buildBentoCard(
+                  child: _buildStatContent(
+                    'Total Volume',
+                    isLoading
+                        ? '0'
+                        : '${(StatisticsHelper.calculateTotalVolume(sessions) / 1000).toStringAsFixed(1)}k',
+                    Icons.monitor_weight_outlined,
+                    Colors.purple,
+                    isLoading,
+                    suffix: ' kg',
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildBentoCard(
+                  child: _buildStatContent(
+                    'Avg RPE',
+                    isLoading
+                        ? '0'
+                        : StatisticsHelper.calculateAverageRPE(
+                            sessions,
+                          ).toStringAsFixed(1),
+                    Icons.speed,
+                    Colors.redAccent,
+                    isLoading,
+                    suffix: '/10',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
           // Row 2: Gym Map (Wide Bento Card)
           if (_userProfile?.gymLat != null) ...[
             _buildGymBentoCard(),
@@ -220,8 +258,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String value,
     IconData icon,
     Color color,
-    bool isLoading,
-  ) {
+    bool isLoading, {
+    String? suffix,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,13 +282,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               )
-            : Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  height: 1.0,
-                ),
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      height: 1.0,
+                    ),
+                  ),
+                  if (suffix != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 2),
+                      child: Text(
+                        suffix,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                ],
               ),
         const SizedBox(height: 4),
         Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),

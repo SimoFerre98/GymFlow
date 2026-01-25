@@ -61,15 +61,8 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       final service = FirestoreService();
       final savedId = await service.saveWorkout(workout);
 
-      // If this is a new workout part of a program, update the program too
-      if (workoutId.isEmpty && widget.parentProgramId != null) {
-        // Fetch program to append ID
-        // Ideally we should have a specific method 'addWorkoutToProgram' in service
-        // But let's do safe fetch-update pattern here or rely on explicit service call.
-        // Actually, fetching whole program might be heavy? No, it's fine.
-        // Better: atomic arrayUnion update.
-
-        // Use service to ensure correct DB instance
+      // Ensure linkage exists (idempotent arrayUnion)
+      if (widget.parentProgramId != null) {
         await FirestoreService().addWorkoutToProgram(
           widget.parentProgramId!,
           savedId,

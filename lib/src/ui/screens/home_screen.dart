@@ -4,6 +4,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart'; // Import
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
