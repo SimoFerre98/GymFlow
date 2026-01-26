@@ -1,142 +1,296 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../../models/session.dart';
 
-class ActivityChart extends StatelessWidget {
-  final Map<int, int> weeklyData; // Map<DayIndex, Count>
+class ActivityChart extends StatefulWidget {
+  final List<WorkoutSession> sessions;
 
-  const ActivityChart({Key? key, required this.weeklyData}) : super(key: key);
+  const ActivityChart({super.key, required this.sessions});
+
+  @override
+  State<ActivityChart> createState() => _ActivityChartState();
+}
+
+class _ActivityChartState extends State<ActivityChart> {
+  // 0 = Week, 1 = Month
+  int _viewMode = 0;
+
+  // Cached data
+  late Map<int, int> _weeklyData; // Day 1-7 (Mon-Sun)
+  late Map<int, int> _monthlyData; // Day 1-31
+
+  @override
+  void initState() {
+    super.initState();
+    _processData();
+  }
+
+  @override
+  void didUpdateWidget(covariant ActivityChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sessions != widget.sessions) {
+      _processData();
+    }
+  }
+
+  void _processData() {
+    final now = DateTime.now();
+
+    // Initialize maps
+    _weeklyData = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0};
+    _monthlyData = {};
+    final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
+    for (int i = 1; i <= daysInMonth; i++) {
+      _monthlyData[i] = 0;
+    }
+
+    // Filter and Count
+    for (var session in widget.sessions) {
+      // Weekly Logic: Current Week
+      // We need to check if the session is in the current week (Mon-Sun window relative to now? Or strictly this calendar week?)
+      // Let's do Calendar Week.
+      final sessionDate = session.startTime;
+
+      // Calculate start of current week (Monday)
+      final currentWeekday = now.weekday;
+      final startOfWeek = now.subtract(Duration(days: currentWeekday - 1));
+      final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+      // Normalize to Date only for comparison
+      final dateOnly = DateTime(
+        sessionDate.year,
+        sessionDate.month,
+        sessionDate.day,
+      );
+      final startOfWeekDate = DateTime(
+        startOfWeek.year,
+        startOfWeek.month,
+        startOfWeek.day,
+      );
+      final endOfWeekDate = DateTime(
+        endOfWeek.year,
+        endOfWeek.month,
+        endOfWeek.day,
+      );
+
+      // Check Week
+      if (dateOnly.isAfter(startOfWeekDate.subtract(const Duration(days: 1))) &&
+          dateOnly.isBefore(endOfWeekDate.add(const Duration(days: 1)))) {
+        _weeklyData[sessionDate.weekday] =
+            (_weeklyData[sessionDate.weekday] ?? 0) + 1;
+      }
+
+      // Check Month
+      if (sessionDate.year == now.year && sessionDate.month == now.month) {
+        _monthlyData[sessionDate.day] =
+            (_monthlyData[sessionDate.day] ?? 0) + 1;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Find the max value to scale graph efficiently, assume at least 4 for visual spacing
-    int maxY = 4;
-    for (var count in weeklyData.values) {
-      if (count > maxY) maxY = count;
-    }
-    // Add a bit of buffer
-    maxY = maxY + 1;
+    return Column(
+      children: [
+        // Toggle Control
+        Container(
+          height: 32,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildToggleOption('Week', 0),
+              _buildToggleOption('Month', 1),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
 
-    return AspectRatio(
-      aspectRatio: 1.7, // Wide aspect ratio
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxY.toDouble(),
-          barTouchData: BarTouchData(
-            enabled: false,
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) => Colors.blueGrey,
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                return BarTooltipItem(
-                  rod.toY.round().toString(),
-                  const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+        // Chart
+        Expanded(
+          child: _viewMode == 0
+              ? _buildChart(_weeklyData, isMonthly: false)
+              : _buildChart(_monthlyData, isMonthly: true),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleOption(String text, int mode) {
+    final isSelected = _viewMode == mode;
+    return GestureDetector(
+      onTap: () => setState(() => _viewMode = mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
                   ),
-                );
-              },
-            ),
+                ]
+              : null,
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.black : Colors.grey[600],
           ),
-          titlesData: FlTitlesData(
-            show: true,
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  const style = TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  );
-                  String text;
-                  switch (value.toInt()) {
-                    case 1:
-                      text = 'Mon';
-                      break;
-                    case 2:
-                      text = 'Tue';
-                      break;
-                    case 3:
-                      text = 'Wed';
-                      break;
-                    case 4:
-                      text = 'Thu';
-                      break;
-                    case 5:
-                      text = 'Fri';
-                      break;
-                    case 6:
-                      text = 'Sat';
-                      break;
-                    case 7:
-                      text = 'Sun';
-                      break;
-                    default:
-                      text = '';
-                  }
-                  return SideTitleWidget(
-                    meta: meta,
-                    child: Text(text, style: style),
-                  );
-                },
-                reservedSize: 28,
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false,
-              ), // Hide left axis numbers for cleaner look
-            ),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: 1, // Grid line every 1 unit
-            getDrawingHorizontalLine: (value) =>
-                FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
-          ),
-          borderData: FlBorderData(show: false),
-          barGroups: _buildBarGroups(),
         ),
       ),
     );
   }
 
-  List<BarChartGroupData> _buildBarGroups() {
-    List<BarChartGroupData> groups = [];
-    for (int day = 1; day <= 7; day++) {
-      final count = weeklyData[day] ?? 0;
-      groups.add(
+  Widget _buildChart(Map<int, int> data, {required bool isMonthly}) {
+    // Determine Max Y
+    int maxY = 0;
+    data.forEach((_, count) {
+      if (count > maxY) maxY = count;
+    });
+    maxY = (maxY < 4) ? 4 : maxY + 1; // Minimum scale height
+
+    return BarChart(
+      BarChartData(
+        alignment: isMonthly
+            ? BarChartAlignment.center
+            : BarChartAlignment.spaceAround,
+        maxY: maxY.toDouble(),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => Colors.blueGrey,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                rod.toY.toInt().toString(),
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                children: [
+                  TextSpan(
+                    text:
+                        '\n${isMonthly ? 'Day ${group.x}' : _getWeekdayName(group.x)}',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.normal,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (isMonthly) {
+                  // Only show titles every 5 days for Month view to avoid clutter
+                  if (value.toInt() % 5 != 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      value.toInt().toString(),
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  );
+                } else {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _getWeekdayName(value.toInt()),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                }
+              },
+              reservedSize: 30,
+            ),
+          ),
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 1,
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: Colors.grey.withOpacity(0.1), strokeWidth: 1),
+        ),
+        borderData: FlBorderData(show: false),
+        barGroups: _buildBarGroups(data, isMonthly),
+      ),
+    );
+  }
+
+  List<BarChartGroupData> _buildBarGroups(Map<int, int> data, bool isMonthly) {
+    final List<BarChartGroupData> items = [];
+    final sortedKeys = data.keys.toList()..sort();
+
+    for (var key in sortedKeys) {
+      items.add(
         BarChartGroupData(
-          x: day,
+          x: key,
           barRods: [
             BarChartRodData(
-              toY: count.toDouble(),
+              toY: data[key]!.toDouble(),
               gradient: const LinearGradient(
-                colors: [Colors.blue, Colors.lightBlueAccent],
+                colors: [Colors.blue, Colors.cyanAccent],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
-              width: 16,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
+              width: isMonthly ? 6 : 16, // Thinner bars for monthly
+              borderRadius: BorderRadius.circular(isMonthly ? 2 : 6),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
-                toY: 0, // In case we want a background bar, set its max
-                color: Colors.grey.withOpacity(0.1),
+                toY: 0, // Could set max here for full background bar
+                color: Colors.grey.withOpacity(0.05),
               ),
             ),
           ],
-          showingTooltipIndicators: count > 0
-              ? [0]
-              : [], // Show tooltip only if count > 0? optional
         ),
       );
     }
-    return groups;
+    return items;
+  }
+
+  String _getWeekdayName(int dayIndex) {
+    switch (dayIndex) {
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
+    }
   }
 }

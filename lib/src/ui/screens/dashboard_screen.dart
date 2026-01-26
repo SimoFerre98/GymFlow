@@ -51,7 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData;
           final sessions = snapshot.data ?? [];
-          final weeklyData = StatisticsHelper.getWeeklyWorkoutCounts(sessions);
           final streak = StatisticsHelper.calculateCurrentStreak(sessions);
 
           return DefaultTabController(
@@ -117,7 +116,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         context,
                         userId,
                         sessions,
-                        weeklyData,
                         streak,
                         isLoading,
                       ),
@@ -138,7 +136,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     BuildContext context,
     String userId,
     List<WorkoutSession> sessions,
-    Map<int, int> weeklyData,
     int streak,
     bool isLoading,
   ) {
@@ -226,12 +223,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Row 3: Charts (Medium Bento Cards)
           // Using a Column for mobile, but styled as blocks
           _buildBentoCard(
-            title: 'Weekly Activity',
+            title: 'Workout Activity',
             child: SizedBox(
               height: 200,
               child: isLoading
                   ? Center(child: CircularProgressIndicator())
-                  : ActivityChart(weeklyData: weeklyData),
+                  : ActivityChart(sessions: sessions),
             ),
           ),
           const SizedBox(height: 16),

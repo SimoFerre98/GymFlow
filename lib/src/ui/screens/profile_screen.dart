@@ -23,8 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Given previous pattern, let's use AuthService for fetching and saving profile.
 
   late TextEditingController _nameController;
-  late TextEditingController _heightController;
-  late TextEditingController _weightController;
 
   UserProfile? _profile;
   bool _isLoading = true;
@@ -38,8 +36,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _heightController = TextEditingController();
-    _weightController = TextEditingController();
     _loadProfile();
   }
 
@@ -49,8 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (profile != null) {
       _profile = profile;
       _nameController.text = profile.displayName;
-      _heightController.text = profile.height?.toString() ?? '';
-      _weightController.text = profile.weight?.toString() ?? '';
       _birthDate = profile.birthDate;
       _gender = profile.gender;
     }
@@ -113,8 +107,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       email: _profile!.email,
       displayName: _nameController.text.trim(),
       photoUrl: photoUrl,
-      height: double.tryParse(_heightController.text.replaceAll(',', '.')),
-      weight: double.tryParse(_weightController.text.replaceAll(',', '.')),
+      // Height and Weight are now managed in BodyMeasurementsScreen
+      // We keep existing values or allow them to be updated via that screen,
+      // but here we just pass existing values to avoid nulling them if we want to keep them in profile
+      height: _profile!.height,
+      weight: _profile!.weight,
       createdAt: _profile!.createdAt,
       gymName: _profile!.gymName,
       gymAddress: _profile!.gymAddress,
@@ -226,33 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _heightController,
-                          enabled: _isEditing,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Height (cm)',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextField(
-                          controller: _weightController,
-                          enabled: _isEditing,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Weight (kg)',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+
                   const SizedBox(height: 16),
 
                   // Gender and BirthDate

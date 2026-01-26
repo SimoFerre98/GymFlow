@@ -5,6 +5,7 @@ class BodyMeasurement {
   final String userId;
   final DateTime date;
   final double? weight;
+  final double? height; // Added height
   final double? chest;
   final double? waist;
   final double? hips;
@@ -20,6 +21,7 @@ class BodyMeasurement {
     required this.userId,
     required this.date,
     this.weight,
+    this.height,
     this.chest,
     this.waist,
     this.hips,
@@ -37,6 +39,7 @@ class BodyMeasurement {
       'userId': userId,
       'date': Timestamp.fromDate(date),
       'weight': weight,
+      'height': height,
       'chest': chest,
       'waist': waist,
       'hips': hips,
@@ -55,6 +58,7 @@ class BodyMeasurement {
       userId: map['userId'] ?? '',
       date: (map['date'] as Timestamp).toDate(),
       weight: map['weight']?.toDouble(),
+      height: map['height']?.toDouble(),
       chest: map['chest']?.toDouble(),
       waist: map['waist']?.toDouble(),
       hips: map['hips']?.toDouble(),
