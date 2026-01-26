@@ -1,4 +1,10 @@
-enum ExerciseType { strength, cardio, hypertrophy, mobility }
+enum ExerciseType {
+  strength, // Weight X Reps
+  cardio, // Distance X Time
+  timed, // Time (Duration) only
+  bodyweight, // Reps only
+  isometric, // Time (Static hold)
+}
 
 class Exercise {
   final String id;

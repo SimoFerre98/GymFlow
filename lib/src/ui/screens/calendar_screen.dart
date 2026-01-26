@@ -14,6 +14,7 @@ import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -347,6 +348,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         } else {
           _firestore.deleteScheduledWorkout(id);
         }
+        ToastUtils.showInfo(context, 'Event deleted');
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -431,7 +433,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ActiveSessionScreen(workout: workout),
+          builder: (_) => ActiveSessionScreen(
+            workout: workout,
+            scheduledWorkoutId: schedule.id,
+          ),
         ),
       );
     }

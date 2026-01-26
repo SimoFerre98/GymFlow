@@ -103,14 +103,20 @@ class AuthService {
   }
 
   Future<void> updateUserProfile(UserProfile profile) async {
-    await _firestore
-        .collection('users')
-        .doc(profile.id)
-        .update(profile.toMap());
-    // Also update auth display name just in case
-    await currentUser?.updateDisplayName(profile.displayName);
-    if (profile.photoUrl != null) {
-      await currentUser?.updatePhotoURL(profile.photoUrl);
+    try {
+      await _firestore
+          .collection('users')
+          .doc(profile.id)
+          .set(profile.toMap(), SetOptions(merge: true));
+
+      // Also update auth display name just in case
+      await currentUser?.updateDisplayName(profile.displayName);
+      if (profile.photoUrl != null) {
+        await currentUser?.updatePhotoURL(profile.photoUrl);
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      rethrow;
     }
   }
 }

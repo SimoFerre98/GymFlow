@@ -5,13 +5,21 @@ import 'package:gymflow/src/models/exercise.dart';
 class WorkoutSet {
   double weight;
   int reps;
+  double? distance; // km or miles
+  int? durationSeconds; // time in seconds
+  double? calories;
+  int? level;
   bool isCompleted;
-  double? rpe; // New: Rate of Perceived Exertion (1-10)
-  String? notes; // New: Per-set notes
+  double? rpe;
+  String? notes;
 
   WorkoutSet({
-    required this.weight,
-    required this.reps,
+    this.weight = 0,
+    this.reps = 0,
+    this.distance,
+    this.durationSeconds,
+    this.calories,
+    this.level,
     this.isCompleted = false,
     this.rpe,
     this.notes,
@@ -21,6 +29,10 @@ class WorkoutSet {
     return {
       'weight': weight,
       'reps': reps,
+      'distance': distance,
+      'durationSeconds': durationSeconds,
+      'calories': calories,
+      'level': level,
       'isCompleted': isCompleted,
       'rpe': rpe,
       'notes': notes,
@@ -31,6 +43,10 @@ class WorkoutSet {
     return WorkoutSet(
       weight: (map['weight'] ?? 0).toDouble(),
       reps: map['reps'] ?? 0,
+      distance: map['distance']?.toDouble(),
+      durationSeconds: map['durationSeconds'],
+      calories: map['calories']?.toDouble(),
+      level: map['level'],
       isCompleted: map['isCompleted'] ?? false,
       rpe: map['rpe']?.toDouble(),
       notes: map['notes'],
@@ -41,12 +57,14 @@ class WorkoutSet {
 class WorkoutExercise {
   final String exerciseId;
   final String exerciseName;
+  final ExerciseType type;
   final List<WorkoutSet> sets;
   String? notes;
 
   WorkoutExercise({
     required this.exerciseId,
     required this.exerciseName,
+    this.type = ExerciseType.strength, // Default
     required this.sets,
     this.notes,
   });
@@ -55,6 +73,7 @@ class WorkoutExercise {
     return {
       'exerciseId': exerciseId,
       'exerciseName': exerciseName,
+      'type': type.toString().split('.').last,
       'sets': sets.map((s) => s.toMap()).toList(),
       'notes': notes,
     };
@@ -64,12 +83,20 @@ class WorkoutExercise {
     return WorkoutExercise(
       exerciseId: map['exerciseId'] ?? '',
       exerciseName: map['exerciseName'] ?? '',
+      type: _parseType(map['type']),
       sets:
           (map['sets'] as List<dynamic>?)
               ?.map((s) => WorkoutSet.fromMap(s))
               .toList() ??
           [],
       notes: map['notes'],
+    );
+  }
+
+  static ExerciseType _parseType(String? type) {
+    return ExerciseType.values.firstWhere(
+      (e) => e.toString().split('.').last == type,
+      orElse: () => ExerciseType.strength,
     );
   }
 }
@@ -79,8 +106,12 @@ class WorkoutExercise {
 class WorkoutTemplateExercise {
   final String exerciseId;
   final String exerciseName;
+  final ExerciseType type; // New field
   final int targetSets;
   final String targetReps; // e.g., "8-12", "5"
+  final double? targetWeight;
+  final double? targetDistance; // New
+  final int? targetDurationSeconds; // New
   final double? targetRPE;
   final int? restSeconds;
   final String? notes;
@@ -88,8 +119,12 @@ class WorkoutTemplateExercise {
   WorkoutTemplateExercise({
     required this.exerciseId,
     required this.exerciseName,
+    this.type = ExerciseType.strength,
     required this.targetSets,
     this.targetReps = "10",
+    this.targetWeight,
+    this.targetDistance,
+    this.targetDurationSeconds,
     this.targetRPE,
     this.restSeconds,
     this.notes,
@@ -99,8 +134,12 @@ class WorkoutTemplateExercise {
     return {
       'exerciseId': exerciseId,
       'exerciseName': exerciseName,
+      'type': type.toString().split('.').last,
       'targetSets': targetSets,
       'targetReps': targetReps,
+      'targetWeight': targetWeight,
+      'targetDistance': targetDistance,
+      'targetDurationSeconds': targetDurationSeconds,
       'targetRPE': targetRPE,
       'restSeconds': restSeconds,
       'notes': notes,
@@ -111,11 +150,21 @@ class WorkoutTemplateExercise {
     return WorkoutTemplateExercise(
       exerciseId: map['exerciseId'] ?? '',
       exerciseName: map['exerciseName'] ?? '',
+      type: _parseType(map['type']),
       targetSets: map['targetSets'] ?? 3,
       targetReps: map['targetReps'] ?? "10",
+      targetWeight: map['targetWeight']?.toDouble(),
+      targetDistance: map['targetDistance']?.toDouble(),
+      targetDurationSeconds: map['targetDurationSeconds'],
       targetRPE: map['targetRPE']?.toDouble(),
       restSeconds: map['restSeconds'],
       notes: map['notes'],
+    );
+  }
+  static ExerciseType _parseType(String? type) {
+    return ExerciseType.values.firstWhere(
+      (e) => e.toString().split('.').last == type,
+      orElse: () => ExerciseType.strength,
     );
   }
 }

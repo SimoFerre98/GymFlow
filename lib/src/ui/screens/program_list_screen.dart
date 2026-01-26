@@ -5,6 +5,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:intl/intl.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ProgramListScreen extends StatelessWidget {
   const ProgramListScreen({super.key});
@@ -110,15 +111,11 @@ class ProgramListScreen extends StatelessWidget {
       try {
         await FirestoreService().deleteProgram(program.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Program deleted')));
+          ToastUtils.showInfo(context, 'Program deleted');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error deleting program: $e')));
+          ToastUtils.showError(context, 'Error deleting program: $e');
         }
       }
     }

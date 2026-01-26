@@ -57,6 +57,10 @@ class FirestoreService {
     await doc.set(newExercise.toMap());
   }
 
+  Future<void> deleteExercise(String exerciseId) async {
+    await _db.collection('exercises').doc(exerciseId).delete();
+  }
+
   Future<void> seedDefaultExercises() async {
     final existing = await _db.collection('exercises').limit(1).get();
     if (existing.docs.isNotEmpty) return; // Already seeded
@@ -101,14 +105,14 @@ class FirestoreService {
         id: '',
         name: 'Dumbbell Curl',
         description: 'Bicep isolation',
-        type: ExerciseType.hypertrophy,
+        type: ExerciseType.strength,
         musclesTargeted: ['Biceps'],
       ),
       Exercise(
         id: '',
         name: 'Tricep Extension',
         description: 'Tricep isolation',
-        type: ExerciseType.hypertrophy,
+        type: ExerciseType.strength,
         musclesTargeted: ['Triceps'],
       ),
       Exercise(

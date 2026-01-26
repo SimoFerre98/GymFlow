@@ -5,6 +5,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -94,27 +95,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       email: _profile!.email,
       displayName: _nameController.text.trim(),
       photoUrl: photoUrl,
-      height: double.tryParse(_heightController.text),
-      weight: double.tryParse(_weightController.text),
+      height: double.tryParse(_heightController.text.replaceAll(',', '.')),
+      weight: double.tryParse(_weightController.text.replaceAll(',', '.')),
       createdAt: _profile!.createdAt,
     );
 
-    // 3. Save to Firestore (We need to expose a method for this)
-    // For now I'll call a new method in AuthService
-    await _auth.updateUserProfile(updatedProfile);
+    // 3. Save to Firestore
+    try {
+      print('Saving profile for: ${_profile!.id}');
+      print('Data: ${updatedProfile.toMap()}');
 
-    setState(() {
-      _profile = updatedProfile;
-      _isEditing = false;
-      _imageFile = null; // Reset local file as it is now uploaded
-      _isLoading = false;
-    });
+      await _auth.updateUserProfile(updatedProfile);
+      print('Profile saved to Firestore successfully');
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
-      );
-      Navigator.pop(context); // Go back to Settings
+      // Force reload from server to confirm
+      await _loadProfile();
+
+      setState(() {
+        _isEditing = false;
+        _imageFile = null;
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ToastUtils.showSuccess(context, 'Profile updated successfully!');
+        // Don't pop, so user can see the result
+        // Navigator.pop(context);
+      }
+    } catch (e, stack) {
+      print('Error saving profile: $e');
+      print(stack);
+      if (mounted) {
+        ToastUtils.showError(context, 'Failed to save profile: $e');
+      }
+      setState(() => _isLoading = false);
     }
   }
 

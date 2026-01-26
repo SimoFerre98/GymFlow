@@ -129,6 +129,186 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     );
   }
 
+  Future<void> _showEditExerciseDialog({
+    WorkoutTemplateExercise? existing,
+    required Function(WorkoutTemplateExercise) onSave,
+  }) async {
+    final setsController = TextEditingController(
+      text: existing?.targetSets.toString() ?? '3',
+    );
+    final repsController = TextEditingController(
+      text: existing?.targetReps ?? '10',
+    );
+    final weightController = TextEditingController(
+      text: existing?.targetWeight?.toString() ?? '',
+    );
+    final distanceController = TextEditingController(
+      text: existing?.targetDistance?.toString() ?? '',
+    );
+    final durationController = TextEditingController(
+      text: existing?.targetDurationSeconds != null
+          ? (existing!.targetDurationSeconds! / 60).toStringAsFixed(0)
+          : '',
+    );
+    final restController = TextEditingController(
+      text: existing?.restSeconds?.toString() ?? '90',
+    );
+    final notesController = TextEditingController(text: existing?.notes ?? '');
+
+    final type = existing?.type ?? ExerciseType.strength;
+    final isCardio = type == ExerciseType.cardio;
+    final isTimed =
+        type == ExerciseType.timed || type == ExerciseType.isometric;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(existing != null ? 'Edit Targets' : 'Set Targets'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: setsController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: isCardio ? 'Intervals (Optional)' : 'Sets',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  if (!isCardio && !isTimed)
+                    Expanded(
+                      child: TextField(
+                        controller: repsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Reps (e.g. 8-12)',
+                        ),
+                      ),
+                    ),
+                  if (isCardio || isTimed)
+                    Expanded(
+                      child: TextField(
+                        controller: durationController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Duration (min)', // Simple min input
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  if (isCardio)
+                    Expanded(
+                      child: TextField(
+                        controller: distanceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Distance (km)',
+                        ),
+                      ),
+                    ),
+                  if (!isCardio && !isTimed)
+                    Expanded(
+                      child: TextField(
+                        controller: weightController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Weight (kg)',
+                        ),
+                      ),
+                    ),
+                  if (isCardio) const SizedBox(width: 16),
+                  if (!isCardio && !isTimed) const SizedBox(width: 16),
+
+                  Expanded(
+                    child: TextField(
+                      controller: restController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Rest (sec)',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notes / Cue (Optional)',
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final sets = int.tryParse(setsController.text) ?? 3;
+              final reps = repsController.text.isNotEmpty
+                  ? repsController.text
+                  : "10";
+              final weight = double.tryParse(
+                weightController.text.replaceAll(',', '.'),
+              );
+              final distance = double.tryParse(
+                distanceController.text.replaceAll(',', '.'),
+              );
+              final durationMins = double.tryParse(durationController.text);
+              final durationSeconds = durationMins != null
+                  ? (durationMins * 60).toInt()
+                  : null;
+
+              final rest = int.tryParse(restController.text);
+              final notes = notesController.text.trim().isEmpty
+                  ? null
+                  : notesController.text.trim();
+
+              // We need to construct the object. If 'existing' is provided, we use its ID/Name.
+              // But 'onSave' might be cleaner to handle the logic.
+              // Actually, simpler to return the values or object.
+
+              if (existing != null) {
+                onSave(
+                  WorkoutTemplateExercise(
+                    exerciseId: existing.exerciseId,
+                    exerciseName: existing.exerciseName,
+                    type: existing.type, // IMPORTANT: Maintain type
+                    targetSets: sets,
+                    targetReps: reps,
+                    targetWeight: weight,
+                    targetDistance: distance,
+                    targetDurationSeconds: durationSeconds,
+                    restSeconds: rest,
+                    notes: notes,
+                  ),
+                );
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _addExercise() async {
     final Exercise? result = await Navigator.push(
       context,
@@ -137,17 +317,25 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       ),
     );
 
-    if (result != null) {
-      setState(() {
-        _exercises.add(
-          WorkoutTemplateExercise(
-            exerciseId: result.id,
-            exerciseName: result.name,
-            targetSets: 3,
-            targetReps: "10",
-          ),
-        );
-      });
+    if (result != null && mounted) {
+      // Create a temporary object to hold ID/Name
+      final temp = WorkoutTemplateExercise(
+        exerciseId: result.id,
+        exerciseName: result.name,
+        type: result.type,
+        targetSets: 3,
+        targetReps: "10",
+      );
+
+      // Show dialog to customize immediately
+      await _showEditExerciseDialog(
+        existing: temp,
+        onSave: (newExercise) {
+          setState(() {
+            _exercises.add(newExercise);
+          });
+        },
+      );
     }
   }
 
@@ -299,12 +487,37 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                               ),
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${_exercises[index].targetSets} Sets × ${_exercises[index].targetReps} Reps',
-                                      style: TextStyle(color: Colors.grey[600]),
+                                      '${_exercises[index].targetSets} x ${_exercises[index].targetReps}'
+                                      '${_exercises[index].targetWeight != null && _exercises[index].targetWeight! > 0 ? " @ ${_exercises[index].targetWeight}kg" : ""}',
+                                      style: TextStyle(
+                                        color: Colors.grey[800],
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
+                                    if (_exercises[index].restSeconds != null)
+                                      Text(
+                                        'Rest: ${_exercises[index].restSeconds}s',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    if (_exercises[index].notes != null &&
+                                        _exercises[index].notes!.isNotEmpty)
+                                      Text(
+                                        'Note: ${_exercises[index].notes}',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                   ],
                                 ),
                               ),
@@ -336,7 +549,14 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                                 ],
                               ),
                               onTap: () {
-                                // TODO: Edit Targets Dialog
+                                _showEditExerciseDialog(
+                                  existing: _exercises[index],
+                                  onSave: (updated) {
+                                    setState(() {
+                                      _exercises[index] = updated;
+                                    });
+                                  },
+                                );
                               },
                             ),
                           ),

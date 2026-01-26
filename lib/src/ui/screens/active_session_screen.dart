@@ -1,14 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/models/workout.dart';
+import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
   final WorkoutTemplate workout;
-  const ActiveSessionScreen({super.key, required this.workout});
+  final String? scheduledWorkoutId;
+
+  const ActiveSessionScreen({
+    super.key,
+    required this.workout,
+    this.scheduledWorkoutId,
+  });
 
   @override
   State<ActiveSessionScreen> createState() => _ActiveSessionScreenState();
@@ -40,10 +48,22 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
       return WorkoutExercise(
         exerciseId: e.exerciseId,
         exerciseName: e.exerciseName,
-        sets: List.generate(
-          e.targetSets,
-          (index) => WorkoutSet(weight: 0, reps: 0),
-        ),
+        type: e.type,
+        sets: List.generate(e.targetSets, (index) {
+          // Parse target reps (handle "8-12" => 8)
+          int startReps = 0;
+          final repsStr = e.targetReps.replaceAll(
+            RegExp(r'[^0-9-]'),
+            '',
+          ); // remove non-numeric except dash
+          if (repsStr.contains('-')) {
+            startReps = int.tryParse(repsStr.split('-')[0]) ?? 0;
+          } else {
+            startReps = int.tryParse(repsStr) ?? 0;
+          }
+
+          return WorkoutSet(weight: e.targetWeight ?? 0, reps: startReps);
+        }),
         notes: e.notes,
       );
     }).toList();
@@ -220,13 +240,17 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     );
 
     // Fire and forget save
-    await FirestoreService().saveSession(session);
+    final service = FirestoreService();
+    await service.saveSession(session);
+
+    // If this was a scheduled workout, remove the schedule now that it's done
+    if (widget.scheduledWorkoutId != null) {
+      await service.deleteScheduledWorkout(widget.scheduledWorkoutId!);
+    }
 
     if (mounted) {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Great job! Workout saved. 💪')),
-      );
+      ToastUtils.showSuccess(context, 'Great job! Workout saved. 💪');
     }
   }
 
@@ -331,78 +355,10 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                     ],
                   ),
                 ),
-                Table(
-                  columnWidths: const {
-                    0: FlexColumnWidth(1), // Set #
-                    1: FlexColumnWidth(2), // Weight
-                    2: FlexColumnWidth(2), // Reps
-                    3: FlexColumnWidth(1), // Check
-                  },
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    const TableRow(
-                      children: [
-                        Center(
-                          child: Text(
-                            '#',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        Center(
-                          child: Text(
-                            'Kg',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        Center(
-                          child: Text(
-                            'Reps',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        SizedBox(),
-                      ],
-                    ),
-                    ...exercise.sets.asMap().entries.map((entry) {
-                      final setIndex = entry.key;
-                      final set = entry.value;
-                      return TableRow(
-                        children: [
-                          Center(child: Text('${setIndex + 1}')),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
-                              initialValue: set.weight.toString(),
-                              textAlign: TextAlign.center,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(isDense: true),
-                              onChanged: (val) => set.weight =
-                                  double.tryParse(val) ?? set.weight,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
-                              initialValue: set.reps.toString(),
-                              textAlign: TextAlign.center,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(isDense: true),
-                              onChanged: (val) =>
-                                  set.reps = int.tryParse(val) ?? set.reps,
-                            ),
-                          ),
-                          Checkbox(
-                            value: set.isCompleted,
-                            onChanged: (val) {
-                              setState(() {
-                                set.isCompleted = val ?? false;
-                              });
-                            },
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ],
+                // Dynamic Table Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  child: _buildExerciseTable(exercise, context),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -411,6 +367,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                     label: const Text('Add Set'),
                     onPressed: () {
                       setState(() {
+                        // Add set with appropriate defaults based on type?
                         exercise.sets.add(WorkoutSet(weight: 0, reps: 0));
                       });
                     },
@@ -421,6 +378,241 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
           );
         },
       ),
+    );
+  }
+
+  // Helper to build the table based on type
+  Widget _buildExerciseTable(WorkoutExercise exercise, BuildContext context) {
+    switch (exercise.type) {
+      case ExerciseType.cardio:
+        return _buildCardioTable(exercise);
+      case ExerciseType.timed:
+      case ExerciseType.isometric:
+        return _buildDurationTable(exercise);
+      case ExerciseType.bodyweight:
+        return _buildStrengthTable(exercise, showWeight: false);
+      case ExerciseType.strength:
+      default:
+        return _buildStrengthTable(exercise, showWeight: true);
+    }
+  }
+
+  Widget _buildStrengthTable(
+    WorkoutExercise exercise, {
+    required bool showWeight,
+  }) {
+    return Table(
+      columnWidths: {
+        0: const FlexColumnWidth(1), // Set #
+        if (showWeight) 1: const FlexColumnWidth(2), // Weight
+        2: const FlexColumnWidth(2), // Reps
+        3: const FlexColumnWidth(1), // Check
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: [
+        TableRow(
+          children: [
+            const Center(
+              child: Text('#', style: TextStyle(color: Colors.grey)),
+            ),
+            if (showWeight)
+              const Center(
+                child: Text('Kg', style: TextStyle(color: Colors.grey)),
+              ),
+            const Center(
+              child: Text('Reps', style: TextStyle(color: Colors.grey)),
+            ),
+            const SizedBox(),
+          ],
+        ),
+        ...exercise.sets.asMap().entries.map((entry) {
+          final setIndex = entry.key;
+          final set = entry.value;
+          return TableRow(
+            children: [
+              Center(child: Text('${setIndex + 1}')),
+              if (showWeight)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    initialValue: set.weight.toString(),
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(isDense: true),
+                    onChanged: (val) => set.weight =
+                        double.tryParse(val.replaceAll(',', '.')) ?? set.weight,
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  initialValue: set.reps.toString(),
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(isDense: true),
+                  onChanged: (val) => set.reps = int.tryParse(val) ?? set.reps,
+                ),
+              ),
+              Checkbox(
+                value: set.isCompleted,
+                onChanged: (val) =>
+                    setState(() => set.isCompleted = val ?? false),
+              ),
+            ],
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildCardioTable(WorkoutExercise exercise) {
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1),
+        1: FlexColumnWidth(2), // Distance
+        2: FlexColumnWidth(2), // Time
+        3: FlexColumnWidth(1),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: [
+        const TableRow(
+          children: [
+            Center(
+              child: Text('#', style: TextStyle(color: Colors.grey)),
+            ),
+            Center(
+              child: Text('Km', style: TextStyle(color: Colors.grey)),
+            ),
+            Center(
+              child: Text('Time (min)', style: TextStyle(color: Colors.grey)),
+            ),
+            SizedBox(),
+          ],
+        ),
+        ...exercise.sets.asMap().entries.map((entry) {
+          final setIndex = entry.key;
+          final set = entry.value;
+          return TableRow(
+            children: [
+              Center(child: Text('${setIndex + 1}')),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  initialValue: (set.distance ?? 0).toString(),
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    hintText: '0',
+                  ),
+                  onChanged: (val) => set.distance =
+                      double.tryParse(val.replaceAll(',', '.')) ?? 0,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  // We might store seconds but show minutes for edit
+                  initialValue: ((set.durationSeconds ?? 0) / 60)
+                      .toStringAsFixed(0),
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    hintText: '0',
+                  ),
+                  onChanged: (val) {
+                    final min = int.tryParse(val) ?? 0;
+                    set.durationSeconds = min * 60;
+                  },
+                ),
+              ),
+              Checkbox(
+                value: set.isCompleted,
+                onChanged: (val) =>
+                    setState(() => set.isCompleted = val ?? false),
+              ),
+            ],
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildDurationTable(WorkoutExercise exercise) {
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1),
+        1: FlexColumnWidth(3), // Time
+        2: FlexColumnWidth(1),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: [
+        const TableRow(
+          children: [
+            Center(
+              child: Text('#', style: TextStyle(color: Colors.grey)),
+            ),
+            Center(
+              child: Text(
+                'Duration (sec)',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            SizedBox(),
+          ],
+        ),
+        ...exercise.sets.asMap().entries.map((entry) {
+          final setIndex = entry.key;
+          final set = entry.value;
+          return TableRow(
+            children: [
+              Center(child: Text('${setIndex + 1}')),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 60,
+                      child: TextFormField(
+                        initialValue: (set.durationSeconds ?? 0).toString(),
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          suffixText: 's',
+                        ),
+                        onChanged: (val) =>
+                            set.durationSeconds = int.tryParse(val) ?? 0,
+                      ),
+                    ),
+                    // Optional Timer Button?
+                    IconButton(
+                      icon: const Icon(
+                        Icons.timer_outlined,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () {
+                        // Start a mini timer? For now just visual.
+                        ToastUtils.showInfo(
+                          context,
+                          'Timer started (visual only)',
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Checkbox(
+                value: set.isCompleted,
+                onChanged: (val) =>
+                    setState(() => set.isCompleted = val ?? false),
+              ),
+            ],
+          );
+        }).toList(),
+      ],
     );
   }
 }

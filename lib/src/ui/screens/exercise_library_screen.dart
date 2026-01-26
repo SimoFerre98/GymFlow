@@ -120,42 +120,57 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
                   itemCount: exercises.length,
                   itemBuilder: (context, index) {
                     final exercise = exercises[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.secondary.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.fitness_center,
-                            color: Theme.of(context).colorScheme.secondary,
-                            size: 20,
-                          ),
+                    if (!exercise.isCustom) {
+                      return _buildExerciseCard(exercise, context);
+                    }
+
+                    return Dismissible(
+                      key: Key(exercise.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
                         ),
-                        title: Text(
-                          exercise.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        subtitle: Text(exercise.type.name.toUpperCase()),
-                        onTap: () {
-                          if (widget.isSelecting) {
-                            Navigator.pop(context, exercise);
-                          } else {
-                            // TODO: Show exercise details
-                          }
-                        },
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
+                      confirmDismiss: (direction) async {
+                        return await showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Delete Exercise?'),
+                            content: Text(
+                              'Delete "${exercise.name}"? This cannot be undone.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      onDismissed: (direction) {
+                        _firestore.deleteExercise(exercise.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Exercise deleted')),
+                        );
+                      },
+                      child: _buildExerciseCard(exercise, context),
                     );
                   },
                 );
@@ -167,6 +182,39 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddExerciseDialog,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildExerciseCard(Exercise exercise, BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.fitness_center,
+            color: Theme.of(context).colorScheme.secondary,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          exercise.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(exercise.type.name.toUpperCase()),
+        onTap: () {
+          if (widget.isSelecting) {
+            Navigator.pop(context, exercise);
+          } else {
+            // TODO: Show exercise details
+          }
+        },
       ),
     );
   }

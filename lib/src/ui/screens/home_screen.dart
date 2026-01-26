@@ -96,15 +96,11 @@ class HomeScreen extends StatelessWidget {
       try {
         await FirestoreService().deleteProgram(program.id);
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Program deleted')));
+          ToastUtils.showInfo(context, 'Program deleted');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error deleting program: $e')));
+          ToastUtils.showError(context, 'Error deleting program: $e');
         }
       }
     }
