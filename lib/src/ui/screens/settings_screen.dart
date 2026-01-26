@@ -68,9 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Firestore `get()` usually fetches from server unless source is specified.
           // `snapshots()` emits cache first.
 
-          if (profile != null &&
-              _gymNameController.text.isEmpty &&
-              !_isLoading) {
+          if (profile != null && _gymNameController.text.isEmpty) {
             _gymNameController.text = profile.gymName ?? '';
             _gymAddressController.text = profile.gymAddress ?? '';
             _gymLat = profile.gymLat;
@@ -479,8 +477,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _saveGymInfo() async {
-    final userProfile = await AuthService().getUserProfile();
-    if (userProfile != null) {
+    setState(
+      () => _isLoading = true,
+    ); // Reuse isLoading for button state or add new one
+    // Actually, let's create a local saving state to not mess with the page loading logic
+    // But since _isLoading was for initial load, let's use a new variable or just wrap in try/catch properly.
+
+    try {
+      var userProfile = await AuthService().getUserProfile();
+
+      // Fallback: If no Firestore doc exists, try to create from Auth
+      if (userProfile == null) {
+        final authUser = AuthService().currentUser;
+        if (authUser != null) {
+          userProfile = UserProfile(
+            id: authUser.uid,
+            email: authUser.email ?? '',
+            displayName: authUser.displayName ?? 'User',
+            createdAt: DateTime.now(),
+          );
+        } else {
+          if (mounted) ToastUtils.showError(context, 'User not authenticated');
+          return;
+        }
+      }
+
       final updatedProfile = UserProfile(
         id: userProfile.id,
         email: userProfile.email,
@@ -490,17 +511,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
         photoUrl: userProfile.photoUrl,
         createdAt: userProfile.createdAt,
         streakDays: userProfile.streakDays,
-        gymName: _gymNameController.text,
-        gymAddress: _gymAddressController.text,
+        gymName: _gymNameController.text.trim(),
+        gymAddress: _gymAddressController.text.trim(),
         gymLat: _gymLat,
         gymLng: _gymLng,
         subscriptionExpiry: _subscriptionExpiry,
       );
 
+      print('Saving profile: ${updatedProfile.toMap()}'); // Debug log
+
       await AuthService().updateUserProfile(updatedProfile);
+
       if (mounted) {
         ToastUtils.showSuccess(context, 'Gym Info Saved!');
       }
+    } catch (e) {
+      print('Error saving gym info: $e');
+      if (mounted) {
+        ToastUtils.showError(context, 'Error saving info: $e');
+      }
+    } finally {
+      if (mounted)
+        setState(() => _isLoading = false); // Or separate saving flag
     }
   }
 }
