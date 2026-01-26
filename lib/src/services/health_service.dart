@@ -111,4 +111,71 @@ class HealthService {
       'sleepMinutes': sleepMinutes,
     };
   }
+
+  /// Fetches historical data for a specific type and range, aggregated by day.
+  /// Returns a Map where key is DateTime (midnight) and value is the aggregated value (double).
+  Future<Map<DateTime, double>> fetchHistoricalData(
+    HealthDataType type,
+    DateTime start,
+    DateTime end,
+  ) async {
+    // Ensure we fetch generic data points
+    List<HealthDataPoint> data = await _health.getHealthDataFromTypes(
+      startTime: start,
+      endTime: end.add(const Duration(days: 1)), // Add 1 day buffer to be safe
+      types: [type],
+    );
+
+    // Filter duplicates via Health library internal logic usually handles it, but verify
+    // data = HealthFactory.removeDuplicates(data); // Removed as HealthFactory is undefined in this version
+
+    Map<DateTime, double> dailyData = {};
+    Map<DateTime, int> dailyCounts = {}; // For averaging
+
+    for (var point in data) {
+      // Normalize to midnight
+      DateTime date = point.dateTo;
+      // Use dateTo usually better for "when did it happen"
+      DateTime midnight = DateTime(date.year, date.month, date.day);
+
+      // If outside requested range, skip (buffer checking)
+      if (midnight.isBefore(DateTime(start.year, start.month, start.day)) ||
+          midnight.isAfter(end)) {
+        continue;
+      }
+
+      double value = 0.0;
+      if (point.value is NumericHealthValue) {
+        value = (point.value as NumericHealthValue).numericValue.toDouble();
+      }
+
+      if (type == HealthDataType.STEPS ||
+          type == HealthDataType.ACTIVE_ENERGY_BURNED ||
+          type == HealthDataType.DISTANCE_DELTA ||
+          type == HealthDataType.WATER) {
+        // SUM
+        dailyData[midnight] = (dailyData[midnight] ?? 0) + value;
+      } else if (type == HealthDataType.SLEEP_SESSION) {
+        // SUM minutes
+        final duration = point.dateTo.difference(point.dateFrom).inMinutes;
+        dailyData[midnight] = (dailyData[midnight] ?? 0) + duration;
+      } else if (type == HealthDataType.HEART_RATE ||
+          type == HealthDataType.WEIGHT) {
+        // AVERAGE (Accumulate sum and count)
+        dailyData[midnight] = (dailyData[midnight] ?? 0) + value;
+        dailyCounts[midnight] = (dailyCounts[midnight] ?? 0) + 1;
+      }
+    }
+
+    // Post-process Average
+    if (type == HealthDataType.HEART_RATE || type == HealthDataType.WEIGHT) {
+      dailyData.forEach((key, value) {
+        if (dailyCounts.containsKey(key) && dailyCounts[key]! > 0) {
+          dailyData[key] = value / dailyCounts[key]!;
+        }
+      });
+    }
+
+    return dailyData;
+  }
 }

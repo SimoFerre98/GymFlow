@@ -13,6 +13,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/user_profile.dart';
 import '../../services/health_service.dart';
+import 'package:health/health.dart';
+import 'health_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -37,6 +39,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (mounted) {
       setState(() => _userProfile = profile);
     }
+  }
+
+  Future<void> _refreshHealthData() async {
+    setState(() {
+      _healthDataFuture = HealthService().fetchDailySummary();
+    });
+    // Wait for the future to complete so the refresh indicator spins until done
+    await _healthDataFuture;
   }
 
   @override
@@ -142,207 +152,260 @@ class _DashboardScreenState extends State<DashboardScreen> {
     int streak,
     bool isLoading,
   ) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Greeting / Header could go here
+    return RefreshIndicator(
+      onRefresh: _refreshHealthData,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        physics:
+            const AlwaysScrollableScrollPhysics(), // Ensure refresh works even if content is short
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Greeting / Header could go here
 
-          // Row 1: Quick Stats (Small Bento Cards)
-          Row(
-            children: [
-              Expanded(
-                child: _buildBentoCard(
-                  child: _buildStatContent(
-                    'Workouts',
-                    sessions.length.toString(),
-                    Icons.fitness_center_rounded,
-                    Colors.blue,
-                    isLoading,
+            // Row 1: Quick Stats (Small Bento Cards)
+            Row(
+              children: [
+                Expanded(
+                  child: _buildBentoCard(
+                    child: _buildStatContent(
+                      'Workouts',
+                      sessions.length.toString(),
+                      Icons.fitness_center_rounded,
+                      Colors.blue,
+                      isLoading,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildBentoCard(
-                  child: _buildStatContent(
-                    'Streak',
-                    '$streak Days',
-                    Icons.local_fire_department_rounded,
-                    Colors.orange,
-                    isLoading,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildBentoCard(
+                    child: _buildStatContent(
+                      'Streak',
+                      '$streak Days',
+                      Icons.local_fire_department_rounded,
+                      Colors.orange,
+                      isLoading,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Health / Wellness Row
-          FutureBuilder<Map<String, dynamic>>(
-            future: _healthDataFuture,
-            builder: (context, snapshot) {
-              final data = snapshot.data;
-              final steps = data?['steps'] ?? 0;
-              final calories = data?['calories'] ?? 0.0;
-              final heartRate = data?['heartRate'] ?? 0;
-              final sleep = data?['sleepMinutes'] ?? 0;
-
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: LinearProgressIndicator());
-              }
-
-              if (data == null && !snapshot.hasData) {
-                return const SizedBox.shrink(); // Hide if no data or error
-              }
-
-              return Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildBentoCard(
-                          child: _buildStatContent(
-                            'Steps',
-                            '$steps',
-                            Icons.directions_walk,
-                            Colors.teal,
-                            false,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildBentoCard(
-                          child: _buildStatContent(
-                            'Active Cal',
-                            '${calories.toInt()}',
-                            Icons.local_fire_department,
-                            Colors.red,
-                            false,
-                            suffix: ' kcal',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      if (heartRate > 0)
-                        Expanded(
-                          child: _buildBentoCard(
-                            child: _buildStatContent(
-                              'Heart Rate',
-                              '$heartRate',
-                              Icons.favorite,
-                              Colors.pink,
-                              false,
-                              suffix: ' bpm',
-                            ),
-                          ),
-                        ),
-                      if (heartRate > 0) const SizedBox(width: 16),
-                      if (sleep > 0)
-                        Expanded(
-                          child: _buildBentoCard(
-                            child: _buildStatContent(
-                              'Sleep',
-                              '${(sleep / 60).toStringAsFixed(1)}',
-                              Icons.bedtime,
-                              Colors.indigo,
-                              false,
-                              suffix: ' h',
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (heartRate > 0 || sleep > 0) const SizedBox(height: 16),
-                ],
-              );
-            },
-          ),
-
-          // Row 1.5: Detailed Volume/RPE Stats
-          Row(
-            children: [
-              Expanded(
-                child: _buildBentoCard(
-                  child: _buildStatContent(
-                    'Volume',
-                    isLoading
-                        ? '0'
-                        : '${(StatisticsHelper.calculateTotalVolume(sessions) / 1000).toStringAsFixed(1)}k',
-                    Icons.scale_rounded,
-                    Colors.purple,
-                    isLoading,
-                    suffix: ' kg',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildBentoCard(
-                  child: _buildStatContent(
-                    'Avg Intensity',
-                    isLoading
-                        ? '0'
-                        : StatisticsHelper.calculateAverageRPE(
-                            sessions,
-                          ).toStringAsFixed(1),
-                    Icons.speed_rounded,
-                    Colors.redAccent,
-                    isLoading,
-                    suffix: '/10',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Row 2: Gym Map (Wide Bento Card)
-          if (_userProfile?.gymLat != null) ...[
-            _buildGymBentoCard(),
-            const SizedBox(height: 16),
-          ],
-
-          // Row 3: Charts (Medium Bento Cards)
-          // Using a Column for mobile, but styled as blocks
-          _buildBentoCard(
-            title: 'Workout Activity',
-            child: SizedBox(
-              height: 200,
-              child: isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ActivityChart(sessions: sessions),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Body Progress Chart
-          _buildBentoCard(
-            title: 'Body Progress',
-            child: BodyMeasurementsChart(userId: userId),
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(height: 16),
+            // Health / Wellness Row
+            FutureBuilder<Map<String, dynamic>>(
+              future: _healthDataFuture,
+              builder: (context, snapshot) {
+                final data = snapshot.data;
+                final steps = data?['steps'] ?? 0;
+                final calories = data?['calories'] ?? 0.0;
+                final heartRate = data?['heartRate'] ?? 0;
+                final sleep = data?['sleepMinutes'] ?? 0;
 
-          _buildBentoCard(
-            title: 'Workout Types',
-            child: isLoading
-                ? const SizedBox(
-                    height: 200,
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : WorkoutTypePieChart(
-                    data: StatisticsHelper.getWorkoutTypeDistribution(sessions),
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: LinearProgressIndicator());
+                }
+
+                if (data == null && !snapshot.hasData) {
+                  return const SizedBox.shrink(); // Hide if no data or error
+                }
+
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildBentoCard(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HealthDetailScreen(
+                                  dataType: HealthDataType.STEPS,
+                                  title: 'Steps',
+                                  baseColor: Colors.teal,
+                                  unit: 'steps',
+                                ),
+                              ),
+                            ),
+                            child: _buildStatContent(
+                              'Steps',
+                              '$steps',
+                              Icons.directions_walk,
+                              Colors.teal,
+                              false,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildBentoCard(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HealthDetailScreen(
+                                  dataType: HealthDataType.ACTIVE_ENERGY_BURNED,
+                                  title: 'Active Calories',
+                                  baseColor: Colors.red,
+                                  unit: 'kcal',
+                                ),
+                              ),
+                            ),
+                            child: _buildStatContent(
+                              'Active Cal',
+                              '${calories.toInt()}',
+                              Icons.local_fire_department,
+                              Colors.red,
+                              false,
+                              suffix: ' kcal',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        if (heartRate > 0)
+                          Expanded(
+                            child: _buildBentoCard(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const HealthDetailScreen(
+                                        dataType: HealthDataType.HEART_RATE,
+                                        title: 'Heart Rate',
+                                        baseColor: Colors.pink,
+                                        unit: 'bpm',
+                                      ),
+                                ),
+                              ),
+                              child: _buildStatContent(
+                                'Heart Rate',
+                                '$heartRate',
+                                Icons.favorite,
+                                Colors.pink,
+                                false,
+                                suffix: ' bpm',
+                              ),
+                            ),
+                          ),
+                        if (heartRate > 0) const SizedBox(width: 16),
+                        if (sleep > 0)
+                          Expanded(
+                            child: _buildBentoCard(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const HealthDetailScreen(
+                                        dataType: HealthDataType.SLEEP_SESSION,
+                                        title: 'Sleep',
+                                        baseColor: Colors.indigo,
+                                        unit: 'hours',
+                                      ),
+                                ),
+                              ),
+                              child: _buildStatContent(
+                                'Sleep',
+                                '${(sleep / 60).toStringAsFixed(1)}',
+                                Icons.bedtime,
+                                Colors.indigo,
+                                false,
+                                suffix: ' h',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (heartRate > 0 || sleep > 0) const SizedBox(height: 16),
+                  ],
+                );
+              },
+            ),
+
+            // Row 1.5: Detailed Volume/RPE Stats
+            Row(
+              children: [
+                Expanded(
+                  child: _buildBentoCard(
+                    child: _buildStatContent(
+                      'Volume',
+                      isLoading
+                          ? '0'
+                          : '${(StatisticsHelper.calculateTotalVolume(sessions) / 1000).toStringAsFixed(1)}k',
+                      Icons.scale_rounded,
+                      Colors.purple,
+                      isLoading,
+                      suffix: ' kg',
+                    ),
                   ),
-          ),
-          const SizedBox(height: 100), // Space for FAB/BottomNav
-        ],
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildBentoCard(
+                    child: _buildStatContent(
+                      'Avg Intensity',
+                      isLoading
+                          ? '0'
+                          : StatisticsHelper.calculateAverageRPE(
+                              sessions,
+                            ).toStringAsFixed(1),
+                      Icons.speed_rounded,
+                      Colors.redAccent,
+                      isLoading,
+                      suffix: '/10',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Row 2: Gym Map (Wide Bento Card)
+            if (_userProfile?.gymLat != null) ...[
+              _buildGymBentoCard(),
+              const SizedBox(height: 16),
+            ],
+
+            // Row 3: Charts (Medium Bento Cards)
+            // Using a Column for mobile, but styled as blocks
+            _buildBentoCard(
+              title: 'Workout Activity',
+              child: SizedBox(
+                height: 200,
+                child: isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : ActivityChart(sessions: sessions),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Body Progress Chart
+            _buildBentoCard(
+              title: 'Body Progress',
+              child: BodyMeasurementsChart(userId: userId),
+            ),
+            const SizedBox(height: 16),
+            const SizedBox(height: 16),
+
+            _buildBentoCard(
+              title: 'Workout Types',
+              child: isLoading
+                  ? const SizedBox(
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : WorkoutTypePieChart(
+                      data: StatisticsHelper.getWorkoutTypeDistribution(
+                        sessions,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 100), // Space for FAB/BottomNav
+          ],
+        ),
       ),
     );
   }

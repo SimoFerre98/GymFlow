@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/services/health_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -241,9 +242,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             'Permissions granted!',
                           );
                         } else {
-                          ToastUtils.showInfo(
-                            context,
-                            'Permissions request completed (check status)',
+                          // Permission might be permanently denied or user cancelled.
+                          // Show dialog to guide them to settings.
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Permissions Required'),
+                              content: const Text(
+                                'Google Fit / Health Connect permissions are needed to sync your data. Please enable them in the app settings.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    openAppSettings();
+                                  },
+                                  child: const Text('Open Settings'),
+                                ),
+                              ],
+                            ),
                           );
                         }
                       }
