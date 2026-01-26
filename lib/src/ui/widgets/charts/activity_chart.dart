@@ -153,6 +153,14 @@ class _ActivityChartState extends State<ActivityChart> {
   }
 
   Widget _buildChart(Map<int, int> data, {required bool isMonthly}) {
+    if (isMonthly) {
+      return _buildMonthlyHeatmap(data);
+    } else {
+      return _buildBarChart(data);
+    }
+  }
+
+  Widget _buildBarChart(Map<int, int> data) {
     // Determine Max Y
     int maxY = 0;
     data.forEach((_, count) {
@@ -162,9 +170,7 @@ class _ActivityChartState extends State<ActivityChart> {
 
     return BarChart(
       BarChartData(
-        alignment: isMonthly
-            ? BarChartAlignment.center
-            : BarChartAlignment.spaceAround,
+        alignment: BarChartAlignment.spaceAround,
         maxY: maxY.toDouble(),
         barTouchData: BarTouchData(
           enabled: true,
@@ -179,8 +185,7 @@ class _ActivityChartState extends State<ActivityChart> {
                 ),
                 children: [
                   TextSpan(
-                    text:
-                        '\n${isMonthly ? 'Day ${group.x}' : _getWeekdayName(group.x)}',
+                    text: '\n${_getWeekdayName(group.x.toInt())}',
                     style: const TextStyle(
                       color: Colors.white70,
                       fontWeight: FontWeight.normal,
@@ -198,29 +203,17 @@ class _ActivityChartState extends State<ActivityChart> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                if (isMonthly) {
-                  // Only show titles every 5 days for Month view to avoid clutter
-                  if (value.toInt() % 5 != 0) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      value.toInt().toString(),
-                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _getWeekdayName(value.toInt()),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
                     ),
-                  );
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      _getWeekdayName(value.toInt()),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  );
-                }
+                  ),
+                );
               },
               reservedSize: 30,
             ),
@@ -237,12 +230,117 @@ class _ActivityChartState extends State<ActivityChart> {
               FlLine(color: Colors.grey.withOpacity(0.1), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
-        barGroups: _buildBarGroups(data, isMonthly),
+        barGroups: _buildBarGroups(data),
       ),
     );
   }
 
-  List<BarChartGroupData> _buildBarGroups(Map<int, int> data, bool isMonthly) {
+  Widget _buildMonthlyHeatmap(Map<int, int> data) {
+    // Determine Max for color scaling
+    int maxVal = 1;
+    data.forEach((_, count) {
+      if (count > maxVal) maxVal = count;
+    });
+
+    // Calendar Grid Logic
+    final now = DateTime.now();
+    final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+
+    // Weekday of 1st day (1=Mon, 7=Sun).
+    // If 1st day is Monday (1), offset is 0.
+    // If 1st day is Tuesday (2), offset is 1.
+    final offset = firstDayOfMonth.weekday - 1;
+
+    final totalCells = daysInMonth + offset;
+
+    return Column(
+      children: [
+        // Weekday Headers
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+              .map(
+                (e) => SizedBox(
+                  width: 30,
+                  child: Text(
+                    e,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 1,
+            ),
+            itemCount: totalCells,
+            itemBuilder: (context, index) {
+              if (index < offset) return const SizedBox.shrink();
+
+              final day = index - offset + 1;
+              final count = data[day] ?? 0;
+
+              // Color intensity
+              // 0 -> slightly visible grey
+              // >0 -> Blue with opacity based on count/max
+              Color color;
+              if (count == 0) {
+                color = Colors.grey[800]!;
+              } else {
+                final opacity = 0.4 + (0.6 * (count / maxVal));
+                color = Colors.blueAccent.withOpacity(opacity);
+              }
+
+              // Highlight today
+              final isToday = day == now.day;
+
+              return Tooltip(
+                message:
+                    '$count workouts on ${DateFormat('MMM').format(now)} $day',
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                    border: isToday
+                        ? Border.all(color: Colors.white, width: 2)
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$day',
+                    style: TextStyle(
+                      color: count > 0 || isToday
+                          ? Colors.white
+                          : Colors.grey[500],
+                      fontSize: 10,
+                      fontWeight: count > 0
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<BarChartGroupData> _buildBarGroups(Map<int, int> data) {
     final List<BarChartGroupData> items = [];
     final sortedKeys = data.keys.toList()..sort();
 
@@ -258,11 +356,11 @@ class _ActivityChartState extends State<ActivityChart> {
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
-              width: isMonthly ? 6 : 16, // Thinner bars for monthly
-              borderRadius: BorderRadius.circular(isMonthly ? 2 : 6),
+              width: 16,
+              borderRadius: BorderRadius.circular(6),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
-                toY: 0, // Could set max here for full background bar
+                toY: 0,
                 color: Colors.grey.withOpacity(0.05),
               ),
             ),

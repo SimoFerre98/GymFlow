@@ -62,7 +62,12 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
             startReps = int.tryParse(repsStr) ?? 0;
           }
 
-          return WorkoutSet(weight: e.targetWeight ?? 0, reps: startReps);
+          return WorkoutSet(
+            weight: e.targetWeight ?? 0,
+            reps: startReps,
+            distance: e.targetDistance,
+            durationSeconds: e.targetDurationSeconds,
+          );
         }),
         notes: e.notes,
       );
