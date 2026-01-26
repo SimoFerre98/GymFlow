@@ -12,6 +12,7 @@ import '../widgets/app_drawer.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/user_profile.dart';
+import '../../services/health_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -22,11 +23,13 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   UserProfile? _userProfile;
+  Future<Map<String, dynamic>>? _healthDataFuture;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _healthDataFuture = HealthService().fetchDailySummary();
   }
 
   Future<void> _loadProfile() async {
@@ -175,6 +178,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // Health / Wellness Row
+          FutureBuilder<Map<String, dynamic>>(
+            future: _healthDataFuture,
+            builder: (context, snapshot) {
+              final data = snapshot.data;
+              final steps = data?['steps'] ?? 0;
+              final calories = data?['calories'] ?? 0.0;
+              final heartRate = data?['heartRate'] ?? 0;
+              final sleep = data?['sleepMinutes'] ?? 0;
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: LinearProgressIndicator());
+              }
+
+              if (data == null && !snapshot.hasData) {
+                return const SizedBox.shrink(); // Hide if no data or error
+              }
+
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildBentoCard(
+                          child: _buildStatContent(
+                            'Steps',
+                            '$steps',
+                            Icons.directions_walk,
+                            Colors.teal,
+                            false,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildBentoCard(
+                          child: _buildStatContent(
+                            'Active Cal',
+                            '${calories.toInt()}',
+                            Icons.local_fire_department,
+                            Colors.red,
+                            false,
+                            suffix: ' kcal',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (heartRate > 0)
+                        Expanded(
+                          child: _buildBentoCard(
+                            child: _buildStatContent(
+                              'Heart Rate',
+                              '$heartRate',
+                              Icons.favorite,
+                              Colors.pink,
+                              false,
+                              suffix: ' bpm',
+                            ),
+                          ),
+                        ),
+                      if (heartRate > 0) const SizedBox(width: 16),
+                      if (sleep > 0)
+                        Expanded(
+                          child: _buildBentoCard(
+                            child: _buildStatContent(
+                              'Sleep',
+                              '${(sleep / 60).toStringAsFixed(1)}',
+                              Icons.bedtime,
+                              Colors.indigo,
+                              false,
+                              suffix: ' h',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (heartRate > 0 || sleep > 0) const SizedBox(height: 16),
+                ],
+              );
+            },
+          ),
 
           // Row 1.5: Detailed Volume/RPE Stats
           Row(

@@ -9,6 +9,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
+import 'package:gymflow/src/services/health_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -215,6 +216,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.map_outlined,
                     color: Colors.green,
                     onTap: _showMapPicker,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Integrations Section
+              _buildSectionHeader('Integrations'),
+              _buildSettingsCard(
+                context,
+                children: [
+                  _buildSettingsTile(
+                    context,
+                    title: 'Google Fit / Health Connect',
+                    subtitle: 'Sync steps, calories, and more',
+                    icon: Icons.health_and_safety,
+                    color: Colors.redAccent,
+                    onTap: () async {
+                      bool success = await HealthService().requestPermissions();
+                      if (context.mounted) {
+                        if (success) {
+                          ToastUtils.showSuccess(
+                            context,
+                            'Permissions granted!',
+                          );
+                        } else {
+                          ToastUtils.showInfo(
+                            context,
+                            'Permissions request completed (check status)',
+                          );
+                        }
+                      }
+                    },
                   ),
                 ],
               ),
