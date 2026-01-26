@@ -7,6 +7,7 @@ import '../../models/session.dart';
 import '../../core/utils/statistics_helper.dart';
 import '../widgets/charts/activity_chart.dart';
 import '../widgets/charts/workout_type_pie_chart.dart';
+import '../widgets/charts/body_measurements_chart.dart';
 import '../widgets/app_drawer.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -114,6 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Overview Tab
                       _buildOverviewTab(
                         context,
+                        userId,
                         sessions,
                         weeklyData,
                         streak,
@@ -134,6 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildOverviewTab(
     BuildContext context,
+    String userId,
     List<WorkoutSession> sessions,
     Map<int, int> weeklyData,
     int streak,
@@ -231,6 +234,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   : ActivityChart(weeklyData: weeklyData),
             ),
           ),
+          const SizedBox(height: 16),
+
+          // Body Progress Chart
+          _buildBentoCard(
+            title: 'Body Progress',
+            child: BodyMeasurementsChart(userId: userId),
+          ),
+          const SizedBox(height: 16),
           const SizedBox(height: 16),
 
           _buildBentoCard(

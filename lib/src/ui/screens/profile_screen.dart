@@ -31,6 +31,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
   File? _imageFile;
 
+  DateTime? _birthDate;
+  String? _gender;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +51,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _nameController.text = profile.displayName;
       _heightController.text = profile.height?.toString() ?? '';
       _weightController.text = profile.weight?.toString() ?? '';
+      _birthDate = profile.birthDate;
+      _gender = profile.gender;
     }
     setState(() => _isLoading = false);
   }
@@ -59,7 +64,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
-        // Turn on editing mode if not already? Or just allow upload without full edit
+      });
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _birthDate) {
+      setState(() {
+        _birthDate = picked;
       });
     }
   }
@@ -98,15 +116,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       height: double.tryParse(_heightController.text.replaceAll(',', '.')),
       weight: double.tryParse(_weightController.text.replaceAll(',', '.')),
       createdAt: _profile!.createdAt,
+      gymName: _profile!.gymName,
+      gymAddress: _profile!.gymAddress,
+      gymLat: _profile!.gymLat,
+      gymLng: _profile!.gymLng,
+      subscriptionExpiry: _profile!.subscriptionExpiry,
+      streakDays: _profile!.streakDays,
+      birthDate: _birthDate,
+      gender: _gender,
     );
 
     // 3. Save to Firestore
     try {
-      print('Saving profile for: ${_profile!.id}');
-      print('Data: ${updatedProfile.toMap()}');
-
       await _auth.updateUserProfile(updatedProfile);
-      print('Profile saved to Firestore successfully');
 
       // Force reload from server to confirm
       await _loadProfile();
@@ -119,12 +141,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         ToastUtils.showSuccess(context, 'Profile updated successfully!');
-        // Don't pop, so user can see the result
-        // Navigator.pop(context);
       }
-    } catch (e, stack) {
-      print('Error saving profile: $e');
-      print(stack);
+    } catch (e) {
       if (mounted) {
         ToastUtils.showError(context, 'Failed to save profile: $e');
       }
@@ -208,25 +226,101 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _heightController,
-                    enabled: _isEditing,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Height (cm)',
-                      border: OutlineInputBorder(),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _heightController,
+                          enabled: _isEditing,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Height (cm)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _weightController,
+                          enabled: _isEditing,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Weight (kg)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _weightController,
-                    enabled: _isEditing,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Weight (kg)',
-                      border: OutlineInputBorder(),
-                    ),
+
+                  // Gender and BirthDate
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Gender',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _gender,
+                              isDense: true,
+                              hint: const Text('Select'),
+                              onChanged: _isEditing
+                                  ? (String? newValue) {
+                                      setState(() {
+                                        _gender = newValue;
+                                      });
+                                    }
+                                  : null,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'male',
+                                  child: Text('Male'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'female',
+                                  child: Text('Female'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'other',
+                                  child: Text('Other'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: InkWell(
+                          onTap: _isEditing ? () => _selectDate(context) : null,
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Birth Date',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: Text(
+                              _birthDate != null
+                                  ? "${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}"
+                                  : 'Select Date',
+                              style: TextStyle(
+                                color: _birthDate == null ? Colors.grey : null,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 16),
                   ListTile(
                     title: const Text('Email'),

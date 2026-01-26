@@ -5,6 +5,7 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
+import 'package:gymflow/src/models/body_measurement.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
@@ -291,5 +292,50 @@ class FirestoreService {
 
   Future<void> deleteScheduledWorkout(String scheduleId) async {
     await _db.collection('scheduled_workouts').doc(scheduleId).delete();
+  }
+
+  // --- Body Measurements ---
+
+  Stream<List<BodyMeasurement>> getBodyMeasurements(String userId) {
+    return _db
+        .collection('users')
+        .doc(userId)
+        .collection('measurements')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => BodyMeasurement.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
+
+  Future<void> addBodyMeasurement(
+    String userId,
+    BodyMeasurement measurement,
+  ) async {
+    // If ID is empty, create a new doc reference
+    final docRef = _db
+        .collection('users')
+        .doc(userId)
+        .collection('measurements')
+        .doc(measurement.id.isEmpty ? null : measurement.id);
+
+    // Ensure the ID in the object matches the doc ID (for new docs)
+    final data = measurement.toMap()..['id'] = docRef.id;
+
+    await docRef.set(data);
+  }
+
+  Future<void> deleteBodyMeasurement(
+    String userId,
+    String measurementId,
+  ) async {
+    await _db
+        .collection('users')
+        .doc(userId)
+        .collection('measurements')
+        .doc(measurementId)
+        .delete();
   }
 }

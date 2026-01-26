@@ -13,6 +13,9 @@ class UserProfile {
   final double? gymLng;
   final DateTime? subscriptionExpiry;
 
+  final DateTime? birthDate;
+  final String? gender; // 'male', 'female', 'other'
+
   UserProfile({
     required this.id,
     required this.email,
@@ -27,6 +30,8 @@ class UserProfile {
     this.gymLat,
     this.gymLng,
     this.subscriptionExpiry,
+    this.birthDate,
+    this.gender,
   });
 
   Map<String, dynamic> toMap() {
@@ -44,6 +49,8 @@ class UserProfile {
       'gymLat': gymLat,
       'gymLng': gymLng,
       'subscriptionExpiry': subscriptionExpiry?.toIso8601String(),
+      'birthDate': birthDate?.toIso8601String(),
+      'gender': gender,
     };
   }
 
@@ -64,6 +71,10 @@ class UserProfile {
       subscriptionExpiry: map['subscriptionExpiry'] != null
           ? DateTime.tryParse(map['subscriptionExpiry'])
           : null,
+      birthDate: map['birthDate'] != null
+          ? DateTime.tryParse(map['birthDate'])
+          : null,
+      gender: map['gender'],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/profile_screen.dart';
+import 'package:gymflow/src/ui/screens/body_measurements_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -95,6 +96,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 60),
+                  _buildSettingsTile(
+                    context,
+                    title: 'Body Measurements',
+                    subtitle: 'Track your progress',
+                    icon: Icons.monitor_weight_outlined,
+                    color: Colors.tealAccent,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BodyMeasurementsScreen(),
                         ),
                       );
                     },
