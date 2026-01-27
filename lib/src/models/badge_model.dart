@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum BadgeType { workoutCount, streak }
+enum BadgeType { workoutCount, streak, friend }
 
 class BadgeModel {
   final String id;
@@ -61,5 +61,13 @@ const List<BadgeModel> allBadges = [
     icon: Icons.local_fire_department,
     type: BadgeType.streak,
     threshold: 7,
+  ),
+  BadgeModel(
+    id: 'social_butterfly',
+    name: 'Social Butterfly',
+    description: 'Connect with a friend',
+    icon: Icons.people,
+    type: BadgeType.friend,
+    threshold: 1,
   ),
 ];

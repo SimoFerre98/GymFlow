@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/services/auth_service.dart';
+import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ConnectFriendScreen extends StatefulWidget {
@@ -24,14 +26,11 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
   }
 
   Future<void> _loadMyCode() async {
-    final profile = await _auth.getUserProfile();
-    if (profile != null) {
-      // If code is missing (old user), we might want to generate it or just show N/A
-      // For now, assuming it exists or is null
-      setState(() {
-        _myFriendCode = profile.friendCode ?? 'N/A';
-      });
-    }
+    // Ensure code exists (backfill for legacy users)
+    final code = await _auth.ensureFriendCode();
+    setState(() {
+      _myFriendCode = code ?? 'N/A';
+    });
   }
 
   Future<void> _connectWithFriend() async {
@@ -153,6 +152,75 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+            ),
+            const SizedBox(height: 48),
+            const Text(
+              'Your Friends',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            StreamBuilder<UserProfile?>(
+              stream: _auth.getUserProfileStream(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final user = snapshot.data!;
+                final friendIds = user.friends;
+
+                if (friendIds.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No friends yet. Add some!',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+
+                return FutureBuilder<List<UserProfile>>(
+                  future: _firestore.getUsers(friendIds),
+                  builder: (context, friendSnapshot) {
+                    if (!friendSnapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final friends = friendSnapshot.data!;
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: friends.length,
+                      separatorBuilder: (_, __) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final friend = friends[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: friend.photoUrl != null
+                                ? NetworkImage(friend.photoUrl!)
+                                : null,
+                            child: friend.photoUrl == null
+                                ? Text(friend.displayName[0].toUpperCase())
+                                : null,
+                          ),
+                          title: Text(friend.displayName),
+                          subtitle: Text(
+                            '@${friend.displayName}',
+                          ), // Or real username if we had it
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    FriendDetailScreen(friend: friend),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),

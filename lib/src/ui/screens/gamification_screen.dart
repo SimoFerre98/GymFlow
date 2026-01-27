@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/models/session.dart';
+import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/badge_model.dart';
 import 'package:gymflow/src/services/gamification_service.dart';
 
@@ -88,65 +89,80 @@ class _GamificationScreenState extends State<GamificationScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Achievements')),
-      body: StreamBuilder<List<WorkoutSession>>(
-        stream: firestore.getUserSessions(userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+      body: StreamBuilder<UserProfile?>(
+        stream: AuthService().getUserProfileStream(),
+        builder: (context, userSnapshot) {
+          if (!userSnapshot.hasData) {
+            // Avoid showing loading if just waiting for user profile, but good to have
+            // If we just return indicator here, the whole page loads.
+            // Let's assume user is loaded quickly.
           }
-          final sessions = snapshot.data ?? [];
-          final unlockedBadges = GamificationService.getUnlockedBadges(
-            sessions,
-          );
-          final unlockedIds = unlockedBadges.map((e) => e.id).toSet();
+          final userProfile = userSnapshot.data;
+          final friendCount = userProfile?.friends.length ?? 0;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Monthly Challenge Section
-                _buildSectionHeader('Monthly Challenges'),
-                const SizedBox(height: 12),
+          return StreamBuilder<List<WorkoutSession>>(
+            stream: firestore.getUserSessions(userId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final sessions = snapshot.data ?? [];
+              final unlockedBadges = GamificationService.getUnlockedBadges(
+                sessions,
+                friendCount: friendCount,
+              );
+              final unlockedIds = unlockedBadges.map((e) => e.id).toSet();
 
-                // 1. Steps (Linear)
-                _buildStepChallengeCard(),
-                const SizedBox(height: 16),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Monthly Challenge Section
+                    _buildSectionHeader('Monthly Challenges'),
+                    const SizedBox(height: 12),
 
-                // 2. Calories & Distance (Row)
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(child: _buildCaloriesChallengeCard()),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildDistanceChallengeCard()),
-                    ],
-                  ),
+                    // 1. Steps (Linear)
+                    _buildStepChallengeCard(),
+                    const SizedBox(height: 16),
+
+                    // 2. Calories & Distance (Row)
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: _buildCaloriesChallengeCard()),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildDistanceChallengeCard()),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Achievements Section
+                    _buildSectionHeader('Badges'),
+                    const SizedBox(height: 12),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                      itemCount: allBadges.length,
+                      itemBuilder: (context, index) {
+                        final badge = allBadges[index];
+                        final isUnlocked = unlockedIds.contains(badge.id);
+                        return _buildBadgeCard(context, badge, isUnlocked);
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
-
-                // Achievements Section
-                _buildSectionHeader('Badges'),
-                const SizedBox(height: 12),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: allBadges.length,
-                  itemBuilder: (context, index) {
-                    final badge = allBadges[index];
-                    final isUnlocked = unlockedIds.contains(badge.id);
-                    return _buildBadgeCard(context, badge, isUnlocked);
-                  },
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

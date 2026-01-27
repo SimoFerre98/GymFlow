@@ -19,6 +19,7 @@ class UserProfile {
   final DateTime? birthDate;
   final String? gender; // 'male', 'female', 'other'
   final String? friendCode;
+  final List<String> friends;
 
   UserProfile({
     required this.id,
@@ -27,6 +28,7 @@ class UserProfile {
     this.firstName,
     this.lastName,
     this.friendCode,
+    this.friends = const [],
     this.weight,
     this.height,
     this.photoUrl,
@@ -49,6 +51,7 @@ class UserProfile {
       'firstName': firstName,
       'lastName': lastName,
       'friendCode': friendCode,
+      'friends': friends,
       'weight': weight,
       'height': height,
       'photoUrl': photoUrl,
@@ -72,6 +75,7 @@ class UserProfile {
       firstName: map['firstName'],
       lastName: map['lastName'],
       friendCode: map['friendCode'],
+      friends: List<String>.from(map['friends'] ?? []),
       weight: map['weight']?.toDouble(),
       height: map['height']?.toDouble(),
       photoUrl: map['photoUrl'],

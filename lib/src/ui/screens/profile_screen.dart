@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
@@ -16,8 +16,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _auth = AuthService();
-  final FirestoreService _firestore =
-      FirestoreService(); // We'll need to add updateUser to FirestoreService, or use AuthService
 
   // Or better, let's keep profile logic in AuthService for now or pure FirestoreService
   // Given previous pattern, let's use AuthService for fetching and saving profile.
@@ -203,23 +201,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: _isEditing ? _pickImage : null,
                     child: Stack(
                       children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Colors.grey[200],
-                          backgroundImage: _imageFile != null
-                              ? FileImage(_imageFile!)
-                              : (_profile?.photoUrl != null
-                                    ? NetworkImage(_profile!.photoUrl!)
-                                          as ImageProvider
-                                    : null),
-                          child:
-                              (_imageFile == null && _profile?.photoUrl == null)
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.grey,
-                                )
-                              : null,
+                        Builder(
+                          builder: (context) {
+                            final ImageProvider? imageProvider =
+                                _imageFile != null
+                                ? FileImage(_imageFile!)
+                                : (_profile?.photoUrl != null
+                                      ? NetworkImage(_profile!.photoUrl!)
+                                      : null);
+                            return CircleAvatar(
+                              radius: 60,
+                              backgroundColor: Colors.grey[200],
+                              backgroundImage: imageProvider,
+                              onBackgroundImageError: imageProvider != null
+                                  ? (exception, stackTrace) {
+                                      print('Image load error: $exception');
+                                    }
+                                  : null,
+                              child: (imageProvider == null)
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: Colors.grey,
+                                    )
+                                  : null,
+                            );
+                          },
                         ),
                         if (_isEditing)
                           Positioned(

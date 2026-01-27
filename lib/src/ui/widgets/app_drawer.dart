@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/ui/screens/program_list_screen.dart';
+
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';

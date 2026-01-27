@@ -6,6 +6,8 @@ import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/body_measurement.dart';
+import 'package:gymflow/src/models/user_profile.dart';
+import 'package:gymflow/src/services/auth_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirestoreService {
@@ -15,18 +17,84 @@ class FirestoreService {
   );
 
   Future<bool> addFriendByCode(String code) async {
+    final currentUser = AuthService().currentUser;
+    if (currentUser == null) return false;
+
+    // 1. Find friend by code
     final snapshot = await _db
         .collection('users')
         .where('friendCode', isEqualTo: code)
         .limit(1)
         .get();
 
-    if (snapshot.docs.isNotEmpty) {
-      // Logic to actually add friend (e.g. add to subcollection) could go here
-      // For now, we just verify the user exists
-      return true;
+    if (snapshot.docs.isEmpty) return false;
+
+    final friendDoc = snapshot.docs.first;
+    final friendId = friendDoc.id;
+
+    if (friendId == currentUser.uid) return false; // Can't add self
+
+    // 2. Add Friend Mutual
+    final batch = _db.batch();
+
+    // Add friend to my list
+    batch.update(_db.collection('users').doc(currentUser.uid), {
+      'friends': FieldValue.arrayUnion([friendId]),
+    });
+
+    // Add me to friend's list
+    batch.update(_db.collection('users').doc(friendId), {
+      'friends': FieldValue.arrayUnion([currentUser.uid]),
+    });
+
+    await batch.commit();
+    return true;
+  }
+
+  Stream<List<UserProfile>> getFriendsStream(List<String> friendIds) {
+    if (friendIds.isEmpty) return Stream.value([]);
+
+    // Firestore 'where in' is limited to 10 items.
+    // For simplicity/MVP, we'll just fetch chunks or valid IDs.
+    // Given the complexity of robust where-in, and MVP nature:
+    // We can just listen to collection where documentId whereIn friendIds (chunked)
+    // Or for MVP just fetch them all if list is small.
+    // Let's implement a simple fetch for now since Stream with varying list is complex.
+
+    // Actually, 'users' collection might be large, so we MUST filter.
+    // Let's just do a Future-based fetch for the list view for now, or stream limited to 10.
+    // Better approach: simple Future fetch for the list.
+    return _db
+        .collection('users')
+        .where(FieldPath.documentId, whereIn: friendIds.take(10).toList())
+        .snapshots()
+        .map(
+          (s) =>
+              s.docs.map((d) => UserProfile.fromMap(d.data(), d.id)).toList(),
+        );
+  }
+
+  Future<List<UserProfile>> getUsers(List<String> userIds) async {
+    if (userIds.isEmpty) return [];
+    // Chunking logic for > 10 items would go here for robust app
+    final chunks = <List<String>>[];
+    for (var i = 0; i < userIds.length; i += 10) {
+      chunks.add(
+        userIds.sublist(i, (i + 10) < userIds.length ? i + 10 : userIds.length),
+      );
     }
-    return false;
+
+    final List<UserProfile> allUsers = [];
+    for (final chunk in chunks) {
+      final snapshot = await _db
+          .collection('users')
+          .where(FieldPath.documentId, whereIn: chunk)
+          .get();
+      allUsers.addAll(
+        snapshot.docs.map((d) => UserProfile.fromMap(d.data(), d.id)),
+      );
+    }
+    return allUsers;
   }
 
   // --- Exercises ---

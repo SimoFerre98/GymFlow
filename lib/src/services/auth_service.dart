@@ -131,4 +131,31 @@ class AuthService {
       rethrow;
     }
   }
+
+  // Backfill Friend Code if missing
+  Future<String?> ensureFriendCode() async {
+    final user = currentUser;
+    if (user == null) return null;
+
+    final docRef = _firestore.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+
+    if (!doc.exists) return null;
+
+    final data = doc.data() as Map<String, dynamic>;
+    if (data['friendCode'] != null &&
+        (data['friendCode'] as String).isNotEmpty) {
+      return data['friendCode'] as String;
+    }
+
+    // Generate new code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final rnd = Random();
+    String friendCode = String.fromCharCodes(
+      Iterable.generate(6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))),
+    );
+
+    await docRef.update({'friendCode': friendCode});
+    return friendCode;
+  }
 }
