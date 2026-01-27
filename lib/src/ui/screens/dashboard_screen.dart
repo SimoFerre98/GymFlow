@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/firestore_service.dart';
@@ -43,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<Map<String, dynamic>> _initAndFetchHealth() async {
+    if (kIsWeb) return {};
     try {
       await HealthService().configure(); // Ensure it's configured
       return await HealthService().fetchDailySummary();

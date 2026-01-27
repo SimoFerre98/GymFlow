@@ -72,15 +72,62 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.friend.displayName),
-        bottom: tabs.length > 1
-            ? TabBar(controller: _tabController, tabs: tabs)
-            : null,
+      appBar: AppBar(title: Text(widget.friend.displayName)),
+      body: Column(
+        children: [
+          // Pill TabBar
+          if (tabs.length > 1)
+            Container(
+              height: 50,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  color: Theme.of(context).primaryColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.grey[600], // Visible in light/dark
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+                dividerColor: Colors.transparent,
+                tabs: tabs,
+              ),
+            ),
+
+          // Content
+          Expanded(
+            child: tabs.length > 1
+                ? TabBarView(controller: _tabController, children: views)
+                : _buildProfileTab(),
+          ),
+        ],
       ),
-      body: tabs.length > 1
-          ? TabBarView(controller: _tabController, children: views)
-          : _buildProfileTab(),
     );
   }
 
@@ -215,7 +262,7 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
       builder: (context) => AlertDialog(
         title: const Text('Import Program?'),
         content: Text(
-          'Do you want to add "${program.name}" to your library? This will create a copy.',
+          'Do you want to add "${program.name}" to your library? This will create a copy of the program and all its workouts.',
         ),
         actions: [
           TextButton(
@@ -231,14 +278,9 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
     );
 
     if (confirm == true) {
+      if (_currentUserId == null) return;
       try {
-        // Clone program
-        final newProgram = program.copyWith(
-          id: '', // New ID
-          userId: _currentUserId ?? '', // Assign to me
-          createdAt: DateTime.now(),
-        );
-        await FirestoreService().saveProgram(newProgram);
+        await FirestoreService().importSharedProgram(program, _currentUserId!);
         if (mounted) {
           ToastUtils.showSuccess(context, 'Program imported successfully!');
         }

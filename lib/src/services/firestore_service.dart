@@ -444,4 +444,124 @@ class FirestoreService {
         .doc(measurementId)
         .delete();
   }
+
+  /// Deep copy a program and all its workouts to the current user
+  Future<void> importSharedProgram(
+    WorkoutProgram originalProgram,
+    String targetUserId,
+  ) async {
+    WriteBatch batch = _db.batch();
+    List<String> newWorkoutIds = [];
+
+    // Clone each workout
+    for (String oldWorkoutId in originalProgram.workoutIds) {
+      final docSnap = await _db.collection('workouts').doc(oldWorkoutId).get();
+      if (!docSnap.exists) continue;
+
+      final newWorkoutRef = _db.collection('workouts').doc();
+      final oldData = docSnap.data();
+      if (oldData == null) continue;
+
+      final newData = Map<String, dynamic>.from(oldData);
+      newData['id'] = newWorkoutRef.id;
+      newData['userId'] = targetUserId;
+      // Temporarily empty until we generate program ID, or we can update later
+      newData['parentProgramId'] = '';
+
+      batch.set(newWorkoutRef, newData);
+      newWorkoutIds.add(newWorkoutRef.id);
+    }
+
+    // Clone the program
+    final newProgramRef = _db.collection('programs').doc();
+    final newProgram = originalProgram.copyWith(
+      id: newProgramRef.id,
+      userId: targetUserId,
+      workoutIds: newWorkoutIds,
+      createdAt: DateTime.now(),
+      startDate: null,
+      endDate: null,
+    );
+
+    batch.set(newProgramRef, newProgram.toMap());
+
+    // Update parentProgramId in all new workouts
+    for (String newWorkoutId in newWorkoutIds) {
+      batch.update(_db.collection('workouts').doc(newWorkoutId), {
+        'parentProgramId': newProgramRef.id,
+      });
+    }
+
+    await batch.commit();
+  }
+
+  // --- Shared Calendar ---
+
+  /// Get sessions from friends who shared their calendar with me
+  Stream<List<WorkoutSession>> getSharedSessions(String myUserId) {
+    // Find sessions where 'userId' is NOT me, but I can't filter by "friends who shared" easily in one query
+    // because that permission is on the USER document (calendarSharedWith), not the SESSION document.
+    //
+    // Approach:
+    // 1. Query Users where 'calendarSharedWith' contains myUserId.
+    // 2. Extract their UserIDs.
+    // 3. Query Sessions where userId matches.
+    //
+    // Since 'whereIn' is limited to 10, and users might change, this is tricky for a single stream.
+    //
+    // Alternative:
+    // Just fetch "users where calendarSharedWith contains me".
+    // Return a Stream of List<String> (friendIds).
+    // The UI can then SwitchMap/CombineLatest.
+    //
+    // Let's implement getting the friend IDs stream first.
+    return _db
+        .collection('users')
+        .where('calendarSharedWith', arrayContains: myUserId)
+        .snapshots()
+        .switchMap((snapshot) {
+          final friendIds = snapshot.docs.map((d) => d.id).toList();
+          if (friendIds.isEmpty) return Stream.value([]);
+
+          // Firestore 'whereIn' limitation: max 10.
+          // For MVP, we'll take top 10.
+          // Ideally, we'd batch or just iterate if < 10.
+          // If > 10, we'd need client side merging.
+          final limitedIds = friendIds.take(10).toList();
+
+          return _db
+              .collection('sessions')
+              .where('userId', whereIn: limitedIds)
+              .orderBy('startTime', descending: true)
+              .limit(50) // Limit total shared events to avoid overload
+              .snapshots()
+              .map(
+                (snap) => snap.docs
+                    .map((d) => WorkoutSession.fromMap(d.data(), d.id))
+                    .toList(),
+              );
+        });
+  }
+
+  Stream<List<ScheduledWorkout>> getSharedScheduledWorkouts(String myUserId) {
+    return _db
+        .collection('users')
+        .where('calendarSharedWith', arrayContains: myUserId)
+        .snapshots()
+        .switchMap((snapshot) {
+          final friendIds = snapshot.docs.map((d) => d.id).toList();
+          if (friendIds.isEmpty) return Stream.value([]);
+          final limitedIds = friendIds.take(10).toList();
+
+          return _db
+              .collection('scheduled_workouts')
+              .where('userId', whereIn: limitedIds)
+              .snapshots()
+              .map(
+                (snap) => snap.docs
+                    .map((d) => ScheduledWorkout.fromMap(d.data(), d.id))
+                    .toList(),
+              );
+        });
+  }
 }

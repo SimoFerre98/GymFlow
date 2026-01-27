@@ -38,10 +38,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   // Combine sessions and schedules into one stream
   Stream<Map<DateTime, List<dynamic>>> _getCalendarEvents(String userId) {
-    return Rx.combineLatest2(
+    return Rx.combineLatest4(
       _firestore.getUserSessions(userId),
       _firestore.getUserScheduledWorkouts(userId),
-      (List<WorkoutSession> sessions, List<ScheduledWorkout> schedules) {
+      _firestore.getSharedSessions(userId),
+      _firestore.getSharedScheduledWorkouts(userId),
+      (
+        List<WorkoutSession> mySessions,
+        List<ScheduledWorkout> mySchedules,
+        List<WorkoutSession> sharedSessions,
+        List<ScheduledWorkout> sharedSchedules,
+      ) {
         final Map<DateTime, List<dynamic>> events = LinkedHashMap(
           equals: isSameDay,
           hashCode: (DateTime key) {
@@ -49,25 +56,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
           },
         );
 
-        for (var session in sessions) {
-          final date = DateTime(
-            session.startTime.year,
-            session.startTime.month,
-            session.startTime.day,
-          );
-          if (events[date] == null) events[date] = [];
-          events[date]!.add(session);
+        void addEvents(List<dynamic> list) {
+          for (var item in list) {
+            DateTime date;
+            if (item is WorkoutSession) {
+              date = DateTime(
+                item.startTime.year,
+                item.startTime.month,
+                item.startTime.day,
+              );
+            } else if (item is ScheduledWorkout) {
+              date = DateTime(
+                item.scheduledDate.year,
+                item.scheduledDate.month,
+                item.scheduledDate.day,
+              );
+            } else {
+              continue;
+            }
+
+            if (events[date] == null) events[date] = [];
+            events[date]!.add(item);
+          }
         }
 
-        for (var schedule in schedules) {
-          final date = DateTime(
-            schedule.scheduledDate.year,
-            schedule.scheduledDate.month,
-            schedule.scheduledDate.day,
-          );
-          if (events[date] == null) events[date] = [];
-          events[date]!.add(schedule);
-        }
+        addEvents(mySessions);
+        addEvents(mySchedules);
+        addEvents(sharedSessions); // Friend sessions
+        addEvents(sharedSchedules); // Friend schedules
+
         return events;
       },
     );
@@ -298,14 +315,97 @@ class _CalendarScreenState extends State<CalendarScreen> {
     String id = isCompleted
         ? (event as WorkoutSession).id
         : (event as ScheduledWorkout).id;
+    String ownerId = isCompleted
+        ? (event as WorkoutSession).userId
+        : (event as ScheduledWorkout).userId;
     String title = isCompleted
         ? (event as WorkoutSession).workoutName
         : (event as ScheduledWorkout).workoutName;
     String subtitle = isCompleted
         ? 'Completed at ${DateFormat('HH:mm').format((event as WorkoutSession).startTime)}'
         : 'Scheduled for ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}';
-    Color glowColor = isCompleted ? Colors.greenAccent : Colors.orangeAccent;
-    IconData icon = isCompleted ? Icons.check_circle : Icons.schedule;
+
+    bool isMine = ownerId == _auth.currentUser?.uid;
+
+    // Theme colors
+    Color glowColor;
+    IconData icon;
+
+    if (!isMine) {
+      // Friend event
+      glowColor = Colors.purpleAccent;
+      icon = isCompleted ? Icons.check_circle_outline : Icons.schedule_send;
+      subtitle += ' (Friend)';
+    } else {
+      glowColor = isCompleted ? Colors.greenAccent : Colors.orangeAccent;
+      icon = isCompleted ? Icons.check_circle : Icons.schedule;
+    }
+
+    Widget cardContent = Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: glowColor.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: glowColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: glowColor.withOpacity(0.5)),
+              ),
+              child: Icon(icon, color: glowColor),
+            ),
+            title: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            subtitle: Text(subtitle),
+            trailing: isMine
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isCompleted)
+                        IconButton(
+                          icon: const Icon(Icons.calendar_month),
+                          onPressed: () =>
+                              _addToDeviceCalendar(event as ScheduledWorkout),
+                          tooltip: 'Sync to Calendar',
+                        ),
+                      if (!isCompleted)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.play_circle_fill,
+                            color: Colors.blue,
+                          ),
+                          onPressed: () =>
+                              _startWorkout(event as ScheduledWorkout),
+                        ),
+                    ],
+                  )
+                : null, // No actions for friends
+          ),
+        ),
+      ),
+    );
+
+    if (!isMine) {
+      return cardContent; // Cannot dismiss/delete friend events
+    }
 
     return Dismissible(
       key: Key(id),
@@ -350,67 +450,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
         ToastUtils.showInfo(context, 'Event deleted');
       },
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
-          boxShadow: [
-            BoxShadow(
-              color: glowColor.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: glowColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: glowColor.withOpacity(0.5)),
-                ),
-                child: Icon(icon, color: glowColor),
-              ),
-              title: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              subtitle: Text(subtitle),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!isCompleted)
-                    IconButton(
-                      icon: const Icon(Icons.calendar_month),
-                      onPressed: () =>
-                          _addToDeviceCalendar(event as ScheduledWorkout),
-                      tooltip: 'Sync to Calendar',
-                    ),
-                  if (!isCompleted)
-                    IconButton(
-                      icon: const Icon(
-                        Icons.play_circle_fill,
-                        color: Colors.blue,
-                      ),
-                      onPressed: () => _startWorkout(event as ScheduledWorkout),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      child: cardContent,
     );
   }
 

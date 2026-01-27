@@ -4,6 +4,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
+import 'package:gymflow/src/ui/screens/time_tools_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -114,6 +115,22 @@ class AppDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const GamificationScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.timer,
+                  title: 'Cronometro (Stopwatch)',
+                  color: Colors.green,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TimeToolsScreen(),
                       ),
                     );
                   },

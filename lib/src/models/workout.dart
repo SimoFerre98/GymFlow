@@ -167,6 +167,35 @@ class WorkoutTemplateExercise {
       orElse: () => ExerciseType.strength,
     );
   }
+
+  WorkoutTemplateExercise copyWith({
+    String? exerciseId,
+    String? exerciseName,
+    ExerciseType? type,
+    int? targetSets,
+    String? targetReps,
+    double? targetWeight,
+    double? targetDistance,
+    int? targetDurationSeconds,
+    double? targetRPE,
+    int? restSeconds,
+    String? notes,
+  }) {
+    return WorkoutTemplateExercise(
+      exerciseId: exerciseId ?? this.exerciseId,
+      exerciseName: exerciseName ?? this.exerciseName,
+      type: type ?? this.type,
+      targetSets: targetSets ?? this.targetSets,
+      targetReps: targetReps ?? this.targetReps,
+      targetWeight: targetWeight ?? this.targetWeight,
+      targetDistance: targetDistance ?? this.targetDistance,
+      targetDurationSeconds:
+          targetDurationSeconds ?? this.targetDurationSeconds,
+      targetRPE: targetRPE ?? this.targetRPE,
+      restSeconds: restSeconds ?? this.restSeconds,
+      notes: notes ?? this.notes,
+    );
+  }
 }
 
 class WorkoutTemplate {
@@ -174,8 +203,8 @@ class WorkoutTemplate {
   final String userId;
   final String name;
   final String? description;
-  final String? parentProgramId; // Link to "Scheda"
-  final List<WorkoutTemplateExercise> exercises; // New structure
+  final String? parentProgramId;
+  final List<WorkoutTemplateExercise> exercises;
   final ExerciseType category;
 
   WorkoutTemplate({
@@ -238,6 +267,26 @@ class WorkoutTemplate {
       parentProgramId: map['parentProgramId'],
       exercises: parsedExercises,
       category: Exercise.fromMap({'type': map['category']}, '').type,
+    );
+  }
+
+  WorkoutTemplate copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? description,
+    String? parentProgramId,
+    List<WorkoutTemplateExercise>? exercises,
+    ExerciseType? category,
+  }) {
+    return WorkoutTemplate(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      parentProgramId: parentProgramId ?? this.parentProgramId,
+      exercises: exercises ?? this.exercises,
+      category: category ?? this.category,
     );
   }
 }

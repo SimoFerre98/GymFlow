@@ -99,6 +99,9 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
+                      // Ensure readable on the light red bg, or switch bg.
+                      // Theme.of(context).primaryColor is usually dark red/purple, which works on light opacity.
+                      // If in dark mode, the container might need adjustment.
                       color: Theme.of(context).primaryColor,
                       letterSpacing: 4,
                     ),
