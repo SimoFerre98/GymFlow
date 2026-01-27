@@ -7,6 +7,8 @@ class HealthService {
   static final List<HealthDataType> _dataTypes = [
     HealthDataType.STEPS,
     HealthDataType.ACTIVE_ENERGY_BURNED,
+    HealthDataType
+        .BASAL_ENERGY_BURNED, // Added to ensure we capture all calories
     HealthDataType.DISTANCE_DELTA,
     HealthDataType.HEART_RATE,
     HealthDataType.SLEEP_SESSION,
@@ -40,6 +42,8 @@ class HealthService {
       endTime: now,
       types: [
         HealthDataType.ACTIVE_ENERGY_BURNED,
+        HealthDataType.BASAL_ENERGY_BURNED,
+        HealthDataType.DISTANCE_DELTA,
         HealthDataType.DISTANCE_DELTA,
         HealthDataType.WATER,
         HealthDataType.HEART_RATE,
@@ -55,6 +59,9 @@ class HealthService {
 
     for (var point in healthData) {
       if (point.type == HealthDataType.ACTIVE_ENERGY_BURNED) {
+        final val = point.value as NumericHealthValue;
+        calories += val.numericValue.toDouble();
+      } else if (point.type == HealthDataType.BASAL_ENERGY_BURNED) {
         final val = point.value as NumericHealthValue;
         calories += val.numericValue.toDouble();
       } else if (point.type == HealthDataType.DISTANCE_DELTA) {
@@ -151,6 +158,7 @@ class HealthService {
 
       if (type == HealthDataType.STEPS ||
           type == HealthDataType.ACTIVE_ENERGY_BURNED ||
+          type == HealthDataType.BASAL_ENERGY_BURNED ||
           type == HealthDataType.DISTANCE_DELTA ||
           type == HealthDataType.WATER) {
         // SUM

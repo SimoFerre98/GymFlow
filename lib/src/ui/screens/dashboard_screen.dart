@@ -466,56 +466,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isLoading, {
     String? suffix,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, size: 24, color: color),
-        ),
-        const SizedBox(height: 16),
-        isLoading
-            ? Container(
-                height: 28,
-                width: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      height: 1.0,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: color),
+            ),
+            const SizedBox(height: 16),
+            isLoading
+                ? Container(
+                    height: 28,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                  ),
-                  if (suffix != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 2),
-                      child: Text(
-                        suffix,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          height: 1.0,
                         ),
                       ),
-                    ),
-                ],
-              ),
-        const SizedBox(height: 4),
-        Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                      if (suffix != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 2),
+                          child: Text(
+                            suffix,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+        // Add Chevron if it's a clickable metric (implied by this method being used in those tiles)
+        // We can make this conditional or just added for all stats that use this method
+        // For simplicity, we add it top-right.
+        Positioned(
+          top: 0,
+          right: 0,
+          child: Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.grey[300],
+            size: 24,
+          ),
+        ),
       ],
     );
   }

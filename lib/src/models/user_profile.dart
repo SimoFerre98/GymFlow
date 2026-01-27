@@ -2,6 +2,9 @@ class UserProfile {
   final String id;
   final String email;
   final String displayName;
+  final String? firstName;
+  final String? lastName;
+
   final double? weight;
   final double? height; // in cm
   final String? photoUrl;
@@ -15,11 +18,15 @@ class UserProfile {
 
   final DateTime? birthDate;
   final String? gender; // 'male', 'female', 'other'
+  final String? friendCode;
 
   UserProfile({
     required this.id,
     required this.email,
     required this.displayName,
+    this.firstName,
+    this.lastName,
+    this.friendCode,
     this.weight,
     this.height,
     this.photoUrl,
@@ -39,6 +46,9 @@ class UserProfile {
       'id': id,
       'email': email,
       'displayName': displayName,
+      'firstName': firstName,
+      'lastName': lastName,
+      'friendCode': friendCode,
       'weight': weight,
       'height': height,
       'photoUrl': photoUrl,
@@ -59,6 +69,9 @@ class UserProfile {
       id: documentId,
       email: map['email'] ?? '',
       displayName: map['displayName'] ?? 'User',
+      firstName: map['firstName'],
+      lastName: map['lastName'],
+      friendCode: map['friendCode'],
       weight: map['weight']?.toDouble(),
       height: map['height']?.toDouble(),
       photoUrl: map['photoUrl'],

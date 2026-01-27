@@ -14,6 +14,21 @@ class FirestoreService {
     databaseId: 'gymflow',
   );
 
+  Future<bool> addFriendByCode(String code) async {
+    final snapshot = await _db
+        .collection('users')
+        .where('friendCode', isEqualTo: code)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      // Logic to actually add friend (e.g. add to subcollection) could go here
+      // For now, we just verify the user exists
+      return true;
+    }
+    return false;
+  }
+
   // --- Exercises ---
 
   // --- Exercises ---

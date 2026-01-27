@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:gymflow/src/models/user_profile.dart';
+import 'dart:math';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -44,11 +45,22 @@ class AuthService {
       final user = credential.user;
 
       if (user != null) {
-        // 2. Create User Profile in Firestore
+        // 2. Generate Friend Code (6 uppercase chars)
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        final rnd = Random();
+        String friendCode = String.fromCharCodes(
+          Iterable.generate(
+            6,
+            (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
+          ),
+        );
+
+        // 3. Create User Profile in Firestore
         final newUserProfile = UserProfile(
           id: user.uid,
           email: email,
           displayName: displayName,
+          friendCode: friendCode,
           createdAt: DateTime.now(),
         );
 
@@ -57,7 +69,7 @@ class AuthService {
             .doc(user.uid)
             .set(newUserProfile.toMap());
 
-        // 3. Update Auth display name
+        // 4. Update Auth display name
         await user.updateDisplayName(displayName);
       }
 

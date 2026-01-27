@@ -3,6 +3,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/program_list_screen.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
+import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -117,27 +118,23 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                 ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.person_add_alt_1,
+                  title: 'Connect Friend',
+                  color: Colors.purple,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ConnectFriendScreen(),
+                      ),
+                    );
+                  },
+                ),
               ],
-            ),
-          ),
-
-          const Spacer(),
-          const Divider(indent: 20, endIndent: 20),
-
-          // 3. Logout
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: _buildDrawerItem(
-                context,
-                icon: Icons.logout,
-                title: 'Logout',
-                color: Colors.redAccent,
-                onTap: () async {
-                  await AuthService().signOut();
-                },
-              ),
             ),
           ),
         ],

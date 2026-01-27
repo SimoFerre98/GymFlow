@@ -69,9 +69,6 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
     // For heart rate maybe we don't want 0?
     // Let's iterate and fill
     Map<DateTime, double> fullData = {};
-    int daysCount = _isWeekly
-        ? 7
-        : (DateTime(_currentDate.year, _currentDate.month + 1, 0).day);
 
     if (_isWeekly) {
       for (int i = 0; i < 7; i++) {

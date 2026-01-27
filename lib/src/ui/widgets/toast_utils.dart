@@ -66,11 +66,15 @@ class ToastUtils {
                   children: [
                     Icon(icon, color: color, size: 20),
                     const SizedBox(width: 8),
-                    Text(
-                      message,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    Flexible(
+                      child: Text(
+                        message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],

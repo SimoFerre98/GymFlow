@@ -248,8 +248,6 @@ class _ActivityChartState extends State<ActivityChart> {
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
 
     // Weekday of 1st day (1=Mon, 7=Sun).
-    // If 1st day is Monday (1), offset is 0.
-    // If 1st day is Tuesday (2), offset is 1.
     final offset = firstDayOfMonth.weekday - 1;
 
     final totalCells = daysInMonth + offset;
@@ -292,16 +290,33 @@ class _ActivityChartState extends State<ActivityChart> {
 
               final day = index - offset + 1;
               final count = data[day] ?? 0;
+              final isFuture = day > now.day;
+
+              if (isFuture) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100], // Very faint for future
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$day',
+                    style: TextStyle(color: Colors.grey[300], fontSize: 10),
+                  ),
+                );
+              }
 
               // Color intensity
-              // 0 -> slightly visible grey
-              // >0 -> Blue with opacity based on count/max
               Color color;
+              Color textColor;
+
               if (count == 0) {
-                color = Colors.grey[800]!;
+                color = Colors.grey[200]!; // Lighter grey for empty
+                textColor = Colors.grey[500]!;
               } else {
-                final opacity = 0.4 + (0.6 * (count / maxVal));
-                color = Colors.blueAccent.withOpacity(opacity);
+                final opacity = 0.5 + (0.5 * (count / maxVal));
+                color = Theme.of(context).primaryColor.withOpacity(opacity);
+                textColor = Colors.white;
               }
 
               // Highlight today
@@ -313,20 +328,30 @@ class _ActivityChartState extends State<ActivityChart> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: color,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6), // Softer corners
                     border: isToday
-                        ? Border.all(color: Colors.white, width: 2)
+                        ? Border.all(
+                            color: Theme.of(context).primaryColor,
+                            width: 2,
+                          )
+                        : null,
+                    boxShadow: count > 0
+                        ? [
+                            BoxShadow(
+                              color: color.withOpacity(0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
                         : null,
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '$day',
                     style: TextStyle(
-                      color: count > 0 || isToday
-                          ? Colors.white
-                          : Colors.grey[500],
+                      color: textColor,
                       fontSize: 10,
-                      fontWeight: count > 0
+                      fontWeight: count > 0 || isToday
                           ? FontWeight.bold
                           : FontWeight.normal,
                     ),

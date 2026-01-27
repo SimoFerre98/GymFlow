@@ -22,7 +22,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Or better, let's keep profile logic in AuthService for now or pure FirestoreService
   // Given previous pattern, let's use AuthService for fetching and saving profile.
 
-  late TextEditingController _nameController;
+  late TextEditingController _nameController; // Acting as "Username"
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
 
   UserProfile? _profile;
   bool _isLoading = true;
@@ -36,6 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
     _loadProfile();
   }
 
@@ -44,7 +48,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = await _auth.getUserProfile();
     if (profile != null) {
       _profile = profile;
+      _profile = profile;
       _nameController.text = profile.displayName;
+      _firstNameController.text = profile.firstName ?? '';
+      _lastNameController.text = profile.lastName ?? '';
       _birthDate = profile.birthDate;
       _gender = profile.gender;
     }
@@ -80,24 +87,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_profile == null) return;
     setState(() => _isLoading = true);
 
+    // Uniqueness check removed as per user request. "Username" is just a Display Name now.
+
     String? photoUrl = _profile!.photoUrl;
 
     // 1. Upload Image if new one selected
     if (_imageFile != null) {
-      try {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('user_avatars')
-            .child('${_profile!.id}.jpg');
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('user_avatars')
+          .child('${_profile!.id}_$timestamp.jpg');
 
+      try {
+        print('Starting upload to ${ref.fullPath}');
         await ref.putFile(_imageFile!);
-        photoUrl = await ref.getDownloadURL();
+        print('Upload completed');
       } catch (e) {
+        print('Error in putFile: $e');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
+          ToastUtils.showError(context, 'Upload failed: $e');
         }
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      try {
+        print('Getting download URL');
+        photoUrl = await ref.getDownloadURL();
+        print('Got URL: $photoUrl');
+      } catch (e) {
+        print('Error in getDownloadURL: $e');
+        if (mounted) {
+          ToastUtils.showError(context, 'Failed to get image URL: $e');
+        }
+        setState(() => _isLoading = false);
+        return;
       }
     }
 
@@ -106,6 +131,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       id: _profile!.id,
       email: _profile!.email,
       displayName: _nameController.text.trim(),
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      friendCode: _profile!.friendCode, // Preserve existing code
       photoUrl: photoUrl,
       // Height and Weight are now managed in BodyMeasurementsScreen
       // We keep existing values or allow them to be updated via that screen,
@@ -218,10 +246,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     controller: _nameController,
                     enabled: _isEditing,
                     decoration: const InputDecoration(
-                      labelText: 'Display Name',
+                      labelText: 'Username', // Renamed from "Display Name"
                       border: OutlineInputBorder(),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Name and Surname
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _firstNameController,
+                          enabled: _isEditing,
+                          decoration: const InputDecoration(
+                            labelText: 'First Name',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _lastNameController,
+                          enabled: _isEditing,
+                          decoration: const InputDecoration(
+                            labelText: 'Last Name',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
                   const SizedBox(height: 16),
 
                   const SizedBox(height: 16),
