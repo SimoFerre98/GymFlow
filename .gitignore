@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 .DS_Store
+gymflow-d5d09-62bd398a88fc.json
 .atom/
 .build/
 .buildlog/
@@ -34,7 +35,6 @@ migrate_working_dir/
 /build/
 
 # Web related
-lib/generated_plugin_registrant.dart
 
 # Symbolication related
 app.*.symbols

@@ -213,7 +213,7 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: friends.length,
-                      separatorBuilder: (_, __) => const Divider(),
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final friend = friends[index];
                         return ListTile(

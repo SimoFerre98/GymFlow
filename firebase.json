@@ -1,1 +1,17 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"gymflow-d5d09","appId":"1:704225438245:android:6f9ef9d23956b23e11adcc","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"gymflow-d5d09","configurations":{"android":"1:704225438245:android:6f9ef9d23956b23e11adcc","ios":"1:704225438245:ios:c6c610c075b5932811adcc","macos":"1:704225438245:ios:c6c610c075b5932811adcc","web":"1:704225438245:web:cce7285b0116d71811adcc","windows":"1:704225438245:web:f1ce3155bd8c80a011adcc"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {"platforms":{"android":{"default":{"projectId":"gymflow-d5d09","appId":"1:704225438245:android:6f9ef9d23956b23e11adcc","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"gymflow-d5d09","configurations":{"android":"1:704225438245:android:6f9ef9d23956b23e11adcc","ios":"1:704225438245:ios:c6c610c075b5932811adcc","macos":"1:704225438245:ios:c6c610c075b5932811adcc","web":"1:704225438245:web:cce7285b0116d71811adcc","windows":"1:704225438245:web:f1ce3155bd8c80a011adcc"}}}}}
+}

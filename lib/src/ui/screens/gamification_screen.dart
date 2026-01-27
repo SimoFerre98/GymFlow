@@ -10,6 +10,7 @@ import 'package:gymflow/src/services/gamification_service.dart';
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
+import '../widgets/app_drawer.dart';
 
 class GamificationScreen extends StatefulWidget {
   const GamificationScreen({super.key});
@@ -90,7 +91,16 @@ class _GamificationScreenState extends State<GamificationScreen> {
     final userId = AuthService().currentUser?.uid ?? '';
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc.t('achievements_title'))),
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: Text(loc.t('achievements_title')),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
       body: StreamBuilder<UserProfile?>(
         stream: AuthService().getUserProfileStream(),
         builder: (context, userSnapshot) {

@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, indent: 60),
+
                   _buildSettingsTile(
                     context,
                     title: loc.t('body_measurements'),
@@ -123,7 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, indent: 60),
+
                   _buildSettingsTile(
                     context,
                     title: loc.t('subscription'),
@@ -211,7 +211,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const Divider(height: 1, indent: 60),
+
                   _buildSettingsTile(
                     context,
                     title: loc.t('gym_location'),
@@ -298,7 +298,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   ),
-                  const Divider(height: 1, indent: 60),
 
                   // Color Picker
                   ListTile(
@@ -364,8 +363,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
 
-                  const Divider(height: 1, indent: 60),
-
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -391,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (val) =>
                         setState(() => _notificationsEnabled = val),
                   ),
-                  const Divider(height: 1, indent: 60),
+
                   // Theme Selector
                   ListTile(
                     leading: Container(
@@ -441,7 +438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
-                  const Divider(height: 1, indent: 60),
+
                   _buildSettingsTile(
                     context,
                     title: loc.t('load_default_data'),

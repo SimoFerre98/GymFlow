@@ -87,7 +87,6 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.grey[900],
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -105,10 +104,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             children: [
               Text(
                 _editingId == null ? 'Add Measurement' : 'Edit Measurement',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -117,7 +115,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               ListTile(
                 title: Text(
                   'Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inverseSurface,
+                  ),
                 ),
                 trailing: const Icon(Icons.calendar_today, color: Colors.blue),
                 onTap: () async {
@@ -242,12 +242,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
       child: TextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[400]),
           filled: true,
-          fillColor: Colors.grey[800],
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
@@ -336,15 +333,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text(
-          'Body Measurements',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      appBar: AppBar(title: const Text('Body Measurements')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddMeasurementSheet(null),
         backgroundColor: Colors.blue,
@@ -436,15 +425,11 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                 },
                 onDismissed: (direction) => _deleteMeasurement(m.id),
                 child: Card(
-                  color: Colors.grey[900],
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ExpansionTile(
                     title: Text(
                       DateFormat('MMM d, yyyy').format(m.date),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: m.weight != null
                         ? Text(
@@ -502,14 +487,13 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
+        ),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ],
     );
