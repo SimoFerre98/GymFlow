@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Cyber Gym Palette
-  static const Color primaryColor = Color(0xFFD500F9); // Neon Purple
+  // static const Color primaryColor = Color(0xFFD500F9); // REMOVED - Dynamic
   static const Color secondaryColor = Color(0xFFEA80FC); // Lilac Accent
   static const Color actionColor = Color(0xFFFF4081); // Cyber Pink
 
@@ -13,7 +13,7 @@ class AppTheme {
   static const Color lightSurface = Colors.white;
   static const Color errorColor = Color(0xFFFF1744); // Neon Red
 
-  static ThemeData get lightTheme {
+  static ThemeData lightTheme(Color primaryColor) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -45,12 +45,13 @@ class AppTheme {
       inputDecorationTheme: _inputDecorationTheme(
         lightSurface,
         Colors.grey.shade400,
+        primaryColor,
       ),
-      elevatedButtonTheme: _elevatedButtonTheme(),
+      elevatedButtonTheme: _elevatedButtonTheme(primaryColor),
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData darkTheme(Color primaryColor) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -82,8 +83,9 @@ class AppTheme {
       inputDecorationTheme: _inputDecorationTheme(
         darkSurface,
         const Color(0xFF333333),
+        primaryColor,
       ),
-      elevatedButtonTheme: _elevatedButtonTheme(),
+      elevatedButtonTheme: _elevatedButtonTheme(primaryColor),
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 4,
@@ -104,6 +106,7 @@ class AppTheme {
   static InputDecorationTheme _inputDecorationTheme(
     Color fill,
     Color borderColor,
+    Color primaryColor,
   ) {
     return InputDecorationTheme(
       filled: true,
@@ -119,12 +122,12 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: primaryColor, width: 2),
+        borderSide: BorderSide(color: primaryColor, width: 2),
       ),
     );
   }
 
-  static ElevatedButtonThemeData _elevatedButtonTheme() {
+  static ElevatedButtonThemeData _elevatedButtonTheme(Color primaryColor) {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,

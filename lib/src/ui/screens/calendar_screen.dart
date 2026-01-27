@@ -15,6 +15,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
+import '../../core/providers/localization_provider.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -93,20 +94,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
+    final loc = Provider.of<LocalizationProvider>(context);
+
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('Login required')));
+      return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Calendar'),
+        title: Text(loc.t('calendar_title')),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showScheduleDialog(context, user.uid),
+            onPressed: () => _showScheduleDialog(context, user.uid, loc),
           ),
         ],
       ),
@@ -139,7 +148,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ],
                     ),
                   ),
-                  _buildEventListSliver(eventsMap),
+                  _buildEventListSliver(eventsMap, loc),
                   const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
                 ],
               );
@@ -241,10 +250,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildEventListSliver(Map<DateTime, List<dynamic>> eventsMap) {
+  Widget _buildEventListSliver(
+    Map<DateTime, List<dynamic>> eventsMap,
+    LocalizationProvider loc,
+  ) {
     if (_selectedDay == null) {
-      return const SliverFillRemaining(
-        child: Center(child: Text('Select a day')),
+      return SliverFillRemaining(
+        child: Center(child: Text(loc.t('select_day'))),
       );
     }
 
@@ -269,19 +281,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 color: Colors.grey.withOpacity(0.3),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'No workouts this day',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+              Text(
+                loc.t('no_workouts_day'),
+                style: const TextStyle(color: Colors.grey, fontSize: 16),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () => _showScheduleDialog(
                   context,
                   _auth.currentUser!.uid,
+                  loc,
                   initialDate: _selectedDay,
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Schedule Workout'),
+                label: Text(loc.t('schedule_workout_btn')),
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -304,13 +317,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         final event = dailyEvents[index];
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _buildEventCard(event),
+          child: _buildEventCard(event, loc),
         );
       }, childCount: dailyEvents.length),
     );
   }
 
-  Widget _buildEventCard(dynamic event) {
+  Widget _buildEventCard(dynamic event, LocalizationProvider loc) {
     bool isCompleted = event is WorkoutSession;
     String id = isCompleted
         ? (event as WorkoutSession).id
@@ -321,9 +334,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     String title = isCompleted
         ? (event as WorkoutSession).workoutName
         : (event as ScheduledWorkout).workoutName;
+
+    // Use locale for time format? Usually HH:mm is standard but maybe?
+    // loc.locale.languageCode could be used but DateFormat('HH:mm') is fine.
+
     String subtitle = isCompleted
-        ? 'Completed at ${DateFormat('HH:mm').format((event as WorkoutSession).startTime)}'
-        : 'Scheduled for ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}';
+        ? '${loc.t('completed_at')} ${DateFormat('HH:mm').format((event as WorkoutSession).startTime)}'
+        : '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}';
 
     bool isMine = ownerId == _auth.currentUser?.uid;
 
@@ -335,7 +352,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       // Friend event
       glowColor = Colors.purpleAccent;
       icon = isCompleted ? Icons.check_circle_outline : Icons.schedule_send;
-      subtitle += ' (Friend)';
+      subtitle += ' ${loc.t('friend_label')}';
     } else {
       glowColor = isCompleted ? Colors.greenAccent : Colors.orangeAccent;
       icon = isCompleted ? Icons.check_circle : Icons.schedule;
@@ -382,9 +399,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       if (!isCompleted)
                         IconButton(
                           icon: const Icon(Icons.calendar_month),
-                          onPressed: () =>
-                              _addToDeviceCalendar(event as ScheduledWorkout),
-                          tooltip: 'Sync to Calendar',
+                          onPressed: () => _addToDeviceCalendar(event),
+                          tooltip:
+                              'Sync to Calendar', // Maybe localize tooltip?
                         ),
                       if (!isCompleted)
                         IconButton(
@@ -392,8 +409,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             Icons.play_circle_fill,
                             color: Colors.blue,
                           ),
-                          onPressed: () =>
-                              _startWorkout(event as ScheduledWorkout),
+                          onPressed: () => _startWorkout(event),
                         ),
                     ],
                   )
@@ -424,18 +440,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete Event?'),
-            content: const Text('This action cannot be undone.'),
+            title: Text(loc.t('delete_event_title')),
+            content: Text(loc.t('delete_event_body')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(loc.t('cancel')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
+                child: Text(
+                  loc.t('delete'),
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
@@ -448,7 +464,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         } else {
           _firestore.deleteScheduledWorkout(id);
         }
-        ToastUtils.showInfo(context, 'Event deleted');
+        ToastUtils.showInfo(context, loc.t('event_deleted'));
       },
       child: cardContent,
     );
@@ -484,7 +500,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _showScheduleDialog(
     BuildContext context,
-    String userId, {
+    String userId,
+    LocalizationProvider loc, {
     DateTime? initialDate,
   }) {
     showModalBottomSheet(
@@ -509,11 +526,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 16.0),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
                 child: Text(
-                  'Select Workout to Schedule',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  loc.t('select_workout_schedule'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Expanded(
@@ -532,8 +552,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         final workouts = workoutsSnapshot.data!;
 
                         if (workouts.isEmpty) {
-                          return const Center(
-                            child: Text("No workouts found. Create one first!"),
+                          return Center(
+                            child: Text(loc.t('no_workouts_create_first')),
                           );
                         }
 

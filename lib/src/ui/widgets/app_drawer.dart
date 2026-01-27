@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:gymflow/src/services/auth_service.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
@@ -12,6 +14,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = AuthService().currentUser;
+    final loc = Provider.of<LocalizationProvider>(context);
 
     return Drawer(
       child: Column(
@@ -57,7 +60,7 @@ class AppDrawer extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        user?.displayName ?? 'GymFlow User',
+                        user?.displayName ?? loc.t('gymflow_user'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -92,8 +95,20 @@ class AppDrawer extends StatelessWidget {
               children: [
                 _buildDrawerItem(
                   context,
+                  icon: Icons.home_filled,
+                  title: loc.t('home'),
+                  color: Colors.indigo,
+                  onTap: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context,
                   icon: Icons.settings_outlined,
-                  title: 'Settings',
+                  title: loc.t('settings_title'),
                   color: Colors.blueAccent,
                   onTap: () {
                     Navigator.pop(context);
@@ -107,7 +122,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.emoji_events_outlined,
-                  title: 'Achievements',
+                  title: loc.t('achievements'),
                   color: Colors.amber,
                   onTap: () {
                     Navigator.pop(context);
@@ -123,7 +138,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.timer,
-                  title: 'Cronometro (Stopwatch)',
+                  title: loc.t('stopwatch_menu'),
                   color: Colors.green,
                   onTap: () {
                     Navigator.pop(context);
@@ -139,7 +154,7 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   context,
                   icon: Icons.person_add_alt_1,
-                  title: 'Connect Friend',
+                  title: loc.t('connect_friend'),
                   color: Colors.purple,
                   onTap: () {
                     Navigator.pop(context);

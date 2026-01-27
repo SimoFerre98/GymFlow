@@ -10,10 +10,12 @@
   - Create and customize workout templates.
   - Huge database of exercises (Strength, Cardio, Mobility, Hypertrophy).
   - Full CRUD (Create, Read, Update, Delete) capabilities.
-- **🔥 Active Session**: (Coming Soon) Real-time workout tracking with built-in timer and notes.
-- **📅 Calendar Integration**: (Coming Soon) Drag & drop planner for your gym week.
-- **📈 Progress Tracking**: (Coming Soon) Visual charts for 1RM and Volume Load using `fl_chart`.
-- **🤝 Social Features**: (Coming Soon) Share routines and view friends' activity.
+- **🔥 Active Session**: Real-time workout tracking with built-in timer, RPE logging, and notes.
+- **📅 Calendar Integration**: Drag & drop planner, schedule workouts, and sync with device calendar.
+- **📈 Progress Tracking**: Visual charts for 1RM, Volume Load, and Activity stats using `fl_chart`.
+- **🤝 Social Features**: Share friend codes, view friends' activity, and compete.
+- **🏆 Gamification**: Earn badges, complete monthly challenges (Steps, Calories, Distance), and track streaks.
+- **🌍 Localization**: Full multi-language support (English & Italian).
 
 ## 🛠 Technology Stack
 

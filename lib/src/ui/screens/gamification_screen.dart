@@ -9,6 +9,7 @@ import 'package:gymflow/src/services/gamification_service.dart';
 
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:health/health.dart';
+import '../../core/providers/localization_provider.dart';
 
 class GamificationScreen extends StatefulWidget {
   const GamificationScreen({super.key});
@@ -85,10 +86,11 @@ class _GamificationScreenState extends State<GamificationScreen> {
   @override
   Widget build(BuildContext context) {
     final firestore = Provider.of<FirestoreService>(context, listen: false);
+    final loc = Provider.of<LocalizationProvider>(context);
     final userId = AuthService().currentUser?.uid ?? '';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Achievements')),
+      appBar: AppBar(title: Text(loc.t('achievements_title'))),
       body: StreamBuilder<UserProfile?>(
         stream: AuthService().getUserProfileStream(),
         builder: (context, userSnapshot) {
@@ -119,11 +121,11 @@ class _GamificationScreenState extends State<GamificationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Monthly Challenge Section
-                    _buildSectionHeader('Monthly Challenges'),
+                    _buildSectionHeader(loc.t('monthly_challenges')),
                     const SizedBox(height: 12),
 
                     // 1. Steps (Linear)
-                    _buildStepChallengeCard(),
+                    _buildStepChallengeCard(loc),
                     const SizedBox(height: 16),
 
                     // 2. Calories & Distance (Row)
@@ -131,16 +133,16 @@ class _GamificationScreenState extends State<GamificationScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(child: _buildCaloriesChallengeCard()),
+                          Expanded(child: _buildCaloriesChallengeCard(loc)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildDistanceChallengeCard()),
+                          Expanded(child: _buildDistanceChallengeCard(loc)),
                         ],
                       ),
                     ),
                     const SizedBox(height: 32),
 
                     // Achievements Section
-                    _buildSectionHeader('Badges'),
+                    _buildSectionHeader(loc.t('badges_section')),
                     const SizedBox(height: 12),
                     GridView.builder(
                       shrinkWrap: true,
@@ -156,7 +158,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
                       itemBuilder: (context, index) {
                         final badge = allBadges[index];
                         final isUnlocked = unlockedIds.contains(badge.id);
-                        return _buildBadgeCard(context, badge, isUnlocked);
+                        return _buildBadgeCard(context, badge, isUnlocked, loc);
                       },
                     ),
                   ],
@@ -181,7 +183,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     );
   }
 
-  Widget _buildStepChallengeCard() {
+  Widget _buildStepChallengeCard(LocalizationProvider loc) {
     final progress = (_monthlySteps / _monthlyStepGoal).clamp(0.0, 1.0);
     final percentage = (progress * 100).toInt();
 
@@ -219,18 +221,18 @@ class _GamificationScreenState extends State<GamificationScreen> {
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    'Step Master',
-                    style: TextStyle(
+                    loc.t('step_master'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
                   ),
                   Text(
-                    'Reach 180k steps',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    loc.t('reach_steps_goal'),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),
@@ -273,7 +275,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     );
   }
 
-  Widget _buildCaloriesChallengeCard() {
+  Widget _buildCaloriesChallengeCard(LocalizationProvider loc) {
     final progress = (_monthlyCalories / _monthlyCalorieGoal).clamp(0.0, 1.0);
     final percentage = (progress * 100).toInt();
 
@@ -293,14 +295,14 @@ class _GamificationScreenState extends State<GamificationScreen> {
       ),
       child: Column(
         children: [
-          const Text(
-            'Calorie Burn',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          Text(
+            loc.t('calorie_burn'),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 4),
           Text(
-            'Goal: ${_monthlyCalorieGoal ~/ 1000}k kcal',
-            style: TextStyle(color: Colors.grey, fontSize: 10),
+            '${loc.t('goal_label')} ${_monthlyCalorieGoal ~/ 1000}k kcal',
+            style: const TextStyle(color: Colors.grey, fontSize: 10),
           ),
           const SizedBox(height: 16),
           Stack(
@@ -323,7 +325,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.local_fire_department,
                     color: Colors.orange,
                     size: 20,
@@ -349,7 +351,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     );
   }
 
-  Widget _buildDistanceChallengeCard() {
+  Widget _buildDistanceChallengeCard(LocalizationProvider loc) {
     final progress = (_monthlyDistance / _monthlyDistanceGoal).clamp(0.0, 1.0);
     // Convert to km
     final currentKm = (_monthlyDistance / 1000).toStringAsFixed(1);
@@ -367,19 +369,22 @@ class _GamificationScreenState extends State<GamificationScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.map_outlined, color: Colors.teal, size: 20),
+              const Icon(Icons.map_outlined, color: Colors.teal, size: 20),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Distance',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  loc.t('distance_label'),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            'Goal: ${goalKm}km',
+            '${loc.t('goal_label')} ${goalKm}km',
             style: TextStyle(color: Colors.teal[700], fontSize: 10),
           ),
           const SizedBox(height: 20),
@@ -418,6 +423,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     BuildContext context,
     BadgeModel badge,
     bool isUnlocked,
+    LocalizationProvider loc,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -456,7 +462,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              badge.name,
+              loc.t('badge_name_${badge.id}'),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -471,7 +477,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              badge.description,
+              loc.t('badge_desc_${badge.id}'),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

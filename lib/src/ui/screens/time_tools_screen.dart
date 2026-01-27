@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:gymflow/src/services/timer_service.dart';
+import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 
 class TimeToolsScreen extends StatefulWidget {
   const TimeToolsScreen({super.key});
@@ -66,8 +68,21 @@ class _TimeToolsScreenState extends State<TimeToolsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final loc = Provider.of<LocalizationProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Time Tools')),
+      appBar: AppBar(
+        title: Text(
+          loc.t('stopwatch_menu'),
+        ), // Using general stopwatch_menu key or specific title
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: const AppDrawer(), // Persistent Drawer
       body: Column(
         children: [
           // Styled Pill Tabs
@@ -110,9 +125,9 @@ class _TimeToolsScreenState extends State<TimeToolsScreen>
                 fontSize: 15,
               ),
               dividerColor: Colors.transparent,
-              tabs: const [
-                Tab(text: 'Cronometro'),
-                Tab(text: 'Timer'),
+              tabs: [
+                Tab(text: loc.t('stopwatch_tab')),
+                Tab(text: loc.t('timer_tab')),
               ],
             ),
           ),
@@ -143,6 +158,7 @@ class StopwatchView extends StatelessWidget {
   Widget build(BuildContext context) {
     // Consume TimerService
     final service = Provider.of<TimerService>(context);
+    final loc = Provider.of<LocalizationProvider>(context);
 
     // Logic for Buttons:
     // Left:
@@ -189,7 +205,7 @@ class StopwatchView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Lap ${service.stopwatchLaps.length - index}',
+                      '${loc.t('lap')} ${service.stopwatchLaps.length - index}',
                       style: const TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                     Text(
@@ -212,49 +228,53 @@ class StopwatchView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Left Button (Lap / Reset)
-              ElevatedButton(
-                onPressed: () {
-                  if (isRunning) {
-                    service.lapStopwatch();
-                  } else {
-                    service.resetStopwatch();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (isRunning) {
+                        service.lapStopwatch();
+                      } else {
+                        service.resetStopwatch();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: isRunning
+                          ? Colors.grey[300]
+                          : Colors.red, // Grey for Lap, Red for Reset
+                      foregroundColor: isRunning ? Colors.black : Colors.white,
+                    ),
+                    child: Text(
+                      isRunning ? loc.t('lap') : loc.t('reset'),
+                      style: const TextStyle(fontSize: 18),
+                    ),
                   ),
-                  backgroundColor: isRunning
-                      ? Colors.grey[300]
-                      : Colors.red, // Grey for Lap, Red for Reset
-                  foregroundColor: isRunning ? Colors.black : Colors.white,
-                ),
-                child: Text(
-                  isRunning ? 'Parziale' : 'Reset',
-                  style: const TextStyle(fontSize: 18),
                 ),
               ),
               // Right Button (Avvia / Pausa)
-              ElevatedButton(
-                onPressed: service.toggleStopwatch,
-                style: ElevatedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
-                  ),
-                  backgroundColor: isRunning
-                      ? Colors.orange
-                      : Colors.green, // Orange for Pause, Green for Start
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  isRunning ? 'Pausa' : 'Avvia',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: ElevatedButton(
+                    onPressed: service.toggleStopwatch,
+                    style: ElevatedButton.styleFrom(
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: isRunning
+                          ? Colors.orange
+                          : Colors.green, // Orange for Pause, Green for Start
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      isRunning ? loc.t('pause') : loc.t('start'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -306,6 +326,7 @@ class TimerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = Provider.of<TimerService>(context);
+    final loc = Provider.of<LocalizationProvider>(context);
     final isRunning = service.isTimerRunning;
 
     // Logic for Buttons (requested):
@@ -364,7 +385,7 @@ class TimerView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(
-              'Tap to Edit',
+              loc.t('tap_to_edit'),
               style: TextStyle(color: Colors.grey[500]),
             ),
           ),
@@ -385,57 +406,105 @@ class TimerView extends StatelessWidget {
         // Controls
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Left Button (Reset) - Visible only if Paused (started but not running) or finished?
-              // User said: "start -> stop with same button -> text on left becomes Reset"
-              // Only if state is "Paused" or "Finished".
-              if (service.timerRemaining != service.timerDuration && !isRunning)
-                Padding(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: ElevatedButton(
-                    onPressed: service.resetTimer,
-                    style: ElevatedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text(
-                      'Reset',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Logic: Show split if we are NOT in the initial state (Timer not running AND at full duration)
+              // i.e. Show split if Running OR (Paused/Finished and not at full duration)
+              final bool isInitial =
+                  !isRunning && service.timerRemaining == service.timerDuration;
+              final bool showSplit = !isInitial;
 
-              // Right Button (Start / Pause)
-              ElevatedButton(
-                onPressed: service.toggleTimer,
-                style: ElevatedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
+              final double totalWidth = constraints.maxWidth;
+              // We want a gap of 16 when split
+              final double gap = 16.0;
+              // Calculate width for the left button (Reset)
+              // When split: (Total - Gap) / 2
+              // When not split: 0
+              final double resetButtonTargetWidth = showSplit
+                  ? (totalWidth - gap) / 2
+                  : 0;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // LEFT BUTTON (Reset) - Animated Entry
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: resetButtonTargetWidth,
+                    height: 56, // Fixed height for smoother animation
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: Container(
+                        width:
+                            (totalWidth - gap) /
+                            2, // Always render full width content to avoid squishing
+                        padding: const EdgeInsets.only(
+                          right: 0,
+                        ), // No padding needed here
+                        child: ElevatedButton(
+                          onPressed: service.resetTimer,
+                          style: ElevatedButton.styleFrom(
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            fixedSize: Size.fromHeight(56),
+                          ),
+                          child: Text(
+                            loc.t('reset'),
+                            overflow: TextOverflow.visible,
+                            softWrap: false,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  backgroundColor: isRunning ? Colors.orange : Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  isRunning ? 'Pausa' : 'Avvia',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+
+                  // GAP - Animated
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: showSplit ? gap : 0,
                   ),
-                ),
-              ),
-            ],
+
+                  // RIGHT BUTTON (Start / Pause)
+                  // We can't use Expanded easily with AnimatedContainer width changes causing flex issues?
+                  // Actually, if we use a fixed width for the Right button that animates from Full to Half?
+                  // Or just Expanded?
+                  // If Left is 0, Gap is 0, Expanded takes Total.
+                  // If Left is Half, Gap is 16, Expanded takes Remaining (Half).
+                  // This works perfectly without explicit width animation on this one.
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: service.toggleTimer,
+                        style: ElevatedButton.styleFrom(
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: isRunning
+                              ? Colors.orange
+                              : Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text(
+                          isRunning ? loc.t('pause') : loc.t('start'),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         const Spacer(flex: 2),

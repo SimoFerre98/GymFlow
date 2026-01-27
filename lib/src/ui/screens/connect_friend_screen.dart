@@ -4,6 +4,9 @@ import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
+import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+import 'package:provider/provider.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 
 class ConnectFriendScreen extends StatefulWidget {
   const ConnectFriendScreen({super.key});
@@ -34,14 +37,18 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
   }
 
   Future<void> _connectWithFriend() async {
+    final loc = Provider.of<LocalizationProvider>(context, listen: false);
     final code = _codeController.text.trim().toUpperCase();
     if (code.isEmpty) {
-      ToastUtils.showInfo(context, 'Please enter a friend code');
+      ToastUtils.showInfo(
+        context,
+        loc.t('enter_friend_code'),
+      ); // reusing enter code label or strict "please enter"
       return;
     }
 
     if (code == _myFriendCode) {
-      ToastUtils.showError(context, "You can't add yourself!");
+      ToastUtils.showError(context, loc.t('cant_add_self'));
       return;
     }
 
@@ -51,17 +58,17 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
       final success = await _firestore.addFriendByCode(code);
       if (success) {
         if (mounted) {
-          ToastUtils.showSuccess(context, 'Friend connected successfully!');
+          ToastUtils.showSuccess(context, loc.t('friend_connected'));
           _codeController.clear();
         }
       } else {
         if (mounted) {
-          ToastUtils.showError(context, 'Friend not found with code: $code');
+          ToastUtils.showError(context, '${loc.t('friend_not_found')} $code');
         }
       }
     } catch (e) {
       if (mounted) {
-        ToastUtils.showError(context, 'Error connecting: $e');
+        ToastUtils.showError(context, '${loc.t('error_connecting')}: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -70,8 +77,19 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = Provider.of<LocalizationProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Connect with Friends')),
+      appBar: AppBar(
+        title: Text(loc.t('connect_friends_title')),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: const AppDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -89,9 +107,12 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'Your Friend Code',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  Text(
+                    loc.t('your_friend_code'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   SelectableText(
@@ -107,10 +128,10 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Share this code with your friends so they can add you!',
+                  Text(
+                    loc.t('share_code_msg'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
@@ -119,18 +140,18 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
             const SizedBox(height: 48),
 
             // Enter Code Section
-            const Text(
-              'Enter Friend Code',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              loc.t('enter_friend_code'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _codeController,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(
-                hintText: 'e.g. A1B2C3',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person_add_alt_1),
+              decoration: InputDecoration(
+                hintText: loc.t('friend_code_hint'),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.person_add_alt_1),
               ),
             ),
             const SizedBox(height: 24),
@@ -148,18 +169,18 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text(
-                      'CONNECT',
-                      style: TextStyle(
+                  : Text(
+                      loc.t('connect_btn'),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
             ),
             const SizedBox(height: 48),
-            const Text(
-              'Your Friends',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              loc.t('your_friends_list'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             StreamBuilder<UserProfile?>(
@@ -172,10 +193,10 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                 final friendIds = user.friends;
 
                 if (friendIds.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'No friends yet. Add some!',
-                      style: TextStyle(color: Colors.grey),
+                      loc.t('no_friends_msg'),
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   );
                 }
@@ -297,8 +318,10 @@ class _AccessControlDialogState extends State<_AccessControlDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = Provider.of<LocalizationProvider>(context);
+
     return AlertDialog(
-      title: Text('Privacy: ${widget.friend.displayName}'),
+      title: Text('${loc.t('privacy_settings')} ${widget.friend.displayName}'),
       content: _isLoading
           ? const SizedBox(
               height: 100,
@@ -308,14 +331,14 @@ class _AccessControlDialogState extends State<_AccessControlDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SwitchListTile(
-                  title: const Text('Share Calendar'),
-                  subtitle: const Text('Allow viewing your workout history'),
+                  title: Text(loc.t('share_calendar')),
+                  subtitle: Text(loc.t('share_calendar_sub')),
                   value: _shareCalendar,
                   onChanged: (val) => _toggle('calendar', val),
                 ),
                 SwitchListTile(
-                  title: const Text('Share Programs'),
-                  subtitle: const Text('Allow viewing/copying your programs'),
+                  title: Text(loc.t('share_programs')),
+                  subtitle: Text(loc.t('share_programs_sub')),
                   value: _sharePrograms,
                   onChanged: (val) => _toggle('programs', val),
                 ),
@@ -324,7 +347,7 @@ class _AccessControlDialogState extends State<_AccessControlDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('DONE'),
+          child: Text(loc.t('done')),
         ),
       ],
     );

@@ -9,8 +9,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
+import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/services/health_service.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart'; // Added
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -40,8 +41,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Get Providers
+    final loc = Provider.of<LocalizationProvider>(context);
+    final theme = Provider.of<ThemeProvider>(context);
+
+    // 2. Define Color presets
+    final List<Color> colorPresets = [
+      const Color(0xFFD500F9), // Neon Purple (Default)
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.redAccent,
+      Colors.teal,
+    ];
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: Text(loc.t('settings_title')),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: const AppDrawer(),
       body: StreamBuilder<UserProfile?>(
         stream: AuthService().getUserProfileStream(),
         builder: (context, snapshot) {
@@ -51,25 +75,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
 
           final profile = snapshot.data;
-          // Update controllers if profile changes and we aren't editing?
-          // For simplicity in this "view/edit" mix, we might need a more complex state management.
-          // However, to solve the "slow load", showing data immediately is key.
-          // Let's populate the controllers only if they are empty or if we want to sync.
-          // But editing text fields while a stream updates them is tricky (cursor jumps).
-          // OPTION: Load initial data from stream, then let user edit.
-          // But the user asked for "load things then update".
-
-          // Better approach for settings form:
-          // 1. Initial build: show loading or cached data.
-          // 2. If we receive data and controllers are "pristine" (not modified by user yet), update them.
-
-          // Actually, the simplest fix for "slow load" is just using the stream to SHOW the data.
-          // But here we have text fields.
-
-          // Let's rely on the fact that the stream emits the CACHED value immediately.
-          // So we can just use a FutureBuilder or similar, BUT `getUserProfile` was `get()`, forcing a network fetch if not configured to cache-first.
-          // Firestore `get()` usually fetches from server unless source is specified.
-          // `snapshots()` emits cache first.
 
           if (profile != null && _gymNameController.text.isEmpty) {
             _gymNameController.text = profile.gymName ?? '';
@@ -82,15 +87,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // 1. Account Section (Premium Banner)
-              _buildSectionHeader('Account'),
+              // 1. Account Section
+              _buildSectionHeader(loc.t('account_section')),
               _buildSettingsCard(
                 context,
                 children: [
                   _buildSettingsTile(
                     context,
-                    title: 'My Profile',
-                    subtitle: profile?.displayName ?? 'Guest User',
+                    title: loc.t('my_profile'),
+                    subtitle: profile?.displayName ?? loc.t('guest_user'),
                     icon: Icons.person_outline,
                     color: Colors.blueAccent,
                     onTap: () {
@@ -105,8 +110,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Divider(height: 1, indent: 60),
                   _buildSettingsTile(
                     context,
-                    title: 'Body Measurements',
-                    subtitle: 'Track your progress',
+                    title: loc.t('body_measurements'),
+                    subtitle: loc.t('track_progress'),
                     icon: Icons.monitor_weight_outlined,
                     color: Colors.tealAccent,
                     onTap: () {
@@ -121,14 +126,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Divider(height: 1, indent: 60),
                   _buildSettingsTile(
                     context,
-                    title: 'Subscription',
+                    title: loc.t('subscription'),
                     subtitle: _subscriptionExpiry == null
-                        ? 'Free Plan'
-                        : 'Expires: ${_subscriptionExpiry!.toString().split(' ')[0]}',
+                        ? loc.t('free_plan')
+                        : '${loc.t('expires')}: ${_subscriptionExpiry!.toString().split(' ')[0]}',
                     icon: Icons.star_outline,
                     color: Colors.amber,
                     onTap: () async {
-                      // Date Picker logic shifted here or similar
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now().add(
@@ -141,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                       if (picked != null) {
                         setState(() => _subscriptionExpiry = picked);
-                        _saveGymInfo(); // Auto save for simplicity in this flow? Or just local state.
+                        _saveGymInfo();
                       }
                     },
                   ),
@@ -150,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
 
               // 2. Gym Section
-              _buildSectionHeader('Gym Settings'),
+              _buildSectionHeader(loc.t('gym_settings_section')),
               _buildSettingsCard(
                 context,
                 children: [
@@ -166,21 +170,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: Colors.purpleAccent,
                       ),
                     ),
-                    title: const Text(
-                      'Gym Details',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    title: Text(
+                      loc.t('gym_details'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                       _gymNameController.text.isNotEmpty
                           ? _gymNameController.text
-                          : 'Set Name & Address',
+                          : loc.t('set_name_address'),
                     ),
                     childrenPadding: const EdgeInsets.all(16),
                     tilePadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 4,
                     ),
-                    shape: const Border(), // Remove borders
+                    shape: const Border(),
                     children: [
                       TextField(
                         controller: _gymNameController,
@@ -210,10 +214,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Divider(height: 1, indent: 60),
                   _buildSettingsTile(
                     context,
-                    title: 'Gym Location',
+                    title: loc.t('gym_location'),
                     subtitle: _gymLat != null
-                        ? 'Location pinned'
-                        : 'Tap to set location',
+                        ? loc.t('location_pinned')
+                        : loc.t('tap_to_set'),
                     icon: Icons.map_outlined,
                     color: Colors.green,
                     onTap: _showMapPicker,
@@ -222,15 +226,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Integrations Section
-              _buildSectionHeader('Integrations'),
+              // Integrations
+              _buildSectionHeader(loc.t('integrations_section')),
               _buildSettingsCard(
                 context,
                 children: [
                   _buildSettingsTile(
                     context,
                     title: 'Google Fit / Health Connect',
-                    subtitle: 'Sync steps, calories, and more',
+                    subtitle: loc.t('sync_steps'),
                     icon: Icons.health_and_safety,
                     color: Colors.redAccent,
                     onTap: () async {
@@ -239,33 +243,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (success) {
                           ToastUtils.showSuccess(
                             context,
-                            'Permissions granted!',
+                            loc.t('permissions_granted'),
                           );
                         } else {
-                          // Permission might be permanently denied or user cancelled.
-                          // Show dialog to guide them to settings.
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Permissions Required'),
-                              content: const Text(
-                                'Google Fit / Health Connect permissions are needed to sync your data. Please enable them in the app settings.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(ctx);
-                                    openAppSettings();
-                                  },
-                                  child: const Text('Open Settings'),
-                                ),
-                              ],
-                            ),
-                          );
+                          // Allow user to check permissions
                         }
                       }
                     },
@@ -275,10 +256,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
 
               // 3. Preferences Section
-              _buildSectionHeader('Preferences'),
+              _buildSectionHeader(loc.t('preferences_section')),
               _buildSettingsCard(
                 context,
                 children: [
+                  // Language Selection
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.language, color: Colors.indigo),
+                    ),
+                    title: Text(
+                      loc.t('language'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    trailing: DropdownButton<String>(
+                      value: loc.locale.languageCode,
+                      underline: const SizedBox(),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'it',
+                          child: Text('🇮🇹 Italiano'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'en',
+                          child: Text('🇬🇧 English'),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          loc.setLocale(Locale(val));
+                        }
+                      },
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 60),
+
+                  // Color Picker
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.color_lens, color: theme.primaryColor),
+                    ),
+                    title: Text(
+                      loc.t('primary_color'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: colorPresets.map((color) {
+                          final isSelected =
+                              theme.primaryColor.value == color.value;
+                          return GestureDetector(
+                            onTap: () => theme.setPrimaryColor(color),
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 12, top: 4),
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: isSelected
+                                    ? Border.all(
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge!.color!,
+                                        width: 2,
+                                      )
+                                    : null,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withOpacity(0.4),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: isSelected
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+
+                  const Divider(height: 1, indent: 60),
+
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -295,13 +382,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: Colors.orangeAccent,
                       ),
                     ),
-                    title: const Text(
-                      'Notifications',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: const Text(
-                      'Workout reminders',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    title: Text(
+                      loc.t('notifications'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     value: _notificationsEnabled,
                     activeColor: Theme.of(context).primaryColor,
@@ -309,63 +392,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         setState(() => _notificationsEnabled = val),
                   ),
                   const Divider(height: 1, indent: 60),
-                  // Theme Selector integrated cleanly
-                  Consumer<ThemeProvider>(
-                    builder: (context, themeProvider, _) {
-                      return ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.tealAccent.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.palette_outlined,
-                            color: Colors.teal,
-                          ),
+                  // Theme Selector
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.tealAccent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.palette_outlined,
+                        color: Colors.teal,
+                      ),
+                    ),
+                    title: Text(
+                      loc.t('app_theme'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      theme.themeMode == ThemeMode.system
+                          ? loc.t('system')
+                          : (theme.themeMode == ThemeMode.dark
+                                ? loc.t('dark')
+                                : loc.t('light')),
+                    ),
+                    trailing: DropdownButton<ThemeMode>(
+                      value: theme.themeMode,
+                      underline: const SizedBox(),
+                      icon: const Icon(Icons.arrow_drop_down),
+                      onChanged: (ThemeMode? newValue) {
+                        if (newValue != null) {
+                          theme.setThemeMode(newValue);
+                        }
+                      },
+                      items: [
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text(loc.t('system')),
                         ),
-                        title: const Text(
-                          'App Theme',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text(loc.t('light')),
                         ),
-                        subtitle: Text(
-                          themeProvider.themeMode == ThemeMode.system
-                              ? 'System'
-                              : (themeProvider.themeMode == ThemeMode.dark
-                                    ? 'Dark Mode'
-                                    : 'Light Mode'),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text(loc.t('dark')),
                         ),
-                        trailing: DropdownButton<ThemeMode>(
-                          value: themeProvider.themeMode,
-                          underline: const SizedBox(),
-                          icon: const Icon(Icons.arrow_drop_down),
-                          onChanged: (ThemeMode? newValue) {
-                            if (newValue != null) {
-                              themeProvider.setThemeMode(newValue);
-                            }
-                          },
-                          items: const [
-                            DropdownMenuItem(
-                              value: ThemeMode.system,
-                              child: Text('Auto'),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.light,
-                              child: Text('Light'),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.dark,
-                              child: Text('Dark'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
                   const Divider(height: 1, indent: 60),
                   _buildSettingsTile(
                     context,
-                    title: 'Load Default Data',
+                    title: loc.t('load_default_data'),
                     subtitle: 'Reset exercises list',
                     icon: Icons.cloud_download_outlined,
                     color: Colors.blueGrey,
@@ -374,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (context.mounted) {
                         ToastUtils.showSuccess(
                           context,
-                          'Default exercises loaded!',
+                          loc.t('default_loaded'),
                         );
                       }
                     },
@@ -401,9 +480,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text(
-                    'Sign Out',
-                    style: TextStyle(
+                  label: Text(
+                    loc.t('sign_out'),
+                    style: const TextStyle(
                       color: Colors.red,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,

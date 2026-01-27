@@ -15,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 import '../../models/user_profile.dart';
 import '../../services/health_service.dart';
 import 'package:health/health.dart';
+import '../../core/providers/localization_provider.dart';
 import 'health_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -70,10 +71,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final firestore = Provider.of<FirestoreService>(context, listen: false);
+    final loc = Provider.of<LocalizationProvider>(context);
     final userId = AuthService().currentUser?.uid ?? '';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(title: Text(loc.t('dashboard_title'))),
       drawer: const AppDrawer(),
       body: StreamBuilder<List<WorkoutSession>>(
         stream: firestore.getUserSessions(userId),
@@ -133,9 +135,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     dividerColor:
                         Colors.transparent, // Remove default underline
-                    tabs: const [
-                      Tab(text: 'Overview'),
-                      Tab(text: 'History'),
+                    tabs: [
+                      Tab(text: loc.t('overview_tab')),
+                      Tab(text: loc.t('history_tab')),
                     ],
                   ),
                 ),
@@ -149,9 +151,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         sessions,
                         streak,
                         isLoading,
+                        loc,
                       ),
                       // History Tab
-                      _buildHistoryTab(sessions, isLoading),
+                      _buildHistoryTab(sessions, isLoading, loc),
                     ],
                   ),
                 ),
@@ -169,6 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     List<WorkoutSession> sessions,
     int streak,
     bool isLoading,
+    LocalizationProvider loc,
   ) {
     return RefreshIndicator(
       onRefresh: _refreshHealthData,
@@ -187,7 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildBentoCard(
                     child: _buildStatContent(
-                      'Workouts',
+                      loc.t('workouts_label'),
                       sessions.length.toString(),
                       Icons.fitness_center_rounded,
                       Colors.blue,
@@ -199,8 +203,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildBentoCard(
                     child: _buildStatContent(
-                      'Streak',
-                      '$streak Days',
+                      loc.t('streak_label'),
+                      '$streak ${loc.t('days_label')}',
                       Icons.local_fire_department_rounded,
                       Colors.orange,
                       isLoading,
@@ -262,16 +266,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const HealthDetailScreen(
+                                builder: (context) => HealthDetailScreen(
                                   dataType: HealthDataType.STEPS,
-                                  title: 'Steps',
+                                  title: loc.t('steps_label'),
                                   baseColor: Colors.teal,
                                   unit: 'steps',
                                 ),
                               ),
                             ),
                             child: _buildStatContent(
-                              'Steps',
+                              loc.t('steps_label'),
                               '$steps',
                               Icons.directions_walk,
                               Colors.teal,
@@ -285,16 +289,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const HealthDetailScreen(
+                                builder: (context) => HealthDetailScreen(
                                   dataType: HealthDataType.ACTIVE_ENERGY_BURNED,
-                                  title: 'Active Calories',
+                                  title: loc.t('active_cal_label'),
                                   baseColor: Colors.red,
                                   unit: 'kcal',
                                 ),
                               ),
                             ),
                             child: _buildStatContent(
-                              'Active Cal',
+                              loc.t('active_cal_label'),
                               '${calories.toInt()}',
                               Icons.local_fire_department,
                               Colors.red,
@@ -308,60 +312,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        if (heartRate > 0)
-                          Expanded(
-                            child: _buildBentoCard(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const HealthDetailScreen(
-                                        dataType: HealthDataType.HEART_RATE,
-                                        title: 'Heart Rate',
-                                        baseColor: Colors.pink,
-                                        unit: 'bpm',
-                                      ),
+                        Expanded(
+                          child: _buildBentoCard(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HealthDetailScreen(
+                                  dataType: HealthDataType.HEART_RATE,
+                                  title: loc.t('heart_rate_label'),
+                                  baseColor: Colors.pink,
+                                  unit: 'bpm',
                                 ),
                               ),
-                              child: _buildStatContent(
-                                'Heart Rate',
-                                '$heartRate',
-                                Icons.favorite,
-                                Colors.pink,
-                                false,
-                                suffix: ' bpm',
-                              ),
+                            ),
+                            child: _buildStatContent(
+                              loc.t('heart_rate_label'),
+                              heartRate > 0 ? '$heartRate' : '--',
+                              Icons.favorite,
+                              Colors.pink,
+                              false,
+                              suffix: ' bpm',
                             ),
                           ),
-                        if (heartRate > 0) const SizedBox(width: 16),
-                        if (sleep > 0)
-                          Expanded(
-                            child: _buildBentoCard(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const HealthDetailScreen(
-                                        dataType: HealthDataType.SLEEP_SESSION,
-                                        title: 'Sleep',
-                                        baseColor: Colors.indigo,
-                                        unit: 'hours',
-                                      ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildBentoCard(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HealthDetailScreen(
+                                  dataType: HealthDataType.SLEEP_SESSION,
+                                  title: loc.t('sleep_label'),
+                                  baseColor: Colors.indigo,
+                                  unit: 'hours',
                                 ),
                               ),
-                              child: _buildStatContent(
-                                'Sleep',
-                                '${(sleep / 60).toStringAsFixed(1)}',
-                                Icons.bedtime,
-                                Colors.indigo,
-                                false,
-                                suffix: ' h',
-                              ),
+                            ),
+                            child: _buildStatContent(
+                              loc.t('sleep_label'),
+                              sleep > 0
+                                  ? '${(sleep / 60).toStringAsFixed(1)}'
+                                  : '--',
+                              Icons.bedtime,
+                              Colors.indigo,
+                              false,
+                              suffix: ' h',
                             ),
                           ),
+                        ),
                       ],
                     ),
-                    if (heartRate > 0 || sleep > 0) const SizedBox(height: 16),
+                    const SizedBox(height: 16),
                   ],
                 );
               },
@@ -373,7 +375,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildBentoCard(
                     child: _buildStatContent(
-                      'Volume',
+                      loc.t('volume_label'),
                       isLoading
                           ? '0'
                           : '${(StatisticsHelper.calculateTotalVolume(sessions) / 1000).toStringAsFixed(1)}k',
@@ -388,7 +390,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildBentoCard(
                     child: _buildStatContent(
-                      'Avg Intensity',
+                      loc.t('avg_intensity_label'),
                       isLoading
                           ? '0'
                           : StatisticsHelper.calculateAverageRPE(
@@ -407,18 +409,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // Row 2: Gym Map (Wide Bento Card)
             if (_userProfile?.gymLat != null) ...[
-              _buildGymBentoCard(),
+              _buildGymBentoCard(loc),
               const SizedBox(height: 16),
             ],
 
             // Row 3: Charts (Medium Bento Cards)
             // Using a Column for mobile, but styled as blocks
             _buildBentoCard(
-              title: 'Workout Activity',
+              title: loc.t('workout_activity_chart'),
               child: SizedBox(
                 height: 200,
                 child: isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator())
                     : ActivityChart(sessions: sessions),
               ),
             ),
@@ -426,14 +428,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // Body Progress Chart
             _buildBentoCard(
-              title: 'Body Progress',
+              title: loc.t('body_progress_chart'),
               child: BodyMeasurementsChart(userId: userId),
             ),
             const SizedBox(height: 16),
             const SizedBox(height: 16),
 
             _buildBentoCard(
-              title: 'Workout Types',
+              title: loc.t('workout_types_chart'),
               child: isLoading
                   ? const SizedBox(
                       height: 200,
@@ -581,12 +583,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildGymBentoCard() {
+  Widget _buildGymBentoCard(LocalizationProvider loc) {
     if (_userProfile?.gymLat == null) return const SizedBox.shrink();
 
     // Simplified Map Card for Bento
     return _buildBentoCard(
-      title: _userProfile?.gymName ?? 'My Gym',
+      title: _userProfile?.gymName ?? loc.t('my_gym_label'),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(
@@ -629,7 +631,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHistoryTab(List<WorkoutSession> sessions, bool isLoading) {
+  Widget _buildHistoryTab(
+    List<WorkoutSession> sessions,
+    bool isLoading,
+    LocalizationProvider loc,
+  ) {
     if (isLoading) {
       return ListView.separated(
         padding: const EdgeInsets.all(20),
@@ -655,7 +661,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Icon(Icons.history, size: 64, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
-              "No workouts yet",
+              loc.t('no_workouts_history'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -664,7 +670,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Start training to see your history here.",
+              loc.t('start_training_msg'),
               style: TextStyle(color: Colors.grey[500]),
             ),
           ],
