@@ -205,7 +205,16 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
                           subtitle: Text(
                             '@${friend.displayName}',
                           ), // Or real username if we had it
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.privacy_tip_outlined),
+                                onPressed: () => _showAccessControl(friend),
+                              ),
+                              const Icon(Icons.chevron_right),
+                            ],
+                          ),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -225,6 +234,96 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAccessControl(UserProfile friend) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return _AccessControlDialog(friend: friend);
+      },
+    );
+  }
+}
+
+class _AccessControlDialog extends StatefulWidget {
+  final UserProfile friend;
+
+  const _AccessControlDialog({required this.friend});
+
+  @override
+  State<_AccessControlDialog> createState() => _AccessControlDialogState();
+}
+
+class _AccessControlDialogState extends State<_AccessControlDialog> {
+  bool _shareCalendar = false;
+  bool _sharePrograms = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentSettings();
+  }
+
+  Future<void> _loadCurrentSettings() async {
+    final currentUser = await AuthService().getUserProfile();
+    if (currentUser != null && mounted) {
+      setState(() {
+        _shareCalendar = currentUser.calendarSharedWith.contains(
+          widget.friend.id,
+        );
+        _sharePrograms = currentUser.programsSharedWith.contains(
+          widget.friend.id,
+        );
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggle(String type, bool value) async {
+    // Optimistic update
+    setState(() {
+      if (type == 'calendar') _shareCalendar = value;
+      if (type == 'programs') _sharePrograms = value;
+    });
+
+    await FirestoreService().toggleFriendAccess(widget.friend.id, type, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Privacy: ${widget.friend.displayName}'),
+      content: _isLoading
+          ? const SizedBox(
+              height: 100,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  title: const Text('Share Calendar'),
+                  subtitle: const Text('Allow viewing your workout history'),
+                  value: _shareCalendar,
+                  onChanged: (val) => _toggle('calendar', val),
+                ),
+                SwitchListTile(
+                  title: const Text('Share Programs'),
+                  subtitle: const Text('Allow viewing/copying your programs'),
+                  value: _sharePrograms,
+                  onChanged: (val) => _toggle('programs', val),
+                ),
+              ],
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('DONE'),
+        ),
+      ],
     );
   }
 }

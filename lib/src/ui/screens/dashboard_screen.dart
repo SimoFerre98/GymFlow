@@ -31,7 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _loadProfile();
-    _healthDataFuture = HealthService().fetchDailySummary();
+    // Initialize health and then fetch
+    _healthDataFuture = _initAndFetchHealth();
   }
 
   Future<void> _loadProfile() async {
@@ -41,12 +42,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<Map<String, dynamic>> _initAndFetchHealth() async {
+    try {
+      await HealthService().configure(); // Ensure it's configured
+      return await HealthService().fetchDailySummary();
+    } catch (e) {
+      print('Health Load Error: $e');
+      // Return empty map or specific error indicator if needed
+      // But rethrow so FutureBuilder catches it
+      rethrow;
+    }
+  }
+
   Future<void> _refreshHealthData() async {
     setState(() {
-      _healthDataFuture = HealthService().fetchDailySummary();
+      _healthDataFuture = HealthService()
+          .fetchDailySummary(); // Already configured
     });
     // Wait for the future to complete so the refresh indicator spins until done
-    await _healthDataFuture;
+    try {
+      await _healthDataFuture;
+    } catch (_) {}
   }
 
   @override
@@ -207,8 +223,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return const Center(child: LinearProgressIndicator());
                 }
 
+                if (snapshot.hasError) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Could not load health data: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 if (data == null && !snapshot.hasData) {
-                  return const SizedBox.shrink(); // Hide if no data or error
+                  return const SizedBox.shrink(); // Hide if no data (and no error)
                 }
 
                 return Column(

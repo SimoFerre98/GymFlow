@@ -58,4 +58,30 @@ class WorkoutProgram {
       color: map['color'] ?? 0xFF2196F3,
     );
   }
+
+  WorkoutProgram copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? description,
+    List<String>? workoutIds,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? color,
+  }) {
+    return WorkoutProgram(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      workoutIds: workoutIds ?? this.workoutIds,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      color: color ?? this.color,
+    );
+  }
 }

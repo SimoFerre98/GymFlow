@@ -51,6 +51,29 @@ class FirestoreService {
     return true;
   }
 
+  Future<void> toggleFriendAccess(
+    String friendId,
+    String type,
+    bool allow,
+  ) async {
+    final user = AuthService().currentUser;
+    if (user == null) return;
+
+    final field = type == 'calendar'
+        ? 'calendarSharedWith'
+        : 'programsSharedWith';
+
+    if (allow) {
+      await _db.collection('users').doc(user.uid).update({
+        field: FieldValue.arrayUnion([friendId]),
+      });
+    } else {
+      await _db.collection('users').doc(user.uid).update({
+        field: FieldValue.arrayRemove([friendId]),
+      });
+    }
+  }
+
   Stream<List<UserProfile>> getFriendsStream(List<String> friendIds) {
     if (friendIds.isEmpty) return Stream.value([]);
 

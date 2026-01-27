@@ -20,6 +20,8 @@ class UserProfile {
   final String? gender; // 'male', 'female', 'other'
   final String? friendCode;
   final List<String> friends;
+  final List<String> calendarSharedWith;
+  final List<String> programsSharedWith;
 
   UserProfile({
     required this.id,
@@ -29,6 +31,8 @@ class UserProfile {
     this.lastName,
     this.friendCode,
     this.friends = const [],
+    this.calendarSharedWith = const [],
+    this.programsSharedWith = const [],
     this.weight,
     this.height,
     this.photoUrl,
@@ -52,6 +56,8 @@ class UserProfile {
       'lastName': lastName,
       'friendCode': friendCode,
       'friends': friends,
+      'calendarSharedWith': calendarSharedWith,
+      'programsSharedWith': programsSharedWith,
       'weight': weight,
       'height': height,
       'photoUrl': photoUrl,
@@ -76,6 +82,8 @@ class UserProfile {
       lastName: map['lastName'],
       friendCode: map['friendCode'],
       friends: List<String>.from(map['friends'] ?? []),
+      calendarSharedWith: List<String>.from(map['calendarSharedWith'] ?? []),
+      programsSharedWith: List<String>.from(map['programsSharedWith'] ?? []),
       weight: map['weight']?.toDouble(),
       height: map['height']?.toDouble(),
       photoUrl: map['photoUrl'],
