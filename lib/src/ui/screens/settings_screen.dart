@@ -690,15 +690,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       }
 
-      final updatedProfile = UserProfile(
-        id: userProfile.id,
-        email: userProfile.email,
-        displayName: userProfile.displayName,
-        weight: userProfile.weight,
-        height: userProfile.height,
-        photoUrl: userProfile.photoUrl,
-        createdAt: userProfile.createdAt,
-        streakDays: userProfile.streakDays,
+      final updatedProfile = userProfile.copyWith(
         gymName: _gymNameController.text.trim(),
         gymAddress: _gymAddressController.text.trim(),
         gymLat: _gymLat,
