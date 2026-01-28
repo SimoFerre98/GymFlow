@@ -132,16 +132,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         : '${loc.t('expires')}: ${_subscriptionExpiry!.toString().split(' ')[0]}',
                     icon: Icons.star_outline,
                     color: Colors.amber,
+                    trailing: _subscriptionExpiry != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  _subscriptionExpiry!.isAfter(DateTime.now())
+                                  ? Colors.green.withOpacity(0.2)
+                                  : Colors.red.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color:
+                                    _subscriptionExpiry!.isAfter(DateTime.now())
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                            child: Text(
+                              _subscriptionExpiry!.isAfter(DateTime.now())
+                                  ? 'ACTIVE'
+                                  : 'EXPIRED',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    _subscriptionExpiry!.isAfter(DateTime.now())
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          )
+                        : null,
                     onTap: () async {
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: DateTime.now().add(
-                          const Duration(days: 30),
-                        ),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(
-                          const Duration(days: 365 * 5),
-                        ),
+                        initialDate:
+                            _subscriptionExpiry ??
+                            today.add(const Duration(days: 30)),
+                        firstDate: today, // Allows selecting today
+                        lastDate: today.add(const Duration(days: 365 * 5)),
                       );
                       if (picked != null) {
                         setState(() => _subscriptionExpiry = picked);
@@ -539,6 +573,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required Color color,
     VoidCallback? onTap,
+    Widget? trailing,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -557,7 +592,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             )
           : null,
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailing != null) ...[trailing, const SizedBox(width: 8)],
+          const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+        ],
+      ),
       onTap: onTap,
     );
   }
