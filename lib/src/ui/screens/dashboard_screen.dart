@@ -18,6 +18,9 @@ import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
 import 'health_detail_screen.dart';
 
+import '../../models/workout.dart';
+import 'active_session_screen.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
@@ -77,6 +80,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(loc.t('dashboard_title'))),
       drawer: const AppDrawer(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showQuickStartMenu(context, userId),
+        icon: const Icon(Icons.play_arrow_rounded),
+        label: Text(loc.t('quick_start') ?? 'Quick Start'),
+        backgroundColor: Theme.of(context).primaryColor,
+      ),
       body: StreamBuilder<List<WorkoutSession>>(
         stream: firestore.getUserSessions(userId),
         builder: (context, snapshot) {
@@ -832,6 +841,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showQuickStartMenu(BuildContext context, String userId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: Text(
+                  Provider.of<LocalizationProvider>(
+                        context,
+                        listen: false,
+                      ).t('quick_start') ??
+                      'Quick Start',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const Divider(),
+              Expanded(
+                child: StreamBuilder<List<WorkoutTemplate>>(
+                  stream: FirestoreService().getUserWorkouts(userId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.fitness_center,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text('No workouts found'),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                // Optional: Navigate to creator
+                              },
+                              child: const Text('Create One'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    final workouts = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: workouts.length,
+                      itemBuilder: (context, index) {
+                        final workout = workouts[index];
+                        return ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.fitness_center,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          title: Text(
+                            workout.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${workout.exercises.length} exercises • ${workout.category.name}',
+                          ),
+                          trailing: const Icon(
+                            Icons.play_circle_fill,
+                            color: Colors.green,
+                            size: 32,
+                          ),
+                          onTap: () {
+                            Navigator.pop(ctx); // Close sheet
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ActiveSessionScreen(workout: workout),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },

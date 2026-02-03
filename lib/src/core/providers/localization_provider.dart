@@ -145,6 +145,7 @@ class LocalizationProvider extends ChangeNotifier {
     'workout_types_chart': 'Workout Types',
     'no_workouts_history': 'No workouts yet',
     'start_training_msg': 'Start training to see your history here.',
+    'quick_start': 'Quick Start',
 
     // Gamification
     'achievements_title': 'Achievements',
@@ -279,6 +280,7 @@ class LocalizationProvider extends ChangeNotifier {
     'workout_types_chart': 'Tipi di Allenamento',
     'no_workouts_history': 'Nessun allenamento ancora',
     'start_training_msg': 'Inizia ad allenarti per vedere il tuo storico qui.',
+    'quick_start': 'Avvio Rapido',
 
     // Gamification
     'achievements_title': 'Obiettivi',
