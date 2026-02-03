@@ -57,12 +57,14 @@ class TimerOverlay extends StatelessWidget {
                   const SizedBox(width: 12),
                   // Text
                   Expanded(
-                    child: Text(
-                      _getMainDisplay(service),
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    child: RepaintBoundary(
+                      child: Text(
+                        _getMainDisplay(service),
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),

@@ -61,6 +61,19 @@ dependencies:
   health: ^13.3.0
   permission_handler: ^12.0.1
 
+  # State Management (Riverpod)
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Database
+  isar: ^3.1.0
+  isar_flutter_libs: ^3.1.0
+  path_provider: ^2.1.2
+
+  # Animations
+  lottie: ^3.0.0
+  rive: ^0.13.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -71,6 +84,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  build_runner: ^2.4.8
+  riverpod_generator: ^2.3.9
+  isar_generator: ^3.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
