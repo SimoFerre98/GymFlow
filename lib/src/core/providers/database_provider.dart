@@ -9,9 +9,15 @@ part 'database_provider.g.dart';
 Future<Isar> isarDatabase(IsarDatabaseRef ref) async {
   final dir = await getApplicationDocumentsDirectory();
 
-  if (Isar.instanceNames.isEmpty) {
-    return await Isar.open([LocalWorkoutSessionSchema], directory: dir.path);
+  // Check if default instance is already open
+  final existingInstance = Isar.getInstance('default');
+  if (existingInstance != null) {
+    return existingInstance;
   }
 
-  return Isar.getInstance()!;
+  return await Isar.open(
+    [LocalWorkoutSessionSchema],
+    directory: dir.path,
+    inspector: true,
+  );
 }
