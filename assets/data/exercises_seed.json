@@ -8,10 +8,11 @@
       "muscleGroups": [
         "petto"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=0VUnN89pUyw",
       "videoSearchQuery": "spinte manubri panca piana",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "il video mostra esattamente le spinte con manubri su panca piana"
     },
     {
       "id": "ex_002",
@@ -20,10 +21,11 @@
       "muscleGroups": [
         "petto"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=nclAIgM4NJE",
       "videoSearchQuery": "panca piana bilanciere",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "il video e un tutorial di panca piana con bilanciere"
     },
     {
       "id": "ex_003",
@@ -118,10 +120,11 @@
       "muscleGroups": [
         "dorso"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=UO3A0HF2AWw",
       "videoSearchQuery": "lat machine avanti",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "il video mostra la lat machine avanti a presa larga"
     },
     {
       "id": "ex_011",
@@ -130,10 +133,11 @@
       "muscleGroups": [
         "dorso"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=Ge6UH9kBoPU",
       "videoSearchQuery": "lat machine triangolo",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "il video confronta lat machine avanti e dietro"
     },
     {
       "id": "ex_012",
@@ -142,10 +146,11 @@
       "muscleGroups": [
         "dorso"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=MUqANYOvthg",
       "videoSearchQuery": "lat machine t-bar",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "il video mostra la lat machine, movimento affine al T-Bar"
     },
     {
       "id": "ex_013",
@@ -444,10 +449,11 @@
       "muscleGroups": [
         "quadricipiti"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=pDf-2vcWwU4",
       "videoSearchQuery": "hack squat",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "il video mostra lo squat con bilanciere"
     },
     {
       "id": "ex_038",
@@ -523,5 +529,6 @@
       "imageUrl": null,
       "isCurated": true
     }
-  ]
+  ],
+  "videoPolicy": "I video sono assegnati solo dove il titolo corrisponde all'esercizio. Per gli altri resta la ricerca YouTube: porta al movimento giusto, mentre un video di un esercizio diverso sarebbe fuorviante. La pertinenza e valutata dal titolo, non guardando i video."
 }
