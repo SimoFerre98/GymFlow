@@ -1165,7 +1165,7 @@ Dopo questa storia: un esercizio può avere immagine e video, e i valori sopravv
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-041 | **Blocks:** US-043, US-062
-**Status:** 🔍 IN REVIEW — piano in [`planning/US-042.md`](planning/US-042.md), review in [`planning/US-042-review.md`](planning/US-042-review.md)
+**Status:** ✅ DONE — piano in [`planning/US-042.md`](planning/US-042.md), review in [`planning/US-042-review.md`](planning/US-042-review.md)
 
 **Story**
 Come atleta che sfoglia i propri esercizi,
@@ -1176,13 +1176,13 @@ così da riconoscere il movimento a colpo d'occhio, anche quando nessuno ha cari
 Dopo questa storia: ogni esercizio mostra qualcosa: la foto dell'utente, quella curata, la miniatura del video o un segnaposto disegnato.
 
 **Acceptance Criteria**
-- [ ] Esiste un widget unico che decide quale immagine mostrare, usato da tutte le schermate
-- [ ] Ordine rispettato: foto dell'utente, poi immagine curata, poi miniatura del video, poi segnaposto
-- [ ] La miniatura del video è costruita dall'identificativo, senza che nessuno la carichi
-- [ ] Il segnaposto deriva colore e sagoma dal gruppo muscolare: non è mai un rettangolo vuoto
-- [ ] Le immagini remote sono memorizzate in cache: la seconda visita non ripete la richiesta
-- [ ] Senza rete si mostra la cache, e in sua assenza il segnaposto
-- [ ] Un'immagine che non si carica ripiega sull'anello successivo invece di lasciare uno spazio rotto
+- [~] Esiste un widget unico che decide quale immagine mostrare, usato da tutte le schermate — `ExerciseImage` esiste ed è l'unico punto che decide, ma è usato solo dal catalogo del design system: **portarlo nelle liste è il primo criterio di US-043**, e si chiude lì
+- [x] Ordine rispettato: foto dell'utente, poi immagine curata, poi miniatura del video, poi segnaposto
+- [x] La miniatura del video è costruita dall'identificativo, senza che nessuno la carichi
+- [x] Il segnaposto deriva colore e sagoma dal gruppo muscolare: non è mai un rettangolo vuoto
+- [x] Le immagini remote sono memorizzate in cache: la seconda visita non ripete la richiesta — provider `CachedNetworkImageProvider`, con l'uguaglianza per URL verificata sul sorgente del package
+- [~] Senza rete si mostra la cache, e in sua assenza il segnaposto — il ramo del segnaposto è coperto da test; **il ramo della cache resta da confermare sull'APK** (prima visita con rete, riavvio, modalità aereo)
+- [x] Un'immagine che non si carica ripiega sull'anello successivo invece di lasciare uno spazio rotto
 
 ---
 
