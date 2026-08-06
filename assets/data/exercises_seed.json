@@ -59,10 +59,11 @@
       "muscleGroups": [
         "petto"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=9MY4ZJNXHYM",
       "videoSearchQuery": "croci manubri panca piana",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Croci su panca piana: tecnica"
     },
     {
       "id": "ex_006",
@@ -71,10 +72,11 @@
       "muscleGroups": [
         "petto"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=d7B7bXZr26c",
       "videoSearchQuery": "croci ai cavi pettorali",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Croci con manubri e croci ai cavi"
     },
     {
       "id": "ex_007",
@@ -183,10 +185,11 @@
       "muscleGroups": [
         "dorso"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=fgcoj-vxSYw",
       "videoSearchQuery": "rematore con manubrio",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Tutorial rematore con due manubri"
     },
     {
       "id": "ex_016",
@@ -195,10 +198,11 @@
       "muscleGroups": [
         "dorso"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=9ibSoJ9q0Y8",
       "videoSearchQuery": "pulley basso",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Pulley basso: esecuzione, varianti ed errori"
     },
     {
       "id": "ex_017",
@@ -244,10 +248,11 @@
       "muscleGroups": [
         "spalle"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=6sT8LVeGVoc",
       "videoSearchQuery": "alzate laterali manubri",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Alzate laterali manubri: come eseguirle al meglio"
     },
     {
       "id": "ex_021",
@@ -292,10 +297,11 @@
       "muscleGroups": [
         "spalle posteriori"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=oIdOSCJa6ek",
       "videoSearchQuery": "alzate a 90 gradi",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Tutorial alzate posteriori per deltoidi"
     },
     {
       "id": "ex_025",
@@ -329,10 +335,11 @@
       "muscleGroups": [
         "bicipiti"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=CmDp-PYeFK8",
       "videoSearchQuery": "curl ez panca scott",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Curl bicipiti: esecuzione, errori, programmi"
     },
     {
       "id": "ex_028",
@@ -341,10 +348,11 @@
       "muscleGroups": [
         "bicipiti"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=QMMsalrCHv0",
       "videoSearchQuery": "curl manubri panca inclinata",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Curl con manubri: 7 consigli"
     },
     {
       "id": "ex_029",
@@ -353,10 +361,11 @@
       "muscleGroups": [
         "bicipiti"
       ],
-      "videoUrl": null,
+      "videoUrl": "https://www.youtube.com/watch?v=R_Afr1mMRi8",
       "videoSearchQuery": "hammer curl",
       "imageUrl": null,
-      "isCurated": true
+      "isCurated": true,
+      "videoNote": "Curl hammer manubri: come si esegue"
     },
     {
       "id": "ex_030",
@@ -530,5 +539,5 @@
       "isCurated": true
     }
   ],
-  "videoPolicy": "I video sono assegnati solo dove il titolo corrisponde all'esercizio. Per gli altri resta la ricerca YouTube: porta al movimento giusto, mentre un video di un esercizio diverso sarebbe fuorviante. La pertinenza e valutata dal titolo, non guardando i video."
+  "videoPolicy": "I video sono assegnati solo dove il titolo corrisponde all'esercizio. Per gli altri resta la query di ricerca: porta al movimento giusto, mentre un video di un esercizio diverso sarebbe fuorviante. Ogni identificativo e stato verificato esistente con l'API oEmbed di YouTube. La pertinenza e valutata dal titolo, non guardando i video."
 }

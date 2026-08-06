@@ -162,7 +162,32 @@ Il ciclo non esegue l'app su emulatore. Produce un APK, l'utente prova sul telef
 
 `assets/data/exercises_seed.json` — 43 esercizi, 12 gruppi muscolari normalizzati. **Nessuno lo legge ancora**: lo importerà US-045.
 
-### ⚠️ Nessun URL è un video
+### Stato dei video: 15 su 43
+
+Il materiale è arrivato in due giri. Il primo conteneva **solo ricerche** YouTube; il secondo **43 link a video, ma erano 7 video distinti riusati per categoria** — un video di panca piana assegnato a tutti i curl, uno di squat ai polpacci, uno di spinte al plank.
+
+Verificati tutti con l'API oEmbed: esistono e sono di canali seri, ma **importarli tutti sarebbe stato peggio della ricerca**. Chi apre "come si fa il plank" e vede la panca piana smette di fidarsi; una ricerca lo porta comunque dove voleva andare.
+
+**Regola applicata**: un video si assegna solo se il titolo corrisponde all'esercizio. Risultato:
+
+| | N |
+|---|---|
+| Con video verificato (e quindi con miniatura) | **15** |
+| Con sola ricerca (mostrano il segnaposto) | 28 |
+
+I 15 sono in `assets/data/exercises_seed.json`, ognuno con un campo `videoNote` che riporta il titolo reale. Ogni identificativo è stato verificato esistente.
+
+**Limite dichiarato**: la pertinenza è valutata dal *titolo*, non guardando i video.
+
+**I 28 rimanenti** si completano con ricerche su `youtube.com` per nome dell'esercizio, verificando l'ID con:
+
+```bash
+curl -s "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=ID&format=json"
+```
+
+Un `200` con un titolo pertinente basta per assegnarlo. **Non serve modificare codice**: il campo `videoUrl` popolato produce la miniatura automaticamente.
+
+### ⚠️ Nota storica: il primo giro di URL
 
 **43 su 43 sono ricerche YouTube** (`youtube.com/results?search_query=`). Conseguenza: la miniatura si ricava dall'identificativo del video, e una ricerca non ne ha, quindi **il terzo anello della catena di ripiego non produce nulla** per la libreria curata.
 
