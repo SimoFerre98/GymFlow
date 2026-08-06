@@ -1237,7 +1237,7 @@ Dopo questa storia: toccando l'indicatore video si apre l'esecuzione, e chiudend
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-041 | **Blocks:** —  _(nessuna)_
-**Status:** 🔍 IN REVIEW — piano in [`planning/US-045.md`](planning/US-045.md), review in [`planning/US-045-review.md`](planning/US-045-review.md)
+**Status:** ✅ DONE — piano in [`planning/US-045.md`](planning/US-045.md), review in [`planning/US-045-review.md`](planning/US-045-review.md)
 
 **Story**
 Come atleta che apre l'app per la prima volta,
