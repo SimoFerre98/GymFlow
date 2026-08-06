@@ -34,7 +34,7 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
 );
 
 typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$currentUserIdHash() => r'1878c8261c612f95e63e8a9e32d6e7a7755a299a';
+String _$currentUserIdHash() => r'3caaa158bb2f79af4c52443f3b58fa4f5c01f0fa';
 
 /// See also [currentUserId].
 @ProviderFor(currentUserId)

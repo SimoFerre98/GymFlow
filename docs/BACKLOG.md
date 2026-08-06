@@ -231,7 +231,7 @@ Dopo questa storia: nessun push su `main` produce una notifica di fallimento cau
 
 **Epic:** EP-002 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-001 | **Blocks:** US-007
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -242,11 +242,11 @@ così da avere un solo modo di leggere e scrivere stato condiviso in tutta l'app
 Dopo questa storia: cambiare tema e colore primario dalle impostazioni funziona come prima, ma senza `ChangeNotifierProvider`.
 
 **Acceptance Criteria**
-- [ ] Il tema (modalità chiaro/scuro/sistema e colore primario) è esposto da un provider Riverpod
-- [ ] La preferenza continua a persistere tra riavvii tramite `SharedPreferences`
-- [ ] Cambiando tema dalle impostazioni, l'intera app si aggiorna immediatamente
-- [ ] Il colore selezionato è usato senza ricorrere all'API deprecata `Color.value`
-- [ ] `ThemeProvider` basato su `ChangeNotifier` è rimosso
+- [x] Il tema (modalità chiaro/scuro/sistema e colore primario) è esposto da un provider Riverpod
+- [x] La preferenza continua a persistere tra riavvii tramite `SharedPreferences`
+- [x] Cambiando tema dalle impostazioni, l'intera app si aggiorna immediatamente
+- [x] Il colore selezionato è usato senza ricorrere all'API deprecata `Color.value`
+- [x] `ThemeProvider` basato su `ChangeNotifier` è rimosso
 
 ---
 

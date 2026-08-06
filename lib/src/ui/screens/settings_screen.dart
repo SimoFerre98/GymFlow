@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/profile_screen.dart';
 import 'package:gymflow/src/ui/screens/body_measurements_screen.dart';
-import 'package:provider/provider.dart';
+// Prefisso: convive con flutter_riverpod finche la localizzazione non e
+// migrata (US-006). Entrambi dichiarano Provider.
+import 'package:provider/provider.dart' as legacy;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
@@ -13,14 +16,14 @@ import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart'; // Added
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // Mock settings state for now
   bool _notificationsEnabled = true;
 
@@ -42,8 +45,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     // 1. Get Providers
-    final loc = Provider.of<LocalizationProvider>(context);
-    final theme = Provider.of<ThemeProvider>(context);
+    final loc = legacy.Provider.of<LocalizationProvider>(context);
+    final theme = ref.watch(themeSettingsNotifierProvider);
+    final themeNotifier = ref.read(themeSettingsNotifierProvider.notifier);
 
     // 2. Define Color presets
     final List<Color> colorPresets = [
@@ -360,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               theme.primaryColor.toARGB32() ==
                               color.toARGB32();
                           return GestureDetector(
-                            onTap: () => theme.setPrimaryColor(color),
+                            onTap: () => themeNotifier.setPrimaryColor(color),
                             child: Container(
                               margin: const EdgeInsets.only(right: 12, top: 4),
                               width: 32,
@@ -454,7 +458,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: const Icon(Icons.arrow_drop_down),
                       onChanged: (ThemeMode? newValue) {
                         if (newValue != null) {
-                          theme.setThemeMode(newValue);
+                          themeNotifier.setThemeMode(newValue);
                         }
                       },
                       items: [
