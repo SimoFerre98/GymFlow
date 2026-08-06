@@ -59,8 +59,32 @@ Ogni categoria di token o componente segue la strada più adatta:
 | Spaziature, raggi, elevazioni | **interno** | Sono valori, non comportamenti: scriverli costa poco e non giustifica una dipendenza |
 | Tipografia emphasized | **interno** | Variazioni di peso e spaziatura sul font già in uso |
 | Motion a molla | **package `motor`** | Maturo e adottato; riscriverlo sarebbe lavoro sprecato |
-| Forme e morphing | **da decidere in US-035** | Valutare `m3e_design` contro implementazione interna quando si conoscerà l'insieme di forme davvero necessario |
+| Forme e morphing | **interno** — deciso il 2026-08-06 | `m3e_design` valutato leggendone il sorgente: non serve. Vedi sotto |
 | Componenti | **interno, valutando caso per caso** | La famiglia `m3e_*` è acerba e una parte non è nemmeno installabile |
+
+## Aggiornamento del 2026-08-06 — forme e morphing
+
+La riga «da decidere in US-035» è chiusa, e la decisione è **interno**.
+
+`m3e_design 0.2.1` è stato installato e **letto**, non giudicato dalla descrizione. Si installa
+senza problemi con l'SDK del progetto — a differenza di `m3e_buttons` — ma non contiene ciò che
+serve:
+
+| Cosa promette il nome | Cosa contiene davvero |
+|---|---|
+| Libreria di forme Expressive | Due insiemi di `BorderRadius` (`round` e `square`, cinque misure ciascuno): rettangoli con raggi diversi |
+| Morphing | **Niente**: `grep -rl morph` su tutto il package non trova nulla |
+| 35 forme (cookie, sunny, pentagon…) | Nessuna. Nessun `ShapeBorder`, nessuna `Path` |
+
+Nove file, 946 righe, quasi tutte token di colore, spaziatura e tipografia — cioè **ciò che
+`ExpressiveTokens` fa già dal giorno di US-033**. Adottarlo aggiungerebbe una dipendenza `0.x` e la
+sua transitiva `dynamic_color` per duplicare quello che abbiamo, senza risolvere il problema per cui
+la si stava valutando.
+
+Le forme e il morphing di US-035 vanno quindi costruiti. È coerente con il principio di questo
+documento: quando una categoria non esiste né in Flutter né in un package maturo, si scrive
+internamente e si espone da `ExpressiveTokens`, così che il giorno in cui esisterà davvero la
+migrazione resti un lavoro su un file solo.
 
 ## Decisione
 
