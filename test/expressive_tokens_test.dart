@@ -132,6 +132,83 @@ void main() {
       expect(a.lerp(b, 0.8).spacing.md, 32);
     });
   });
+
+  group('tipografia Expressive', () {
+    testWidgets('gli stili emphasized esistono nel tema', (tester) async {
+      final t = AppTheme.darkTheme(const Color(0xFFF0C38E))
+          .extension<ExpressiveTokens>()!;
+
+      expect(t.typography.displayEmphasized, isNotNull);
+      expect(t.typography.headlineEmphasized, isNotNull);
+      expect(t.typography.titleEmphasized, isNotNull);
+    });
+
+    testWidgets('emphasized pesa piu dello stile base', (tester) async {
+      final theme = AppTheme.darkTheme(const Color(0xFFF0C38E));
+      final t = theme.extension<ExpressiveTokens>()!;
+      final base = theme.textTheme.titleLarge!;
+
+      expect(
+        t.typography.titleEmphasized!.fontWeight!.index,
+        greaterThan(base.fontWeight?.index ?? 0),
+        reason: 'lo stile emphasized deve essere piu marcato del base',
+      );
+    });
+
+    testWidgets('emphasized usa la stessa famiglia del testo base', (tester) async {
+      final theme = AppTheme.darkTheme(const Color(0xFFF0C38E));
+      final t = theme.extension<ExpressiveTokens>()!;
+
+      // Nessuna seconda famiglia: un altro font costerebbe un download in piu
+      // e romperebbe l'unita visiva.
+      expect(
+        t.typography.headlineEmphasized!.fontFamily,
+        theme.textTheme.headlineMedium!.fontFamily,
+      );
+    });
+
+    testWidgets('gli stili delle metriche usano cifre a larghezza fissa', (
+      tester,
+    ) async {
+      final t = AppTheme.darkTheme(const Color(0xFFF0C38E))
+          .extension<ExpressiveTokens>()!;
+
+      for (final style in [
+        t.typography.metricLarge,
+        t.typography.metricMedium,
+        t.typography.metricSmall,
+      ]) {
+        expect(style, isNotNull);
+        expect(
+          style!.fontFeatures,
+          contains(const FontFeature.tabularFigures()),
+          reason: 'i numeri si leggono in colonna: la larghezza deve essere fissa',
+        );
+      }
+    });
+
+    test('i default della tipografia sono nulli, non inventati', () {
+      // Senza un TextTheme da cui derivare non si possono costruire stili
+      // sensati: meglio nullo che un valore arbitrario che sembra scelto.
+      const t = ExpressiveTypography();
+      expect(t.displayEmphasized, isNull);
+      expect(t.metricLarge, isNull);
+    });
+
+    test('copyWith sostituisce un solo stile', () {
+      const original = ExpressiveTypography(
+        titleEmphasized: TextStyle(fontSize: 20),
+        metricLarge: TextStyle(fontSize: 30),
+      );
+      final copy = original.copyWith(
+        titleEmphasized: const TextStyle(fontSize: 24),
+      );
+
+      expect(copy.titleEmphasized!.fontSize, 24);
+      expect(copy.metricLarge!.fontSize, 30);
+    });
+  });
+
 }
 
 class _DoubleSpacing extends ExpressiveSpacing {
@@ -139,4 +216,5 @@ class _DoubleSpacing extends ExpressiveSpacing {
 
   @override
   double get md => 32;
+
 }

@@ -722,7 +722,7 @@ Dopo questa storia: esiste un file di token Expressive interrogabile dal tema, e
 
 **Epic:** EP-005 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-033 | **Blocks:** US-022, US-028, US-038
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
 
 > **Palette decisa il 2026-08-06** su indicazione del prodotto, con riferimenti visivi forniti:
 > `#312C51` fondo · `#48426D` superfici · `#F0C38E` azione · `#F1AA9B` dati vitali · `#221E3A` sfondo app.
@@ -742,16 +742,16 @@ così da percepire GymFlow come un prodotto con un carattere proprio invece che 
 Dopo questa storia: l'app usa la palette Indigo su tutte le superfici, con l'ambra riservato alle azioni.
 
 **Acceptance Criteria**
-- [ ] Il `ColorScheme` scuro è costruito sulla palette Indigo, con l'ambra come colore primario delle azioni
-- [ ] Il salmone è assegnato a un ruolo distinto, riservato ai dati vitali
-- [ ] Esiste anche il tema chiaro, coerente con la stessa identità
-- [ ] Il tema scuro è quello predefinito
-- [ ] La scala tipografica include le varianti emphasized per display, headline e title
-- [ ] Le varianti emphasized derivano da peso e spaziatura del font in uso, senza aggiungere una seconda famiglia
-- [ ] I numeri di metriche e timer usano cifre a larghezza fissa
-- [ ] I colori definiti a mano in `app_theme.dart` sono sostituiti dai ruoli del `ColorScheme`
-- [ ] I contrasti sono verificati da un test automatico sulle coppie effettivamente usate
-- [ ] La personalizzazione del colore primario resta possibile, con i preset limitati a valori che superano AA
+- [x] Il `ColorScheme` scuro è costruito sulla palette Indigo, con l'ambra come colore primario delle azioni
+- [x] Il salmone è assegnato a un ruolo distinto, riservato ai dati vitali
+- [x] Esiste anche il tema chiaro, coerente con la stessa identità
+- [x] Il tema scuro è quello predefinito
+- [x] La scala tipografica include le varianti emphasized per display, headline e title
+- [x] Le varianti emphasized derivano da peso e spaziatura del font in uso, senza aggiungere una seconda famiglia
+- [x] I numeri di metriche e timer usano cifre a larghezza fissa
+- [x] I colori definiti a mano in `app_theme.dart` sono sostituiti dai ruoli del `ColorScheme`
+- [x] I contrasti sono verificati da un test automatico sulle coppie effettivamente usate
+- [x] La personalizzazione del colore primario resta possibile, con i preset limitati a valori che superano AA
 
 ---
 

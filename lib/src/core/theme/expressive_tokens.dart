@@ -26,12 +26,14 @@ class ExpressiveTokens extends ThemeExtension<ExpressiveTokens> {
     this.shape = const ExpressiveShape(),
     this.elevation = const ExpressiveElevation(),
     this.motion = const ExpressiveMotion(),
+    this.typography = const ExpressiveTypography(),
   });
 
   final ExpressiveSpacing spacing;
   final ExpressiveShape shape;
   final ExpressiveElevation elevation;
   final ExpressiveMotion motion;
+  final ExpressiveTypography typography;
 
   @override
   ExpressiveTokens copyWith({
@@ -39,12 +41,14 @@ class ExpressiveTokens extends ThemeExtension<ExpressiveTokens> {
     ExpressiveShape? shape,
     ExpressiveElevation? elevation,
     ExpressiveMotion? motion,
+    ExpressiveTypography? typography,
   }) {
     return ExpressiveTokens(
       spacing: spacing ?? this.spacing,
       shape: shape ?? this.shape,
       elevation: elevation ?? this.elevation,
       motion: motion ?? this.motion,
+      typography: typography ?? this.typography,
     );
   }
 
@@ -201,6 +205,93 @@ class ExpressiveMotion {
 
   /// Movimento marcato, per le transizioni che devono farsi notare.
   Curve get emphasizedCurve => Easing.emphasizedDecelerate;
+}
+
+/// Stili tipografici che Material 3 Expressive aggiunge e Flutter non ha.
+///
+/// **Emphasized**: varianti piu marcate di display, headline e title, per i
+/// titoli che devono farsi notare. Material 3 Expressive le introduce come
+/// slot a se stanti; `TextTheme` non li prevede, e inventarne uno dentro
+/// significherebbe forzare una struttura che non li contempla. Stanno qui,
+/// dove US-033 ha messo tutto cio che il framework non offre.
+///
+/// Derivano dal font gia in uso variando peso e spaziatura: aggiungere una
+/// seconda famiglia costerebbe un altro download e romperebbe l'unita visiva.
+///
+/// **Metric**: lo stile dei numeri. Carichi, tempi e volumi si leggono in
+/// colonna e si confrontano fra loro, quindi le cifre hanno larghezza fissa.
+/// Senza `tabularFigures` i numeri ballano a ogni cambio, ed e esattamente
+/// quello che si nota in un cronometro.
+@immutable
+class ExpressiveTypography {
+  const ExpressiveTypography({
+    this.displayEmphasized,
+    this.headlineEmphasized,
+    this.titleEmphasized,
+    this.metricLarge,
+    this.metricMedium,
+    this.metricSmall,
+  });
+
+  /// Costruisce gli stili derivandoli da [base], il `TextTheme` del tema.
+  factory ExpressiveTypography.from(TextTheme base) {
+    TextStyle? emph(TextStyle? s, double tracking) => s?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: (s.fontSize ?? 16) * tracking,
+      height: 1.05,
+    );
+
+    TextStyle? metric(TextStyle? s) => s?.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.5,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    return ExpressiveTypography(
+      displayEmphasized: emph(base.displaySmall, -0.045),
+      headlineEmphasized: emph(base.headlineMedium, -0.035),
+      titleEmphasized: emph(base.titleLarge, -0.025),
+      metricLarge: metric(base.headlineMedium),
+      metricMedium: metric(base.titleLarge),
+      metricSmall: metric(base.titleSmall),
+    );
+  }
+
+  /// Titoli di apertura: il nome dell'utente, il peso corporeo.
+  final TextStyle? displayEmphasized;
+
+  /// Titoli di schermata.
+  final TextStyle? headlineEmphasized;
+
+  /// Titoli di sezione e di card.
+  final TextStyle? titleEmphasized;
+
+  /// Numeri protagonisti: il cronometro, il carico della serie.
+  final TextStyle? metricLarge;
+
+  /// Numeri dentro le tessere delle statistiche.
+  final TextStyle? metricMedium;
+
+  /// Numeri di supporto: valori nelle liste.
+  final TextStyle? metricSmall;
+
+  ExpressiveTypography copyWith({
+    TextStyle? displayEmphasized,
+    TextStyle? headlineEmphasized,
+    TextStyle? titleEmphasized,
+    TextStyle? metricLarge,
+    TextStyle? metricMedium,
+    TextStyle? metricSmall,
+  }) {
+    return ExpressiveTypography(
+      displayEmphasized: displayEmphasized ?? this.displayEmphasized,
+      headlineEmphasized: headlineEmphasized ?? this.headlineEmphasized,
+      titleEmphasized: titleEmphasized ?? this.titleEmphasized,
+      metricLarge: metricLarge ?? this.metricLarge,
+      metricMedium: metricMedium ?? this.metricMedium,
+      metricSmall: metricSmall ?? this.metricSmall,
+    );
+  }
 }
 
 /// Accesso ai token dal contesto.

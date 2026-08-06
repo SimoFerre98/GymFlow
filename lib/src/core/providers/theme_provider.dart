@@ -2,18 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../theme/app_palette.dart';
+
 part 'theme_provider.g.dart';
 
 /// Preferenze di aspetto scelte dall'utente.
 @immutable
 class ThemeSettings {
   const ThemeSettings({
-    this.themeMode = ThemeMode.system,
+    this.themeMode = ThemeMode.dark,
     this.primaryColor = defaultPrimaryColor,
   });
 
-  /// Viola neon, colore storico dell'applicazione.
-  static const Color defaultPrimaryColor = Color(0xFFD500F9);
+  /// Ambra: il colore delle azioni della palette Indigo.
+  ///
+  /// Il tema predefinito e scuro perche la palette e pensata cosi: il chiaro
+  /// esiste per chi lo preferisce, non come punto di partenza.
+  static const Color defaultPrimaryColor = AppPalette.amber;
 
   final ThemeMode themeMode;
   final Color primaryColor;

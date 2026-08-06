@@ -8,6 +8,7 @@ import 'package:gymflow/src/ui/screens/body_measurements_screen.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/services/health_service.dart';
@@ -46,15 +47,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = ref.watch(themeSettingsNotifierProvider);
     final themeNotifier = ref.read(themeSettingsNotifierProvider.notifier);
 
-    // 2. Define Color presets
-    final List<Color> colorPresets = [
-      const Color(0xFFD500F9), // Neon Purple (Default)
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.redAccent,
-      Colors.teal,
-    ];
+    // Preset del colore delle azioni. Ognuno supera WCAG AA sulle superfici
+    // scure: la scelta e libera dentro un insieme che non produce testo
+    // illeggibile. Verificato da test/contrast_test.dart
+    final List<Color> colorPresets = AppPalette.accentPresets;
 
     return Scaffold(
       appBar: AppBar(
