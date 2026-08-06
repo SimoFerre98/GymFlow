@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-06 · **Commit:** `0e4bbfd` su `main` e `dev`
+**Aggiornato:** 2026-08-06 · **Commit:** `60328c4` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -16,7 +16,9 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**12 storie completate su 69** · 29 punti su 220 · tag `v0.1.0` marca la fine del risanamento tecnico.
+**17 storie completate su 69** · 44 punti su 220 · tag `v0.1.0` marca la fine del risanamento tecnico.
+
+**EP-009 «Contenuti degli esercizi» è chiusa**: è la prima epica completata per intero.
 
 | Fatto | Effetto misurato |
 |---|---|
@@ -29,8 +31,12 @@ Da leggere in quest'ordine:
 | US-040 | Build release ripristinata: 25,9 MB contro i 101 del debug |
 | US-033, US-034 | Design system Expressive e palette Indigo |
 | US-041 | Modello esercizio con foto e video |
+| US-042 | Catena di ripiego dell'immagine: un esercizio mostra **sempre** qualcosa |
+| US-043 | Miniature nelle liste, con l'indicatore del video |
+| US-044 | Video dell'esecuzione in un foglio, senza lasciare la sessione |
+| US-045 | Libreria curata: 43 esercizi importabili dalle impostazioni |
 
-**Stato di salute:** 66 avvisi, **zero errori**, **102 test verdi**, CI verde su entrambi i branch.
+**Stato di salute:** 66 avvisi, **zero errori**, **253 test verdi** (erano 102), CI verde su entrambi i branch.
 
 I 66 avvisi sono debito preesistente tracciato in **US-030**. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
 
@@ -81,6 +87,9 @@ Il ciclo **non esegue l'app**: produce un APK che l'utente prova sul telefono. C
 | **Redirect binario in PowerShell** | `adb exec-out screencap > file.png` corrompe il file con un BOM | `adb shell screencap -p /sdcard/x.png` poi `adb pull` |
 | **Amend fuori dai comandi** | Un commit su `main` è stato amendato senza che nessuno lo chiedesse, creando divergenza con `origin` | Verificare `git rev-list --left-right --count main...origin/main` prima di pushare |
 | **Screenshot dell'emulatore** | Può catturare un'app di sistema in primo piano | Verificare `adb shell dumpsys window \| grep mCurrentFocus` |
+| **`flutter install` disinstalla** | Stampa «Uninstalling old version...» e **cancella i dati dell'app**: l'utente si ritrova scollegato da Firebase | Usare `adb install -r <apk>`: stessa firma di debug, dati conservati |
+| **Percorsi Android in bash** | `adb shell screencap -p /sdcard/x.png` diventa `C:/…/Git/sdcard/x.png` | Anteporre `MSYS_NO_PATHCONV=1` |
+| **Telefono bloccato** | Nessuna misura e nessuna navigazione via `adb` sono possibili, e un blocco protetto non va aggirato | Chiedere all'utente di sbloccare |
 
 ---
 
@@ -175,6 +184,8 @@ Verificati tutti con l'API oEmbed: esistono e sono di canali seri, ma **importar
 | Con video verificato (e quindi con miniatura) | **15** |
 | Con sola ricerca (mostrano il segnaposto) | 28 |
 
+**Da US-045 i 43 esercizi si importano dall'app**: Impostazioni → «Carica Dati Default». L'import è idempotente (l'identificativo del documento è quello del file) e non cancella nulla: **gli otto esercizi inglesi caricati in passato restano in Firestore** e vanno decisi a parte.
+
 I 15 sono in `assets/data/exercises_seed.json`, ognuno con un campo `videoNote` che riporta il titolo reale. Ogni identificativo è stato verificato esistente.
 
 **Limite dichiarato**: la pertinenza è valutata dal *titolo*, non guardando i video.
@@ -230,14 +241,23 @@ Nessuna di queste si può decidere da soli.
 
 ## 7. Cosa fare adesso
 
-**17 storie eseguibili** (dipendenze soddisfatte). Le più sensate come prossimo passo:
+**Prima di aprire una storia nuova: le prove sul dispositivo lasciate in sospeso da EP-009.**
+
+| Cosa | Dove | Perché non è stato fatto |
+|---|---|---|
+| 55 fps su 100 esercizi (US-043) | menu → Design system → «100 esercizi» in build **profile**, poi `adb shell dumpsys gfxinfo com.example.gymflow` | Telefono bloccato: un blocco protetto non si aggira |
+| Import e sua idempotenza (US-045) | Impostazioni → «Carica Dati Default», due volte | Serve Firestore vero |
+| Video durante una sessione (US-044) | Aprire il video con serie già registrate, guardare il cronometro | Serve una sessione vera |
+
+Poi, le storie più sensate:
 
 | Storia | Perché adesso |
 |---|---|
-| **US-042** Catena di ripiego dell'immagine | Rende visibile US-041: senza, il modello ha i campi ma nessuno li mostra |
-| **US-043** Miniature nelle liste | Il primo cambiamento che l'utente vede sul telefono |
-| **US-021** Componenti condivisi | Sblocca US-022 e US-023, che sistemano i grigi ereditati |
-| **US-030** Azzerare gli avvisi | 66 avvisi sono rumore che nasconde i problemi nuovi |
+| **US-021** Componenti condivisi | Sblocca US-022 e US-023, che sistemano i grigi ereditati, e otto storie di EP-010÷EP-014 |
+| **US-030** Azzerare gli avvisi | 66 avvisi sono rumore che nasconde i problemi nuovi. **Sei di quei 66** sono typedef deprecati nei provider generati da funzione: si tolgono riscrivendoli come notifier di classe, come fatto in US-043 |
+| **US-046** Registrare una serie senza tastiera | Apre EP-010, l'epica con il maggiore impatto sull'uso quotidiano |
+
+**Decisione di prodotto lasciata aperta da US-043**: nella scheda di allenamento il numero d'ordine dell'esercizio è stato sostituito dalla miniatura. La posizione nella lista riordinabile resta, ma il numero non c'è più — va deciso se rimetterlo come prefisso del titolo.
 
 ### ⚠️ Debito visibile introdotto da US-034
 
