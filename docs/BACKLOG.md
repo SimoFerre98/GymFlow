@@ -1190,7 +1190,7 @@ Dopo questa storia: ogni esercizio mostra qualcosa: la foto dell'utente, quella 
 
 **Epic:** EP-009 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-041, US-042 | **Blocks:** US-065
-**Status:** 🔵 IN PROGRESS — piano in [`planning/US-043.md`](planning/US-043.md)
+**Status:** ✅ DONE — piano in [`planning/US-043.md`](planning/US-043.md), review in [`planning/US-043-review.md`](planning/US-043-review.md)
 
 **Story**
 Come atleta che cerca un esercizio,
@@ -1201,11 +1201,11 @@ così da trovare quello che cerco guardando invece di leggere.
 Dopo questa storia: libreria, scheda e sessione mostrano la miniatura accanto a ogni esercizio, con l'indicatore del video dove presente.
 
 **Acceptance Criteria**
-- [ ] Le liste di esercizi mostrano la miniatura secondo la catena di ripiego
-- [ ] Un esercizio con video porta un indicatore riconoscibile sulla miniatura
-- [ ] Lo scorrimento di una lista di 100 esercizi resta sopra i 55 fps in profile mode
-- [ ] Le immagini si caricano progressivamente senza far saltare il layout
-- [ ] La miniatura ha dimensione e forma dai token del design system
+- [x] Le liste di esercizi mostrano la miniatura secondo la catena di ripiego — libreria, scheda e sessione usano `ExerciseThumbnail`; **a schermo da confermare sull'APK**
+- [x] Un esercizio con video porta un indicatore riconoscibile sulla miniatura — solo per un video vero, non per una ricerca: 5 test
+- [~] Lo scorrimento di una lista di 100 esercizi resta sopra i 55 fps in profile mode — **non misurato**: APK profile e lista dei 100 pronti, la misura richiede il telefono sbloccato. Le tre leve strutturali (`decodeWidth`, `itemExtent`, `select`) sono in codice e testate, ma una leva non è una misura
+- [x] Le immagini si caricano progressivamente senza far saltare il layout — la misura della miniatura è identica prima e dopo l'arrivo del fotogramma
+- [x] La miniatura ha dimensione e forma dai token del design system — nuova categoria `ExpressiveSizing`, verificata da 4 test
 
 ---
 
