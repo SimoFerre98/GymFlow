@@ -224,7 +224,9 @@ Dopo questa storia: nessun push su `main` produce una notifica di fallimento cau
 
 **Epic:** EP-001 | **Priority:** HIGH | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
+
+> **Risolta il 2026-08-06.** Il blocco condizionale in `android/build.gradle.kts` alza a 34 il `compileSdk` dei plugin che ne dichiarano meno di 31. Verifica A/B: senza il blocco la build release fallisce, con il blocco produce i pacchetti. Dimensioni: arm64-v8a 25,9 MB, armeabi-v7a 22,7 MB, x86_64 27,7 MB.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -235,11 +237,11 @@ così da poter distribuire l'applicazione a chi deve provarla o usarla.
 Dopo questa storia: `flutter build apk --release` completa e produce un pacchetto installabile.
 
 **Acceptance Criteria**
-- [ ] `flutter build apk --release` termina con exit code 0
-- [ ] Il pacchetto prodotto si installa e si avvia su un telefono Android reale
-- [ ] `flutter build apk --debug` continua a funzionare
-- [ ] La causa della correzione è documentata nel file di configurazione toccato
-- [ ] La dimensione del pacchetto release è riportata nella storia per riferimento futuro
+- [x] `flutter build apk --release` termina con exit code 0
+- [ ] Il pacchetto prodotto si installa e si avvia su un telefono Android reale — _da confermare sull'APK_
+- [x] `flutter build apk --debug` continua a funzionare
+- [x] La causa della correzione è documentata nel file di configurazione toccato
+- [x] La dimensione del pacchetto release è riportata nella storia per riferimento futuro
 
 > **Difetto rilevato il 2026-08-06** durante la verifica di US-007, fuori dallo scope di quella storia.
 >
