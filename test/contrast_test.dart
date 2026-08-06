@@ -183,6 +183,39 @@ void main() {
     }
   });
 
+  group('indicatore del video sulla miniatura', () {
+    // Il badge e opaco di proposito: sopra una fotografia qualunque, il
+    // contrasto di un fondo translucido non e calcolabile, quindi non e
+    // verificabile. Opaco si misura, ed e questo il posto dove si misura.
+    //
+    // I temi si costruiscono dentro il test e non a fianco: `AppTheme` passa da
+    // GoogleFonts, che ha bisogno del binding, e il binding esiste solo dentro
+    // un caso di prova.
+    testWidgets('il simbolo si vede sul fondo del badge, tema scuro', (
+      tester,
+    ) async {
+      final s = AppTheme.darkTheme(AppPalette.amber).colorScheme;
+      final r = Contrast.ratio(s.onSurface, s.surfaceContainerLowest);
+      expect(
+        r,
+        greaterThanOrEqualTo(Contrast.aaLarge),
+        reason: 'badge scuro: ${r.toStringAsFixed(2)}:1',
+      );
+    });
+
+    testWidgets('il simbolo si vede sul fondo del badge, tema chiaro', (
+      tester,
+    ) async {
+      final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;
+      final r = Contrast.ratio(s.onSurface, s.surfaceContainerLowest);
+      expect(
+        r,
+        greaterThanOrEqualTo(Contrast.aaLarge),
+        reason: 'badge chiaro: ${r.toStringAsFixed(2)}:1',
+      );
+    });
+  });
+
   group('coppie del tema chiaro', () {
     testWidgets('i ruoli testuali del tema chiaro superano AA', (tester) async {
       final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;

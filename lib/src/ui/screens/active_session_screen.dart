@@ -6,6 +6,8 @@ import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
@@ -315,6 +317,11 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      ExerciseThumbnailById(
+                        exerciseId: exercise.exerciseId,
+                        exerciseName: exercise.exerciseName,
+                      ),
+                      SizedBox(width: context.expressive.spacing.md),
                       Expanded(
                         child: Text(
                           exercise.exerciseName,

@@ -76,6 +76,19 @@ void main() {
       }
     });
 
+    test('le misure delle miniature crescono in modo monotono', () {
+      const s = ExpressiveSizing();
+      expect(s.thumbnailSm, lessThan(s.thumbnailMd));
+      expect(s.thumbnailMd, lessThan(s.thumbnailLg));
+    });
+
+    test('il badge non copre piu di un quarto della miniatura piu piccola', () {
+      // Un indicatore che occupa mezza miniatura non e un indicatore: e la
+      // miniatura. Il vincolo e sul lato, quindi un quarto dell'area.
+      const s = ExpressiveSizing();
+      expect(s.badge, lessThanOrEqualTo(s.thumbnailSm / 2));
+    });
+
     test('i raggi crescono in modo monotono', () {
       const sh = ExpressiveShape();
       final scale = [

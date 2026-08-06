@@ -5,6 +5,7 @@ import '../../core/theme/expressive_tokens.dart';
 import '../../core/theme/muscle_group_visuals.dart';
 import '../../models/exercise.dart';
 import '../widgets/exercise_image.dart';
+import '../widgets/exercise_thumbnail.dart';
 
 /// Catalogo dei token del design system, visibile solo nelle build di debug.
 ///
@@ -13,13 +14,19 @@ import '../widgets/exercise_image.dart';
 /// qualcosa. Man mano che EP-005 aggiunge forme, componenti e movimento,
 /// questa schermata cresce con loro.
 ///
-/// L'accesso e protetto da [kDebugMode]: nelle build di release la voce non
+/// L'accesso e protetto da [isAvailable]: nelle build di release la voce non
 /// compare nel menu e la schermata non e raggiungibile.
 class DesignCatalogScreen extends StatelessWidget {
   const DesignCatalogScreen({super.key});
 
-  /// Vero solo nelle build di debug: usato da chi mostra la voce di menu.
-  static bool get isAvailable => kDebugMode;
+  /// Vero in debug **e in profile**, falso in release.
+  ///
+  /// Era `kDebugMode` fino a US-043. Il criterio sulle prestazioni delle liste
+  /// chiede una misura in profile mode su cento esercizi, e in Firestore ce ne
+  /// sono otto: la lista di prova sta qui, e in profile mode questa schermata
+  /// deve esistere, altrimenti il criterio non e misurabile. Le build di
+  /// release restano senza catalogo, che era il punto di US-033.
+  static bool get isAvailable => !kReleaseMode;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +48,11 @@ class DesignCatalogScreen extends StatelessWidget {
           _Section(title: 'Movimento', children: [_MotionScale(tokens: t)]),
           _Section(
             title: 'Immagini degli esercizi',
-            children: const [_ExerciseImageChain(), _RegionPlaceholders()],
+            children: const [
+              _ExerciseImageChain(),
+              _RegionPlaceholders(),
+              _StressListLink(),
+            ],
           ),
           SizedBox(height: t.spacing.bottomInset),
         ],
@@ -425,6 +436,115 @@ class _RegionPlaceholders extends StatelessWidget {
             ),
           )
           .toList(),
+    );
+  }
+}
+
+/// Porta alla lista di prova da cento esercizi.
+class _StressListLink extends StatelessWidget {
+  const _StressListLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonalIcon(
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ExerciseListStressScreen()),
+      ),
+      icon: const Icon(Icons.list),
+      label: const Text('100 esercizi (prova di scorrimento)'),
+    );
+  }
+}
+
+/// Cento esercizi finti, per misurare lo scorrimento di una lista lunga.
+///
+/// Serve perche il criterio di US-043 parla di cento esercizi e in Firestore ce
+/// ne sono otto: senza questa lista la misura non esiste, e un criterio non
+/// misurabile va dichiarato invece che spuntato.
+///
+/// Il materiale e **misto di proposito**: una lista di soli segnaposti non
+/// misurerebbe nulla, perche il costo sta nel decodificare le immagini remote.
+/// Qui una parte ha un video vero (miniatura remota e indicatore), una parte ha
+/// un indirizzo rotto (quindi percorre la catena di ripiego), la maggioranza non
+/// ha nulla — che e la proporzione reale della libreria curata, 15 su 43.
+class ExerciseListStressScreen extends StatelessWidget {
+  const ExerciseListStressScreen({super.key});
+
+  /// Identificativi verificati, dalla libreria curata.
+  static const _videoIds = [
+    '0VUnN89pUyw',
+    'nclAIgM4NJE',
+    '9MY4ZJNXHYM',
+    'd7B7bXZr26c',
+  ];
+
+  static const _groups = [
+    'petto',
+    'dorso',
+    'spalle',
+    'bicipiti',
+    'tricipiti',
+    'quadricipiti',
+    'femorali',
+    'glutei',
+    'addome',
+    'polpacci',
+    'trapezio',
+    'cardio',
+  ];
+
+  static List<Exercise> _build() {
+    return List.generate(100, (i) {
+      final hasVideo = i % 7 == 0;
+      final hasBrokenImage = !hasVideo && i % 5 == 0;
+
+      return Exercise(
+        id: 'stress_$i',
+        name: 'Esercizio di prova numero ${i + 1}',
+        description: '',
+        type: ExerciseType.strength,
+        videoUrl: hasVideo
+            ? 'https://www.youtube.com/watch?v=${_videoIds[i % _videoIds.length]}'
+            : null,
+        imageUrl: hasBrokenImage ? 'https://gymflow.invalid/$i.jpg' : null,
+        musclesTargeted: [_groups[i % _groups.length]],
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.expressive;
+    final exercises = _build();
+    // Celle di altezza dichiarata: con l'estensione nota, ListView non deve
+    // misurarle per sapere dove sono.
+    final extent = t.sizing.thumbnailMd + t.spacing.md;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('100 esercizi')),
+      body: ListView.builder(
+        itemCount: exercises.length,
+        itemExtent: extent,
+        padding: EdgeInsets.symmetric(horizontal: t.spacing.md),
+        itemBuilder: (context, index) {
+          final exercise = exercises[index];
+          return Row(
+            children: [
+              ExerciseThumbnail(exercise: exercise),
+              SizedBox(width: t.spacing.md),
+              Expanded(
+                child: Text(
+                  exercise.name,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

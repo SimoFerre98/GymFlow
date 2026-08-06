@@ -153,6 +153,9 @@ class Localization {
     'badge_desc_unstoppable': 'Reach a 7-day streak',
     'badge_name_social_butterfly': 'Social Butterfly',
     'badge_desc_social_butterfly': 'Connect with a friend',
+
+    // Exercises
+    'video_available': 'Execution video available',
   };
 
   static final Map<String, String> _it = {
@@ -289,6 +292,9 @@ class Localization {
     'badge_desc_unstoppable': 'Raggiungi una serie di 7 giorni',
     'badge_name_social_butterfly': 'Animale Sociale',
     'badge_desc_social_butterfly': 'Connettiti con un amico',
+
+    // Esercizi
+    'video_available': "Video dell'esecuzione disponibile",
   };
 }
 

@@ -1,0 +1,129 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/providers/exercise_provider.dart';
+import '../../core/providers/localization_provider.dart';
+import '../../core/theme/expressive_tokens.dart';
+import '../../models/exercise.dart';
+import 'exercise_image.dart';
+
+/// La miniatura di un esercizio come compare in una lista.
+///
+/// Aggiunge a [ExerciseImage] le tre cose che una lista chiede e la catena di
+/// ripiego non deve conoscere: la misura e la forma dai token del design
+/// system, e l'indicatore per gli esercizi che hanno davvero un video.
+///
+/// Chi ha in mano solo l'identificativo dell'esercizio — una scheda, una
+/// sessione — usa [ExerciseThumbnailById].
+class ExerciseThumbnail extends ConsumerWidget {
+  const ExerciseThumbnail({super.key, required this.exercise, this.side});
+
+  final Exercise exercise;
+
+  /// Lato della miniatura. Di norma `thumbnailMd` dei token.
+  final double? side;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+    final dimension = side ?? t.sizing.thumbnailMd;
+
+    return SizedBox.square(
+      dimension: dimension,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: t.shape.cornerMd,
+              child: ExerciseImage(
+                exercise: exercise,
+                // Decodificare alla misura reale invece che a 480 px e cio che
+                // tiene scorrevole una lista lunga.
+                decodeWidth: dimension,
+              ),
+            ),
+          ),
+
+          // Solo per un video vero, non per una ricerca: un indicatore su un
+          // esercizio che porta a una lista di risultati promette l'esecuzione
+          // e consegna altro. E la ragione per cui US-041 ha tenuto separati i
+          // due campi.
+          if (exercise.hasSpecificVideo)
+            Positioned(
+              right: t.spacing.xs,
+              bottom: t.spacing.xs,
+              child: Semantics(
+                label: ref.watch(localizationNotifierProvider).t(
+                  'video_available',
+                ),
+                child: Container(
+                  width: t.sizing.badge,
+                  height: t.sizing.badge,
+                  decoration: BoxDecoration(
+                    // Opaco, non un velo: sopra una fotografia qualunque, il
+                    // contrasto di un fondo translucido non e calcolabile, e
+                    // quindi non e verificabile.
+                    color: scheme.surfaceContainerLowest,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    size: t.sizing.badge * 0.72,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// La miniatura di un esercizio di cui si conosce solo l'identificativo.
+///
+/// Schede e sessioni salvano `exerciseId` ed `exerciseName` e nient'altro:
+/// l'esercizio completo si risolve dall'indice.
+///
+/// Quando l'indice non lo conosce — l'esercizio e stato cancellato, oppure la
+/// risposta non e ancora arrivata — si disegna il segnaposto derivato dal
+/// **nome**, che una scheda ha sempre. Il ripiego per hash di US-042 lo rende
+/// stabile, quindi la stessa scheda mostra sempre lo stesso segnaposto e non
+/// cambia aspetto quando Firestore risponde.
+class ExerciseThumbnailById extends ConsumerWidget {
+  const ExerciseThumbnailById({
+    super.key,
+    required this.exerciseId,
+    required this.exerciseName,
+    this.side,
+  });
+
+  final String exerciseId;
+  final String exerciseName;
+  final double? side;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // `select` sulla singola voce: guardando la mappa intera, l'arrivo di un
+    // esercizio qualsiasi ricostruirebbe tutte le celle visibili.
+    final found = ref.watch(
+      exerciseIndexProvider.select((index) => index[exerciseId]),
+    );
+
+    return ExerciseThumbnail(
+      exercise: found ?? _unknown(),
+      side: side,
+    );
+  }
+
+  /// Un esercizio con il solo nome: basta al segnaposto, che dal nome ricava
+  /// una regione stabile.
+  Exercise _unknown() => Exercise(
+    id: exerciseId,
+    name: exerciseName,
+    description: '',
+    type: ExerciseType.strength,
+    musclesTargeted: const [],
+  );
+}

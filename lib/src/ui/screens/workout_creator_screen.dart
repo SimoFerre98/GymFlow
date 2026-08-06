@@ -4,6 +4,7 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
+import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 
 class WorkoutCreatorScreen extends StatefulWidget {
   final WorkoutTemplate? workout; // If provided, we are editing
@@ -599,20 +600,12 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                                 top: 4,
                                 bottom: 4,
                               ),
-                              leading: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                              // Al posto del numero d'ordine: in una lista
+                              // riordinabile la posizione e l'ordine, e la
+                              // maniglia di trascinamento resta in coda.
+                              leading: ExerciseThumbnailById(
+                                exerciseId: _exercises[index].exerciseId,
+                                exerciseName: _exercises[index].exerciseName,
                               ),
                               title: Text(
                                 _exercises[index].exerciseName,

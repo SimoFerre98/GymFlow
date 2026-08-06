@@ -1190,7 +1190,7 @@ Dopo questa storia: ogni esercizio mostra qualcosa: la foto dell'utente, quella 
 
 **Epic:** EP-009 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-041, US-042 | **Blocks:** US-065
-**Status:** ⬜ TODO
+**Status:** 🔵 IN PROGRESS — piano in [`planning/US-043.md`](planning/US-043.md)
 
 **Story**
 Come atleta che cerca un esercizio,

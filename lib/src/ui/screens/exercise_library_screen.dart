@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 
 class ExerciseLibraryScreen extends StatefulWidget {
   final bool isSelecting; // If true, allows returning the selected exercise
@@ -191,18 +192,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.fitness_center,
-            color: Theme.of(context).colorScheme.secondary,
-            size: 20,
-          ),
-        ),
+        leading: ExerciseThumbnail(exercise: exercise),
         title: Text(
           exercise.name,
           style: const TextStyle(fontWeight: FontWeight.bold),

@@ -24,6 +24,7 @@ class ExpressiveTokens extends ThemeExtension<ExpressiveTokens> {
   const ExpressiveTokens({
     this.spacing = const ExpressiveSpacing(),
     this.shape = const ExpressiveShape(),
+    this.sizing = const ExpressiveSizing(),
     this.elevation = const ExpressiveElevation(),
     this.motion = const ExpressiveMotion(),
     this.typography = const ExpressiveTypography(),
@@ -31,6 +32,7 @@ class ExpressiveTokens extends ThemeExtension<ExpressiveTokens> {
 
   final ExpressiveSpacing spacing;
   final ExpressiveShape shape;
+  final ExpressiveSizing sizing;
   final ExpressiveElevation elevation;
   final ExpressiveMotion motion;
   final ExpressiveTypography typography;
@@ -39,6 +41,7 @@ class ExpressiveTokens extends ThemeExtension<ExpressiveTokens> {
   ExpressiveTokens copyWith({
     ExpressiveSpacing? spacing,
     ExpressiveShape? shape,
+    ExpressiveSizing? sizing,
     ExpressiveElevation? elevation,
     ExpressiveMotion? motion,
     ExpressiveTypography? typography,
@@ -46,6 +49,7 @@ class ExpressiveTokens extends ThemeExtension<ExpressiveTokens> {
     return ExpressiveTokens(
       spacing: spacing ?? this.spacing,
       shape: shape ?? this.shape,
+      sizing: sizing ?? this.sizing,
       elevation: elevation ?? this.elevation,
       motion: motion ?? this.motion,
       typography: typography ?? this.typography,
@@ -124,6 +128,38 @@ class ExpressiveShape {
   /// Forma dei contenitori a pillola: chip, pulsanti compatti, badge.
   RoundedRectangleBorder get pill =>
       RoundedRectangleBorder(borderRadius: cornerFull);
+}
+
+/// Misure dei componenti che compaiono in piu schermate.
+///
+/// Distinta da [ExpressiveSpacing] di proposito: una spaziatura e lo spazio
+/// **fra** le cose, una misura e quanto e grande **una** cosa. Confonderle si
+/// paga quando qualcuno cerca "quanto e grande una miniatura" fra i margini.
+///
+/// Qui ci finisce solo cio che serve a piu di una schermata. La libreria
+/// completa dei componenti condivisi arrivera con US-021.
+@immutable
+class ExpressiveSizing {
+  const ExpressiveSizing();
+
+  /// 40 — miniatura nelle liste dense, dove il nome conta piu dell'immagine.
+  double get thumbnailSm => 40;
+
+  /// 56 — miniatura predefinita delle liste di esercizi.
+  ///
+  /// Abbastanza grande per riconoscere un movimento a colpo d'occhio, che e
+  /// tutto il senso di averla; abbastanza piccola da non spingere il nome
+  /// dell'esercizio su due righe.
+  double get thumbnailMd => 56;
+
+  /// 72 — miniatura di rilievo: la testata di una card, l'esercizio in corso.
+  double get thumbnailLg => 72;
+
+  /// 20 — lato dell'indicatore sovrapposto a una miniatura.
+  ///
+  /// Legato alla miniatura e non un valore libero: sotto questa misura il
+  /// simbolo dentro non si riconosce piu.
+  double get badge => 20;
 }
 
 /// Ombre dei contenitori.
