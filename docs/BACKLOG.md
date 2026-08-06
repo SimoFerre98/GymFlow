@@ -201,7 +201,7 @@ Dopo questa storia: `flutter analyze` non riporta alcun errore e `flutter run` p
 
 **Epic:** EP-001 | **Priority:** HIGH | **Story Points:** 1
 **Depends on:** US-001 | **Blocks:** US-004
-**Status:** 🔍 IN REVIEW
+**Status:** ✅ DONE
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -215,7 +215,7 @@ Dopo questa storia: nessun push su `main` produce una notifica di fallimento cau
 - [x] Il workflow `deploy_web.yml` non viene più eseguito automaticamente sui push a `main`
 - [x] Il workflow resta nel repository e può essere avviato manualmente
 - [x] Nel file del workflow è presente un commento che spiega la sospensione e rimanda a EP-008
-- [ ] Dopo un push su `main`, la lista delle esecuzioni non contiene esecuzioni fallite — _verificabile solo dopo il merge_
+- [x] Dopo un push su `main`, la lista delle esecuzioni non contiene esecuzioni fallite
 - [x] La sospensione è reversibile con la sola riattivazione del trigger
 
 ---
