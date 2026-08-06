@@ -1163,6 +1163,30 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 
 ## Change Log
 
+### 2026-08-06 — Update v1.3 · prime sei storie completate
+
+**Completate:** US-001, US-039, US-014, US-024, US-005, US-006, US-029 — 7 storie, 13 punti.
+
+| Storia | Effetto misurato |
+|---|---|
+| US-001 | Branch `dev` di nuovo compilabile |
+| US-039 | Pipeline non più rossa: nessun run generato dai push successivi |
+| US-014 | 20 controller rilasciati, nessuno squilibrio residuo in `lib/` |
+| US-024 | Avvisi analyzer da 172 a 67 (−105) |
+| US-005 | Tema su Riverpod, `ThemeProvider` rimosso |
+| US-006 | Localizzazione su Riverpod, 8 consumatori migrati |
+| US-029 | CI attiva, 15 test verdi dove prima erano zero |
+
+**Modified:**
+- **US-029**: criteri riscritti. Parlavano di controllo "sulle pull request", rimosse dal processo dopo la stesura del backlog — un workflow su `pull_request` non si sarebbe mai attivato. Obiettivo invariato, criteri riportati sul flusso reale (push su `main` e `dev`), più due criteri aggiuntivi su verde iniziale e avvio manuale.
+- **Campo `Status`** aggiunto a tutte le storie per tracciare l'avanzamento.
+
+**Nota su US-031 e US-032:** US-029 ha rimosso `test/widget_test.dart` — il file generato da `flutter create`, che cercava un testo mai esistito e falliva da sempre — sostituendolo con 15 test su `StatisticsHelper`. È un anticipo parziale e dichiarato: senza test veri il gate sarebbe stato verde su zero verifiche. **Entrambe le storie restano necessarie** per mapper, casi limite completi e test di interfaccia.
+
+**Debito noto introdotto:** `package:provider` è importato con prefisso `legacy` in cinque file, dove convive con Riverpod per `FirestoreService` e `TimerService`. Ogni occorrenza ha un commento che ne indica la scadenza. **US-007 lo elimina** ed è ora eseguibile, avendo US-005 e US-006 concluse.
+
+---
+
 ### 2026-08-06 — Update v1.2
 
 **Added:**
