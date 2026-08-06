@@ -683,7 +683,9 @@ Dopo questa storia: `flutter analyze` non riporta più avvisi di deprecazione su
 
 **Epic:** EP-005 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-024 | **Blocks:** US-021, US-034, US-035, US-036
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
+
+> **Decisione presa il 2026-08-06:** approccio ibrido per categoria, documentato in [`docs/adr/001-material-3-expressive.md`](adr/001-material-3-expressive.md). Colore, durate e curve dai token nativi; spaziature, forme ed elevazioni interni; motion a molla dal package `motor` (238 like, 77k download mensili) da valutare in US-036; componenti interni, perche la famiglia `m3e_*` e tutta 0.x e `m3e_buttons` richiede un SDK superiore a quello del progetto.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -694,12 +696,12 @@ così da non disseminare l'app di scelte incoerenti e da poter passare al suppor
 Dopo questa storia: esiste un file di token Expressive interrogabile dal tema, e la decisione package-contro-implementazione-propria è scritta e motivata.
 
 **Acceptance Criteria**
-- [ ] È scritta una nota di decisione che confronta almeno tre opzioni: package di terze parti, implementazione interna, approccio ibrido
-- [ ] La nota valuta per ogni opzione: manutenzione, dimensione aggiunta al bundle, copertura dei 15 componenti, costo di migrazione al supporto ufficiale futuro
-- [ ] I token Expressive non nativi sono esposti tramite una `ThemeExtension` interrogabile con `Theme.of(context)`
-- [ ] I token già nativi (`Durations`, `Easing`, variante di palette) sono usati direttamente, senza duplicarli
-- [ ] La `ThemeExtension` è definita in modo che una futura sostituzione con le API ufficiali non richieda modifiche nei widget consumatori
-- [ ] Esiste una schermata di catalogo interna che mostra i token disponibili, accessibile solo in build di debug
+- [x] È scritta una nota di decisione che confronta almeno tre opzioni: package di terze parti, implementazione interna, approccio ibrido
+- [x] La nota valuta per ogni opzione: manutenzione, dimensione aggiunta al bundle, copertura dei 15 componenti, costo di migrazione al supporto ufficiale futuro
+- [x] I token Expressive non nativi sono esposti tramite una `ThemeExtension` interrogabile con `Theme.of(context)`
+- [x] I token già nativi (`Durations`, `Easing`, variante di palette) sono usati direttamente, senza duplicarli
+- [x] La `ThemeExtension` è definita in modo che una futura sostituzione con le API ufficiali non richieda modifiche nei widget consumatori
+- [x] Esiste una schermata di catalogo interna che mostra i token disponibili, accessibile solo in build di debug
 
 ---
 

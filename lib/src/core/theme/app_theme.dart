@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'expressive_tokens.dart';
+
 class AppTheme {
   // Cyber Gym Palette
   // static const Color primaryColor = Color(0xFFD500F9); // REMOVED - Dynamic
@@ -46,6 +48,8 @@ class AppTheme {
         primaryColor,
       ),
       elevatedButtonTheme: _elevatedButtonTheme(primaryColor),
+      // Token del design system Expressive: vedi docs/adr/001-material-3-expressive.md
+      extensions: const <ThemeExtension<dynamic>>[ExpressiveTokens()],
     );
   }
 
@@ -82,6 +86,8 @@ class AppTheme {
         primaryColor,
       ),
       elevatedButtonTheme: _elevatedButtonTheme(primaryColor),
+      // Token del design system Expressive: vedi docs/adr/001-material-3-expressive.md
+      extensions: const <ThemeExtension<dynamic>>[ExpressiveTokens()],
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 4,
