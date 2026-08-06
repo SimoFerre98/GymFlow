@@ -831,8 +831,10 @@ Dopo questa storia: aprire l'avvio rapido e cambiare scheda produce transizioni 
 #### US-022: Applicare il design system alle schermate principali
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 3
-**Depends on:** US-021, US-034, US-035 | **Blocks:** US-023, US-062
-**Status:** ⬜ TODO
+**Depends on:** US-021 (✅), US-034 (✅), **US-073** | **Blocks:** US-023, US-062
+**Status:** 📋 PLANNED — piano in [`planning/US-022.md`](planning/US-022.md), in attesa di US-073
+
+> 📌 **Dipendenza da US-035 rimossa il 2026-08-06, con il consenso dell'utente.** Nessuno dei sei criteri di accettazione qui sotto nomina forme o morphing: chiedono la card condivisa (US-021), i token di spaziatura, elevazione e tipografia (US-033) e i ruoli del `ColorScheme` (US-034), tutti già disponibili. US-035 serve ai **badge della schermata Obiettivi**, che sono materia di US-023, US-037 e US-051 — non delle tre schermate principali. Era un residuo di pianificazione, non un vincolo reale.
 
 **Story**
 Come atleta che usa l'app,
@@ -1976,6 +1978,33 @@ Dopo questa storia: aprendo la libreria si vedono i 43 esercizi curati, anche al
 
 ---
 
+#### US-073: Allineare i componenti già costruiti ai mockup
+
+**Epic:** EP-005 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-021 (✅), US-042 (✅), US-043 (✅) | **Blocks:** US-022
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-06.** I mockup approvati esistevano solo come artefatti privati: non erano nel repository, non erano citati in `CLAUDE.md`, e chi ha implementato EP-009 e US-021 non li ha letti. Ora sono in [`docs/design/`](design/) con l'estratto in [`DESIGN-SPEC.md`](DESIGN-SPEC.md), e il confronto mostra **quattro scelte che li contraddicono**. Le misure invece tornano, una volta applicata la conversione `dp ≈ px × 1,36`.
+
+**Story**
+Come atleta che ha approvato dei mockup,
+voglio che l'app assomigli a quei mockup,
+così da riconoscere il prodotto che ho scelto invece di una sua variante.
+
+**Demonstrates**
+Dopo questa storia: miniature, segnaposto, indicatore video e card corrispondono al disegno approvato.
+
+**Acceptance Criteria**
+- [ ] Il segnaposto della miniatura è il gradiente indigo del mockup (`ink-600 → ink-800`), uguale per tutti gli esercizi, con la sagoma a tratto — non sette tinte per regione del corpo
+- [ ] L'indicatore del video è un pallino **salmone** con il simbolo scuro, in basso a destra
+- [ ] Le card e le righe degli esercizi stanno su `surfaceContainerHigh` (`ink-700`), due gradini sopra lo sfondo, come nel mockup
+- [ ] Il padding della card è quello del mockup (16 dp), non 20
+- [ ] La riga dell'esercizio è il componente del mockup — fondo proprio, raggio 22 dp, miniatura, nome, riga di dettaglio, pillola — non un `ListTile` dentro una `Card`
+- [ ] Le tinte per regione del corpo e le loro prove di contrasto sono rimosse, o restano solo se il mockup le prevede da qualche parte
+- [ ] Nessuna misura scritta a mano: tutto dai token, con i valori convertiti dai mockup
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2079,6 +2108,10 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 ---
 
 ## Change Log
+
+**2026-08-06** — Aggiunta **US-073**: i mockup approvati non erano nel repository e chi ha implementato EP-009 e US-021 non li ha letti. Portati in `docs/design/`, estratti in `docs/DESIGN-SPEC.md`, e aperta la storia per allineare ciò che li contraddice. **US-022 dipende ora da US-073**: non ha senso applicare alle schermate componenti che vanno corretti.
+
+**2026-08-06** — **US-022** non dipende più da US-035: verificato criterio per criterio che le forme Expressive non servano alle tre schermate principali. US-035 resta necessaria a US-037 e US-051.
 
 **2026-08-06** — Aggiunta **US-072**: US-045 non funziona in produzione, le regole Firestore negano la scrittura su `exercises`. La libreria curata passa dall'asset locale invece che dal database.
 

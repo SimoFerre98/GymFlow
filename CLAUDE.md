@@ -12,6 +12,8 @@ App Flutter per il tracciamento degli allenamenti. Backend Firebase (Auth, Fires
 
 Per avviare il ciclo su una storia: `/gymflow-story US-XXX`.
 
+**La grafica segue i mockup, non l'inventiva.** I tre mockup approvati sono in [`docs/design/`](docs/design/) e il loro estratto operativo — valori già convertiti in dp — è in [`docs/DESIGN-SPEC.md`](docs/DESIGN-SPEC.md). Prima di scrivere un widget che si vede, si guarda lì. **I pixel dei mockup non si copiano**: il telaio è largo 282 px e il telefono 384 dp, quindi `dp ≈ px × 1,36`.
+
 **Il baseline degli avvisi è 63.** Una storia che lo alza ha introdotto qualcosa: va sistemato prima del merge, non spiegato dopo. (Era 66 fino a US-071, che ha rimosso tre avvisi togliendo due `??` che non si eseguivano mai.)
 
 **Quando un criterio non è verificabile, dichiaralo.** Non spuntarlo. Ogni review fatta finora ha una sezione sui limiti, ed è quella che rende credibile il resto.
@@ -103,6 +105,8 @@ lib/src/
 | [`docs/HANDOFF.md`](docs/HANDOFF.md) | Stato, decisioni prese, trappole, domande aperte. **Da leggere per primo.** |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | 69 storie con dipendenze, blocchi e stato |
 | [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | Il processo per ogni storia |
+| [`docs/DESIGN-SPEC.md`](docs/DESIGN-SPEC.md) | **Le specifiche visive estratte dai mockup**, con la conversione px → dp |
+| [`docs/design/`](docs/design/) | I tre mockup approvati, in HTML: si aprono in un browser |
 | [`docs/adr/001-material-3-expressive.md`](docs/adr/001-material-3-expressive.md) | Perché Material 3 Expressive è costruito e non installato |
 | `docs/planning/US-XXX.md` | Piano di ogni storia affrontata |
 | `docs/planning/US-XXX-review.md` | Review, con i limiti dichiarati |

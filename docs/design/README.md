@@ -16,11 +16,15 @@ Ogni schermata ha sotto una didascalia che spiega **la decisione** che incorpora
 
 Il terzo file è interattivo di proposito. Le animazioni del timer — cifre che rotolano, pulsante che muta forma, onde concentriche — si giudicano provandole, non descrivendole. Le curve usate sono le stesse dei token di US-033: `Easing.standard`, `Easing.emphasizedDecelerate`, più una curva elastica per i cambi di forma.
 
-## Cosa non sono
+## Quanto sono vincolanti
 
-**Non sono specifiche vincolanti al pixel.** Le sagome degli esercizi sono segnaposto, i dati sono esempi realistici ma inventati, e le proporzioni valgono per uno schermo da 340 px.
+**Vincolanti.** Decisione del prodotto, 2026-08-06: *«voglio assolutamente che la grafica rispetti i mock»*. Dove il mockup e il codice divergono, **si corregge il codice** — anche quando significa disfare qualcosa di già scritto, come ha fatto US-073.
 
-Dove il mockup e il design system divergono, **vince il design system** (`lib/src/core/theme/`): i token sono la fonte di verità, i mockup sono l'intenzione.
+Questo capovolge quanto scritto qui in precedenza («vince il design system»). I token restano il **modo** in cui i valori entrano nel codice — nessun numero scritto a mano nei widget — ma il **valore** lo decide il mockup: se il mockup disegna una card su `ink-700` e il token dice `ink-800`, si cambia il token.
+
+Restano non vincolanti solo: le sagome degli esercizi (sono segnaposto), i dati mostrati (esempi inventati), e i pixel presi alla lettera.
+
+**I pixel non si copiano mai**: i mockup disegnano un telefono da 282 o 320 px a seconda del file, il telefono reale è 384 dp. La conversione, elemento per elemento, è in [`../DESIGN-SPEC.md`](../DESIGN-SPEC.md) — che è il documento da leggere prima di scrivere un widget.
 
 ## Storie che li realizzano
 
