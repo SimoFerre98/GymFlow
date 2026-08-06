@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
-class ExerciseLibraryScreen extends StatefulWidget {
-  final bool isSelecting; // If true, allows returning the selected exercise
+class ExerciseLibraryScreen extends ConsumerStatefulWidget {
+  /// Vero quando la schermata serve a **scegliere** un esercizio per qualcos
+  /// altro: la creazione di una scheda. Falso quando la si consulta, che e il
+  /// caso di chi arriva dal menu.
+  final bool isSelecting;
   const ExerciseLibraryScreen({super.key, this.isSelecting = false});
 
   @override
-  State<ExerciseLibraryScreen> createState() => _ExerciseLibraryScreenState();
+  ConsumerState<ExerciseLibraryScreen> createState() =>
+      _ExerciseLibraryScreenState();
 }
 
-class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
+class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
   final FirestoreService _firestore = FirestoreService();
   final AuthService _auth = AuthService();
   String _searchQuery = '';
@@ -21,11 +27,12 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     final user = _auth.currentUser;
     if (user == null) return const Center(child: Text('Please log in'));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Exercises')),
+      appBar: AppBar(title: Text(loc.t('exercises_title'))),
       body: Column(
         children: [
           // Filter Chips Section
@@ -80,7 +87,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
               decoration: InputDecoration(
-                labelText: 'Search Exercise',
+                labelText: loc.t('exercises_search'),
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Theme.of(context).cardColor,
@@ -102,8 +109,14 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('No exercises found. Add one!'),
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Text(
+                        loc.t('exercises_empty'),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   );
                 }
 
@@ -208,7 +221,10 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
           if (widget.isSelecting) {
             Navigator.pop(context, exercise);
           } else {
-            // TODO: Show exercise details
+            // In consultazione la cella non aveva nessun gesto: un tocco
+            // morto proprio dove si prova per primo. La schermata di dettaglio
+            // dell'esercizio non esiste ancora ed e US-062; l'esecuzione si.
+            ExerciseVideoSheet.show(context, exercise);
           }
         },
       ),

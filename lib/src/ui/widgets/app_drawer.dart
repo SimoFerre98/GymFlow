@@ -4,6 +4,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
 import 'package:gymflow/src/ui/screens/design_catalog_screen.dart';
+import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
@@ -116,6 +117,27 @@ class AppDrawer extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                // La libreria era raggiungibile solo entrando nella creazione
+                // di una scheda: tutto il materiale visivo di EP-009 era di
+                // fatto invisibile.
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.fitness_center_outlined,
+                  title: loc.t('exercises_menu'),
+                  color: Colors.teal,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        // In consultazione: dal menu si guarda la libreria,
+                        // non si sceglie un esercizio per qualcos'altro.
+                        builder: (_) => const ExerciseLibraryScreen(),
+                      ),
                     );
                   },
                 ),

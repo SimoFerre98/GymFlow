@@ -155,6 +155,10 @@ class Localization {
     'badge_desc_social_butterfly': 'Connect with a friend',
 
     // Exercises
+    'exercises_menu': 'Exercises',
+    'exercises_title': 'Exercise library',
+    'exercises_search': 'Search exercise',
+    'exercises_empty': 'No exercises yet. Load the curated library from Settings, or add your own.',
     'video_available': 'Execution video available',
 
     // Curated library import
@@ -313,6 +317,10 @@ class Localization {
     'badge_desc_social_butterfly': 'Connettiti con un amico',
 
     // Esercizi
+    'exercises_menu': 'Esercizi',
+    'exercises_title': 'Libreria esercizi',
+    'exercises_search': 'Cerca esercizio',
+    'exercises_empty': 'Nessun esercizio. Carica la libreria dalle impostazioni, oppure creane uno tuo.',
     'video_available': "Video dell'esecuzione disponibile",
 
     // Importazione della libreria curata

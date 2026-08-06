@@ -1898,6 +1898,31 @@ Dopo questa storia: dopo la registrazione, poche domande portano a una scheda gi
 
 ---
 
+#### US-070: Rendere raggiungibile la libreria esercizi
+
+**Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** US-043 (✅) | **Blocks:** US-065
+**Status:** ✅ DONE — piano in [`planning/US-070.md`](planning/US-070.md), review in [`planning/US-070-review.md`](planning/US-070-review.md)
+
+> ⚠️ **Aperta il 2026-08-06 dopo una segnalazione dell'utente**: «l'app sta rimanendo uguale tranne il design system». Verificato: `ExerciseLibraryScreen` è aperta da **un solo punto** in tutto il codice, `workout_creator_screen.dart:450`, e in modalità «scegli un esercizio». Non c'è nessuna voce di menu né tab. Tutto il lavoro di EP-009 — miniature, indicatori del video, esecuzione, 43 esercizi curati — è quindi raggiungibile solo entrando nella creazione di una scheda. Il backlog non aveva una storia per questo: US-065 ridisegna la libreria dando per scontato che ci si arrivi.
+
+**Story**
+Come atleta che vuole vedere quali esercizi conosce l'app,
+voglio aprire la libreria dal menu principale,
+così da consultarla quando voglio invece che solo mentre costruisco una scheda.
+
+**Demonstrates**
+Dopo questa storia: dal menu si apre la libreria in consultazione, con le miniature, gli indicatori del video e l'accesso all'esecuzione.
+
+**Acceptance Criteria**
+- [x] Esiste una voce nel menu principale che apre la libreria esercizi — **verificato sul telefono**: voce «Esercizi» fra Impostazioni e Obiettivi
+- [x] La voce e i testi della schermata sono localizzati in EN e IT — **verificato sul telefono**, più 3 test
+- [x] Aperta dal menu, la schermata è in consultazione: toccare un esercizio non lo «sceglie»
+- [~] In consultazione, toccare un esercizio ne apre l'esecuzione — **non verificabile**: la libreria in Firestore è **vuota**, non c'era nessuna cella da toccare. Serve prima l'import di US-045
+- [~] Il percorso esistente — creazione scheda → «Add» → scegli un esercizio — continua a funzionare come prima — non toccato dal diff, **da riprovare sul telefono**
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2001,6 +2026,8 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 ---
 
 ## Change Log
+
+**2026-08-06** — Aggiunta **US-070** dopo una verifica richiesta dall'utente: la libreria esercizi non era raggiungibile dal menu, quindi tutto EP-009 era di fatto invisibile. Le epiche restano 15; EP-009 passa da 5 a 6 storie e da 15 a 17 punti.
 
 ### 2026-08-06 — Update v2.0 · ridisegno di interfaccia ed esperienza
 
