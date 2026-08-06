@@ -17,22 +17,27 @@ class DashboardSessions extends _$DashboardSessions {
     ref.watch(sessionSyncProvider);
 
     final userId = ref.watch(currentUserIdProvider);
+
     if (userId == null) {
       yield [];
       return;
     }
 
-    final isar = await ref.watch(isarDatabaseProvider.future);
+    try {
+      final isar = await ref.watch(isarDatabaseProvider.future);
 
-    // Watch local query for real-time updates from Isar
-    final stream = isar.localWorkoutSessions
-        .filter()
-        .userIdEqualTo(userId)
-        .sortByStartTimeDesc()
-        .watch(fireImmediately: true);
+      // Watch local query for real-time updates from Isar
+      final stream = isar.localWorkoutSessions
+          .filter()
+          .userIdEqualTo(userId)
+          .sortByStartTimeDesc()
+          .watch(fireImmediately: true);
 
-    await for (final sessions in stream) {
-      yield sessions.map((s) => s.toDomain()).toList();
+      await for (final sessions in stream) {
+        yield sessions.map((s) => s.toDomain()).toList();
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

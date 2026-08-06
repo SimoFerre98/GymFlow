@@ -16,5 +16,6 @@ User? currentUser(CurrentUserRef ref) {
 
 @riverpod
 String? currentUserId(CurrentUserIdRef ref) {
-  return ref.watch(currentUserProvider)?.uid;
+  final asyncUser = ref.watch(authStateProvider);
+  return asyncUser.value?.uid ?? AuthService().currentUser?.uid;
 }
