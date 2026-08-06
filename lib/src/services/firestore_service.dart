@@ -122,31 +122,24 @@ class FirestoreService {
 
   // --- Exercises ---
 
-  // --- Exercises ---
-
-  // Get all exercises (Global + Custom for this user)
+  /// Gli esercizi creati da questo utente.
+  ///
+  /// **Solo i suoi.** La libreria curata non sta in Firestore: le regole negano
+  /// al client la scrittura sulla collezione condivisa, ed e la scelta giusta,
+  /// perche quei documenti sarebbero visibili a tutti. I 43 curati viaggiano
+  /// con l'app come asset e li unisce `exercisesProvider`.
+  ///
+  /// Prima questo metodo interrogava anche `isCustom == false`, cioe la
+  /// libreria condivisa: una query che restituiva sempre zero documenti, perche
+  /// nessuno era mai riuscito a scriverceli.
   Stream<List<Exercise>> getExercises(String userId) {
-    final defaultsStream = _db
-        .collection('exercises')
-        .where('isCustom', isEqualTo: false)
-        .snapshots()
-        .map(
-          (s) => s.docs.map((d) => Exercise.fromMap(d.data(), d.id)).toList(),
-        );
-
-    final customsStream = _db
+    return _db
         .collection('exercises')
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map(
           (s) => s.docs.map((d) => Exercise.fromMap(d.data(), d.id)).toList(),
         );
-
-    return Rx.combineLatest2<List<Exercise>, List<Exercise>, List<Exercise>>(
-      defaultsStream,
-      customsStream,
-      (defaults, customs) => [...defaults, ...customs],
-    );
   }
 
   Future<void> addExercise(Exercise exercise) async {
@@ -166,33 +159,6 @@ class FirestoreService {
 
   Future<void> deleteExercise(String exerciseId) async {
     await _db.collection('exercises').doc(exerciseId).delete();
-  }
-
-  /// Scrive in Firestore gli esercizi della libreria curata.
-  ///
-  /// L'identificativo del documento e quello dell'esercizio nel file, non uno
-  /// generato: **e cosi che l'import e idempotente**. Rieseguirlo riscrive gli
-  /// stessi documenti invece di aggiungerne altri quarantatre, e permette di
-  /// aggiornare la libreria quando i video mancanti verranno assegnati.
-  ///
-  /// Non cancella nulla: gli esercizi che c'erano prima restano dove sono.
-  /// Cancellare documenti che non ha creato lui non spetta a uno strumento di
-  /// import.
-  Future<void> importCuratedExercises(List<Exercise> exercises) async {
-    if (exercises.isEmpty) return;
-
-    // Un lotto Firestore regge 500 scritture: quarantatre stanno comode. La
-    // suddivisione c'e lo stesso, perche la libreria e destinata a crescere.
-    const maxPerBatch = 400;
-    for (var start = 0; start < exercises.length; start += maxPerBatch) {
-      final slice = exercises.skip(start).take(maxPerBatch);
-      final batch = _db.batch();
-      for (final exercise in slice) {
-        final doc = _db.collection('exercises').doc(exercise.id);
-        batch.set(doc, exercise.toMap());
-      }
-      await batch.commit();
-    }
   }
 
   // --- Workouts ---

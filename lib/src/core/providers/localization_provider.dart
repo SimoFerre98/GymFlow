@@ -175,14 +175,6 @@ class Localization {
     'exercises_empty': 'No exercises yet. Load the curated library from Settings, or add your own.',
     'video_available': 'Execution video available',
 
-    // Curated library import
-    'import_done_title': 'Library imported',
-    'import_count': 'Exercises imported',
-    'import_with_video': 'With execution video',
-    'import_with_search': 'With search only',
-    'import_discarded': 'Discarded while reading',
-    'import_failed': 'Import failed',
-
     // Execution video
     'video_none': 'No execution video for this exercise yet.',
     'video_search_only':
@@ -352,14 +344,6 @@ class Localization {
     'exercises_search': 'Cerca esercizio',
     'exercises_empty': 'Nessun esercizio. Carica la libreria dalle impostazioni, oppure creane uno tuo.',
     'video_available': "Video dell'esecuzione disponibile",
-
-    // Importazione della libreria curata
-    'import_done_title': 'Libreria importata',
-    'import_count': 'Esercizi importati',
-    'import_with_video': "Con video dell'esecuzione",
-    'import_with_search': 'Con la sola ricerca',
-    'import_discarded': 'Scartati durante la lettura',
-    'import_failed': 'Importazione fallita',
 
     // Video dell'esecuzione
     'video_none': "Per questo esercizio non c'e ancora un video.",

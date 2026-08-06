@@ -1948,6 +1948,34 @@ Dopo questa storia: nessuna schermata mostra il nome di una chiave, e un test im
 
 ---
 
+#### US-072: La libreria curata si carica da sola, senza scrivere su Firestore
+
+**Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-045 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ✅ DONE — piano in [`planning/US-072.md`](planning/US-072.md), review in [`planning/US-072-review.md`](planning/US-072-review.md)
+
+> ⚠️ **Aperta il 2026-08-06: US-045 non funziona in produzione.** Premendo «Carica Dati Default» Firestore risponde **`The caller does not have permission`**. Le regole negano la scrittura sulla collezione `exercises`, ed è la scelta corretta: quei documenti sono visibili a **tutti** gli utenti, e un client non deve poterli scrivere. La review di US-045 aveva elencato il rischio e lo aveva liquidato con «il comando attuale scrive già documenti così: se funziona oggi, funziona» — non funzionava nemmeno prima, ed è il motivo per cui la libreria era vuota.
+>
+> **Decisione dell'utente**: gli esercizi devono comparire da soli usando l'app, non dietro un pulsante.
+
+**Story**
+Come atleta che apre l'app,
+voglio trovare la libreria di esercizi già pronta senza premere niente,
+così da usarla subito invece di scoprire che va caricata da un menu.
+
+**Demonstrates**
+Dopo questa storia: aprendo la libreria si vedono i 43 esercizi curati, anche al primo avvio e anche senza rete, senza che nessuno abbia premuto nulla.
+
+**Acceptance Criteria**
+- [x] La libreria curata è disponibile senza alcuna scrittura su Firestore — `importCuratedExercises` non esiste più e `getExercises` interroga solo gli esercizi dell'utente
+- [x] Gli esercizi curati compaiono al primo avvio, senza azioni dell'utente — **da confermare sul telefono**
+- [x] Gli esercizi creati dall'utente continuano a comparire accanto a quelli curati, e restano suoi
+- [x] Un esercizio curato e uno dell'utente con lo stesso identificativo non producono un doppione — vince quello dell'utente
+- [x] La libreria curata è disponibile anche senza rete — testato con lo stream che emette `permission-denied`, l'errore reale. **Modalità aereo da confermare**
+- [x] Il comando «Carica Dati Default» è rimosso — voce, metodo e sei chiavi
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2051,6 +2079,8 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 ---
 
 ## Change Log
+
+**2026-08-06** — Aggiunta **US-072**: US-045 non funziona in produzione, le regole Firestore negano la scrittura su `exercises`. La libreria curata passa dall'asset locale invece che dal database.
 
 **2026-08-06** — Aggiunta **US-071** dopo aver guardato l'app sul telefono: 11 chiavi di localizzazione usate e mai definite, visibili a schermo come `rpe_label`.
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/exercise_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -102,13 +103,17 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: StreamBuilder<List<Exercise>>(
-              stream: _firestore.getExercises(user.uid),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            // Dal provider e non da uno stream creato qui: `build` girava a
+            // ogni ricostruzione e ne creava uno nuovo ogni volta. Ed e il
+            // provider che unisce i curati dell'asset agli esercizi
+            // dell'utente.
+            child: Builder(
+              builder: (context) {
+                final snapshot = ref.watch(exercisesProvider);
+                if (snapshot.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                if (!snapshot.hasValue || snapshot.value!.isEmpty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(40),
@@ -120,7 +125,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
                   );
                 }
 
-                final exercises = snapshot.data!.where((e) {
+                final exercises = snapshot.value!.where((e) {
                   final matchesSearch = e.name.toLowerCase().contains(
                     _searchQuery,
                   );

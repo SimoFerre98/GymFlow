@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gymflow/src/core/providers/firestore_provider.dart';
-import 'package:gymflow/src/models/exercise_seed.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/ui/screens/profile_screen.dart';
@@ -40,78 +37,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _gymNameController.dispose();
     _gymAddressController.dispose();
     super.dispose();
-  }
-
-  /// Legge la libreria curata dall'asset e la scrive in Firestore.
-  ///
-  /// Il resoconto non e una cortesia: due criteri di US-045 chiedono che
-  /// l'import dica quanti esercizi ha portato e **quali URL ha scartato**. Un
-  /// video scartato in silenzio e un video che nessuno sa di aver perso.
-  Future<void> _importCuratedLibrary() async {
-    final loc = ref.read(localizationNotifierProvider);
-    final firestore = ref.read(firestoreServiceProvider);
-
-    try {
-      final source = await rootBundle.loadString(
-        'assets/data/exercises_seed.json',
-      );
-      final result = ExerciseSeed.parse(source);
-
-      if (result.exercises.isEmpty) {
-        if (mounted) {
-          ToastUtils.showError(context, loc.t('import_failed'));
-        }
-        return;
-      }
-
-      await firestore.importCuratedExercises(result.exercises);
-
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(loc.t('import_done_title')),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${loc.t('import_count')}: ${result.exercises.length}',
-                ),
-                Text('${loc.t('import_with_video')}: ${result.withVideo}'),
-                Text(
-                  '${loc.t('import_with_search')}: ${result.withSearchOnly}',
-                ),
-                if (result.issues.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    '${loc.t('import_discarded')}: ${result.issues.length}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  for (final issue in result.issues)
-                    Text(
-                      '• $issue',
-                      style: Theme.of(ctx).textTheme.bodySmall,
-                    ),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(loc.t('done')),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        ToastUtils.showError(context, '${loc.t('import_failed')}: $e');
-      }
-    }
   }
 
   @override
@@ -547,14 +472,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
 
-                  _buildSettingsTile(
-                    context,
-                    title: loc.t('load_default_data'),
-                    subtitle: 'Reset exercises list',
-                    icon: Icons.cloud_download_outlined,
-                    color: Colors.blueGrey,
-                    onTap: _importCuratedLibrary,
-                  ),
                 ],
               ),
               const SizedBox(height: 30),
