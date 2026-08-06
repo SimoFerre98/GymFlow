@@ -168,75 +168,31 @@ class FirestoreService {
     await _db.collection('exercises').doc(exerciseId).delete();
   }
 
-  Future<void> seedDefaultExercises() async {
-    final existing = await _db.collection('exercises').limit(1).get();
-    if (existing.docs.isNotEmpty) return; // Already seeded
+  /// Scrive in Firestore gli esercizi della libreria curata.
+  ///
+  /// L'identificativo del documento e quello dell'esercizio nel file, non uno
+  /// generato: **e cosi che l'import e idempotente**. Rieseguirlo riscrive gli
+  /// stessi documenti invece di aggiungerne altri quarantatre, e permette di
+  /// aggiornare la libreria quando i video mancanti verranno assegnati.
+  ///
+  /// Non cancella nulla: gli esercizi che c'erano prima restano dove sono.
+  /// Cancellare documenti che non ha creato lui non spetta a uno strumento di
+  /// import.
+  Future<void> importCuratedExercises(List<Exercise> exercises) async {
+    if (exercises.isEmpty) return;
 
-    final defaults = [
-      Exercise(
-        id: '',
-        name: 'Bench Press',
-        description: 'Chest compound',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Chest', 'Triceps'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Squat',
-        description: 'Leg compound',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Quads', 'Glutes'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Deadlift',
-        description: 'Back compound',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Back', 'Hamstrings'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Overhead Press',
-        description: 'Shoulder compound',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Shoulders'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Pull Up',
-        description: 'Back compound',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Back', 'Biceps'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Dumbbell Curl',
-        description: 'Bicep isolation',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Biceps'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Tricep Extension',
-        description: 'Tricep isolation',
-        type: ExerciseType.strength,
-        musclesTargeted: ['Triceps'],
-      ),
-      Exercise(
-        id: '',
-        name: 'Running',
-        description: 'Cardio',
-        type: ExerciseType.cardio,
-        musclesTargeted: ['Legs', 'Heart'],
-      ),
-    ];
-
-    final batch = _db.batch();
-    for (var ex in defaults) {
-      final doc = _db.collection('exercises').doc();
-      batch.set(doc, ex.toMap()..['id'] = doc.id); // Set ID securely
+    // Un lotto Firestore regge 500 scritture: quarantatre stanno comode. La
+    // suddivisione c'e lo stesso, perche la libreria e destinata a crescere.
+    const maxPerBatch = 400;
+    for (var start = 0; start < exercises.length; start += maxPerBatch) {
+      final slice = exercises.skip(start).take(maxPerBatch);
+      final batch = _db.batch();
+      for (final exercise in slice) {
+        final doc = _db.collection('exercises').doc(exercise.id);
+        batch.set(doc, exercise.toMap());
+      }
+      await batch.commit();
     }
-    await batch.commit();
   }
 
   // --- Workouts ---

@@ -156,6 +156,14 @@ class Localization {
 
     // Exercises
     'video_available': 'Execution video available',
+
+    // Curated library import
+    'import_done_title': 'Library imported',
+    'import_count': 'Exercises imported',
+    'import_with_video': 'With execution video',
+    'import_with_search': 'With search only',
+    'import_discarded': 'Discarded while reading',
+    'import_failed': 'Import failed',
   };
 
   static final Map<String, String> _it = {
@@ -295,6 +303,14 @@ class Localization {
 
     // Esercizi
     'video_available': "Video dell'esecuzione disponibile",
+
+    // Importazione della libreria curata
+    'import_done_title': 'Libreria importata',
+    'import_count': 'Esercizi importati',
+    'import_with_video': "Con video dell'esecuzione",
+    'import_with_search': 'Con la sola ricerca',
+    'import_discarded': 'Scartati durante la lettura',
+    'import_failed': 'Importazione fallita',
   };
 }
 

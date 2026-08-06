@@ -1237,9 +1237,7 @@ Dopo questa storia: toccando l'indicatore video si apre l'esecuzione, e chiudend
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-041 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
-
-> ⏳ **In attesa del materiale**: schede e link YouTube sono in preparazione. Lo script e la validazione si possono costruire prima, con un file di esempio.
+**Status:** 🔍 IN REVIEW — piano in [`planning/US-045.md`](planning/US-045.md), review in [`planning/US-045-review.md`](planning/US-045-review.md)
 
 **Story**
 Come atleta che apre l'app per la prima volta,
@@ -1250,12 +1248,12 @@ così da iniziare ad allenarmi subito invece di dover prima riempire un archivio
 Dopo questa storia: la libreria di base contiene gli esercizi forniti dal team, ciascuno con gruppi muscolari e video.
 
 **Acceptance Criteria**
-- [ ] Esiste uno script che importa gli esercizi da un file di partenza verso Firestore
-- [ ] Lo script è idempotente: eseguirlo due volte non crea duplicati
-- [ ] Ogni esercizio importato ha nome, tipo, gruppi muscolari e, dove disponibile, il video
-- [ ] Gli URL dei video sono validati durante l'importazione, e quelli scartati vengono elencati
-- [ ] Il numero di esercizi importati è riportato al termine
-- [ ] Gli esercizi curati sono distinguibili da quelli creati dagli utenti
+- [x] Esiste uno script che importa gli esercizi da un file di partenza verso Firestore — realizzato come comando dentro l'app (Impostazioni → «Carica Dati Default»): passa dalle regole di sicurezza vere invece di scavalcarle con la chiave del service account. **Interpretazione dichiarata** nella review
+- [x] Lo script è idempotente: eseguirlo due volte non crea duplicati — l'identificativo del documento è quello del file, quindi `set` riscrive invece di aggiungere. **Da confermare sul dispositivo** premendo due volte
+- [x] Ogni esercizio importato ha nome, tipo, gruppi muscolari e, dove disponibile, il video — verificato sul file vero: 43 esercizi, 15 con video, 28 con la sola ricerca
+- [x] Gli URL dei video sono validati durante l'importazione, e quelli scartati vengono elencati — 4 test; ogni scarto porta identificativo, campo, valore e motivo
+- [x] Il numero di esercizi importati è riportato al termine — finestra con i tre conteggi e l'elenco degli scarti. **Da confermare sul dispositivo**
+- [x] Gli esercizi curati sono distinguibili da quelli creati dagli utenti — `isCurated: true`, `isCustom: false`, `userId: null` su tutti e 43
 
 ---
 
