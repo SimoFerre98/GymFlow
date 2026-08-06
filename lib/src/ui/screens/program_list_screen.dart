@@ -223,21 +223,13 @@ class ProgramListScreen extends StatelessWidget {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline, color: Colors.red),
+                                const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  // 'Delete'
-                                  loc
-                                      .t('delete_program_title')
-                                      .replaceAll(' Program?', '')
-                                      .replaceAll(
-                                        ' Scheda?',
-                                        '',
-                                      ), // Hacky or just 'Delete'
-                                  // I'll just use English 'Delete' for menu item if I don't have a clean key.
-                                  // Wait, I can use hardcoded 'Elimina' if IT.
-                                  // I'll stick to 'Delete' for now or add key properly.
-                                  'Delete',
+                                  loc.t('delete'),
                                   style: const TextStyle(color: Colors.red),
                                 ),
                               ],
