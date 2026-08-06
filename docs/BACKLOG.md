@@ -775,7 +775,7 @@ Dopo questa storia: esiste un widget card riutilizzabile che legge i propri valo
 - [x] Il widget supporta titolo opzionale e azione al tocco opzionale — 6 test
 - [x] Il widget rende correttamente sia in tema chiaro sia in tema scuro — 3 test, incluso quello che verifica che i due fondi siano davvero diversi
 - [x] `_buildBentoCard` è rimosso da `dashboard_screen.dart` e sostituito dal componente condiviso — `grep -c` dà 0
-- [x] Il componente compare nella schermata di catalogo interna — sezione «Card». **Da confermare sull'APK**
+- [~] Il componente compare nella schermata di catalogo interna — **criterio decaduto**: il catalogo è stato rimosso dall'app il 2026-08-06 per decisione del prodotto. I riferimenti visivi stanno nei mockup, non dentro l'applicazione
 
 ---
 
@@ -1211,7 +1211,7 @@ Dopo questa storia: libreria, scheda e sessione mostrano la miniatura accanto a 
 **Acceptance Criteria**
 - [x] Le liste di esercizi mostrano la miniatura secondo la catena di ripiego — libreria, scheda e sessione usano `ExerciseThumbnail`; **a schermo da confermare sull'APK**
 - [x] Un esercizio con video porta un indicatore riconoscibile sulla miniatura — solo per un video vero, non per una ricerca: 5 test
-- [~] Lo scorrimento di una lista di 100 esercizi resta sopra i 55 fps in profile mode — **non misurato**: APK profile e lista dei 100 pronti, la misura richiede il telefono sbloccato. Le tre leve strutturali (`decodeWidth`, `itemExtent`, `select`) sono in codice e testate, ma una leva non è una misura
+- [~] Lo scorrimento di una lista di 100 esercizi resta sopra i 55 fps in profile mode — **non misurato, e ora non misurabile con questo strumento**: la lista di prova viveva nel catalogo, rimosso dall'app il 2026-08-06. Restano le tre leve strutturali (`decodeWidth`, `itemExtent`, `select`), in codice e testate. Se il criterio va chiuso davvero, serve una lista lunga vera — la libreria curata ne ha 43
 - [x] Le immagini si caricano progressivamente senza far saltare il layout — la misura della miniatura è identica prima e dopo l'arrivo del fotogramma
 - [x] La miniatura ha dimensione e forma dai token del design system — nuova categoria `ExpressiveSizing`, verificata da 4 test
 
@@ -2108,6 +2108,8 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 ---
 
 ## Change Log
+
+**2026-08-06** — **Rimosso il catalogo del design system dall'app.** Decisione del prodotto: *«se dobbiamo tenere traccia delle cose grafiche creiamo dei mockup dentro la cartella del progetto; dentro l'app non ha il minimo senso»*. Spariscono la schermata, la voce di menu e la lista di prova da 100 esercizi. I riferimenti visivi restano in `docs/design/`. Decadono due criteri, di US-021 e US-043, marcati come tali.
 
 **2026-08-06** — Aggiunta **US-073**: i mockup approvati non erano nel repository e chi ha implementato EP-009 e US-021 non li ha letti. Portati in `docs/design/`, estratti in `docs/DESIGN-SPEC.md`, e aperta la storia per allineare ciò che li contraddice. **US-022 dipende ora da US-073**: non ha senso applicare alle schermate componenti che vanno corretti.
 

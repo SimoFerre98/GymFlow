@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
-import 'package:gymflow/src/ui/screens/design_catalog_screen.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
@@ -190,25 +189,6 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
 
-                // Catalogo del design system: solo nelle build di debug.
-                if (DesignCatalogScreen.isAvailable) ...[
-                  const SizedBox(height: 8),
-                  _buildDrawerItem(
-                    context,
-                    icon: Icons.palette_outlined,
-                    title: 'Design system',
-                    color: Colors.indigo,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DesignCatalogScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ],
             ),
           ),
