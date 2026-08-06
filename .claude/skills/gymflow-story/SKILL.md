@@ -1,6 +1,6 @@
 ---
 name: gymflow-story
-description: Esegue il ciclo completo di implementazione di una storia del backlog GymFlow — planning, branch, implementazione, verifica, review indipendente, pull request e chiusura. Usa questa skill ogni volta che l'utente chiede di implementare, sviluppare, lavorare o "fare" una user story del backlog (US-001, US-010, ecc.), oppure chiede di prendere in carico la prossima storia disponibile. Si attiva su frasi come "implementa US-014", "lavora sulla prossima storia", "prendi in carico US-033", "fai la storia dei controller", "sviluppa la US-010".
+description: Esegue il ciclo completo di implementazione di una storia del backlog GymFlow — planning, branch, implementazione, verifica, review, merge e chiusura. Usa questa skill ogni volta che l'utente chiede di implementare, sviluppare, lavorare o "fare" una user story del backlog (US-001, US-010, ecc.), oppure chiede di prendere in carico la prossima storia disponibile. Si attiva su frasi come "implementa US-014", "lavora sulla prossima storia", "prendi in carico US-033", "fai la storia dei controller", "sviluppa la US-010".
 ---
 
 # GymFlow — Ciclo di implementazione di una storia
@@ -27,7 +27,8 @@ Questo significa che la review è un'**autoverifica**, non un giudizio indipende
 4. **Nessun merge senza via libera esplicito dell'utente.**
 5. **Fuori scope significa fuori.** Ciò che emerge diventa una storia nuova, non un'aggiunta a questo branch.
 6. **`dev` e `main` restano allineati.** Dopo ogni merge, `dev` viene riportato su `main`.
-7. Tutti gli artefatti (piano, review, corpo PR) sono in italiano.
+7. Tutti gli artefatti (piano, review, commit) sono in italiano.
+8. **Nessuna attribuzione ad AI nei commit.** Niente trailer `Co-Authored-By` verso assistenti, niente firme automatiche, nessun riferimento a come il codice è stato prodotto.
 
 ---
 
@@ -189,25 +190,22 @@ Presenta all'utente, in forma compatta:
 
 ---
 
-## Fase 7 — Pull Request
+## Fase 7 — Merge
+
+Solo dopo il via libera della fase 6:
 
 ```bash
-git push -u origin feature/US-XXX-slug
+git switch main
+git pull --ff-only origin main
+git merge --squash feature/US-XXX-slug
+git commit          # messaggio riepilogativo dell'intera storia
+git push origin main
+git branch -D feature/US-XXX-slug
 ```
 
-Prepara `docs/planning/US-XXX-pr.md`: riferimento a storia ed epica, criteri come lista spuntata, verdetto della review, cosa guardare per primo.
+Merge **squash**: una storia, un commit su `main`. Il branch resta locale, non si pusha, e si cancella con `-D` (lo squash non lo marca come merged).
 
-Apri la PR:
-
-```bash
-gh pr create --base main --title "US-XXX: <titolo>" --body-file docs/planning/US-XXX-pr.md
-```
-
-**`gh` non è installato su questa macchina.** Finché non lo è: pusha il branch, poi fornisci all'utente l'URL
-`https://github.com/SimoFerre98/GymFlow/compare/main...feature/US-XXX-slug`
-insieme al corpo pronto da incollare. Non dichiarare aperta una PR che non hai aperto.
-
-Merge con **squash** — solo dopo il via libera della fase 6. Cancella il branch.
+**Non si usano pull request.** Il controllo di qualità sta nella review di fase 5 e nell'approvazione di fase 6.
 
 ---
 

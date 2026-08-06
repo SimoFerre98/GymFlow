@@ -2,7 +2,7 @@
 
 **Versione:** 1.0 · **Data:** 2026-08-06
 
-Questo documento definisce il ciclo che va seguito per portare una storia del [backlog](BACKLOG.md) dalla selezione al merge in `main`. Vale sia per il lavoro assistito da AI sia per quello umano: le regole sono le stesse.
+Questo documento definisce il ciclo che va seguito per portare una storia del [backlog](BACKLOG.md) dalla selezione al merge in `main`.
 
 Le regole operative in forma sintetica, caricate automaticamente all'inizio di ogni sessione di Claude Code, sono in [`CLAUDE.md`](../CLAUDE.md). Per eseguire il ciclo su una storia specifica esiste la skill `/gymflow-story US-XXX`.
 
@@ -10,7 +10,7 @@ Le regole operative in forma sintetica, caricate automaticamente all'inizio di o
 
 ## Principi
 
-1. **Una storia, un branch, una PR.** Mai due storie nello stesso branch, mai una storia spalmata su più branch.
+1. **Una storia, un branch.** Mai due storie nello stesso branch, mai una storia spalmata su più branch.
 2. **Nessuna implementazione senza piano.** Il piano si scrive prima di toccare il codice e resta agli atti.
 3. **La review è una fase distinta.** Non si fonde con l'implementazione e non si salta.
 4. **Il merge è una decisione umana.** Nessun merge in `main` senza via libera esplicito.
@@ -41,9 +41,16 @@ graph LR
   F5 -->|respinta| F3
   F5 --> F6[6· Via libera]
   F6 -->|richieste modifiche| F3
-  F6 --> F7[7· PR e merge]
+  F6 --> F7[7· Merge]
   F7 --> F8[8· Chiusura]
 ```
+
+## Convenzioni dei messaggi di commit
+
+- In italiano, con il codice della storia in testa: `US-010: sposta lo stream fuori da build()`
+- Prima riga sotto i 72 caratteri, all'imperativo o alla terza persona, senza punto finale
+- Il corpo spiega **perché**, non cosa: il cosa si legge nel diff
+- **Nessuna attribuzione ad AI o strumenti**: niente trailer `Co-Authored-By` verso assistenti, niente firme automatiche, nessun riferimento a come il codice è stato prodotto. L'autore del commit è chi ha fatto il lavoro.
 
 ---
 
@@ -195,31 +202,31 @@ Presentare in forma sintetica:
 
 ---
 
-### Fase 7 — Pull Request e merge
+### Fase 7 — Merge
 
-**Obiettivo:** portare il lavoro in `main` lasciando traccia.
+**Obiettivo:** portare il lavoro in `main`.
 
-```bash
-git push -u origin feature/US-XXX-slug
-```
-
-Poi aprire la PR:
+Solo dopo il via libera della fase 6:
 
 ```bash
-gh pr create --base main --title "US-XXX: titolo della storia" --body-file docs/planning/US-XXX-pr.md
+git switch main
+git pull --ff-only origin main
+git merge --squash feature/US-XXX-slug
+git commit          # messaggio riepilogativo della storia
+git push origin main
 ```
 
-> **Prerequisito:** GitHub CLI non è attualmente installato su questa macchina. Finché non lo è, il fallback è: pushare il branch e aprire la PR dal browser all'URL
-> `https://github.com/SimoFerre98/GymFlow/compare/main...feature/US-XXX-slug`
-> incollando il corpo preparato. Installare `gh` è consigliato: rende il passaggio automatizzabile.
+Il merge è **squash**: ogni storia corrisponde a un solo commit su `main`, e la storia del repository resta leggibile come sequenza di storie completate. I commit intermedi del branch non vengono conservati — il loro contenuto è già documentato nel piano e nel report di review.
 
-Corpo della PR:
-- Riferimento alla storia e all'epica
-- Criteri di accettazione come lista spuntata
-- Verdetto della review, con link al file
-- Note per chi legge: cosa guardare per primo
+Il messaggio del commit di squash riassume la storia intera: cosa cambia, perché, cosa resta esplicitamente fuori.
 
-Merge con **squash**, così ogni storia corrisponde a un commit su `main`. Cancellare il branch dopo il merge.
+Il branch di storia **non viene pushato**: resta locale e si cancella dopo il merge.
+
+```bash
+git branch -D feature/US-XXX-slug   # -D perché lo squash non marca il branch come merged
+```
+
+> Non si usano pull request. Il controllo di qualità è dato dalla review di fase 5 e dall'approvazione di fase 6, non da un secondo passaggio su GitHub.
 
 ---
 
@@ -242,7 +249,7 @@ git push origin dev
 git switch main
 ```
 
-Il merge deve riuscire in fast-forward. Se fallisce, significa che `dev` ha commit propri mai passati da una PR: fermarsi e capire perché, senza forzare.
+Il merge deve riuscire in fast-forward. Se fallisce, significa che `dev` ha commit propri mai passati da `main`: fermarsi e capire perché, senza forzare.
 
 6. Verificare: `git rev-list --left-right --count main...dev` deve restituire `0 0`.
 
@@ -251,7 +258,7 @@ Il merge deve riuscire in fast-forward. Se fallisce, significa che `dev` ha comm
 ## Modello dei branch
 
 ```
-main ──●────────────●────────────●──►   sempre stabile, mergiabile solo via PR
+main ──●────────────●────────────●──►   sempre stabile, un commit per storia
         \          / \          /
          feature/US-039        feature/US-014
                   ↓             ↓
@@ -287,8 +294,7 @@ docs/
 ├── WORKFLOW.md             questo documento
 └── planning/
     ├── US-XXX.md           piano tecnico (fase 1)
-    ├── US-XXX-review.md    report di review (fase 5)
-    └── US-XXX-pr.md        corpo della pull request (fase 7)
+    └── US-XXX-review.md    report di review (fase 5)
 ```
 
 ---

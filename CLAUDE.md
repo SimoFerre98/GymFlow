@@ -67,9 +67,11 @@ lib/src/
 **Git**
 - Un branch per storia, sempre da `main` aggiornato: `feature/US-XXX-slug`.
 - Messaggi di commit in italiano, con il riferimento alla storia: `US-010: sposta lo stream fuori da build()`.
-- Mai committare su `main` direttamente: si entra solo via PR con squash merge.
+- Mai committare su `main` direttamente: si entra solo con `merge --squash` da un branch di storia, dopo il via libera.
+- Niente pull request: il branch resta locale, non si pusha, e si cancella dopo il merge.
 - **`dev` è uno specchio di `main`**, non un branch di integrazione. Dopo ogni merge va riallineato in fast-forward. Non si sviluppa su `dev`, non ci si mergiano feature.
 - Il ciclo di una storia è eseguito da **un solo agente**, tutte le fasi, senza delegare.
+- **Nessuna attribuzione ad AI nei messaggi di commit**: niente trailer `Co-Authored-By` verso assistenti, niente firme automatiche, nessun riferimento a come il codice è stato prodotto.
 
 ## Chiedi sempre prima di
 
