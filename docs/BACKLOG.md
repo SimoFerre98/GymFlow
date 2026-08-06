@@ -1139,7 +1139,9 @@ Dopo questa storia: rimuovere per errore il pulsante di login fa fallire un test
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-042, US-043, US-044, US-045, US-059, US-068
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
+
+> ⚠️ **Nessuno dei 43 URL del materiale e un video: sono tutte ricerche YouTube.** Verificato sul file: 43 occorrenze di `search_query`, zero di `watch?v=`. Conseguenza: la miniatura si ricava dall'identificativo del video, e una ricerca non ne ha, quindi **il terzo anello della catena di ripiego non produce nulla** per la libreria curata. Aggiunto il campo `videoSearchQuery` come ripiego: l'app apre la ricerca, e `hasSpecificVideo` permette alla UI di distinguere le due promesse. Sostituire le ricerche con video scelti resta un lavoro incrementale che non richiede modifiche al codice.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -1150,12 +1152,12 @@ così da poter costruire sopra di esso tutte le schermate che mostrano contenuti
 Dopo questa storia: un esercizio può avere immagine e video, e i valori sopravvivono alla sincronizzazione.
 
 **Acceptance Criteria**
-- [ ] Il modello espone un campo per l'immagine dell'utente, uno per l'immagine curata e uno per il video
-- [ ] I campi sono opzionali: gli esercizi esistenti restano validi senza migrazione
-- [ ] L'URL del video accetta i formati `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/` ed embed
-- [ ] Un URL non riconosciuto viene rifiutato con un messaggio che dice quale formato serve
-- [ ] L'identificativo del video è estraibile dall'URL con una funzione pura, coperta da test
-- [ ] I campi sono serializzati e deserializzati da Firestore senza perdita
+- [x] Il modello espone un campo per l'immagine dell'utente, uno per l'immagine curata e uno per il video
+- [x] I campi sono opzionali: gli esercizi esistenti restano validi senza migrazione
+- [x] L'URL del video accetta i formati `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/` ed embed
+- [x] Un URL non riconosciuto viene rifiutato con un messaggio che dice quale formato serve
+- [x] L'identificativo del video è estraibile dall'URL con una funzione pura, coperta da test
+- [x] I campi sono serializzati e deserializzati da Firestore senza perdita
 
 ---
 

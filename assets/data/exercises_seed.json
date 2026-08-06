@@ -1,0 +1,527 @@
+{
+  "version": 1,
+  "exercises": [
+    {
+      "id": "ex_001",
+      "name": "Spinte manubri panca piana",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "spinte manubri panca piana",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_002",
+      "name": "Panca piana bilanciere / multipower",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "panca piana bilanciere",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_003",
+      "name": "Spinte manubri panca 30° / 45° / 60°",
+      "type": "strength",
+      "muscleGroups": [
+        "petto",
+        "spalle"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "spinte manubri panca inclinata",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_004",
+      "name": "Chest press inclinata / declinata / CD",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "chest press machine",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_005",
+      "name": "Croci manubri panca piana / 30° / 45°",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "croci manubri panca piana",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_006",
+      "name": "Croci ai cavi alti / bassi",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "croci ai cavi pettorali",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_007",
+      "name": "Pec Fly / Pectoral machine / Delt Fly",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "pectoral fly machine",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_008",
+      "name": "Push up / Flessioni",
+      "type": "strength",
+      "muscleGroups": [
+        "petto"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "push up tutorial",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_009",
+      "name": "Dip per pettorali / alla sedia",
+      "type": "strength",
+      "muscleGroups": [
+        "petto",
+        "tricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "dips chest",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_010",
+      "name": "Lat machine asta presa media / avanti",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "lat machine avanti",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_011",
+      "name": "Lat machine triangolo medio / presa inversa",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "lat machine triangolo",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_012",
+      "name": "Lat machine T-Bar / Asta panca 60",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "lat machine t-bar",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_013",
+      "name": "Iliac Pull down panca 40 singolo",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "iliac pull down",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_014",
+      "name": "Pull over panca 60 cavo alto corda",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "pullover cavo alto",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_015",
+      "name": "Rematore manubri / panca 30° / singolo",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "rematore con manubrio",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_016",
+      "name": "Pulley asta presa inversa / triangolo / larga",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "pulley basso",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_017",
+      "name": "Upper back manubri panca 30",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso",
+        "spalle posteriori"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "upper back manubri",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_018",
+      "name": "Rowing machine",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "rowing machine",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_019",
+      "name": "Trazioni alla sbarra / Australian pull-up",
+      "type": "strength",
+      "muscleGroups": [
+        "dorso"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "pull ups tutorial",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_020",
+      "name": "Aperture / Alzate laterali manubri",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "alzate laterali manubri",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_021",
+      "name": "Alzate frontali manubri",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "alzate frontali manubri",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_022",
+      "name": "Spinte spalle / Lento davanti / Shoulder press",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "shoulder press manubri",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_023",
+      "name": "Arnold press",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "arnold press tutorial",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_024",
+      "name": "Delt fly inverso / Alzate 90°",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle posteriori"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "alzate a 90 gradi",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_025",
+      "name": "Tirate al mento",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle",
+        "trapezio"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "tirate al mento",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_026",
+      "name": "Face pull con elastico",
+      "type": "strength",
+      "muscleGroups": [
+        "spalle posteriori"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "face pull elastico",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_027",
+      "name": "Curl EZ / Bilanciere angolato / Panca Scott",
+      "type": "strength",
+      "muscleGroups": [
+        "bicipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "curl ez panca scott",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_028",
+      "name": "Curl manubri alternati / Panca inclinata / 60°",
+      "type": "strength",
+      "muscleGroups": [
+        "bicipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "curl manubri panca inclinata",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_029",
+      "name": "Hammer Curl / Martello",
+      "type": "strength",
+      "muscleGroups": [
+        "bicipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "hammer curl",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_030",
+      "name": "Curl ai cavi bassi / Asta cavo",
+      "type": "strength",
+      "muscleGroups": [
+        "bicipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "curl ai cavi",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_031",
+      "name": "Curl concentrato manubrio",
+      "type": "strength",
+      "muscleGroups": [
+        "bicipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "curl concentrato",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_032",
+      "name": "French press manubri / Bilanciere / Cavo",
+      "type": "strength",
+      "muscleGroups": [
+        "tricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "french press manubri",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_033",
+      "name": "Push down corda / Asta / In ginocchio",
+      "type": "strength",
+      "muscleGroups": [
+        "tricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "push down tricipiti corda",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_034",
+      "name": "Tricipiti kickback manubrio",
+      "type": "strength",
+      "muscleGroups": [
+        "tricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "tricipiti kickback",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_035",
+      "name": "Pressa 45° / Leg press",
+      "type": "strength",
+      "muscleGroups": [
+        "quadricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "pressa 45 gambe",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_036",
+      "name": "Leg extension (Mono / Bi-podalico)",
+      "type": "strength",
+      "muscleGroups": [
+        "quadricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "leg extension",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_037",
+      "name": "Squat con sbarra / Hack squat / Bulgaro",
+      "type": "strength",
+      "muscleGroups": [
+        "quadricipiti"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "hack squat",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_038",
+      "name": "Leg curl sdraiato / seduto (Mono / Bi-podalico)",
+      "type": "strength",
+      "muscleGroups": [
+        "femorali"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "leg curl sdraiato",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_039",
+      "name": "Stacchi a gambe tese",
+      "type": "strength",
+      "muscleGroups": [
+        "femorali",
+        "glutei"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "stacchi a gambe tese",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_040",
+      "name": "Hip thrust",
+      "type": "strength",
+      "muscleGroups": [
+        "glutei",
+        "femorali"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "hip thrust",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_041",
+      "name": "Calf raise in piedi / seduto",
+      "type": "strength",
+      "muscleGroups": [
+        "polpacci"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "calf raises",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_042",
+      "name": "Crunch classico / Inverso / Cavi / Twist",
+      "type": "strength",
+      "muscleGroups": [
+        "addome"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "crunch addominali",
+      "imageUrl": null,
+      "isCurated": true
+    },
+    {
+      "id": "ex_043",
+      "name": "Plank / Mountain climbers",
+      "type": "timed",
+      "muscleGroups": [
+        "addome"
+      ],
+      "videoUrl": null,
+      "videoSearchQuery": "plank exercise",
+      "imageUrl": null,
+      "isCurated": true
+    }
+  ]
+}
