@@ -1,0 +1,46 @@
+# Controllo di qualita su ogni modifica dei branch principali.
+#
+# Il gate fallisce su errori di compilazione e su test falliti. Gli avvisi
+# dell'analyzer NON sono ancora bloccanti: ne restano 67 di debito preesistente,
+# tracciati in US-030, che alzera l'asticella una volta azzerati.
+#
+# La versione di Flutter e fissata di proposito: con `channel: stable` la CI
+# cambierebbe comportamento a ogni rilascio, e un fallimento non direbbe piu se
+# la colpa e del codice o del toolchain.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  quality_gate:
+    name: Analisi statica e test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.7"
+          channel: stable
+          cache: true
+
+      - name: Dipendenze
+        run: flutter pub get
+
+      - name: Analisi statica
+        # --no-fatal-infos e --no-fatal-warnings: fallisce solo sugli errori.
+        # Rimuovere entrambi con US-030.
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Test
+        run: flutter test

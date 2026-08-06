@@ -963,25 +963,29 @@ Dopo questa storia: ogni testo dell'app supera il rapporto di contrasto minimo r
 
 ---
 
-#### US-029: Bloccare le regressioni con un controllo automatico sulle pull request
+#### US-029: Bloccare le regressioni con un controllo automatico continuo
 
 **Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-001 | **Blocks:** US-030, US-031
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
+
+> **Criteri rivisti il 2026-08-06.** La formulazione originale parlava di controllo "sulle pull request". Le pull request sono state successivamente rimosse dal processo (vedi `WORKFLOW.md`): i criteri sono stati riscritti sul flusso effettivo — push su `main` e `dev` — mantenendo invariato l'obiettivo della storia.
 
 **Story**
 Come sviluppatore del team GymFlow,
-voglio che analisi statica e test girino su ogni pull request,
-così da non scoprire un errore di compilazione solo dopo il merge.
+voglio che analisi statica e test girino automaticamente a ogni modifica dei branch principali,
+così da scoprire subito una regressione invece che al prossimo avvio manuale.
 
 **Demonstrates**
-Dopo questa storia: una pull request con un errore di compilazione viene segnalata in rosso prima del merge.
+Dopo questa storia: un push che introduce un errore di compilazione viene segnalato in rosso entro pochi minuti.
 
 **Acceptance Criteria**
-- [ ] Esiste un workflow che esegue `flutter analyze` e `flutter test` sulle pull request verso `main` e `dev`
-- [ ] Il workflow fallisce se l'analyzer riporta errori
-- [ ] Il workflow fallisce se un test fallisce
-- [ ] Una pull request con un errore di compilazione introdotto di proposito risulta rossa
+- [x] Esiste un workflow che esegue `flutter analyze` e `flutter test` sui push a `main` e `dev`
+- [x] Il workflow fallisce se l'analyzer riporta errori
+- [x] Il workflow fallisce se un test fallisce
+- [x] Il workflow è verde sullo stato attuale del repository
+- [x] Il workflow può essere avviato anche manualmente
+- [x] Un errore di compilazione introdotto di proposito rende il workflow rosso
 
 ---
 
