@@ -1,9 +1,34 @@
-name: Deploy to Firebase Hosting on merge
+# ─────────────────────────────────────────────────────────────────────────────
+# SOSPESO — il deploy automatico è disattivato (US-039, 2026-08-06)
+#
+# `flutter build web --release` non compila: il codice generato da Isar in
+# lib/src/models/local/local_workout_session.g.dart contiene interi a 64 bit
+# non rappresentabili in JavaScript. Il target Web è stato accantonato per
+# decisione di prodotto ed è tracciato in EP-008 del backlog.
+#
+# Il trigger `push` è stato sostituito da `workflow_dispatch`: il workflow
+# resta avviabile a mano dalla scheda Actions, ma non fallisce più a ogni
+# merge su main nascondendo eventuali problemi reali.
+#
+# ATTENZIONE: avviarlo a mano oggi FALLISCE comunque, allo step
+# `flutter build web --release`. L'avvio manuale serve a verificare i
+# progressi di US-003, non a pubblicare.
+#
+# PER RIATTIVARLO (US-004, alla ripresa di EP-008):
+#   1. sostituire `workflow_dispatch:` con:
+#          push:
+#            branches:
+#              - main
+#   2. ripristinare il nome originale del workflow:
+#          name: Deploy to Firebase Hosting on merge
+#   3. rimuovere questo commento
+#
+# Vedi: docs/BACKLOG.md → EP-008 · docs/planning/US-039.md
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Deploy to Firebase Hosting (sospeso, avvio manuale)
 on:
-  push:
-    branches:
-      - main
-      - master
+  workflow_dispatch:
 
 jobs:
   build_and_deploy:
