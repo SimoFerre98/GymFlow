@@ -139,15 +139,16 @@ Sequenza obbligatoria, tutta verde:
 ```bash
 flutter analyze
 flutter test
-flutter run -d emulator-5554
+flutter build apk --debug
 ```
 
 1. `flutter analyze` — nessun errore, e nessun avviso **nuovo** rispetto al branch di partenza.
 2. `flutter test` — tutti i test passano.
-3. Esecuzione su emulatore Android — l'app parte e la funzionalità toccata si comporta come descritto in **Demonstrates**.
-4. Ogni criterio di accettazione viene verificato **uno per uno** e spuntato nel backlog.
+3. `flutter build apk` — la build va a buon fine. **L'app non viene eseguita su emulatore**: la prova funzionale la fa chi sviluppa, installando l'APK sul proprio telefono.
+4. Ogni criterio di accettazione viene verificato **uno per uno** e spuntato nel backlog. I criteri che richiedono interazione a schermo restano **da confermare sull'APK**: vanno marcati come tali, non dati per soddisfatti.
+5. L'APK viene consegnato insieme al riepilogo di fase 6.
 
-**Nessuna eccezione.** Un criterio non verificabile è un criterio scritto male: va corretto nel backlog, motivando.
+**Nessuna eccezione su analyze e test.** Un criterio non verificabile è un criterio scritto male: va corretto nel backlog, motivando. Un criterio verificabile solo a mano va dichiarato come tale e girato a chi prova l'APK.
 
 ---
 

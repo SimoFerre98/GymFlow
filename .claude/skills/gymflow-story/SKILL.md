@@ -124,8 +124,9 @@ Nell'ordine, tutto verde prima di proseguire:
 
 1. `flutter analyze` — zero errori, zero avvisi **nuovi** rispetto a `main`
 2. `flutter test` — tutti verdi
-3. `flutter run -d emulator-5554` — l'app parte e la funzionalità si comporta come da **Demonstrates**. Avvia l'emulatore se serve; se non è disponibile, segnalalo e chiedi come procedere invece di dichiarare la verifica superata.
-4. Verifica i criteri di accettazione **uno per uno** e spuntali in `docs/BACKLOG.md`
+3. `flutter build apk --debug` — la build completa senza errori. **Non eseguire l'app su emulatore**: la prova funzionale la fa l'utente installando l'APK.
+4. Verifica i criteri di accettazione **uno per uno** e spuntali in `docs/BACKLOG.md`. Quelli che richiedono interazione a schermo vanno marcati come **da confermare sull'APK**, mai dati per soddisfatti.
+5. Consegna l'APK all'utente con `SendUserFile` insieme al riepilogo di fase 6.
 
 Riporta gli esiti reali. Un passaggio saltato va dichiarato, non omesso.
 

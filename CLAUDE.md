@@ -20,7 +20,8 @@ C:/Users/s.ferrero/Flutter/bin/flutter.bat analyze
 |---|---|
 | Analisi statica | `flutter analyze` |
 | Test | `flutter test` |
-| Esecuzione | `flutter run -d emulator-5554` |
+| Build APK per prova su telefono | `flutter build apk --debug` |
+| Esecuzione (non usata nel ciclo: prova sull'APK) | `flutter run -d emulator-5554` |
 | Avvio emulatore | `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Medium_Phone_API_36.1` |
 | Codice generato (Riverpod, Isar) | `dart run build_runner build --delete-conflicting-outputs` |
 
