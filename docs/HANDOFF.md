@@ -269,17 +269,21 @@ Il **catalogo del design system** (menu → Design system, solo in debug) mostra
 
 ---
 
-## 8. Riferimenti visivi pubblicati
+## 8. Riferimenti visivi
 
-Tre pagine con i mockup approvati dall'utente. Contengono le decisioni di layout che il codice deve realizzare:
+I mockup approvati dal prodotto sono **nel repository**, in [`design/`](design/): tre pagine HTML autonome, apribili con un doppio clic.
 
-| Pagina | Contenuto |
+| File | Contenuto |
 |---|---|
-| [Direzione visiva Indigo](https://claude.ai/code/artifact/e3b27bb3-d15e-487c-a5db-aa26a210b68a) | 6 schermate, catena delle immagini, confronto con lo stato attuale |
-| [Il resto dell'app](https://claude.ai/code/artifact/92fd6e40-38f1-4242-85a9-3eefd1e7d949) | 9 schermate: libreria, tipi di allenamento, calendario, obiettivi, traguardi, peso, impostazioni |
-| [Timer e movimento](https://claude.ai/code/artifact/1400f94f-73b6-42cf-992f-9b9dd34ec091) | Timer **funzionante**, repertorio delle micro-interazioni, Now Bar |
+| `01-direzione-visiva.html` | Sei schermate sulla palette Indigo, catena delle immagini, contrasti |
+| `02-schermate-app.html` | Nove schermate: libreria, timer, calendario, obiettivi, traguardi, peso, impostazioni |
+| `03-timer-e-movimento.html` | **Timer funzionante**, micro-interazioni, Now Bar |
 
-Sono privati dell'utente: se non sono raggiungibili, le decisioni di layout sono comunque riassunte nelle storie di EP-010, EP-011 e EP-014.
+Ogni schermata ha una didascalia che spiega **la decisione** che incorpora: il layout si deduce guardando, il motivo no. Vedi [`design/README.md`](design/README.md) per la mappa fra mockup e storie.
+
+**Non sono specifiche al pixel.** Dove divergono dal design system vince il design system: i token sono la fonte di verità, i mockup l'intenzione.
+
+Esistono anche come artifact su claude.ai, ma quei link sono privati e possono scadere: la copia autorevole è quella nel repository.
 
 ---
 
