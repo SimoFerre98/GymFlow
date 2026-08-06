@@ -78,7 +78,7 @@ class ProgramListScreen extends StatelessWidget {
           Icon(
             Icons.fitness_center_outlined,
             size: 80,
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -198,7 +198,7 @@ class ProgramListScreen extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
+                            color: Colors.green.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: Colors.green),
                           ),

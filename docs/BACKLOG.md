@@ -620,7 +620,7 @@ Dopo questa storia: con 15 amici che condividono il calendario, gli eventi di tu
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-001 | **Blocks:** US-033
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -631,12 +631,12 @@ così da poter costruire il nuovo design system su fondamenta che non stanno per
 Dopo questa storia: `flutter analyze` non riporta più avvisi di deprecazione su colori e tema.
 
 **Acceptance Criteria**
-- [ ] Le 95 occorrenze di `withOpacity` sono sostituite dall'API corrente senza perdita di precisione
-- [ ] `background` e `onBackground` nel `ColorScheme` sono sostituiti da `surface` e `onSurface`
-- [ ] `MaterialStateProperty` è sostituito da `WidgetStateProperty`
-- [ ] `Color.value` e `activeColor` deprecati sono sostituiti
-- [ ] `flutter analyze` non riporta avvisi `deprecated_member_use` su queste API
-- [ ] I colori resi a schermo sono visivamente identici a prima
+- [x] Le 95 occorrenze di `withOpacity` sono sostituite dall'API corrente senza perdita di precisione
+- [x] `background` e `onBackground` nel `ColorScheme` sono sostituiti da `surface` e `onSurface`
+- [x] `MaterialStateProperty` è sostituito da `WidgetStateProperty`
+- [x] `Color.value` e `activeColor` deprecati sono sostituiti
+- [x] `flutter analyze` non riporta avvisi `deprecated_member_use` su queste API
+- [x] I colori resi a schermo sono visivamente identici a prima
 
 ---
 

@@ -507,7 +507,7 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: widget.baseColor.withOpacity(0.1),
+                color: widget.baseColor.withValues(alpha: 0.1),
               ),
             ),
           ],

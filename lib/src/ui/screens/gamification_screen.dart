@@ -209,7 +209,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: Colors.blue.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -223,7 +223,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.directions_walk, color: Colors.white),
@@ -276,7 +276,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
             child: LinearProgressIndicator(
               value: _isLoading ? null : progress,
               minHeight: 8,
-              backgroundColor: Colors.black.withOpacity(0.2),
+              backgroundColor: Colors.black.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
@@ -296,12 +296,12 @@ class _GamificationScreenState extends State<GamificationScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.1),
+            color: Colors.orange.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.orangeAccent.withOpacity(0.3)),
+        border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -326,7 +326,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
                     : CircularProgressIndicator(
                         value: progress,
                         strokeWidth: 8,
-                        backgroundColor: Colors.orange.withOpacity(0.1),
+                        backgroundColor: Colors.orange.withValues(alpha: 0.1),
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           Colors.orangeAccent,
                         ),
@@ -370,9 +370,9 @@ class _GamificationScreenState extends State<GamificationScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.tealAccent.withOpacity(0.1),
+        color: Colors.tealAccent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.teal.withOpacity(0.3)),
+        border: Border.all(color: Colors.teal.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,7 +408,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
             child: LinearProgressIndicator(
               value: _isLoading ? null : progress,
               minHeight: 6,
-              backgroundColor: Colors.teal.withOpacity(0.2),
+              backgroundColor: Colors.teal.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.teal),
             ),
           ),
@@ -441,13 +441,13 @@ class _GamificationScreenState extends State<GamificationScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
         ],
         border: isUnlocked
-            ? Border.all(color: Colors.amber.withOpacity(0.5), width: 2)
+            ? Border.all(color: Colors.amber.withValues(alpha: 0.5), width: 2)
             : null,
       ),
       child: Column(
@@ -459,8 +459,8 @@ class _GamificationScreenState extends State<GamificationScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isUnlocked
-                  ? Colors.amber.withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.1),
+                  ? Colors.amber.withValues(alpha: 0.2)
+                  : Colors.grey.withValues(alpha: 0.1),
             ),
             child: Icon(
               badge.icon,

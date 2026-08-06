@@ -138,7 +138,7 @@ class _BodyMeasurementsChartState extends State<BodyMeasurementsChart> {
             child: ChoiceChip(
               label: Text(key),
               selected: isSelected,
-              selectedColor: Colors.blueAccent.withOpacity(0.2),
+              selectedColor: Colors.blueAccent.withValues(alpha: 0.2),
               labelStyle: TextStyle(
                 color: isSelected ? Colors.blueAccent : Colors.grey,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -149,7 +149,7 @@ class _BodyMeasurementsChartState extends State<BodyMeasurementsChart> {
                 side: BorderSide(
                   color: isSelected
                       ? Colors.blueAccent
-                      : Colors.grey.withOpacity(0.2),
+                      : Colors.grey.withValues(alpha: 0.2),
                 ),
               ),
               onSelected: (bool selected) {
@@ -189,7 +189,7 @@ class _BodyMeasurementsChartState extends State<BodyMeasurementsChart> {
         show: true,
         drawVerticalLine: false,
         getDrawingHorizontalLine: (value) =>
-            FlLine(color: Colors.grey.withOpacity(0.1), strokeWidth: 1),
+            FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
       ),
       titlesData: FlTitlesData(
         show: true,
@@ -248,11 +248,11 @@ class _BodyMeasurementsChartState extends State<BodyMeasurementsChart> {
           ),
           belowBarData: BarAreaData(
             show: true,
-            color: Colors.blueAccent.withOpacity(0.1),
+            color: Colors.blueAccent.withValues(alpha: 0.1),
             gradient: LinearGradient(
               colors: [
-                Colors.blueAccent.withOpacity(0.2),
-                Colors.blueAccent.withOpacity(0.0),
+                Colors.blueAccent.withValues(alpha: 0.2),
+                Colors.blueAccent.withValues(alpha: 0.0),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

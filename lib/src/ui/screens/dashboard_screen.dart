@@ -92,7 +92,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                         fontSize: 14,
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -127,7 +127,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                             BoxShadow(
                               color: Theme.of(
                                 context,
-                              ).primaryColor.withOpacity(0.3),
+                              ).primaryColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -178,7 +178,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -415,7 +415,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -438,14 +438,14 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                   height: 60,
                   decoration: BoxDecoration(
                     color: isToday
-                        ? Theme.of(context).primaryColor.withOpacity(0.1)
+                        ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
                         : Colors.grey[100],
                     borderRadius: BorderRadius.circular(16),
                     border: isToday
                         ? Border.all(
                             color: Theme.of(
                               context,
-                            ).primaryColor.withOpacity(0.5),
+                            ).primaryColor.withValues(alpha: 0.5),
                           )
                         : null,
                   ),
@@ -553,7 +553,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 24, color: color),
@@ -594,7 +594,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),

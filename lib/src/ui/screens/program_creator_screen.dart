@@ -182,7 +182,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                                 boxShadow: [
                                   if (isSelected)
                                     BoxShadow(
-                                      color: Color(color).withOpacity(0.5),
+                                      color: Color(color).withValues(alpha: 0.5),
                                       blurRadius: 8,
                                       spreadRadius: 2,
                                     ),
@@ -213,7 +213,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.grey.withOpacity(0.3),
+                        color: Colors.grey.withValues(alpha: 0.3),
                         style: BorderStyle.solid,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -302,7 +302,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Colors.grey.withOpacity(0.3),
+                                color: Colors.grey.withValues(alpha: 0.3),
                                 style: BorderStyle.solid,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -348,7 +348,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                                     leading: CircleAvatar(
                                       backgroundColor: Theme.of(
                                         context,
-                                      ).colorScheme.primary.withOpacity(0.2),
+                                      ).colorScheme.primary.withValues(alpha: 0.2),
                                       child: Text(
                                         '${programWorkouts.indexOf(workout) + 1}',
                                       ),

@@ -21,12 +21,10 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: lightSurface,
-        background: lightBackground,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.black87,
-        onBackground: Colors.black87,
       ),
       scaffoldBackgroundColor: lightBackground,
       textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
@@ -59,12 +57,10 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: darkSurface,
-        background: darkBackground,
         error: errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.black87,
         onSurface: Colors.white,
-        onBackground: Colors.white,
       ),
       scaffoldBackgroundColor: darkBackground,
       textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
@@ -92,11 +88,11 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        indicatorColor: primaryColor.withOpacity(0.2),
-        iconTheme: MaterialStateProperty.all(
+        indicatorColor: primaryColor.withValues(alpha: 0.2),
+        iconTheme: WidgetStateProperty.all(
           const IconThemeData(color: Colors.white),
         ),
-        labelTextStyle: MaterialStateProperty.all(
+        labelTextStyle: WidgetStateProperty.all(
           const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ),
@@ -136,7 +132,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         elevation: 4,
-        shadowColor: primaryColor.withOpacity(0.4),
+        shadowColor: primaryColor.withValues(alpha: 0.4),
       ),
     );
   }

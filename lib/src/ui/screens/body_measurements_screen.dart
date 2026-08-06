@@ -391,7 +391,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  color: Colors.red.withOpacity(0.8),
+                  color: Colors.red.withValues(alpha: 0.8),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 confirmDismiss: (direction) async {

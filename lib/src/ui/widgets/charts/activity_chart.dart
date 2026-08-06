@@ -98,7 +98,7 @@ class _ActivityChartState extends State<ActivityChart> {
           height: 32,
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -133,7 +133,7 @@ class _ActivityChartState extends State<ActivityChart> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -227,7 +227,7 @@ class _ActivityChartState extends State<ActivityChart> {
           drawVerticalLine: false,
           horizontalInterval: 1,
           getDrawingHorizontalLine: (value) =>
-              FlLine(color: Colors.grey.withOpacity(0.1), strokeWidth: 1),
+              FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
         barGroups: _buildBarGroups(data),
@@ -315,7 +315,7 @@ class _ActivityChartState extends State<ActivityChart> {
                 textColor = Colors.grey[500]!;
               } else {
                 final opacity = 0.5 + (0.5 * (count / maxVal));
-                color = Theme.of(context).primaryColor.withOpacity(opacity);
+                color = Theme.of(context).primaryColor.withValues(alpha: opacity);
                 textColor = Colors.white;
               }
 
@@ -338,7 +338,7 @@ class _ActivityChartState extends State<ActivityChart> {
                     boxShadow: count > 0
                         ? [
                             BoxShadow(
-                              color: color.withOpacity(0.4),
+                              color: color.withValues(alpha: 0.4),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -386,7 +386,7 @@ class _ActivityChartState extends State<ActivityChart> {
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
                 toY: 0,
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.grey.withValues(alpha: 0.05),
               ),
             ),
           ],

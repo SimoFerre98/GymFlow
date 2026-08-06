@@ -113,7 +113,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
               backgroundColor: Theme.of(context).cardColor,
               selectedColor: Theme.of(
                 context,
-              ).colorScheme.primary.withOpacity(0.3),
+              ).colorScheme.primary.withValues(alpha: 0.3),
               checkmarkColor: Theme.of(context).colorScheme.primary,
               labelStyle: TextStyle(
                 color: isSelected
@@ -198,7 +198,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.1),
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -499,7 +499,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -604,7 +604,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                                 decoration: BoxDecoration(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.primary.withOpacity(0.1),
+                                  ).colorScheme.primary.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Text(

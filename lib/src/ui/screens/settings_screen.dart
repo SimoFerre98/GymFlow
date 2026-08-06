@@ -141,8 +141,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             decoration: BoxDecoration(
                               color:
                                   _subscriptionExpiry!.isAfter(DateTime.now())
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.red.withOpacity(0.2),
+                                  ? Colors.green.withValues(alpha: 0.2)
+                                  : Colors.red.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color:
@@ -196,7 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.purpleAccent.withOpacity(0.1),
+                        color: Colors.purpleAccent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -303,7 +303,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.indigo.withOpacity(0.1),
+                        color: Colors.indigo.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(Icons.language, color: Colors.indigo),
@@ -342,7 +342,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.1),
+                        color: theme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(Icons.color_lens, color: theme.primaryColor),
@@ -357,7 +357,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         scrollDirection: Axis.horizontal,
                         children: colorPresets.map((color) {
                           final isSelected =
-                              theme.primaryColor.value == color.value;
+                              theme.primaryColor.toARGB32() ==
+                              color.toARGB32();
                           return GestureDetector(
                             onTap: () => theme.setPrimaryColor(color),
                             child: Container(
@@ -377,7 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: color.withOpacity(0.4),
+                                    color: color.withValues(alpha: 0.4),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -405,7 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     secondary: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withOpacity(0.1),
+                        color: Colors.orangeAccent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -418,7 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     value: _notificationsEnabled,
-                    activeColor: Theme.of(context).primaryColor,
+                    activeThumbColor: Theme.of(context).primaryColor,
                     onChanged: (val) =>
                         setState(() => _notificationsEnabled = val),
                   ),
@@ -428,7 +429,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.tealAccent.withOpacity(0.1),
+                        color: Colors.tealAccent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -499,7 +500,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: TextButton.icon(
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.all(16),
-                    backgroundColor: Colors.red.withOpacity(0.1),
+                    backgroundColor: Colors.red.withValues(alpha: 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -556,7 +557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -580,7 +581,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: color),

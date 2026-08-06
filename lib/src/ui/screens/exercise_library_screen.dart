@@ -50,7 +50,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
                     backgroundColor: Theme.of(context).cardColor,
                     selectedColor: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.2),
+                    ).colorScheme.primary.withValues(alpha: 0.2),
                     checkmarkColor: Theme.of(context).colorScheme.primary,
                     labelStyle: TextStyle(
                       color: isSelected
@@ -65,7 +65,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
                       side: BorderSide(
                         color: isSelected
                             ? Theme.of(context).colorScheme.primary
-                            : Colors.grey.withOpacity(0.3),
+                            : Colors.grey.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -194,7 +194,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
