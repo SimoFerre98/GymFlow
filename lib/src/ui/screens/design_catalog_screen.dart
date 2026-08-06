@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/muscle_group_visuals.dart';
+import '../../models/exercise.dart';
+import '../widgets/exercise_image.dart';
 
 /// Catalogo dei token del design system, visibile solo nelle build di debug.
 ///
@@ -36,6 +39,10 @@ class DesignCatalogScreen extends StatelessWidget {
             children: [_ElevationScale(tokens: t, scheme: scheme)],
           ),
           _Section(title: 'Movimento', children: [_MotionScale(tokens: t)]),
+          _Section(
+            title: 'Immagini degli esercizi',
+            children: const [_ExerciseImageChain(), _RegionPlaceholders()],
+          ),
           SizedBox(height: t.spacing.bottomInset),
         ],
       ),
@@ -333,6 +340,132 @@ class _MotionScaleState extends State<_MotionScale> {
           child: const Text('Anima'),
         ),
       ],
+    );
+  }
+}
+
+/// I quattro anelli della catena di ripiego, uno accanto all'altro.
+///
+/// Serve a vedere cosa fa `ExerciseImage` **prima** che finisca nelle liste
+/// vere: quale anello vince quando ce ne sono due, e cosa si vede quando quello
+/// che dovrebbe vincere non si carica. Gli indirizzi dei video sono
+/// identificativi reali della libreria curata, quindi i primi quattro casi si
+/// riempiono davvero se il telefono ha rete.
+class _ExerciseImageChain extends StatelessWidget {
+  const _ExerciseImageChain();
+
+  static Exercise _exercise({
+    String? userImageUrl,
+    String? imageUrl,
+    String? videoUrl,
+  }) {
+    return Exercise(
+      id: 'catalogo',
+      name: 'Panca piana',
+      description: '',
+      type: ExerciseType.strength,
+      userImageUrl: userImageUrl,
+      imageUrl: imageUrl,
+      videoUrl: videoUrl,
+      musclesTargeted: const ['petto'],
+    );
+  }
+
+  // Miniature di tre video diversi: si distinguono a occhio, ed e questo che
+  // rende visibile quale anello ha vinto.
+  static const _videoA = 'https://www.youtube.com/watch?v=0VUnN89pUyw';
+  static const _thumbB = 'https://img.youtube.com/vi/nclAIgM4NJE/hqdefault.jpg';
+  static const _thumbC = 'https://img.youtube.com/vi/9MY4ZJNXHYM/hqdefault.jpg';
+
+  /// Un dominio che non esiste: fallisce sempre, anche con rete.
+  static const _broken = 'https://gymflow.invalid/manca.jpg';
+
+  @override
+  Widget build(BuildContext context) {
+    final cases = <String, Exercise>{
+      'video': _exercise(videoUrl: _videoA),
+      'curata\nsopra il video': _exercise(imageUrl: _thumbB, videoUrl: _videoA),
+      'utente\nsopra tutto': _exercise(
+        userImageUrl: _thumbC,
+        imageUrl: _thumbB,
+        videoUrl: _videoA,
+      ),
+      'curata rotta:\nripiega sul video': _exercise(
+        imageUrl: _broken,
+        videoUrl: _videoA,
+      ),
+      'niente:\nsegnaposto': _exercise(),
+    };
+
+    return _CatalogTiles(
+      tiles: cases.entries
+          .map(
+            (e) => (
+              label: e.key,
+              child: ExerciseImage(exercise: e.value, decodeWidth: 88),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+/// Il segnaposto nelle sette regioni del corpo.
+class _RegionPlaceholders extends StatelessWidget {
+  const _RegionPlaceholders();
+
+  @override
+  Widget build(BuildContext context) {
+    return _CatalogTiles(
+      tiles: BodyRegion.values
+          .map(
+            (region) => (
+              label: region.name,
+              child: ExercisePlaceholder(region: region),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+/// Riquadri quadrati con etichetta, la forma in cui il catalogo mostra le
+/// immagini.
+class _CatalogTiles extends StatelessWidget {
+  const _CatalogTiles({required this.tiles});
+
+  final List<({String label, Widget child})> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.expressive;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: t.spacing.md),
+      child: Wrap(
+        spacing: t.spacing.sm,
+        runSpacing: t.spacing.sm,
+        children: tiles.map((tile) {
+          return SizedBox(
+            width: 88,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: t.shape.cornerMd,
+                  child: SizedBox.square(dimension: 88, child: tile.child),
+                ),
+                SizedBox(height: t.spacing.xs),
+                Text(
+                  tile.label,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

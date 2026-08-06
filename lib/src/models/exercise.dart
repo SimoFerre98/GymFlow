@@ -57,22 +57,72 @@ class Exercise {
     this.isCurated = false,
   });
 
-  /// Miniatura da mostrare, seguendo la catena di ripiego.
+  /// Indirizzi della miniatura, dal piu desiderabile all'ultimo ripiego.
   ///
-  /// Ordine: immagine dell'utente, immagine curata, miniatura del video.
-  /// Restituisce `null` quando nessuna delle tre esiste: sta al widget
-  /// chiamante disegnare il segnaposto, che e l'ultimo anello.
-  String? get thumbnailUrl =>
-      userImageUrl ?? imageUrl ?? YouTubeVideo.thumbnailUrl(videoUrl);
+  /// E una **lista** e non un solo indirizzo perche un URL puo esistere e non
+  /// caricarsi: se l'immagine curata risponde 404, da un singolo valore non si
+  /// torna indietro. Chi disegna cammina la lista e si ferma al primo che
+  /// funziona; quando la lista finisce, tocca al segnaposto.
+  ///
+  /// Ordine: foto dell'utente, immagine curata, miniatura del video.
+  List<String> get thumbnailCandidates =>
+      _candidates(const [YouTubeThumbQuality.high]);
 
-  /// Immagine grande per la sessione, che chiede piu risoluzione della lista.
-  String? get heroImageUrl =>
-      userImageUrl ??
-      imageUrl ??
-      YouTubeVideo.thumbnailUrl(
-        videoUrl,
-        quality: YouTubeThumbQuality.maxRes,
-      );
+  /// Indirizzi dell'immagine grande, che chiede piu risoluzione della lista.
+  ///
+  /// Contiene **due** qualita YouTube di proposito: `maxresdefault` esiste solo
+  /// per i video caricati in alta risoluzione e per gli altri risponde 404,
+  /// quindi dietro sta la qualita che esiste sempre.
+  List<String> get heroCandidates => _candidates(const [
+    YouTubeThumbQuality.maxRes,
+    YouTubeThumbQuality.high,
+  ]);
+
+  /// Miniatura da mostrare, primo anello della catena.
+  ///
+  /// `null` quando non c'e alcun indirizzo utilizzabile: sta al widget
+  /// chiamante disegnare il segnaposto, che e l'ultimo anello.
+  String? get thumbnailUrl => _firstOrNull(thumbnailCandidates);
+
+  /// Immagine grande per la sessione, primo anello della sua catena.
+  String? get heroImageUrl => _firstOrNull(heroCandidates);
+
+  /// Costruisce la catena scartando cio che non si puo chiedere alla rete.
+  ///
+  /// Un candidato che non e un URL `http`/`https` assoluto viene **saltato**,
+  /// non disegnato: un percorso locale richiederebbe un secondo percorso di
+  /// codice e un secondo insieme di errori, per un caso che oggi non esiste
+  /// (nessuno scrive ancora [userImageUrl]).
+  List<String> _candidates(List<YouTubeThumbQuality> qualities) {
+    final out = <String>[];
+
+    void add(String? url) {
+      if (url == null) return;
+      final trimmed = url.trim();
+      if (trimmed.isEmpty || !_isRemote(trimmed)) return;
+      // Se la foto dell'utente e la stessa immagine curata, chiederla due
+      // volte significherebbe due errori identici prima del segnaposto.
+      if (out.contains(trimmed)) return;
+      out.add(trimmed);
+    }
+
+    add(userImageUrl);
+    add(imageUrl);
+    for (final quality in qualities) {
+      add(YouTubeVideo.thumbnailUrl(videoUrl, quality: quality));
+    }
+    return out;
+  }
+
+  static bool _isRemote(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    final scheme = uri.scheme.toLowerCase();
+    return (scheme == 'http' || scheme == 'https') && uri.host.isNotEmpty;
+  }
+
+  static String? _firstOrNull(List<String> values) =>
+      values.isEmpty ? null : values.first;
 
   /// Indirizzo da aprire per vedere l'esecuzione: il video se c'e, altrimenti
   /// la ricerca. `null` se non c'e nemmeno quella.

@@ -203,6 +203,86 @@ void main() {
     });
   });
 
+  group('catena completa dei candidati', () {
+    test('con tutto il materiale ci sono tre anelli, nell ordine', () {
+      final e = ex(
+        userImageUrl: 'https://storage/mia.jpg',
+        imageUrl: 'https://storage/curata.jpg',
+        videoUrl: 'https://youtu.be/$id',
+      );
+      expect(e.thumbnailCandidates, [
+        'https://storage/mia.jpg',
+        'https://storage/curata.jpg',
+        'https://img.youtube.com/vi/$id/hqdefault.jpg',
+      ]);
+    });
+
+    test('senza materiale la lista e vuota: tocca al segnaposto', () {
+      expect(ex().thumbnailCandidates, isEmpty);
+      expect(ex().heroCandidates, isEmpty);
+    });
+
+    test('l immagine grande prova la risoluzione massima e poi quella sicura', () {
+      // maxresdefault esiste solo per i video caricati in alta risoluzione:
+      // senza il secondo anello, meta dei video non mostrerebbe nulla.
+      final e = ex(videoUrl: 'https://youtu.be/$id');
+      expect(e.heroCandidates, [
+        'https://img.youtube.com/vi/$id/maxresdefault.jpg',
+        'https://img.youtube.com/vi/$id/hqdefault.jpg',
+      ]);
+    });
+
+    test('un percorso locale viene saltato, non disegnato', () {
+      // Nessuno scrive ancora userImageUrl. Se un giorno ci finisse un percorso
+      // del telefono invece di un URL, l'esercizio deve mostrare l'anello
+      // successivo, non un'immagine rotta.
+      final e = ex(
+        userImageUrl: '/data/user/0/gymflow/cache/foto.jpg',
+        imageUrl: 'https://storage/curata.jpg',
+      );
+      expect(e.thumbnailCandidates, ['https://storage/curata.jpg']);
+    });
+
+    test('uno schema che non e http viene saltato', () {
+      final e = ex(userImageUrl: 'ftp://vecchio/foto.jpg');
+      expect(e.thumbnailCandidates, isEmpty);
+    });
+
+    test('gli spazi ai lati non producono un candidato diverso', () {
+      final e = ex(userImageUrl: '  https://storage/mia.jpg  ');
+      expect(e.thumbnailCandidates, ['https://storage/mia.jpg']);
+    });
+
+    test('la stringa vuota non diventa un anello', () {
+      final e = ex(userImageUrl: '', imageUrl: '   ');
+      expect(e.thumbnailCandidates, isEmpty);
+    });
+
+    test('lo stesso indirizzo due volte vale un anello solo', () {
+      // Altrimenti un caricamento fallito produrrebbe due errori identici
+      // prima di arrivare al segnaposto.
+      final e = ex(
+        userImageUrl: 'https://storage/stessa.jpg',
+        imageUrl: 'https://storage/stessa.jpg',
+      );
+      expect(e.thumbnailCandidates, ['https://storage/stessa.jpg']);
+    });
+
+    test('una ricerca non aggiunge anelli alla catena', () {
+      final e = ex(videoSearchQuery: 'panca piana bilanciere');
+      expect(e.thumbnailCandidates, isEmpty);
+    });
+
+    test('thumbnailUrl e il primo anello della sua catena', () {
+      final e = ex(
+        imageUrl: 'https://storage/curata.jpg',
+        videoUrl: 'https://youtu.be/$id',
+      );
+      expect(e.thumbnailUrl, e.thumbnailCandidates.first);
+      expect(e.heroImageUrl, e.heroCandidates.first);
+    });
+  });
+
   group('indirizzo dell esecuzione', () {
     test('con un video porta al video', () {
       final e = ex(videoUrl: 'https://youtu.be/$id');

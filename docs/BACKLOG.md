@@ -1165,7 +1165,7 @@ Dopo questa storia: un esercizio può avere immagine e video, e i valori sopravv
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-041 | **Blocks:** US-043, US-062
-**Status:** ⬜ TODO
+**Status:** 🔍 IN REVIEW — piano in [`planning/US-042.md`](planning/US-042.md), review in [`planning/US-042-review.md`](planning/US-042-review.md)
 
 **Story**
 Come atleta che sfoglia i propri esercizi,

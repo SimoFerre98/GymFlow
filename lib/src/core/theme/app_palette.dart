@@ -79,6 +79,37 @@ abstract final class AppPalette {
   static const Color warning = Color(0xFFE8B54A);
   static const Color danger = Color(0xFFE2685C);
 
+  // ── Segnaposto degli esercizi ───────────────────────────────────────────
+
+  /// Tinte del segnaposto, una per regione del corpo.
+  ///
+  /// Stanno **al posto di una fotografia**, ed e la ragione di ogni scelta che
+  /// segue: sono scure e desature come lo e una foto di palestra, e sono
+  /// identiche nei due temi, perche una fotografia non cambia quando l'app
+  /// passa da chiaro a scuro.
+  ///
+  /// Perche sette e non dodici: un colore per gruppo muscolare darebbe dodici
+  /// tinte, troppo vicine fra loro per restare distinguibili e nessuna
+  /// memorizzabile. La regione porta il colore, la sagoma porta il gruppo.
+  ///
+  /// Nessuna di queste puo essere confusa con [amber] o [salmon], che in questa
+  /// app significano rispettivamente "cosa fare adesso" e "dato vitale": sono
+  /// tutte piu scure di [indigo400], quindi leggono come superficie e non come
+  /// accento. Verificato da `test/contrast_test.dart`.
+  static const Color regionChest = Color(0xFF3E4A70);
+  static const Color regionBack = Color(0xFF2F5652);
+  static const Color regionShoulders = Color(0xFF4A3A66);
+  static const Color regionArms = Color(0xFF5B4055);
+  static const Color regionLegs = Color(0xFF3B5A3C);
+  static const Color regionCore = Color(0xFF35566B);
+  static const Color regionCardio = Color(0xFF5C3D42);
+
+  /// Colore della sagoma sul segnaposto.
+  ///
+  /// Fisso e non preso da `onSurface`: nel tema chiaro quel ruolo e quasi nero
+  /// e sparirebbe sulle tinte scure qui sopra.
+  static const Color regionGlyph = Color(0xFFD8D3EA);
+
   /// Preset che l'utente puo scegliere come colore delle azioni.
   ///
   /// Ognuno supera 4,5:1 su [indigo900] e su [indigo800]: la scelta e libera
