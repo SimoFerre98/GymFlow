@@ -1,0 +1,1208 @@
+<title>GymFlow - il resto dell app</title>
+
+<style>
+  :root {
+    /* Palette del prodotto — fissa, e' l'identita' dell'app */
+    --ink-900: #221E3A;
+    --ink-800: #312C51;
+    --ink-700: #48426D;
+    --ink-600: #5A5384;
+    --amber:   #F0C38E;
+    --salmon:  #F1AA9B;
+    --paper:   #F7F5FB;
+
+    /* Token della pagina — rispondono al tema del lettore */
+    --bg:        #F2F0F7;
+    --bg-raised: #FFFFFF;
+    --text:      #241F3C;
+    --text-dim:  #6A648A;
+    --rule:      #DEDAEA;
+    --accent:    #6B5FA8;
+
+    --step--1: clamp(.78rem, .76rem + .1vw, .84rem);
+    --step-0:  clamp(.98rem, .95rem + .15vw, 1.06rem);
+    --step-1:  clamp(1.2rem, 1.1rem + .5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem);
+    --step-3:  clamp(2.2rem, 1.5rem + 3.2vw, 4.2rem);
+
+    --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17142A;
+      --bg-raised: #221E3A;
+      --text: #EDEAF6;
+      --text-dim: #9A93BC;
+      --rule: #332C55;
+      --accent: #C4B6F5;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17142A;
+    --bg-raised: #221E3A;
+    --text: #EDEAF6;
+    --text-dim: #9A93BC;
+    --rule: #332C55;
+    --accent: #C4B6F5;
+  }
+  :root[data-theme="light"] {
+    --bg: #F2F0F7;
+    --bg-raised: #FFFFFF;
+    --text: #241F3C;
+    --text-dim: #6A648A;
+    --rule: #DEDAEA;
+    --accent: #6B5FA8;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1140px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
+
+  /* ---------- intestazione ---------- */
+  .masthead { padding: clamp(3rem, 9vw, 6.5rem) 0 clamp(2rem, 5vw, 3.5rem); }
+  .eyebrow {
+    font-size: var(--step--1); text-transform: uppercase; letter-spacing: .18em;
+    color: var(--text-dim); font-weight: 600; margin: 0 0 1.2rem;
+  }
+  h1 {
+    font-size: var(--step-3); line-height: .95; letter-spacing: -.045em;
+    font-weight: 800; margin: 0 0 1.4rem; text-wrap: balance;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lede { font-size: var(--step-1); color: var(--text-dim); max-width: 34ch; margin: 0; line-height: 1.4; }
+
+  /* ---------- palette ---------- */
+  .swatches { display: flex; flex-wrap: wrap; gap: .6rem; margin: 2.5rem 0 0; }
+  .sw {
+    border-radius: 14px; padding: .85rem .95rem; min-width: 116px;
+    font-family: var(--mono); font-size: var(--step--1); line-height: 1.35;
+  }
+  .sw b { display: block; font-family: var(--sans); font-weight: 700; letter-spacing: -.01em; }
+  .sw i { font-style: normal; opacity: .72; }
+
+  /* ---------- sezioni ---------- */
+  section { padding: clamp(2.5rem, 6vw, 4.5rem) 0; }
+  h2 {
+    font-size: var(--step-2); letter-spacing: -.035em; font-weight: 800;
+    margin: 0 0 .5rem; line-height: 1.05; text-wrap: balance;
+  }
+  .sub { color: var(--text-dim); max-width: 62ch; margin: 0 0 2.5rem; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  /* ---------- vetrina telefoni ---------- */
+  .stage {
+    display: grid; gap: clamp(1.5rem, 3vw, 2.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+    align-items: start;
+  }
+  .slot { display: flex; flex-direction: column; gap: 1rem; }
+  .cap b { display: block; font-weight: 700; letter-spacing: -.015em; }
+  .cap span { color: var(--text-dim); font-size: var(--step--1); }
+
+  /* telaio del telefono */
+  .phone {
+    width: 100%; max-width: 300px; margin: 0 auto; aspect-ratio: 300 / 620;
+    background: var(--ink-800); border-radius: 38px; padding: 9px;
+    box-shadow: 0 2px 4px rgba(20,16,40,.2), 0 24px 48px -12px rgba(20,16,40,.45);
+    position: relative;
+  }
+  .screen {
+    height: 100%; border-radius: 30px; overflow: hidden; position: relative;
+    background: var(--ink-900); color: var(--paper);
+    display: flex; flex-direction: column;
+    font-size: 11px; line-height: 1.35;
+  }
+  .notch {
+    position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+    width: 78px; height: 5px; border-radius: 99px; background: rgba(247,245,251,.22); z-index: 5;
+  }
+  .screen-body { flex: 1; overflow: hidden; padding: 26px 14px 0; display: flex; flex-direction: column; gap: 11px; }
+
+  /* elementi interni */
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .greet { font-size: 9.5px; color: rgba(247,245,251,.6); letter-spacing: .04em; }
+  .uname { font-size: 16px; font-weight: 800; letter-spacing: -.03em; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 11px; flex: none;
+    background: linear-gradient(140deg, var(--salmon), var(--amber));
+    display: grid; place-items: center; color: var(--ink-800); font-weight: 800; font-size: 11px;
+  }
+  .card {
+    background: var(--ink-700); border-radius: 20px; padding: 12px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2.5px 8px;
+    border-radius: 99px; font-size: 8.5px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .pill.amber  { background: rgba(240,195,142,.2); color: var(--amber); }
+  .pill.salmon { background: rgba(241,170,155,.2); color: var(--salmon); }
+  .pill.calm   { background: rgba(247,245,251,.13); color: rgba(247,245,251,.82); }
+  .cta {
+    background: var(--amber); color: var(--ink-800); border-radius: 99px;
+    padding: 9px 14px; font-weight: 800; font-size: 10.5px; letter-spacing: -.01em;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .cta .arw {
+    width: 20px; height: 20px; border-radius: 99px; background: var(--ink-800);
+    color: var(--amber); display: grid; place-items: center; font-size: 11px; flex: none;
+  }
+  .metric { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -.02em; }
+  .lbl { font-size: 8.5px; color: rgba(247,245,251,.58); letter-spacing: .06em; text-transform: uppercase; }
+  .sect { font-size: 11.5px; font-weight: 800; letter-spacing: -.02em; margin-top: 1px; }
+
+  /* riga esercizio con miniatura */
+  .exr { display: flex; gap: 9px; align-items: center; background: var(--ink-700); border-radius: 16px; padding: 8px; }
+  .thumb {
+    width: 40px; height: 40px; border-radius: 12px; flex: none; position: relative; overflow: hidden;
+    background: linear-gradient(150deg, var(--ink-600), var(--ink-800));
+    display: grid; place-items: center;
+  }
+  .thumb svg { width: 21px; height: 21px; opacity: .92; }
+  .play {
+    position: absolute; right: 2px; bottom: 2px; width: 13px; height: 13px; border-radius: 99px;
+    background: var(--salmon); color: var(--ink-800);
+    display: grid; place-items: center; font-size: 7px; font-weight: 900;
+  }
+  .exr-meta { display: flex; gap: 7px; color: rgba(247,245,251,.55); font-size: 8.5px; margin-top: 2px; }
+
+  /* anello di avanzamento */
+  .ring { width: 52px; height: 52px; flex: none; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .track { stroke: rgba(247,245,251,.14); }
+  .ring .fill { stroke: var(--amber); stroke-linecap: round; }
+  .ring .pct {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; font-size: 11px; color: var(--paper);
+  }
+  .anim .fill { animation: draw 1.5s cubic-bezier(.2,0,0,1) both; }
+  @keyframes draw { from { stroke-dashoffset: var(--circ); } }
+
+  /* foto esercizio a piena larghezza */
+  .hero-shot {
+    position: relative; border-radius: 20px; overflow: hidden; flex: 1; min-height: 0;
+    background:
+      radial-gradient(120% 80% at 70% 15%, rgba(241,170,155,.34), transparent 60%),
+      radial-gradient(90% 70% at 20% 85%, rgba(240,195,142,.26), transparent 62%),
+      linear-gradient(160deg, var(--ink-700), var(--ink-900));
+    display: grid; place-items: center;
+  }
+  .hero-shot .figure { width: 96px; height: 96px; opacity: .95; }
+  .shot-tag { position: absolute; top: 10px; left: 10px; }
+
+  /* pannello metriche dal vivo */
+  .live {
+    position: absolute; left: 9px; right: 9px; bottom: 9px;
+    background: rgba(34,30,58,.9); backdrop-filter: blur(10px);
+    border: 1px solid rgba(247,245,251,.1);
+    border-radius: 18px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .clock { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .clock .t { font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: -.04em; color: var(--amber); }
+  .pausebtn {
+    width: 28px; height: 28px; border-radius: 99px; background: var(--amber); color: var(--ink-800);
+    display: grid; place-items: center; font-size: 11px; font-weight: 900; flex: none;
+  }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .mini { background: rgba(247,245,251,.07); border-radius: 13px; padding: 7px 8px; }
+  .mini .v { font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: -.03em; }
+
+  .spark { display: block; width: 100%; height: 22px; }
+  .spark path.line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .anim .spark path.line { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: trace 1.9s .3s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes trace { to { stroke-dashoffset: 0; } }
+
+  /* griglia statistiche */
+  .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bento .card { padding: 10px; gap: 5px; }
+  .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 5px; height: 74px; }
+  .bar { flex: 1; border-radius: 99px 99px 4px 4px; background: rgba(247,245,251,.18); transform-origin: bottom; }
+  .bar.on { background: var(--amber); }
+  .anim .bar { animation: rise .8s cubic-bezier(.2,0,0,1) both; }
+  @keyframes rise { from { transform: scaleY(.04); } }
+  .days { display: flex; justify-content: space-between; font-size: 7.5px; color: rgba(247,245,251,.5); letter-spacing: .04em; }
+
+  .datesel { display: flex; gap: 4px; align-items: center; justify-content: space-between; }
+  .d { font-size: 9px; color: rgba(247,245,251,.45); font-family: var(--mono); }
+  .d.now {
+    background: var(--paper); color: var(--ink-800); border-radius: 99px;
+    padding: 4px 9px; font-weight: 800; font-family: var(--sans); font-size: 8.5px; letter-spacing: -.01em;
+  }
+
+  /* barra di navigazione */
+  .nav {
+    margin: 9px; border-radius: 20px; background: var(--ink-700);
+    display: flex; justify-content: space-around; padding: 9px 6px; flex: none;
+  }
+  .nav i { width: 17px; height: 17px; display: block; opacity: .42; }
+  .nav i.sel { opacity: 1; color: var(--amber); }
+
+  /* card ambra piena — il livello primario */
+  .card.solid { background: var(--amber); color: var(--ink-800); }
+  .card.solid .lbl { color: rgba(49,44,81,.62); }
+  .card.outline { background: transparent; border: 1.4px solid var(--amber); }
+  .chip-dark {
+    background: var(--ink-800); color: var(--amber); border-radius: 99px;
+    padding: 4px 10px; font-size: 8.5px; font-weight: 800; letter-spacing: .02em;
+    display: inline-block;
+  }
+
+  /* cursore per peso, ripetizioni, sforzo */
+  .slider { display: flex; flex-direction: column; gap: 5px; }
+  .track {
+    position: relative; height: 15px; display: flex; align-items: center;
+  }
+  .track .dots { display: flex; justify-content: space-between; width: 100%; }
+  .track .dots span { width: 3px; height: 3px; border-radius: 99px; background: rgba(247,245,251,.26); }
+  .track .fillbar {
+    position: absolute; left: 0; height: 3px; border-radius: 99px; background: var(--amber);
+  }
+  .track .knob {
+    position: absolute; width: 15px; height: 15px; border-radius: 99px;
+    background: var(--amber); border: 2.5px solid var(--ink-700);
+    box-shadow: 0 0 0 1.5px var(--amber);
+  }
+  .anim .track .fillbar { animation: grow 1s .2s cubic-bezier(.2,0,0,1) both; }
+  @keyframes grow { from { width: 0 !important; } }
+
+  /* scontrino di fine allenamento */
+  .receipt {
+    background: var(--amber); color: var(--ink-800); border-radius: 16px;
+    padding: 11px 12px 14px; position: relative;
+  }
+  .receipt::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 10px;
+    background: radial-gradient(circle at 5px 0, transparent 0 5px, var(--amber) 5px) repeat-x;
+    background-size: 10px 10px;
+  }
+  .receipt .rrow {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 4px 0; border-bottom: 1px dashed rgba(49,44,81,.28); font-size: 9px;
+  }
+  .receipt .rrow:last-of-type { border-bottom: 0; }
+  .receipt .rrow b { font-family: var(--mono); font-weight: 700; letter-spacing: -.02em; }
+
+  /* avatar sovrapposti */
+  .stack { display: flex; }
+  .stack span {
+    width: 21px; height: 21px; border-radius: 99px; margin-left: -6px;
+    border: 2px solid var(--ink-700); display: grid; place-items: center;
+    font-size: 8px; font-weight: 800; color: var(--ink-800);
+  }
+  .stack span:first-child { margin-left: 0; }
+
+  /* pulsante con frecce progressive */
+  .advance {
+    background: var(--amber); color: var(--ink-800); border-radius: 99px;
+    padding: 9px 13px; font-weight: 800; font-size: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .advance .chev { display: flex; gap: 1px; }
+  .advance .chev i { font-style: normal; opacity: .3; }
+  .anim .advance .chev i { animation: pulse 1.4s infinite; }
+  .anim .advance .chev i:nth-child(2) { animation-delay: .18s; }
+  .anim .advance .chev i:nth-child(3) { animation-delay: .36s; }
+  @keyframes pulse { 0%,100% { opacity: .28; } 45% { opacity: 1; } }
+
+  /* catena di ripiego dell'immagine */
+  .chain { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .link {
+    background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: .45rem; position: relative;
+  }
+  .link .ord {
+    font-family: var(--mono); font-size: var(--step--1); font-weight: 700;
+    color: var(--accent); letter-spacing: .05em;
+  }
+  .link h4 { margin: 0; font-size: var(--step-0); font-weight: 800; letter-spacing: -.015em; }
+  .link p { margin: 0; color: var(--text-dim); font-size: var(--step--1); line-height: 1.5; }
+  .link code {
+    font-family: var(--mono); font-size: .82em; background: rgba(107,95,168,.12);
+    padding: .12rem .38rem; border-radius: 5px; word-break: break-all;
+  }
+
+  /* ---------- confronto ---------- */
+  .versus { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .vs-card { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 18px; padding: 1.4rem 1.5rem; }
+  .vs-card h3 { margin: 0 0 .9rem; font-size: var(--step-0); letter-spacing: -.01em; font-weight: 800; }
+  .vs-card ul { margin: 0; padding-left: 1.05rem; display: flex; flex-direction: column; gap: .55rem; }
+  .vs-card li { color: var(--text-dim); }
+  .tag {
+    display: inline-block; font-size: var(--step--1); font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; padding: .2rem .6rem; border-radius: 99px; margin-bottom: .8rem;
+  }
+  .tag.was { background: rgba(122,112,158,.16); color: var(--text-dim); }
+  .tag.now { background: rgba(107,95,168,.16); color: var(--accent); }
+  :root[data-theme="dark"] .tag.now, :root:not([data-theme="light"]) .tag.now { }
+
+  /* ---------- funzionalita' ---------- */
+  .feats { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(252px, 1fr)); }
+  .feat {
+    background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 18px;
+    padding: 1.3rem 1.4rem; display: flex; flex-direction: column; gap: .5rem;
+    transition: transform .22s cubic-bezier(.2,0,0,1), border-color .22s;
+  }
+  .feat:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .feat .n {
+    font-family: var(--mono); font-size: var(--step--1); color: var(--accent);
+    font-weight: 700; letter-spacing: .04em;
+  }
+  .feat h3 { margin: 0; font-size: var(--step-0); font-weight: 800; letter-spacing: -.015em; }
+  .feat p { margin: 0; color: var(--text-dim); font-size: var(--step--1); line-height: 1.55; }
+
+  table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+  .scroller { overflow-x: auto; }
+  th, td { text-align: left; padding: .65rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: var(--step--1); text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); font-weight: 700; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  footer { padding: 3rem 0 4rem; color: var(--text-dim); font-size: var(--step--1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .anim .spark path.line { stroke-dashoffset: 0; }
+  }
+</style>
+
+<style>
+  /* aggiunte specifiche di questa pagina */
+  .seg { display:flex; gap:4px; background:rgba(247,245,251,.08); border-radius:99px; padding:3px; }
+  .seg span { flex:1; text-align:center; font-size:8.5px; font-weight:700; padding:5px 0; border-radius:99px; color:rgba(247,245,251,.6); }
+  .seg span.on { background:var(--amber); color:var(--ink-800); }
+  .field { background:rgba(247,245,251,.07); border-radius:12px; padding:8px 10px; }
+  .field .lbl { margin-bottom:2px; }
+  .field .val { font-size:10.5px; font-weight:600; }
+  .chips { display:flex; flex-wrap:wrap; gap:4px; }
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal b { font-size:7.5px; color:rgba(247,245,251,.45); text-align:center; font-weight:600; padding-bottom:2px; }
+  .cal i { font-style:normal; aspect-ratio:1; display:grid; place-items:center; font-size:8.5px; border-radius:8px; position:relative; font-family:var(--mono); }
+  .cal i.o { color:rgba(247,245,251,.22); }
+  .cal i .dot { position:absolute; bottom:2px; width:3px; height:3px; border-radius:99px; }
+  .cal i.sel { background:var(--amber); color:var(--ink-800); font-weight:800; }
+  .toggle { width:26px; height:15px; border-radius:99px; background:rgba(247,245,251,.18); position:relative; flex:none; }
+  .toggle.on { background:var(--amber); }
+  .toggle::after { content:""; position:absolute; top:2px; left:2px; width:11px; height:11px; border-radius:99px; background:var(--paper); }
+  .toggle.on::after { left:13px; background:var(--ink-800); }
+  .badge-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .bdg { aspect-ratio:1; border-radius:16px; display:grid; place-items:center; position:relative; }
+  .bdg.got { background:linear-gradient(150deg, var(--amber), var(--salmon)); color:var(--ink-800); }
+  .bdg.locked { background:rgba(247,245,251,.06); color:rgba(247,245,251,.25); border:1px dashed rgba(247,245,251,.14); }
+  .bdg svg { width:22px; height:22px; }
+  .notif {
+    background:#F7F5FB; color:#241F3C; border-radius:16px; padding:9px 10px;
+    display:flex; gap:9px; align-items:center; box-shadow:0 8px 24px -8px rgba(20,16,40,.5);
+  }
+  .notif .ic { width:26px; height:26px; border-radius:8px; background:var(--ink-800); display:grid; place-items:center; flex:none; }
+  .lock { background:linear-gradient(170deg,#2A2547,#171331); }
+  .pill-float {
+    position:absolute; left:50%; transform:translateX(-50%); top:8px;
+    background:var(--ink-800); border:1px solid rgba(240,195,142,.4);
+    border-radius:99px; padding:5px 11px; display:flex; align-items:center; gap:7px;
+    box-shadow:0 6px 18px -6px rgba(0,0,0,.6); z-index:6;
+  }
+  .goal-ring { position:relative; width:44px; height:44px; flex:none; }
+  .goal-ring svg { transform:rotate(-90deg); }
+  .goal-ring .pc { position:absolute; inset:0; display:grid; place-items:center; font-family:var(--mono); font-size:9.5px; font-weight:700; }
+</style>
+
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">GymFlow · parte seconda</p>
+    <h1>Il resto<br>dell'<em>applicazione</em></h1>
+    <p class="lede">Otto schermate che completano il quadro: dalla libreria esercizi al timer che sopravvive all'uscita dall'app, fino agli allenamenti che non si fanno in palestra.</p>
+  </header>
+
+  <hr>
+
+  <section>
+    <h2>Esercizi e schede</h2>
+    <p class="sub">La libreria è il magazzino da cui si costruisce tutto. Serve che aggiungere un esercizio sia rapido, e che partire da uno esistente sia più rapido ancora.</p>
+
+    <div class="stage">
+
+      <!-- LIBRERIA -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Esercizi</span>
+                <span class="chip-dark">142</span>
+              </div>
+
+              <div class="field" style="display:flex;align-items:center;gap:7px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(247,245,251,.5)" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+                <span style="font-size:9.5px;color:rgba(247,245,251,.45)">Cerca fra i tuoi esercizi</span>
+              </div>
+
+              <div class="seg">
+                <span class="on">Tutti</span><span>Miei</span><span>Recenti</span>
+              </div>
+
+              <div class="chips">
+                <span class="pill amber">Petto</span>
+                <span class="pill calm">Schiena</span>
+                <span class="pill calm">Gambe</span>
+                <span class="pill calm">Spalle</span>
+              </div>
+
+              <div class="exr">
+                <div class="thumb">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F0C38E" stroke-width="2" stroke-linecap="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg>
+                  <span class="play">▶</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:10.5px">Panca piana</div>
+                  <div class="exr-meta"><span>Petto · Tricipiti</span></div>
+                </div>
+              </div>
+              <div class="exr">
+                <div class="thumb">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F1AA9B" stroke-width="2" stroke-linecap="round"><path d="M12 3v8M8 11h8M7 21l2-7M17 21l-2-7"/></svg>
+                  <span class="play">▶</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:10.5px">Panca inclinata</div>
+                  <div class="exr-meta"><span>Petto alto</span><span>·</span><span style="color:var(--amber)">tuo</span></div>
+                </div>
+              </div>
+              <div class="exr" style="opacity:.72">
+                <div class="thumb" style="background:linear-gradient(150deg,#5A5384,#312C51)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="rgba(247,245,251,.6)" stroke-width="2" stroke-linecap="round"><path d="M6 18L10 6M18 18L14 6"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:10.5px">Croci ai cavi</div>
+                  <div class="exr-meta"><span>senza video</span></div>
+                </div>
+              </div>
+
+              <div class="cta" style="margin-top:auto;margin-bottom:9px">
+                <span>Nuovo esercizio</span>
+                <span class="arw">+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Libreria — filtri prima della ricerca</b>
+          <span>Chip per gruppo muscolare sopra la lista: si arriva all'esercizio in due tocchi invece che digitando. Il terzo elemento mostra come appare un esercizio senza video, con il segnaposto generato.</span>
+        </div>
+      </div>
+
+      <!-- NUOVO ESERCIZIO -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span class="pill calm">← Annulla</span>
+                <span style="font-size:11px;font-weight:800">Nuovo esercizio</span>
+              </div>
+
+              <div class="card outline" style="padding:9px;gap:6px">
+                <div class="row">
+                  <span class="lbl" style="color:var(--amber)">Parti da uno esistente</span>
+                  <span style="color:var(--amber);font-size:11px">→</span>
+                </div>
+                <div style="font-size:8.5px;opacity:.6">Copia nome, gruppi e video, poi modifica</div>
+              </div>
+
+              <div class="field">
+                <div class="lbl">Nome</div>
+                <div class="val">Spinte manubri inclinate</div>
+              </div>
+
+              <div>
+                <div class="lbl" style="margin-bottom:4px">Tipo</div>
+                <div class="chips">
+                  <span class="pill amber">Forza</span>
+                  <span class="pill calm">Cardio</span>
+                  <span class="pill calm">Mobilità</span>
+                  <span class="pill calm">Isometrico</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="lbl" style="margin-bottom:4px">Gruppi muscolari</div>
+                <div class="chips">
+                  <span class="pill salmon">Petto alto</span>
+                  <span class="pill salmon">Spalle</span>
+                  <span class="pill calm">+ aggiungi</span>
+                </div>
+              </div>
+
+              <div class="row" style="gap:7px">
+                <div class="field" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-4-4 3-2-1.5L3 19"/></svg>
+                  <span style="font-size:8.5px">Foto</span>
+                </div>
+                <div class="field" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:1.2px solid rgba(241,170,155,.5)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--salmon)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="var(--salmon)" stroke="none"/></svg>
+                  <span style="font-size:8.5px;color:var(--salmon)">Video collegato</span>
+                </div>
+              </div>
+
+              <div class="cta" style="margin-top:auto;margin-bottom:9px">
+                <span>Salva esercizio</span>
+                <span class="arw">✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Nuovo esercizio — la scorciatoia in cima</b>
+          <span>"Parti da uno esistente" è la prima cosa che si vede, perché è il caso più frequente: una variante di qualcosa che c'è già. Il tipo determina quali campi comparirann nella scheda.</span>
+        </div>
+      </div>
+
+      <!-- TIPI DI ALLENAMENTO -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span class="pill calm">← Nuova scheda</span>
+              </div>
+
+              <div style="font-size:14px;font-weight:800;letter-spacing:-.03em;margin-bottom:2px">Che tipo di<br>allenamento?</div>
+
+              <div class="card solid" style="gap:6px">
+                <div class="row">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-800)" stroke-width="2.2" stroke-linecap="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg>
+                  <span class="chip-dark">selezionato</span>
+                </div>
+                <div style="font-size:12px;font-weight:800;letter-spacing:-.02em">Palestra</div>
+                <div style="font-size:8.5px;color:rgba(49,44,81,.72)">Serie, ripetizioni, carico, recupero</div>
+              </div>
+
+              <div class="card" style="gap:5px;padding:10px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--salmon)" stroke-width="2.2" stroke-linecap="round"><path d="M13 4l-2 6h5l-3 10"/><circle cx="17" cy="5" r="2"/></svg>
+                <div style="font-size:11px;font-weight:800">Cardio</div>
+                <div style="font-size:8.5px;opacity:.58">Distanza, durata, ritmo, battito</div>
+              </div>
+
+              <div class="card" style="gap:5px;padding:10px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B9AEE8" stroke-width="2.2" stroke-linecap="round"><path d="M12 5a3 3 0 100-2M6 20l4-8 4 3 4-7"/></svg>
+                <div style="font-size:11px;font-weight:800">Mobilità</div>
+                <div style="font-size:8.5px;opacity:.58">Durata per posizione, lato</div>
+              </div>
+
+              <div class="card" style="gap:5px;padding:10px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(247,245,251,.8)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg>
+                <div style="font-size:11px;font-weight:800">Sport</div>
+                <div style="font-size:8.5px;opacity:.58">Durata, intensità, note libere</div>
+              </div>
+
+              <div class="cta" style="margin-top:auto;margin-bottom:9px">
+                <span>Continua</span>
+                <span class="arw">→</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Tipi di allenamento — campi diversi, non solo etichette</b>
+          <span>Il tipo scelto cambia cosa si registra: una corsa non ha serie e ripetizioni, uno stretching non ha carico. Oggi l'app forza tutto nello schema della palestra.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Il timer che non si perde</h2>
+    <p class="sub">La richiesta più impegnativa dell'elenco, e vale la pena spiegare perché. Dentro l'app la pillola è un widget. Fuori dall'app non lo è più: serve una notifica di sistema che vive per conto suo.</p>
+
+    <div class="stage">
+
+      <!-- TIMER SCHERMATA -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Tempo</span>
+              </div>
+              <div class="seg"><span class="on">Cronometro</span><span>Recupero</span></div>
+
+              <div class="card" style="align-items:center;padding:18px 12px;gap:12px">
+                <div class="ring" style="width:112px;height:112px">
+                  <svg viewBox="0 0 112 112" width="112" height="112" aria-hidden="true">
+                    <circle class="track" cx="56" cy="56" r="49" fill="none" stroke-width="7"></circle>
+                    <circle class="fill" cx="56" cy="56" r="49" fill="none" stroke-width="7"
+                            stroke-dasharray="307.9" stroke-dashoffset="92" style="--circ:307.9"></circle>
+                  </svg>
+                  <div class="pct" style="font-size:19px;letter-spacing:-.04em">01:28</div>
+                </div>
+                <div class="row" style="width:100%;gap:7px">
+                  <div class="field" style="flex:1;text-align:center;padding:7px">
+                    <div class="lbl">Giro</div><div class="metric" style="font-size:11px">3</div>
+                  </div>
+                  <div class="field" style="flex:1;text-align:center;padding:7px">
+                    <div class="lbl">Totale</div><div class="metric" style="font-size:11px">04:52</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" style="gap:7px">
+                <div class="card outline" style="flex:1;align-items:center;padding:10px">
+                  <span style="font-size:10px;font-weight:800;color:var(--amber)">Giro</span>
+                </div>
+                <div class="cta" style="flex:2;justify-content:center">
+                  <span>Metti in pausa</span>
+                </div>
+              </div>
+
+              <div class="chips" style="margin-top:2px">
+                <span class="pill calm">1 min</span>
+                <span class="pill amber">90 sec</span>
+                <span class="pill calm">2 min</span>
+                <span class="pill calm">3 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Tempo — cronometro e recupero</b>
+          <span>Anello che si svuota invece di soli numeri: il tempo rimanente si valuta con la coda dell'occhio, mentre sei sotto il bilanciere. I preset sono quelli veri dei recuperi.</span>
+        </div>
+      </div>
+
+      <!-- PILLOLA IN APP -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="pill-float">
+              <span style="width:6px;height:6px;border-radius:99px;background:var(--salmon)"></span>
+              <span class="metric" style="font-size:11px;color:var(--amber)">01:12</span>
+              <span style="font-size:8.5px;opacity:.7">recupero</span>
+              <span style="width:15px;height:15px;border-radius:99px;background:var(--amber);color:var(--ink-800);display:grid;place-items:center;font-size:7px;font-weight:900">❙❙</span>
+            </div>
+            <div class="screen-body" style="padding-top:36px">
+              <div class="row">
+                <div>
+                  <div class="greet">Bentornato</div>
+                  <div class="uname">Simone</div>
+                </div>
+                <div class="avatar">S</div>
+              </div>
+              <div class="card">
+                <div class="row">
+                  <span class="pill calm">In corso</span>
+                  <span class="lbl">Giorno 3 / 5</span>
+                </div>
+                <div style="font-size:13.5px;font-weight:800;letter-spacing:-.03em">Spinte</div>
+                <div class="cta"><span>Riprendi</span><span class="arw">→</span></div>
+              </div>
+              <div class="exr">
+                <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#F0C38E" stroke-width="2" stroke-linecap="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg></div>
+                <div style="flex:1"><div style="font-weight:700;font-size:10.5px">Panca piana</div><div class="exr-meta"><span>4 × 8</span></div></div>
+              </div>
+              <div class="exr">
+                <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="#F1AA9B" stroke-width="2" stroke-linecap="round"><path d="M12 4v7M8 11h8M7 20l2-6M17 20l-2-6"/></svg></div>
+                <div style="flex:1"><div style="font-weight:700;font-size:10.5px">Stacco</div><div class="exr-meta"><span>3 × 5</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Dentro l'app — la pillola segue ovunque</b>
+          <span>Resta ancorata in alto su qualunque schermata mentre il tempo scorre, con un tocco per tornare al timer. Esiste già oggi, ma trascinabile e sovrapposta ai contenuti: qui prende un posto stabile.</span>
+        </div>
+      </div>
+
+      <!-- FUORI DALL'APP -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen lock anim">
+            <div class="screen-body" style="justify-content:flex-start;padding-top:34px">
+              <div style="text-align:center;margin-bottom:14px">
+                <div class="metric" style="font-size:34px;letter-spacing:-.05em;font-weight:700">9:41</div>
+                <div style="font-size:9px;opacity:.6">giovedì 6 agosto</div>
+              </div>
+
+              <div class="notif">
+                <div class="ic">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9px;font-weight:800;letter-spacing:-.01em">GymFlow · recupero</div>
+                  <div style="font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:-.03em;color:#312C51">01:12</div>
+                  <div style="height:3px;border-radius:99px;background:rgba(49,44,81,.14);margin-top:4px;overflow:hidden">
+                    <div style="width:62%;height:100%;background:var(--amber)"></div>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:7.5px;background:#312C51;color:var(--amber);padding:3px 7px;border-radius:99px;font-weight:700">Pausa</span>
+                  <span style="font-size:7.5px;background:rgba(49,44,81,.1);color:#312C51;padding:3px 7px;border-radius:99px;font-weight:700">+30s</span>
+                </div>
+              </div>
+
+              <div style="margin-top:10px;text-align:center;font-size:8px;opacity:.42;line-height:1.5">
+                notifica persistente · Android 16<br>visibile anche a schermo bloccato
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Fuori dall'app — servizio in primo piano</b>
+          <span>Il tempo scorre nella notifica, con i comandi raggiungibili senza sbloccare. Richiede un servizio nativo Android e il permesso relativo: non è un widget Flutter, è una storia a sé.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Programmare, misurare, ottenere</h2>
+    <p class="sub">Calendario, obiettivi, gamificazione e peso corporeo raccontano la stessa cosa su scale diverse: cosa hai in programma, cosa stai ottenendo, quanto sei costante.</p>
+
+    <div class="stage">
+
+      <!-- CALENDARIO -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Agosto</span>
+                <span class="chip-dark">12 allenamenti</span>
+              </div>
+
+              <div class="card" style="padding:10px;gap:6px">
+                <div class="cal">
+                  <b>L</b><b>M</b><b>M</b><b>G</b><b>V</b><b>S</b><b>D</b>
+                  <i class="o">28</i><i class="o">29</i><i class="o">30</i><i class="o">31</i>
+                  <i>1<span class="dot" style="background:var(--amber)"></span></i><i>2</i><i>3<span class="dot" style="background:var(--salmon)"></span></i>
+                  <i>4<span class="dot" style="background:var(--amber)"></span></i><i>5</i><i class="sel">6</i><i>7<span class="dot" style="background:var(--salmon)"></span></i><i>8<span class="dot" style="background:var(--amber)"></span></i><i>9</i><i>10</i>
+                  <i>11<span class="dot" style="background:var(--amber)"></span></i><i>12</i><i>13<span class="dot" style="background:#B9AEE8"></span></i><i>14</i><i>15<span class="dot" style="background:var(--amber)"></span></i><i>16</i><i>17</i>
+                  <i>18</i><i>19</i><i>20</i><i>21</i><i>22</i><i>23</i><i>24</i>
+                </div>
+                <div class="row" style="justify-content:flex-start;gap:9px;font-size:7.5px;opacity:.6;padding-top:3px">
+                  <span><b style="color:var(--amber)">●</b> palestra</span>
+                  <span><b style="color:var(--salmon)">●</b> cardio</span>
+                  <span><b style="color:#B9AEE8">●</b> mobilità</span>
+                </div>
+              </div>
+
+              <div class="sect">Oggi</div>
+              <div class="card outline" style="padding:10px;gap:5px">
+                <div class="row">
+                  <span class="pill amber">Palestra</span>
+                  <span class="lbl">18:30</span>
+                </div>
+                <div style="font-size:11px;font-weight:800">Spinte · giorno 3</div>
+                <div style="font-size:8.5px;opacity:.6">6 esercizi · circa 50 min</div>
+              </div>
+
+              <div class="exr" style="padding:9px">
+                <div style="width:34px;height:34px;border-radius:11px;background:rgba(241,170,155,.16);display:grid;place-items:center;flex:none">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--salmon)" stroke-width="2.2" stroke-linecap="round"><path d="M13 4l-2 6h5l-3 10"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:10px">Corsa leggera</div>
+                  <div class="exr-meta"><span>domani · 7:00</span></div>
+                </div>
+              </div>
+
+              <div class="cta" style="margin-top:auto;margin-bottom:9px">
+                <span>Programma allenamento</span>
+                <span class="arw">+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Calendario — il colore dice il tipo</b>
+          <span>Un pallino per allenamento, colorato per tipo: la costanza si legge dalla griglia senza aprire nulla. Sotto, il dettaglio del giorno scelto e il prossimo impegno.</span>
+        </div>
+      </div>
+
+      <!-- OBIETTIVI -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Obiettivi</span>
+                <span class="chip-dark">3 attivi</span>
+              </div>
+
+              <div class="card solid" style="gap:8px">
+                <div class="row">
+                  <span class="chip-dark">Settimana</span>
+                  <span style="font-size:8.5px;color:rgba(49,44,81,.7)">mancano 2 giorni</span>
+                </div>
+                <div class="row">
+                  <div>
+                    <div style="font-size:12px;font-weight:800;letter-spacing:-.02em">4 allenamenti</div>
+                    <div style="font-size:8.5px;color:rgba(49,44,81,.72)">ne hai fatti 3</div>
+                  </div>
+                  <div class="goal-ring">
+                    <svg viewBox="0 0 44 44" width="44" height="44">
+                      <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(49,44,81,.18)" stroke-width="5"/>
+                      <circle class="fill" cx="22" cy="22" r="18" fill="none" stroke="#312C51" stroke-width="5"
+                              stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="28" style="--circ:113"/>
+                    </svg>
+                    <div class="pc" style="color:var(--ink-800)">3/4</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="gap:7px">
+                <div class="row">
+                  <span class="lbl">Panca piana</span>
+                  <span class="metric" style="font-size:10px;color:var(--amber)">62,5 / 70 kg</span>
+                </div>
+                <div style="height:5px;border-radius:99px;background:rgba(247,245,251,.13);overflow:hidden">
+                  <div class="fillbar" style="width:78%;height:100%;background:var(--amber);border-radius:99px;position:static"></div>
+                </div>
+                <div style="font-size:8px;opacity:.55">obiettivo entro ottobre · +2,5 kg questo mese</div>
+              </div>
+
+              <div class="card" style="gap:7px">
+                <div class="row">
+                  <span class="lbl">Peso corporeo</span>
+                  <span class="metric" style="font-size:10px;color:var(--salmon)">78,4 / 76 kg</span>
+                </div>
+                <div style="height:5px;border-radius:99px;background:rgba(247,245,251,.13);overflow:hidden">
+                  <div class="fillbar" style="width:52%;height:100%;background:var(--salmon);border-radius:99px;position:static"></div>
+                </div>
+                <div style="font-size:8px;opacity:.55">−1,6 kg da giugno</div>
+              </div>
+
+              <div class="card outline" style="padding:9px;gap:4px">
+                <div class="row">
+                  <span class="lbl" style="color:var(--amber)">Raggiunto a luglio</span>
+                  <span style="font-size:11px;color:var(--amber)">✓</span>
+                </div>
+                <div style="font-size:9.5px;font-weight:700">Stacco 100 kg</div>
+              </div>
+
+              <div class="cta" style="margin-top:auto;margin-bottom:9px">
+                <span>Nuovo obiettivo</span><span class="arw">+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Obiettivi — tre scale temporali insieme</b>
+          <span>La settimana in corso in ambra pieno perché è l'unica su cui puoi agire oggi. Sotto, i traguardi di carico e peso con l'andamento. In fondo quelli già raggiunti, che restano visibili.</span>
+        </div>
+      </div>
+
+      <!-- GAMIFICAZIONE -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Traguardi</span>
+                <span class="chip-dark">9 / 24</span>
+              </div>
+
+              <div class="card solid" style="gap:7px">
+                <div class="row">
+                  <span class="chip-dark">Serie in corso</span>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--ink-800)"><path d="M12 2c1 4-2 5-2 8a4 4 0 008 0c0-1-.3-2-1-3 2 1 4 4 4 7a9 9 0 01-18 0c0-5 5-8 9-12z"/></svg>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:5px">
+                  <span style="font-size:26px;font-weight:800;letter-spacing:-.05em;font-family:var(--mono)">18</span>
+                  <span style="font-size:10px;font-weight:700">giorni</span>
+                </div>
+                <div style="font-size:8.5px;color:rgba(49,44,81,.72)">il tuo record è 23 · mancano 5 giorni</div>
+              </div>
+
+              <div class="sect">Sfida del mese</div>
+              <div class="card" style="gap:6px">
+                <div class="row">
+                  <span style="font-size:10px;font-weight:700">100 km di corsa</span>
+                  <span class="metric" style="font-size:10px;color:var(--salmon)">67 km</span>
+                </div>
+                <div style="height:5px;border-radius:99px;background:rgba(247,245,251,.13);overflow:hidden">
+                  <div class="fillbar" style="width:67%;height:100%;background:var(--salmon);border-radius:99px;position:static"></div>
+                </div>
+              </div>
+
+              <div class="sect">Badge</div>
+              <div class="badge-grid">
+                <div class="bdg got"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg></div>
+                <div class="bdg got"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 4-2 5-2 8a4 4 0 008 0c0-1-.3-2-1-3 2 1 4 4 4 7a9 9 0 01-18 0c0-5 5-8 9-12z"/></svg></div>
+                <div class="bdg got"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="5"/><path d="M8 13l-2 9 6-3 6 3-2-9"/></svg></div>
+                <div class="bdg locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+                <div class="bdg locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+                <div class="bdg locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+              </div>
+              <div style="font-size:8px;opacity:.5;text-align:center">Il prossimo si sblocca a 20 allenamenti</div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Traguardi — la serie prima dei badge</b>
+          <span>Il numero di giorni consecutivi occupa la card ambra: è il dato che fa tornare. I badge stanno sotto, e quelli bloccati dicono cosa manca invece di essere solo grigi.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Peso e impostazioni</h2>
+    <p class="sub">Due schermate che si visitano di rado ma devono essere impeccabili quando serve: registrare il peso deve costare tre secondi, e le impostazioni devono far trovare la cosa cercata al primo colpo.</p>
+
+    <div class="stage">
+
+      <!-- PESO -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Peso e misure</span>
+                <span class="pill calm">Storico</span>
+              </div>
+
+              <div class="card solid" style="gap:9px">
+                <div class="row">
+                  <span class="lbl">Peso attuale</span>
+                  <span class="chip-dark">oggi</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:4px">
+                  <span style="font-size:30px;font-weight:800;letter-spacing:-.05em;font-family:var(--mono)">78,4</span>
+                  <span style="font-size:12px;font-weight:700">kg</span>
+                </div>
+                <div class="slider">
+                  <div class="track">
+                    <div class="dots"><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span><span style="background:rgba(49,44,81,.25)"></span></div>
+                    <div class="fillbar" style="width:57%;background:var(--ink-800)"></div>
+                    <div class="knob" style="left:calc(57% - 7px);background:var(--ink-800);border-color:var(--amber);box-shadow:0 0 0 1.5px var(--ink-800)"></div>
+                  </div>
+                </div>
+                <div style="font-size:8.5px;color:rgba(49,44,81,.72)">−0,3 kg dall'ultima misurazione</div>
+              </div>
+
+              <div class="card" style="gap:7px">
+                <div class="row">
+                  <span class="sect" style="font-size:10.5px">Andamento</span>
+                  <span class="pill calm">6 mesi</span>
+                </div>
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%;height:58px" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="wfade" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#F1AA9B" stop-opacity=".3"/>
+                      <stop offset="1" stop-color="#F1AA9B" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M2 8 L16 11 L30 10 L44 16 L58 19 L72 23 L86 26 L98 30 L98 40 L2 40 Z" fill="url(#wfade)"/>
+                  <path class="line" style="--len:130" stroke="#F1AA9B" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                        d="M2 8 L16 11 L30 10 L44 16 L58 19 L72 23 L86 26 L98 30"/>
+                  <circle cx="98" cy="30" r="3" fill="#F1AA9B"/>
+                </svg>
+                <div class="row"><span style="font-size:8px;opacity:.55">80,0 kg a marzo</span><span class="metric" style="font-size:10px;color:var(--salmon)">−1,6 kg</span></div>
+              </div>
+
+              <div class="bento">
+                <div class="card" style="padding:9px;gap:3px"><span class="lbl">Vita</span><span class="metric" style="font-size:13px">84 cm</span></div>
+                <div class="card" style="padding:9px;gap:3px"><span class="lbl">Petto</span><span class="metric" style="font-size:13px">102 cm</span></div>
+                <div class="card" style="padding:9px;gap:3px"><span class="lbl">Braccio</span><span class="metric" style="font-size:13px">37 cm</span></div>
+                <div class="card" style="padding:9px;gap:3px"><span class="lbl">Coscia</span><span class="metric" style="font-size:13px">58 cm</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Peso — cursore, non tastiera</b>
+          <span>Stesso principio della serie: il peso si aggiusta trascinando, partendo dall'ultimo valore. Sotto, l'andamento e le circonferenze, che oggi sono in una schermata separata.</span>
+        </div>
+      </div>
+
+      <!-- IMPOSTAZIONI -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">Impostazioni</span>
+              </div>
+
+              <div class="card" style="flex-direction:row;align-items:center;gap:9px;padding:10px">
+                <div class="avatar" style="width:36px;height:36px;border-radius:13px;font-size:13px">S</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:11px;font-weight:800">Simone Ferrero</div>
+                  <div style="font-size:8.5px;opacity:.55">Codice amico · 7K2M9A</div>
+                </div>
+                <span style="opacity:.4;font-size:11px">›</span>
+              </div>
+
+              <div class="lbl" style="margin-top:2px">Allenamento</div>
+              <div class="card" style="gap:0;padding:0;overflow:hidden">
+                <div class="row" style="padding:9px 10px;border-bottom:1px solid rgba(247,245,251,.07)">
+                  <span style="font-size:9.5px">Recupero predefinito</span>
+                  <span class="metric" style="font-size:9.5px;color:var(--amber)">90 s</span>
+                </div>
+                <div class="row" style="padding:9px 10px;border-bottom:1px solid rgba(247,245,251,.07)">
+                  <span style="font-size:9.5px">Unità di misura</span>
+                  <span style="font-size:9.5px;color:var(--amber)">kg · cm</span>
+                </div>
+                <div class="row" style="padding:9px 10px">
+                  <span style="font-size:9.5px">Avvia recupero da solo</span>
+                  <span class="toggle on"></span>
+                </div>
+              </div>
+
+              <div class="lbl" style="margin-top:2px">Aspetto</div>
+              <div class="card" style="gap:0;padding:0;overflow:hidden">
+                <div class="row" style="padding:9px 10px;border-bottom:1px solid rgba(247,245,251,.07)">
+                  <span style="font-size:9.5px">Tema</span>
+                  <span style="font-size:9.5px;color:var(--amber)">Scuro</span>
+                </div>
+                <div class="row" style="padding:9px 10px;border-bottom:1px solid rgba(247,245,251,.07)">
+                  <span style="font-size:9.5px">Lingua</span>
+                  <span style="font-size:9.5px;color:var(--amber)">Italiano</span>
+                </div>
+                <div class="row" style="padding:9px 10px">
+                  <span style="font-size:9.5px">Riduci le animazioni</span>
+                  <span class="toggle"></span>
+                </div>
+              </div>
+
+              <div class="lbl" style="margin-top:2px">Dati</div>
+              <div class="card" style="gap:0;padding:0;overflow:hidden">
+                <div class="row" style="padding:9px 10px;border-bottom:1px solid rgba(247,245,251,.07)">
+                  <span style="font-size:9.5px">Salute e battito</span>
+                  <span class="toggle on"></span>
+                </div>
+                <div class="row" style="padding:9px 10px">
+                  <span style="font-size:9.5px">Palestra</span>
+                  <span style="font-size:9.5px;color:var(--amber)">McFit Torino</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Impostazioni — raggruppate per intenzione</b>
+          <span>Allenamento, aspetto, dati: si cerca per motivo, non per nome della funzione. Il valore corrente è sempre visibile a destra, così non serve entrare per sapere com'è configurato.</span>
+        </div>
+      </div>
+
+      <!-- SCHEDA / PROGRAMMA -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span class="pill calm">← Schede</span>
+                <span class="chip-dark">5 giorni</span>
+              </div>
+
+              <div>
+                <div style="font-size:15px;font-weight:800;letter-spacing:-.035em">Push Pull Legs</div>
+                <div class="exr-meta" style="margin-top:3px"><span>attiva da 3 settimane</span></div>
+              </div>
+
+              <div class="card outline" style="padding:9px;gap:5px">
+                <div class="row">
+                  <span class="pill amber">Giorno 3 · oggi</span>
+                  <span style="font-size:8.5px;opacity:.6">6 esercizi</span>
+                </div>
+                <div style="font-size:11px;font-weight:800">Spinte</div>
+              </div>
+
+              <div class="exr" style="padding:9px">
+                <div style="width:30px;height:30px;border-radius:10px;background:rgba(240,195,142,.15);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber)">1</div>
+                <div style="flex:1"><div style="font-weight:700;font-size:10px">Trazioni</div><div class="exr-meta"><span>giorno 1 · tirate</span></div></div>
+                <span class="pill calm">✓</span>
+              </div>
+              <div class="exr" style="padding:9px">
+                <div style="width:30px;height:30px;border-radius:10px;background:rgba(240,195,142,.15);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber)">2</div>
+                <div style="flex:1"><div style="font-weight:700;font-size:10px">Squat</div><div class="exr-meta"><span>giorno 2 · gambe</span></div></div>
+                <span class="pill calm">✓</span>
+              </div>
+              <div class="exr" style="padding:9px;border:1.2px solid rgba(240,195,142,.45)">
+                <div style="width:30px;height:30px;border-radius:10px;background:var(--amber);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:10px;font-weight:800;color:var(--ink-800)">3</div>
+                <div style="flex:1"><div style="font-weight:700;font-size:10px">Spinte</div><div class="exr-meta"><span>in corso</span></div></div>
+              </div>
+              <div class="exr" style="padding:9px;opacity:.6">
+                <div style="width:30px;height:30px;border-radius:10px;background:rgba(247,245,251,.08);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:10px;font-weight:700">4</div>
+                <div style="flex:1"><div style="font-weight:700;font-size:10px">Cardio leggero</div><div class="exr-meta"><span>domani</span></div></div>
+              </div>
+
+              <div class="cta" style="margin-top:auto;margin-bottom:9px">
+                <span>Modifica scheda</span><span class="arw">✎</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Scheda — dove sei dentro il ciclo</b>
+          <span>I giorni numerati con lo stato: fatti, in corso, da fare. Il ciclo si legge in verticale invece di dover ricordare a che punto eri. Un giorno può essere cardio senza rompere lo schema.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Cosa serve per costruirle</h2>
+    <p class="sub">Le schermate qui sopra non hanno tutte lo stesso costo. Tre richiedono lavoro che oggi non esiste nel progetto.</p>
+
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Schermata</th><th>Base esistente</th><th>Cosa manca</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Libreria e nuovo esercizio</strong></td><td>Libreria e creazione ci sono</td><td>Campi foto e video, catena di ripiego, filtri per gruppo</td></tr>
+          <tr><td><strong>Tipi di allenamento</strong></td><td>Il campo tipo esiste</td><td>Campi diversi per tipo: cardio e mobilità oggi usano lo schema della palestra</td></tr>
+          <tr><td><strong>Timer in app</strong></td><td>Cronometro e pillola già presenti</td><td>Posizione stabile, collegamento con la serie chiusa</td></tr>
+          <tr><td><strong>Timer fuori dall'app</strong></td><td class="num">—</td><td><strong>Servizio nativo Android</strong>, permesso notifiche, comandi dalla notifica</td></tr>
+          <tr><td><strong>Calendario</strong></td><td>Calendario e pianificazione ci sono</td><td>Colore per tipo, dettaglio del giorno, prossimo impegno</td></tr>
+          <tr><td><strong>Obiettivi</strong></td><td class="num">—</td><td><strong>Tutto</strong>: modello, persistenza, calcolo dell'avanzamento</td></tr>
+          <tr><td><strong>Traguardi</strong></td><td>Badge e serie ci sono</td><td>Sfide mensili, condizioni di sblocco visibili</td></tr>
+          <tr><td><strong>Peso e misure</strong></td><td>Misurazioni e grafico ci sono</td><td>Inserimento con cursore, unione con le circonferenze</td></tr>
+          <tr><td><strong>Scheda</strong></td><td>Programmi e allenamenti ci sono</td><td>Stato dei giorni, posizione nel ciclo, giorni di tipo diverso</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr>
+
+  <footer>
+    <p>GymFlow · mockup della seconda parte · 6 agosto 2026<br>
+    Le sagome degli esercizi sono segnaposto. I dati mostrati sono esempi realistici, non contenuti reali.</p>
+  </footer>
+
+</div>

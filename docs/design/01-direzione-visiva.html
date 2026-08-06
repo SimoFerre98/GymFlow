@@ -1,0 +1,981 @@
+<title>GymFlow — direzione visiva Indigo</title>
+
+<style>
+  :root {
+    /* Palette del prodotto — fissa, e' l'identita' dell'app */
+    --ink-900: #221E3A;
+    --ink-800: #312C51;
+    --ink-700: #48426D;
+    --ink-600: #5A5384;
+    --amber:   #F0C38E;
+    --salmon:  #F1AA9B;
+    --paper:   #F7F5FB;
+
+    /* Token della pagina — rispondono al tema del lettore */
+    --bg:        #F2F0F7;
+    --bg-raised: #FFFFFF;
+    --text:      #241F3C;
+    --text-dim:  #6A648A;
+    --rule:      #DEDAEA;
+    --accent:    #6B5FA8;
+
+    --step--1: clamp(.78rem, .76rem + .1vw, .84rem);
+    --step-0:  clamp(.98rem, .95rem + .15vw, 1.06rem);
+    --step-1:  clamp(1.2rem, 1.1rem + .5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem);
+    --step-3:  clamp(2.2rem, 1.5rem + 3.2vw, 4.2rem);
+
+    --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17142A;
+      --bg-raised: #221E3A;
+      --text: #EDEAF6;
+      --text-dim: #9A93BC;
+      --rule: #332C55;
+      --accent: #C4B6F5;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17142A;
+    --bg-raised: #221E3A;
+    --text: #EDEAF6;
+    --text-dim: #9A93BC;
+    --rule: #332C55;
+    --accent: #C4B6F5;
+  }
+  :root[data-theme="light"] {
+    --bg: #F2F0F7;
+    --bg-raised: #FFFFFF;
+    --text: #241F3C;
+    --text-dim: #6A648A;
+    --rule: #DEDAEA;
+    --accent: #6B5FA8;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1140px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
+
+  /* ---------- intestazione ---------- */
+  .masthead { padding: clamp(3rem, 9vw, 6.5rem) 0 clamp(2rem, 5vw, 3.5rem); }
+  .eyebrow {
+    font-size: var(--step--1); text-transform: uppercase; letter-spacing: .18em;
+    color: var(--text-dim); font-weight: 600; margin: 0 0 1.2rem;
+  }
+  h1 {
+    font-size: var(--step-3); line-height: .95; letter-spacing: -.045em;
+    font-weight: 800; margin: 0 0 1.4rem; text-wrap: balance;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lede { font-size: var(--step-1); color: var(--text-dim); max-width: 34ch; margin: 0; line-height: 1.4; }
+
+  /* ---------- palette ---------- */
+  .swatches { display: flex; flex-wrap: wrap; gap: .6rem; margin: 2.5rem 0 0; }
+  .sw {
+    border-radius: 14px; padding: .85rem .95rem; min-width: 116px;
+    font-family: var(--mono); font-size: var(--step--1); line-height: 1.35;
+  }
+  .sw b { display: block; font-family: var(--sans); font-weight: 700; letter-spacing: -.01em; }
+  .sw i { font-style: normal; opacity: .72; }
+
+  /* ---------- sezioni ---------- */
+  section { padding: clamp(2.5rem, 6vw, 4.5rem) 0; }
+  h2 {
+    font-size: var(--step-2); letter-spacing: -.035em; font-weight: 800;
+    margin: 0 0 .5rem; line-height: 1.05; text-wrap: balance;
+  }
+  .sub { color: var(--text-dim); max-width: 62ch; margin: 0 0 2.5rem; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  /* ---------- vetrina telefoni ---------- */
+  .stage {
+    display: grid; gap: clamp(1.5rem, 3vw, 2.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+    align-items: start;
+  }
+  .slot { display: flex; flex-direction: column; gap: 1rem; }
+  .cap b { display: block; font-weight: 700; letter-spacing: -.015em; }
+  .cap span { color: var(--text-dim); font-size: var(--step--1); }
+
+  /* telaio del telefono */
+  .phone {
+    width: 100%; max-width: 300px; margin: 0 auto; aspect-ratio: 300 / 620;
+    background: var(--ink-800); border-radius: 38px; padding: 9px;
+    box-shadow: 0 2px 4px rgba(20,16,40,.2), 0 24px 48px -12px rgba(20,16,40,.45);
+    position: relative;
+  }
+  .screen {
+    height: 100%; border-radius: 30px; overflow: hidden; position: relative;
+    background: var(--ink-900); color: var(--paper);
+    display: flex; flex-direction: column;
+    font-size: 11px; line-height: 1.35;
+  }
+  .notch {
+    position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+    width: 78px; height: 5px; border-radius: 99px; background: rgba(247,245,251,.22); z-index: 5;
+  }
+  .screen-body { flex: 1; overflow: hidden; padding: 26px 14px 0; display: flex; flex-direction: column; gap: 11px; }
+
+  /* elementi interni */
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .greet { font-size: 9.5px; color: rgba(247,245,251,.6); letter-spacing: .04em; }
+  .uname { font-size: 16px; font-weight: 800; letter-spacing: -.03em; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 11px; flex: none;
+    background: linear-gradient(140deg, var(--salmon), var(--amber));
+    display: grid; place-items: center; color: var(--ink-800); font-weight: 800; font-size: 11px;
+  }
+  .card {
+    background: var(--ink-700); border-radius: 20px; padding: 12px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2.5px 8px;
+    border-radius: 99px; font-size: 8.5px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .pill.amber  { background: rgba(240,195,142,.2); color: var(--amber); }
+  .pill.salmon { background: rgba(241,170,155,.2); color: var(--salmon); }
+  .pill.calm   { background: rgba(247,245,251,.13); color: rgba(247,245,251,.82); }
+  .cta {
+    background: var(--amber); color: var(--ink-800); border-radius: 99px;
+    padding: 9px 14px; font-weight: 800; font-size: 10.5px; letter-spacing: -.01em;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .cta .arw {
+    width: 20px; height: 20px; border-radius: 99px; background: var(--ink-800);
+    color: var(--amber); display: grid; place-items: center; font-size: 11px; flex: none;
+  }
+  .metric { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -.02em; }
+  .lbl { font-size: 8.5px; color: rgba(247,245,251,.58); letter-spacing: .06em; text-transform: uppercase; }
+  .sect { font-size: 11.5px; font-weight: 800; letter-spacing: -.02em; margin-top: 1px; }
+
+  /* riga esercizio con miniatura */
+  .exr { display: flex; gap: 9px; align-items: center; background: var(--ink-700); border-radius: 16px; padding: 8px; }
+  .thumb {
+    width: 40px; height: 40px; border-radius: 12px; flex: none; position: relative; overflow: hidden;
+    background: linear-gradient(150deg, var(--ink-600), var(--ink-800));
+    display: grid; place-items: center;
+  }
+  .thumb svg { width: 21px; height: 21px; opacity: .92; }
+  .play {
+    position: absolute; right: 2px; bottom: 2px; width: 13px; height: 13px; border-radius: 99px;
+    background: var(--salmon); color: var(--ink-800);
+    display: grid; place-items: center; font-size: 7px; font-weight: 900;
+  }
+  .exr-meta { display: flex; gap: 7px; color: rgba(247,245,251,.55); font-size: 8.5px; margin-top: 2px; }
+
+  /* anello di avanzamento */
+  .ring { width: 52px; height: 52px; flex: none; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .track { stroke: rgba(247,245,251,.14); }
+  .ring .fill { stroke: var(--amber); stroke-linecap: round; }
+  .ring .pct {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; font-size: 11px; color: var(--paper);
+  }
+  .anim .fill { animation: draw 1.5s cubic-bezier(.2,0,0,1) both; }
+  @keyframes draw { from { stroke-dashoffset: var(--circ); } }
+
+  /* foto esercizio a piena larghezza */
+  .hero-shot {
+    position: relative; border-radius: 20px; overflow: hidden; flex: 1; min-height: 0;
+    background:
+      radial-gradient(120% 80% at 70% 15%, rgba(241,170,155,.34), transparent 60%),
+      radial-gradient(90% 70% at 20% 85%, rgba(240,195,142,.26), transparent 62%),
+      linear-gradient(160deg, var(--ink-700), var(--ink-900));
+    display: grid; place-items: center;
+  }
+  .hero-shot .figure { width: 96px; height: 96px; opacity: .95; }
+  .shot-tag { position: absolute; top: 10px; left: 10px; }
+
+  /* pannello metriche dal vivo */
+  .live {
+    position: absolute; left: 9px; right: 9px; bottom: 9px;
+    background: rgba(34,30,58,.9); backdrop-filter: blur(10px);
+    border: 1px solid rgba(247,245,251,.1);
+    border-radius: 18px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .clock { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .clock .t { font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: -.04em; color: var(--amber); }
+  .pausebtn {
+    width: 28px; height: 28px; border-radius: 99px; background: var(--amber); color: var(--ink-800);
+    display: grid; place-items: center; font-size: 11px; font-weight: 900; flex: none;
+  }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .mini { background: rgba(247,245,251,.07); border-radius: 13px; padding: 7px 8px; }
+  .mini .v { font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: -.03em; }
+
+  .spark { display: block; width: 100%; height: 22px; }
+  .spark path.line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .anim .spark path.line { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: trace 1.9s .3s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes trace { to { stroke-dashoffset: 0; } }
+
+  /* griglia statistiche */
+  .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bento .card { padding: 10px; gap: 5px; }
+  .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 5px; height: 74px; }
+  .bar { flex: 1; border-radius: 99px 99px 4px 4px; background: rgba(247,245,251,.18); transform-origin: bottom; }
+  .bar.on { background: var(--amber); }
+  .anim .bar { animation: rise .8s cubic-bezier(.2,0,0,1) both; }
+  @keyframes rise { from { transform: scaleY(.04); } }
+  .days { display: flex; justify-content: space-between; font-size: 7.5px; color: rgba(247,245,251,.5); letter-spacing: .04em; }
+
+  .datesel { display: flex; gap: 4px; align-items: center; justify-content: space-between; }
+  .d { font-size: 9px; color: rgba(247,245,251,.45); font-family: var(--mono); }
+  .d.now {
+    background: var(--paper); color: var(--ink-800); border-radius: 99px;
+    padding: 4px 9px; font-weight: 800; font-family: var(--sans); font-size: 8.5px; letter-spacing: -.01em;
+  }
+
+  /* barra di navigazione */
+  .nav {
+    margin: 9px; border-radius: 20px; background: var(--ink-700);
+    display: flex; justify-content: space-around; padding: 9px 6px; flex: none;
+  }
+  .nav i { width: 17px; height: 17px; display: block; opacity: .42; }
+  .nav i.sel { opacity: 1; color: var(--amber); }
+
+  /* card ambra piena — il livello primario */
+  .card.solid { background: var(--amber); color: var(--ink-800); }
+  .card.solid .lbl { color: rgba(49,44,81,.62); }
+  .card.outline { background: transparent; border: 1.4px solid var(--amber); }
+  .chip-dark {
+    background: var(--ink-800); color: var(--amber); border-radius: 99px;
+    padding: 4px 10px; font-size: 8.5px; font-weight: 800; letter-spacing: .02em;
+    display: inline-block;
+  }
+
+  /* cursore per peso, ripetizioni, sforzo */
+  .slider { display: flex; flex-direction: column; gap: 5px; }
+  .track {
+    position: relative; height: 15px; display: flex; align-items: center;
+  }
+  .track .dots { display: flex; justify-content: space-between; width: 100%; }
+  .track .dots span { width: 3px; height: 3px; border-radius: 99px; background: rgba(247,245,251,.26); }
+  .track .fillbar {
+    position: absolute; left: 0; height: 3px; border-radius: 99px; background: var(--amber);
+  }
+  .track .knob {
+    position: absolute; width: 15px; height: 15px; border-radius: 99px;
+    background: var(--amber); border: 2.5px solid var(--ink-700);
+    box-shadow: 0 0 0 1.5px var(--amber);
+  }
+  .anim .track .fillbar { animation: grow 1s .2s cubic-bezier(.2,0,0,1) both; }
+  @keyframes grow { from { width: 0 !important; } }
+
+  /* scontrino di fine allenamento */
+  .receipt {
+    background: var(--amber); color: var(--ink-800); border-radius: 16px;
+    padding: 11px 12px 14px; position: relative;
+  }
+  .receipt::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 10px;
+    background: radial-gradient(circle at 5px 0, transparent 0 5px, var(--amber) 5px) repeat-x;
+    background-size: 10px 10px;
+  }
+  .receipt .rrow {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 4px 0; border-bottom: 1px dashed rgba(49,44,81,.28); font-size: 9px;
+  }
+  .receipt .rrow:last-of-type { border-bottom: 0; }
+  .receipt .rrow b { font-family: var(--mono); font-weight: 700; letter-spacing: -.02em; }
+
+  /* avatar sovrapposti */
+  .stack { display: flex; }
+  .stack span {
+    width: 21px; height: 21px; border-radius: 99px; margin-left: -6px;
+    border: 2px solid var(--ink-700); display: grid; place-items: center;
+    font-size: 8px; font-weight: 800; color: var(--ink-800);
+  }
+  .stack span:first-child { margin-left: 0; }
+
+  /* pulsante con frecce progressive */
+  .advance {
+    background: var(--amber); color: var(--ink-800); border-radius: 99px;
+    padding: 9px 13px; font-weight: 800; font-size: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .advance .chev { display: flex; gap: 1px; }
+  .advance .chev i { font-style: normal; opacity: .3; }
+  .anim .advance .chev i { animation: pulse 1.4s infinite; }
+  .anim .advance .chev i:nth-child(2) { animation-delay: .18s; }
+  .anim .advance .chev i:nth-child(3) { animation-delay: .36s; }
+  @keyframes pulse { 0%,100% { opacity: .28; } 45% { opacity: 1; } }
+
+  /* catena di ripiego dell'immagine */
+  .chain { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .link {
+    background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: .45rem; position: relative;
+  }
+  .link .ord {
+    font-family: var(--mono); font-size: var(--step--1); font-weight: 700;
+    color: var(--accent); letter-spacing: .05em;
+  }
+  .link h4 { margin: 0; font-size: var(--step-0); font-weight: 800; letter-spacing: -.015em; }
+  .link p { margin: 0; color: var(--text-dim); font-size: var(--step--1); line-height: 1.5; }
+  .link code {
+    font-family: var(--mono); font-size: .82em; background: rgba(107,95,168,.12);
+    padding: .12rem .38rem; border-radius: 5px; word-break: break-all;
+  }
+
+  /* ---------- confronto ---------- */
+  .versus { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .vs-card { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 18px; padding: 1.4rem 1.5rem; }
+  .vs-card h3 { margin: 0 0 .9rem; font-size: var(--step-0); letter-spacing: -.01em; font-weight: 800; }
+  .vs-card ul { margin: 0; padding-left: 1.05rem; display: flex; flex-direction: column; gap: .55rem; }
+  .vs-card li { color: var(--text-dim); }
+  .tag {
+    display: inline-block; font-size: var(--step--1); font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; padding: .2rem .6rem; border-radius: 99px; margin-bottom: .8rem;
+  }
+  .tag.was { background: rgba(122,112,158,.16); color: var(--text-dim); }
+  .tag.now { background: rgba(107,95,168,.16); color: var(--accent); }
+  :root[data-theme="dark"] .tag.now, :root:not([data-theme="light"]) .tag.now { }
+
+  /* ---------- funzionalita' ---------- */
+  .feats { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(252px, 1fr)); }
+  .feat {
+    background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 18px;
+    padding: 1.3rem 1.4rem; display: flex; flex-direction: column; gap: .5rem;
+    transition: transform .22s cubic-bezier(.2,0,0,1), border-color .22s;
+  }
+  .feat:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .feat .n {
+    font-family: var(--mono); font-size: var(--step--1); color: var(--accent);
+    font-weight: 700; letter-spacing: .04em;
+  }
+  .feat h3 { margin: 0; font-size: var(--step-0); font-weight: 800; letter-spacing: -.015em; }
+  .feat p { margin: 0; color: var(--text-dim); font-size: var(--step--1); line-height: 1.55; }
+
+  table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+  .scroller { overflow-x: auto; }
+  th, td { text-align: left; padding: .65rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: var(--step--1); text-transform: uppercase; letter-spacing: .1em; color: var(--text-dim); font-weight: 700; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  footer { padding: 3rem 0 4rem; color: var(--text-dim); font-size: var(--step--1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .anim .spark path.line { stroke-dashoffset: 0; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">GymFlow · proposta di direzione visiva</p>
+    <h1>Indigo, ambra<br>e <em>il peso dei numeri</em></h1>
+    <p class="lede">Un fondo scuro che fa risaltare le foto degli esercizi, un ambra che indica sempre l'azione successiva, e i dati trattati come dati.</p>
+
+    <div class="swatches">
+      <div class="sw" style="background:#312C51;color:#F7F5FB"><b>Fondo</b><i>#312C51</i></div>
+      <div class="sw" style="background:#48426D;color:#F7F5FB"><b>Superfici</b><i>#48426D</i></div>
+      <div class="sw" style="background:#F0C38E;color:#312C51"><b>Azione</b><i>#F0C38E</i></div>
+      <div class="sw" style="background:#F1AA9B;color:#312C51"><b>Vitali</b><i>#F1AA9B</i></div>
+      <div class="sw" style="background:#221E3A;color:#F7F5FB"><b>Sfondo app</b><i>#221E3A</i></div>
+    </div>
+  </header>
+
+  <hr>
+
+  <section>
+    <h2>Tre schermate, tre decisioni</h2>
+    <p class="sub">Ogni schermata incorpora una scelta precisa. Non sono varianti estetiche della stessa idea: risolvono problemi diversi che GymFlow ha oggi.</p>
+
+    <div class="stage">
+
+      <!-- ============ HOME ============ -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+
+              <div class="row">
+                <div>
+                  <div class="greet">Bentornato</div>
+                  <div class="uname">Simone</div>
+                </div>
+                <div class="avatar">S</div>
+              </div>
+
+              <div class="card">
+                <div class="row">
+                  <span class="pill calm">In corso</span>
+                  <span class="lbl">Giorno 3 / 5</span>
+                </div>
+                <div class="row">
+                  <div>
+                    <div style="font-size:13.5px;font-weight:800;letter-spacing:-.03em">Spinte</div>
+                    <div class="exr-meta" style="margin-top:3px">
+                      <span>48 min</span><span>·</span><span>6 esercizi</span>
+                    </div>
+                  </div>
+                  <div class="ring">
+                    <svg viewBox="0 0 52 52" width="52" height="52" aria-hidden="true">
+                      <circle class="track" cx="26" cy="26" r="22" fill="none" stroke-width="6"></circle>
+                      <circle class="fill" cx="26" cy="26" r="22" fill="none" stroke-width="6"
+                              stroke-dasharray="138.2" stroke-dashoffset="38.7" style="--circ:138.2"></circle>
+                    </svg>
+                    <div class="pct">72%</div>
+                  </div>
+                </div>
+                <div class="cta">
+                  <span>Riprendi l'allenamento</span>
+                  <span class="arw">→</span>
+                </div>
+              </div>
+
+              <div class="sect">Oggi in scheda</div>
+
+              <div class="exr">
+                <div class="thumb">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F0C38E" stroke-width="2" stroke-linecap="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg>
+                  <span class="play">▶</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:10.5px;letter-spacing:-.01em">Panca piana</div>
+                  <div class="exr-meta"><span>4 × 8</span><span>·</span><span>60 kg</span></div>
+                </div>
+                <span class="pill amber">Forza</span>
+              </div>
+
+              <div class="exr">
+                <div class="thumb">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F1AA9B" stroke-width="2" stroke-linecap="round"><path d="M12 4v7M8 11h8M7 20l2-6M17 20l-2-6"/></svg>
+                  <span class="play">▶</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:10.5px;letter-spacing:-.01em">Stacco da terra</div>
+                  <div class="exr-meta"><span>3 × 5</span><span>·</span><span>100 kg</span></div>
+                </div>
+                <span class="pill salmon">Massa</span>
+              </div>
+
+              <div class="exr">
+                <div class="thumb">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F7F5FB" stroke-width="2" stroke-linecap="round" opacity=".85"><path d="M6 18L10 6M18 18L14 6M9 13h6"/></svg>
+                  <span class="play">▶</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:10.5px;letter-spacing:-.01em">Military press</div>
+                  <div class="exr-meta"><span>4 × 10</span><span>·</span><span>35 kg</span></div>
+                </div>
+                <span class="pill calm">Spalle</span>
+              </div>
+
+            </div>
+            <nav class="nav" aria-hidden="true">
+              <i class="sel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg></i>
+              <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></i>
+              <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10"/></svg></i>
+              <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></i>
+            </nav>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Home — una sola azione ovvia</b>
+          <span>La scheda in corso occupa la posizione migliore con l'anello di avanzamento; il resto è la lista di oggi. Ogni riga ha miniatura e indicatore video: è qui che le foto entrano nell'app.</span>
+        </div>
+      </div>
+
+      <!-- ============ SESSIONE ============ -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body" style="padding-bottom:14px">
+              <div class="row">
+                <span class="pill calm">← Spinte</span>
+                <span class="lbl">3 / 6</span>
+              </div>
+
+              <div class="hero-shot">
+                <span class="shot-tag pill amber">Panca piana</span>
+                <svg class="figure" viewBox="0 0 100 100" fill="none" stroke="#F7F5FB" stroke-width="3.2" stroke-linecap="round" opacity=".9" aria-hidden="true">
+                  <circle cx="50" cy="24" r="9"/>
+                  <path d="M50 33v26M50 59l-13 20M50 59l13 20M28 44h44M22 38v12M78 38v12"/>
+                </svg>
+
+                <div class="live">
+                  <div class="clock">
+                    <div>
+                      <div class="lbl">Serie 3 · in corso</div>
+                      <div class="t">00:32:12</div>
+                    </div>
+                    <div class="pausebtn">❙❙</div>
+                  </div>
+                  <div class="duo">
+                    <div class="mini">
+                      <div class="lbl" style="color:var(--amber)">Calorie</div>
+                      <div class="v" style="color:var(--amber)">412</div>
+                      <svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="line" style="--len:120" stroke="#F0C38E" d="M2 18 L14 15 L26 16 L38 11 L50 12 L62 7 L74 8 L86 4 L98 3"/>
+                      </svg>
+                    </div>
+                    <div class="mini">
+                      <div class="lbl" style="color:var(--salmon)">Battito</div>
+                      <div class="v" style="color:var(--salmon)">138</div>
+                      <svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="line" style="--len:150" stroke="#F1AA9B" d="M2 14 L12 15 L18 6 L24 19 L32 12 L44 13 L52 5 L58 18 L66 11 L78 12 L86 6 L92 17 L98 12"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Sessione — i vitali sopra l'esecuzione</b>
+          <span>La foto dell'esercizio occupa lo schermo, il pannello scorre sopra con cronometro, calorie e battito che si aggiornano mentre ti alleni. Il pulsante video apre la spiegazione senza uscire dalla sessione.</span>
+        </div>
+      </div>
+
+      <!-- ============ STATISTICHE ============ -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body">
+              <div class="row">
+                <span style="font-size:13px;font-weight:800;letter-spacing:-.03em">La mia attività</span>
+                <span class="pill calm">Sett.</span>
+              </div>
+
+              <div class="datesel">
+                <span class="d">13</span><span class="d">14</span><span class="d">15</span>
+                <span class="d now">Oggi, 6 ago</span>
+                <span class="d">17</span><span class="d">18</span>
+              </div>
+
+              <div class="bento">
+                <div class="card">
+                  <div class="lbl" style="color:var(--salmon)">Battito</div>
+                  <div class="metric" style="font-size:17px">123<span style="font-size:9px;opacity:.6"> bpm</span></div>
+                  <svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="line" style="--len:150" stroke="#F1AA9B" d="M2 15 L12 16 L18 7 L26 19 L34 12 L46 14 L54 6 L60 18 L70 11 L82 13 L90 7 L98 13"/>
+                  </svg>
+                </div>
+                <div class="card">
+                  <div class="lbl" style="color:var(--amber)">Passi</div>
+                  <div class="metric" style="font-size:17px">2 316</div>
+                  <div style="font-size:8.5px;opacity:.55">obiettivo 6 000</div>
+                  <div style="height:4px;border-radius:99px;background:rgba(247,245,251,.14);overflow:hidden">
+                    <div style="width:39%;height:100%;background:var(--amber);border-radius:99px"></div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="lbl">Volume</div>
+                  <div class="metric" style="font-size:17px">4,2<span style="font-size:9px;opacity:.6"> t</span></div>
+                  <div style="font-size:8.5px;color:var(--amber)">+12% su settimana scorsa</div>
+                </div>
+                <div class="card">
+                  <div class="lbl">Serie</div>
+                  <div class="metric" style="font-size:17px">18<span style="font-size:9px;opacity:.6"> gg</span></div>
+                  <div style="font-size:8.5px;opacity:.55">record personale</div>
+                </div>
+              </div>
+
+              <div class="card" style="gap:7px">
+                <div class="row">
+                  <span class="sect" style="font-size:10.5px">Volume settimanale</span>
+                  <span class="pill amber">190 kg</span>
+                </div>
+                <div class="bars">
+                  <div class="bar" style="height:34%;animation-delay:.05s"></div>
+                  <div class="bar" style="height:58%;animation-delay:.1s"></div>
+                  <div class="bar" style="height:26%;animation-delay:.15s"></div>
+                  <div class="bar" style="height:71%;animation-delay:.2s"></div>
+                  <div class="bar on" style="height:96%;animation-delay:.25s"></div>
+                  <div class="bar" style="height:44%;animation-delay:.3s"></div>
+                  <div class="bar" style="height:62%;animation-delay:.35s"></div>
+                </div>
+                <div class="days"><span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span></div>
+              </div>
+            </div>
+            <nav class="nav" aria-hidden="true">
+              <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg></i>
+              <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></i>
+              <i class="sel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19h-2"/></svg></i>
+              <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></i>
+            </nav>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Attività — i dati come dati</b>
+          <span>Griglia a tessere di dimensioni diverse: quello che conta occupa più spazio. Sparkline dentro le tessere, barra dell'obiettivo, confronto con la settimana precedente.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Il secondo giro di riferimenti</h2>
+    <p class="sub">Dalla seconda immagine arrivano quattro modi di dire "questo conta più del resto": la card ambra piena, il bordo ambra su fondo scuro, il cursore a pallino e lo scontrino. Applicati ai momenti in cui GymFlow ne ha davvero bisogno.</p>
+
+    <div class="stage">
+
+      <!-- ============ SERIE IN CORSO ============ -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body" style="padding-bottom:14px">
+              <div class="row">
+                <span class="pill calm">← Panca piana</span>
+                <span class="chip-dark">Serie 3 / 4</span>
+              </div>
+
+              <div class="card solid">
+                <div class="row">
+                  <span class="lbl">Serie precedente</span>
+                  <span class="chip-dark">60 kg × 8</span>
+                </div>
+                <div style="font-size:22px;font-weight:800;letter-spacing:-.04em;font-family:var(--mono)">
+                  62,5<span style="font-size:11px;opacity:.65"> kg</span>
+                </div>
+                <div style="font-size:8.5px;color:rgba(49,44,81,.7)">+2,5 kg sul tuo massimo</div>
+              </div>
+
+              <div class="card" style="gap:11px">
+                <div class="slider">
+                  <div class="row"><span class="lbl">Carico</span><span class="metric" style="font-size:11px;color:var(--amber)">62,5 kg</span></div>
+                  <div class="track">
+                    <div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    <div class="fillbar" style="width:64%"></div>
+                    <div class="knob" style="left:calc(64% - 7px)"></div>
+                  </div>
+                </div>
+                <div class="slider">
+                  <div class="row"><span class="lbl">Ripetizioni</span><span class="metric" style="font-size:11px;color:var(--amber)">8</span></div>
+                  <div class="track">
+                    <div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    <div class="fillbar" style="width:47%"></div>
+                    <div class="knob" style="left:calc(47% - 7px)"></div>
+                  </div>
+                </div>
+                <div class="slider">
+                  <div class="row"><span class="lbl">Sforzo percepito</span><span class="metric" style="font-size:11px;color:var(--salmon)">RPE 8</span></div>
+                  <div class="track">
+                    <div class="dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    <div class="fillbar" style="width:80%;background:var(--salmon)"></div>
+                    <div class="knob" style="left:calc(80% - 7px);background:var(--salmon);box-shadow:0 0 0 1.5px var(--salmon)"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card outline" style="gap:5px;padding:10px">
+                <div class="row">
+                  <span class="lbl" style="color:var(--amber)">Recupero</span>
+                  <span class="metric" style="font-size:15px;color:var(--amber)">01:28</span>
+                </div>
+                <div style="height:3px;border-radius:99px;background:rgba(240,195,142,.22);overflow:hidden">
+                  <div style="width:58%;height:100%;background:var(--amber);border-radius:99px"></div>
+                </div>
+              </div>
+
+              <div class="advance">
+                <span>Chiudi la serie</span>
+                <span class="chev"><i>›</i><i>›</i><i>›</i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Serie — niente tastiera</b>
+          <span>Carico, ripetizioni e sforzo si impostano con i cursori: mani sudate e tastiera numerica non vanno d'accordo. In alto la serie precedente come riferimento, sotto il recupero che parte da solo.</span>
+        </div>
+      </div>
+
+      <!-- ============ RIEPILOGO ============ -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body" style="padding-bottom:14px">
+              <div class="row">
+                <span class="pill calm">Allenamento chiuso</span>
+                <span class="lbl">6 ago</span>
+              </div>
+
+              <div class="receipt">
+                <div class="row" style="margin-bottom:6px">
+                  <div>
+                    <div style="font-size:8.5px;color:rgba(49,44,81,.62);text-transform:uppercase;letter-spacing:.06em">Scheda</div>
+                    <div style="font-size:14px;font-weight:800;letter-spacing:-.03em">Spinte</div>
+                  </div>
+                  <span class="chip-dark">48 min</span>
+                </div>
+                <div class="rrow"><span>Volume sollevato</span><b>4 240 kg</b></div>
+                <div class="rrow"><span>Serie completate</span><b>18 / 18</b></div>
+                <div class="rrow"><span>Sforzo medio</span><b>RPE 7,6</b></div>
+                <div class="rrow"><span>Calorie</span><b>412 kcal</b></div>
+                <div class="rrow"><span>Battito medio</span><b>131 bpm</b></div>
+              </div>
+
+              <div class="card outline" style="gap:6px;margin-top:6px">
+                <div class="row">
+                  <span class="pill amber">Record</span>
+                  <span class="metric" style="font-size:11px;color:var(--amber)">+2,5 kg</span>
+                </div>
+                <div style="font-size:10px;font-weight:700">Panca piana · 62,5 kg × 8</div>
+                <div style="font-size:8.5px;opacity:.6">Il massimo precedente era 60 kg, il 21 luglio</div>
+              </div>
+
+              <div class="card" style="gap:7px">
+                <div class="row">
+                  <span class="lbl">Oggi si sono allenati</span>
+                  <div class="stack">
+                    <span style="background:var(--amber)">M</span>
+                    <span style="background:var(--salmon)">L</span>
+                    <span style="background:#B9AEE8">G</span>
+                    <span style="background:rgba(247,245,251,.22);color:var(--paper)">+2</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cta" style="margin-top:auto">
+                <span>Salva e chiudi</span>
+                <span class="arw">✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Riepilogo — lo scontrino dell'allenamento</b>
+          <span>Il pattern dello scontrino ha una funzione: chiude la sessione con un oggetto che si legge tutto insieme. Il record superato ha il bordo ambra, non l'ambra pieno — sta un gradino sotto l'azione.</span>
+        </div>
+      </div>
+
+      <!-- ============ SCHEDA ESERCIZIO ============ -->
+      <div class="slot">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen anim">
+            <div class="screen-body" style="padding-bottom:14px">
+              <div class="row">
+                <span class="pill calm">← Esercizio</span>
+                <span class="pill amber">Forza</span>
+              </div>
+
+              <div style="position:relative;border-radius:18px;overflow:hidden;height:120px;flex:none;
+                          background:radial-gradient(110% 90% at 65% 20%, rgba(241,170,155,.32), transparent 62%),
+                                     linear-gradient(155deg, var(--ink-700), var(--ink-900));
+                          display:grid;place-items:center">
+                <svg width="70" height="70" viewBox="0 0 100 100" fill="none" stroke="#F7F5FB" stroke-width="3.2" stroke-linecap="round" opacity=".9" aria-hidden="true">
+                  <circle cx="50" cy="26" r="9"/><path d="M50 35v24M50 59l-13 20M50 59l13 20M26 46h48M20 40v12M80 40v12"/>
+                </svg>
+                <div style="position:absolute;left:9px;bottom:9px;display:flex;gap:5px;align-items:center">
+                  <span style="width:26px;height:26px;border-radius:99px;background:var(--salmon);color:var(--ink-800);display:grid;place-items:center;font-size:10px;font-weight:900">▶</span>
+                  <span style="font-size:8.5px;background:rgba(34,30,58,.8);padding:3px 7px;border-radius:99px">Guarda l'esecuzione</span>
+                </div>
+              </div>
+
+              <div>
+                <div style="font-size:14px;font-weight:800;letter-spacing:-.03em">Panca piana</div>
+                <div class="exr-meta" style="margin-top:3px"><span>Pettorali</span><span>·</span><span>Tricipiti</span><span>·</span><span>Spalle</span></div>
+              </div>
+
+              <div class="card" style="gap:8px">
+                <div class="row">
+                  <span class="sect" style="font-size:10.5px">Progressione</span>
+                  <span class="pill amber">3 mesi</span>
+                </div>
+                <svg viewBox="0 0 100 38" preserveAspectRatio="none" style="width:100%;height:52px" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#F0C38E" stop-opacity=".32"/>
+                      <stop offset="1" stop-color="#F0C38E" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M2 32 L16 30 L30 26 L44 27 L58 20 L72 17 L86 11 L98 6 L98 38 L2 38 Z" fill="url(#fade)"/>
+                  <path class="line" style="--len:130" stroke="#F0C38E" stroke-width="2.2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        d="M2 32 L16 30 L30 26 L44 27 L58 20 L72 17 L86 11 L98 6"/>
+                  <circle cx="98" cy="6" r="3" fill="#F0C38E"/>
+                </svg>
+                <div class="row">
+                  <span style="font-size:8.5px;opacity:.55">45 kg a maggio</span>
+                  <span class="metric" style="font-size:11px;color:var(--amber)">62,5 kg oggi</span>
+                </div>
+              </div>
+
+              <div class="card outline" style="padding:9px">
+                <div class="row">
+                  <span class="lbl" style="color:var(--amber)">Ultimo allenamento</span>
+                  <span style="font-size:8.5px;opacity:.6">21 lug</span>
+                </div>
+                <div style="font-size:9.5px;font-family:var(--mono);letter-spacing:-.02em">60×8 · 60×8 · 57,5×7 · 55×6</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">
+          <b>Esercizio — la storia di un movimento</b>
+          <span>Foto, video dell'esecuzione e progressione dei carichi nel tempo. Oggi lo storico esiste ma è consultabile solo per sessione: qui l'unità di misura diventa l'esercizio.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Da dove arriva l'immagine di un esercizio</h2>
+    <p class="sub">Mix di contenuti curati e caricati dall'utente, come hai indicato. Il punto che rende il sistema affidabile è il terzo anello: la miniatura di YouTube si ricava dall'URL del video, quindi un esercizio con video non è mai senza immagine.</p>
+
+    <div class="chain">
+      <div class="link">
+        <span class="ord">primo</span>
+        <h4>Foto dell'utente</h4>
+        <p>Caricata dall'app sull'esercizio, sua o scattata in palestra. Ha sempre la precedenza: è la più pertinente al suo modo di allenarsi.</p>
+      </div>
+      <div class="link">
+        <span class="ord">secondo</span>
+        <h4>Libreria curata</h4>
+        <p>L'immagine che fornisci tu, salvata sul documento dell'esercizio. Copre la libreria di base con qualità uniforme.</p>
+      </div>
+      <div class="link">
+        <span class="ord">terzo</span>
+        <h4>Miniatura del video</h4>
+        <p>Ricavata dall'URL YouTube: <code>img.youtube.com/vi/{id}/hqdefault.jpg</code>. Nessuno la carica, esiste appena c'è un video.</p>
+      </div>
+      <div class="link">
+        <span class="ord">ultimo</span>
+        <h4>Segnaposto generato</h4>
+        <p>Sfondo derivato dal gruppo muscolare con la sagoma del movimento. Mai un rettangolo vuoto: l'assenza di foto non deve sembrare un errore.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Cosa cambia davvero</h2>
+    <p class="sub">Il problema di GymFlow oggi non è il colore: è che non ha materiale visivo e non stabilisce gerarchie. Le tre app che ti piacciono vivono di immagini.</p>
+
+    <div class="versus">
+      <div class="vs-card">
+        <span class="tag was">Oggi</span>
+        <h3>Schermate che elencano</h3>
+        <ul>
+          <li>Nessuna immagine, da nessuna parte</li>
+          <li>Card tutte uguali: niente dice cosa è importante</li>
+          <li>Magenta acceso solo su testi, mai su superfici</li>
+          <li>Statistiche come numeri isolati, senza andamento</li>
+          <li>Durante la sessione vedi solo il cronometro</li>
+          <li>Raggi e ombre ricopiati a mano schermata per schermata</li>
+        </ul>
+      </div>
+      <div class="vs-card">
+        <span class="tag now">Direzione Indigo</span>
+        <h3>Schermate che indirizzano</h3>
+        <ul>
+          <li>Foto esercizio come materia prima dell'interfaccia</li>
+          <li>Una sola azione ovvia per schermata, in ambra</li>
+          <li>Fondo indigo pieno: le foto risaltano invece di competere</li>
+          <li>Sparkline e confronti dentro le tessere</li>
+          <li>Calorie e battito visibili mentre ti alleni</li>
+          <li>Token condivisi: US-033 è già in produzione</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Funzionalità da aggiungere</h2>
+    <p class="sub">Le prime due le hai chieste. Le altre nascono dal ridisegno: una volta che l'app ha foto e metriche dal vivo, alcune cose diventano naturali e la loro assenza si nota.</p>
+
+    <div class="feats">
+      <div class="feat">
+        <span class="n">richiesta</span>
+        <h3>Foto e video per esercizio</h3>
+        <p>Miniatura in lista, immagine piena in sessione, link YouTube che apre l'esecuzione senza uscire dall'allenamento. Contenuti curati e caricabili dall'utente, con la miniatura del video come rete di sicurezza.</p>
+      </div>
+      <div class="feat">
+        <span class="n">nuova</span>
+        <h3>Serie senza tastiera</h3>
+        <p>Carico, ripetizioni e sforzo si impostano con i cursori. Digitare su una tastiera numerica con le mani sudate, fra una serie e l'altra, è il momento in cui l'app si fa detestare.</p>
+      </div>
+      <div class="feat">
+        <span class="n">richiesta</span>
+        <h3>Metriche dal vivo</h3>
+        <p>Calorie e battito che scorrono durante la sessione, con l'andamento dell'ultimo minuto. I dati arrivano da Health, già integrato ma oggi usato solo nella dashboard.</p>
+      </div>
+      <div class="feat">
+        <span class="n">nuova</span>
+        <h3>Recupero tra le serie</h3>
+        <p>Alla fine di una serie parte il conto alla rovescia del recupero, con vibrazione alla ripresa. Il cronometro esiste già: manca il collegamento con la serie appena chiusa.</p>
+      </div>
+      <div class="feat">
+        <span class="n">nuova</span>
+        <h3>Record personali</h3>
+        <p>L'app sa già pesi e ripetizioni di ogni serie. Riconoscere che hai superato il tuo massimo, dirtelo nel momento in cui accade, e tenerne la storia per esercizio.</p>
+      </div>
+      <div class="feat">
+        <span class="n">nuova</span>
+        <h3>Progressione per esercizio</h3>
+        <p>Aprendo un esercizio, il grafico dei carichi nel tempo e l'ultima sessione svolta. Oggi lo storico esiste ma è consultabile solo per sessione, mai per movimento.</p>
+      </div>
+      <div class="feat">
+        <span class="n">nuova</span>
+        <h3>Primo avvio guidato</h3>
+        <p>Oggi la prima schermata dopo la registrazione è vuota. Poche domande — obiettivo, frequenza, esperienza — e una scheda già pronta da cui partire.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Perché questa palette regge</h2>
+    <p class="sub">Verificato prima di disegnare: i contrasti WCAG della combinazione che hai scelto, misurati sulle coppie che l'interfaccia userà davvero.</p>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Combinazione</th><th>Rapporto</th><th>Livello</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Testo bianco su fondo indigo</td><td class="num">13,05:1</td><td>AAA</td></tr>
+          <tr><td>Testo bianco su card</td><td class="num">9,23:1</td><td>AAA</td></tr>
+          <tr><td>Ambra su fondo</td><td class="num">8,02:1</td><td>AAA</td></tr>
+          <tr><td>Testo indigo su bottone ambra</td><td class="num">8,02:1</td><td>AAA</td></tr>
+          <tr><td>Salmone su fondo</td><td class="num">6,81:1</td><td>AA</td></tr>
+          <tr><td>Ambra su card</td><td class="num">5,67:1</td><td>AA</td></tr>
+          <tr><td>Salmone su card</td><td class="num">4,82:1</td><td>AA</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:1.5rem">Nessuna combinazione scende sotto AA. Col magenta attuale su fondo chiaro il testo si fermava intorno a 3:1, sotto la soglia: <strong>questa palette chiude US-028 invece di rimandarla</strong>.</p>
+  </section>
+
+  <hr>
+
+  <footer>
+    <p>Proposta di direzione visiva · GymFlow v0.1.0 · 6 agosto 2026<br>
+    Le figure degli esercizi sono segnaposto: indicano dove andranno le foto reali, la cui provenienza resta da decidere.</p>
+  </footer>
+
+</div>

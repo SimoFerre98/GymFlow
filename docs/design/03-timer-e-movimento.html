@@ -1,0 +1,658 @@
+<title>GymFlow - timer e movimento</title>
+
+<style>
+  :root {
+    --ink-900:#221E3A; --ink-800:#312C51; --ink-700:#48426D; --ink-600:#5A5384;
+    --amber:#F0C38E; --salmon:#F1AA9B; --paper:#F7F5FB;
+
+    --bg:#F2F0F7; --bg-raised:#FFFFFF; --text:#241F3C; --text-dim:#6A648A;
+    --rule:#DEDAEA; --accent:#6B5FA8;
+
+    --step--1: clamp(.78rem,.76rem + .1vw,.84rem);
+    --step-0:  clamp(.98rem,.95rem + .15vw,1.06rem);
+    --step-1:  clamp(1.2rem,1.1rem + .5vw,1.5rem);
+    --step-2:  clamp(1.6rem,1.3rem + 1.4vw,2.4rem);
+    --step-3:  clamp(2.2rem,1.5rem + 3.2vw,4.2rem);
+
+    --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+    /* curve del movimento — i token nativi di Flutter */
+    --standard: cubic-bezier(.2,0,0,1);
+    --emph-dec: cubic-bezier(.05,.7,.1,1);
+    --emph-acc: cubic-bezier(.3,0,.8,.15);
+    --spring:   cubic-bezier(.34,1.56,.64,1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17142A; --bg-raised:#221E3A; --text:#EDEAF6; --text-dim:#9A93BC; --rule:#332C55; --accent:#C4B6F5; }
+  }
+  :root[data-theme="dark"] { --bg:#17142A; --bg-raised:#221E3A; --text:#EDEAF6; --text-dim:#9A93BC; --rule:#332C55; --accent:#C4B6F5; }
+  :root[data-theme="light"] { --bg:#F2F0F7; --bg-raised:#FFFFFF; --text:#241F3C; --text-dim:#6A648A; --rule:#DEDAEA; --accent:#6B5FA8; }
+
+  body { margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+         font-size:var(--step-0); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1140px; margin:0 auto; padding:0 clamp(1rem,4vw,3rem); }
+  .masthead { padding:clamp(3rem,9vw,6rem) 0 clamp(1.5rem,4vw,3rem); }
+  .eyebrow { font-size:var(--step--1); text-transform:uppercase; letter-spacing:.18em;
+             color:var(--text-dim); font-weight:600; margin:0 0 1.2rem; }
+  h1 { font-size:var(--step-3); line-height:.95; letter-spacing:-.045em; font-weight:800;
+       margin:0 0 1.4rem; text-wrap:balance; }
+  h1 em { font-style:normal; color:var(--accent); }
+  .lede { font-size:var(--step-1); color:var(--text-dim); max-width:36ch; margin:0; line-height:1.4; }
+  section { padding:clamp(2.5rem,6vw,4.5rem) 0; }
+  h2 { font-size:var(--step-2); letter-spacing:-.035em; font-weight:800; margin:0 0 .5rem; line-height:1.05; }
+  .sub { color:var(--text-dim); max-width:62ch; margin:0 0 2.5rem; }
+  hr { border:0; border-top:1px solid var(--rule); margin:0; }
+
+  /* ============ telefono grande ============ */
+  .duo-stage { display:grid; gap:clamp(1.5rem,4vw,3rem); grid-template-columns:minmax(280px,340px) 1fr; align-items:start; }
+  @media (max-width:860px) { .duo-stage { grid-template-columns:1fr; } }
+
+  .phone { width:100%; max-width:340px; margin:0 auto; aspect-ratio:340/720;
+           background:var(--ink-800); border-radius:44px; padding:10px; position:relative;
+           box-shadow:0 2px 4px rgba(20,16,40,.2), 0 30px 60px -14px rgba(20,16,40,.5); }
+  .screen { height:100%; border-radius:35px; overflow:hidden; position:relative;
+            background:var(--ink-900); color:var(--paper); display:flex; flex-direction:column; }
+  .notch { position:absolute; top:8px; left:50%; transform:translateX(-50%); width:86px; height:5px;
+           border-radius:99px; background:rgba(247,245,251,.22); z-index:9; }
+
+  /* atmosfera: masse sfocate che si sovrappongono */
+  .aura { position:absolute; inset:0; overflow:hidden; }
+  .aura b { position:absolute; border-radius:50%; filter:blur(38px); display:block; }
+  .aura .a1 { width:210px; height:210px; background:rgba(240,195,142,.30); top:-50px; right:-60px; animation:float1 14s ease-in-out infinite; }
+  .aura .a2 { width:190px; height:190px; background:rgba(241,170,155,.24); bottom:60px; left:-70px; animation:float2 17s ease-in-out infinite; }
+  .aura .a3 { width:150px; height:150px; background:rgba(90,83,132,.5); top:44%; right:-50px; animation:float1 20s ease-in-out infinite reverse; }
+  @keyframes float1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-24px,30px) scale(1.14)} }
+  @keyframes float2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(26px,-26px) scale(1.1)} }
+
+  /* onda che si sovrappone, come nel riferimento Starbucks */
+  .wave { position:absolute; left:0; right:0; top:-1px; height:150px; z-index:1; pointer-events:none; }
+  .wave svg { width:100%; height:100%; display:block; }
+
+  .t-body { position:relative; z-index:2; flex:1; display:flex; flex-direction:column;
+            padding:30px 18px 18px; gap:14px; }
+
+  .t-head { display:flex; align-items:center; justify-content:space-between; }
+  .t-title { font-size:15px; font-weight:800; letter-spacing:-.03em; }
+  .ghost { width:30px; height:30px; border-radius:99px; background:rgba(247,245,251,.1);
+           display:grid; place-items:center; font-size:13px; }
+
+  .seg { display:flex; gap:3px; background:rgba(247,245,251,.09); border-radius:99px; padding:3px; position:relative; }
+  .seg button { flex:1; border:0; background:transparent; color:rgba(247,245,251,.62); font:inherit;
+                font-size:11px; font-weight:700; padding:7px 0; border-radius:99px; cursor:pointer;
+                position:relative; z-index:2; transition:color .3s var(--standard); }
+  .seg button.on { color:var(--ink-800); }
+  .seg .glider { position:absolute; top:3px; bottom:3px; width:calc(50% - 3px); left:3px;
+                 background:var(--amber); border-radius:99px; z-index:1;
+                 transition:transform .48s var(--emph-dec); }
+  .seg.b .glider { transform:translateX(100%); }
+
+  /* ---- quadrante ---- */
+  .dial { flex:1; display:grid; place-items:center; position:relative; min-height:0; }
+  .dial svg { transform:rotate(-90deg); overflow:visible; }
+  .dial .trk { stroke:rgba(247,245,251,.1); }
+  .dial .prg { stroke:var(--amber); stroke-linecap:round;
+               transition:stroke-dashoffset .28s linear, stroke .5s var(--standard); }
+  .dial.rest .prg { stroke:var(--salmon); }
+  .dial .tick { stroke:rgba(247,245,251,.16); stroke-width:1.5; stroke-linecap:round; }
+
+  /* onde concentriche mentre scorre */
+  .halo { position:absolute; width:230px; height:230px; border-radius:50%;
+          border:1.5px solid var(--amber); opacity:0; pointer-events:none; }
+  .running .halo { animation:ripple 2.8s var(--emph-dec) infinite; }
+  .running .halo:nth-of-type(2) { animation-delay:.93s; }
+  .running .halo:nth-of-type(3) { animation-delay:1.86s; }
+  .dial.rest .halo { border-color:var(--salmon); }
+  @keyframes ripple { 0%{transform:scale(.86);opacity:.5} 70%{opacity:0} 100%{transform:scale(1.3);opacity:0} }
+
+  .read { position:absolute; inset:0; display:grid; place-items:center; }
+  .digits { display:flex; align-items:baseline; gap:1px; font-family:var(--mono); font-weight:700;
+            font-size:44px; letter-spacing:-.06em; line-height:1; }
+  .dg { position:relative; width:.62em; height:1em; overflow:hidden; display:inline-block; }
+  .dg span { position:absolute; inset:0; display:grid; place-items:center; }
+  .dg span.out { animation:rollOut .42s var(--emph-acc) forwards; }
+  .dg span.in  { animation:rollIn  .42s var(--emph-dec) forwards; }
+  @keyframes rollOut { to { transform:translateY(-100%); opacity:0; filter:blur(2px); } }
+  @keyframes rollIn  { from { transform:translateY(100%); opacity:0; filter:blur(2px); } }
+  .colon { opacity:.42; animation:blink 1s steps(1) infinite; }
+  .running .colon { animation:blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:.12; } }
+  .sublab { position:absolute; bottom:calc(50% - 62px); font-size:9.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:rgba(247,245,251,.5); }
+
+  /* ---- comandi ---- */
+  .controls { display:flex; align-items:center; justify-content:center; gap:12px; }
+  .btn { border:0; font:inherit; cursor:pointer; display:grid; place-items:center; color:var(--ink-800);
+         transition:border-radius .5s var(--spring), transform .28s var(--spring),
+                    background .3s var(--standard), width .5s var(--spring); }
+  .btn:active { transform:scale(.9); }
+  .btn:focus-visible { outline:2.5px solid var(--paper); outline-offset:3px; }
+  .btn.primary { width:76px; height:76px; border-radius:50%; background:var(--amber); font-size:22px; }
+  .btn.primary.playing { border-radius:26px; width:96px; }
+  .btn.side { width:52px; height:52px; border-radius:18px; background:rgba(247,245,251,.1);
+              color:var(--paper); font-size:15px; }
+  .btn.side:hover { border-radius:50%; background:rgba(247,245,251,.17); }
+  .btn.side[disabled] { opacity:.3; cursor:default; }
+
+  .presets { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+  .pst { border:1.4px solid rgba(247,245,251,.16); background:transparent; color:rgba(247,245,251,.7);
+         font:inherit; font-size:10.5px; font-weight:700; padding:6px 13px; border-radius:99px; cursor:pointer;
+         transition:all .34s var(--spring); }
+  .pst:hover { border-color:var(--amber); color:var(--amber); }
+  .pst.on { background:var(--amber); border-color:var(--amber); color:var(--ink-800); transform:scale(1.06); }
+  .pst:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+
+  .laps { display:flex; flex-direction:column; gap:5px; max-height:88px; overflow:auto; }
+  .lap { display:flex; justify-content:space-between; font-size:10.5px; padding:6px 11px;
+         background:rgba(247,245,251,.06); border-radius:12px; animation:lapIn .44s var(--emph-dec) both; }
+  .lap b { font-family:var(--mono); font-weight:700; letter-spacing:-.02em; }
+  .lap.best { border:1.2px solid var(--amber); color:var(--amber); }
+  @keyframes lapIn { from { opacity:0; transform:translateY(-9px) scale(.96); } }
+
+  /* ============ pannello note ============ */
+  .notes { display:flex; flex-direction:column; gap:1rem; }
+  .note { background:var(--bg-raised); border:1px solid var(--rule); border-radius:18px; padding:1.25rem 1.4rem; }
+  .note h3 { margin:0 0 .45rem; font-size:var(--step-0); font-weight:800; letter-spacing:-.015em; }
+  .note p { margin:0; color:var(--text-dim); font-size:var(--step--1); line-height:1.6; }
+  .note .k { font-family:var(--mono); font-size:.85em; background:rgba(107,95,168,.13);
+             padding:.1rem .38rem; border-radius:5px; }
+
+  /* ============ galleria micro-interazioni ============ */
+  .lab { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); }
+  .cellule { background:var(--ink-900); border-radius:20px; padding:1.3rem; display:flex; flex-direction:column;
+             gap:.85rem; align-items:center; text-align:center; color:var(--paper); }
+  .cellule .stagelet { height:104px; display:grid; place-items:center; width:100%; position:relative; }
+  .cellule h4 { margin:0; font-size:var(--step--1); font-weight:800; letter-spacing:-.01em; }
+  .cellule p { margin:0; font-size:.76rem; color:rgba(247,245,251,.58); line-height:1.5; }
+
+  .morph { width:58px; height:58px; border-radius:50%; background:var(--amber); border:0; cursor:pointer;
+           display:grid; place-items:center; color:var(--ink-800); font-size:18px;
+           transition:border-radius .55s var(--spring), transform .35s var(--spring); }
+  .morph.sq { border-radius:19px; transform:rotate(90deg) scale(1.09); }
+  .morph:focus-visible { outline:2.5px solid var(--paper); outline-offset:3px; }
+
+  .fabgroup { display:flex; gap:7px; align-items:center; }
+  .fabgroup button { border:0; cursor:pointer; background:rgba(247,245,251,.11); color:var(--paper);
+                     width:40px; height:40px; border-radius:13px; display:grid; place-items:center;
+                     transition:all .42s var(--spring); font-size:14px; }
+  .fabgroup button:hover { border-radius:50%; background:var(--amber); color:var(--ink-800); transform:translateY(-5px); }
+  .fabgroup button:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+
+  .stackcards { position:relative; width:132px; height:82px; cursor:pointer; }
+  .stackcards div { position:absolute; inset:0; border-radius:15px; display:grid; place-items:center;
+                    font-size:11px; font-weight:800; transition:transform .58s var(--spring), opacity .4s; }
+  .stackcards .c1 { background:var(--ink-700); color:rgba(247,245,251,.5); }
+  .stackcards .c2 { background:var(--ink-600); color:rgba(247,245,251,.7); }
+  .stackcards .c3 { background:var(--amber); color:var(--ink-800); }
+  .stackcards.fan .c1 { transform:translate(-19px,-13px) rotate(-8deg); }
+  .stackcards.fan .c2 { transform:translate(19px,-7px) rotate(7deg); }
+  .stackcards.fan .c3 { transform:translateY(9px) scale(1.05); }
+
+  .counter { font-family:var(--mono); font-size:32px; font-weight:700; letter-spacing:-.05em;
+             display:flex; align-items:center; gap:10px; }
+  .counter button { border:0; width:32px; height:32px; border-radius:11px; background:rgba(247,245,251,.11);
+                    color:var(--paper); font-size:16px; cursor:pointer; transition:all .3s var(--spring); }
+  .counter button:hover { background:var(--amber); color:var(--ink-800); border-radius:50%; }
+  .counter button:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+  .counter .n { min-width:66px; display:inline-grid; place-items:center; }
+  .counter .n.bump { animation:bump .42s var(--spring); }
+  @keyframes bump { 40% { transform:scale(1.24); color:var(--amber); } }
+
+  /* ============ now bar ============ */
+  .nowbar-demo { display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); align-items:start; }
+  .surface { border-radius:22px; padding:1.1rem; background:linear-gradient(168deg,#2A2547,#151129); color:var(--paper); }
+  .surface .cap2 { font-size:.72rem; letter-spacing:.11em; text-transform:uppercase;
+                   color:rgba(247,245,251,.45); margin:0 0 .85rem; font-weight:700; }
+  .statusrow { display:flex; align-items:center; justify-content:space-between; font-size:11px;
+               opacity:.75; margin-bottom:.7rem; font-family:var(--mono); }
+  .chip-status { display:inline-flex; align-items:center; gap:5px; background:var(--amber); color:var(--ink-800);
+                 border-radius:99px; padding:2.5px 9px; font-size:10.5px; font-weight:800; font-family:var(--mono); }
+  .nowbar { background:rgba(247,245,251,.1); border:1px solid rgba(247,245,251,.14);
+            border-radius:99px; padding:8px 9px; display:flex; align-items:center; gap:9px; }
+  .nowbar .ic { width:29px; height:29px; border-radius:99px; background:var(--amber); color:var(--ink-800);
+                display:grid; place-items:center; flex:none; font-size:12px; }
+  .nowbar .txt { flex:1; min-width:0; }
+  .nowbar .txt b { display:block; font-size:10.5px; letter-spacing:-.01em; }
+  .nowbar .txt span { font-size:9px; opacity:.62; }
+  .nowbar .val { font-family:var(--mono); font-weight:700; font-size:14px; color:var(--amber); letter-spacing:-.03em; }
+  .lockclock { text-align:center; margin-bottom:1rem; }
+  .lockclock b { display:block; font-family:var(--mono); font-size:38px; font-weight:700; letter-spacing:-.055em; line-height:1; }
+  .lockclock span { font-size:11px; opacity:.55; }
+  .progline { height:3px; border-radius:99px; background:rgba(247,245,251,.18); margin-top:6px; overflow:hidden; }
+  .progline i { display:block; height:100%; background:var(--amber); border-radius:99px; transition:width .3s linear; }
+
+  .scroller { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:var(--step--1); }
+  th,td { text-align:left; padding:.65rem .8rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); font-weight:700; font-size:var(--step--1); }
+  code { font-family:var(--mono); font-size:.86em; background:rgba(107,95,168,.13); padding:.1rem .36rem; border-radius:5px; }
+  footer { padding:3rem 0 4rem; color:var(--text-dim); font-size:var(--step--1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important;
+                             transition-duration:.001ms !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">GymFlow · terza parte</p>
+    <h1>Il timer,<br>e come <em>si muove</em></h1>
+    <p class="lede">Schermata a tutta altezza, cifre che rotolano, pulsanti che cambiano forma sotto il dito. Provalo: è funzionante.</p>
+  </header>
+
+  <hr>
+
+  <section>
+    <h2>Provalo</h2>
+    <p class="sub">Avvia, metti in pausa, cambia modalità, segna un giro. Ogni animazione qui è replicabile in Flutter con i token di movimento già introdotti in US-033.</p>
+
+    <div class="duo-stage">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen" id="screen">
+          <div class="aura"><b class="a1"></b><b class="a2"></b><b class="a3"></b></div>
+
+          <div class="wave" aria-hidden="true">
+            <svg viewBox="0 0 340 150" preserveAspectRatio="none">
+              <path d="M0 0 H340 V64 C266 106 196 46 122 78 C74 99 36 92 0 74 Z" fill="rgba(240,195,142,.10)"/>
+              <path d="M0 0 H340 V40 C272 84 188 28 116 58 C70 77 34 70 0 52 Z" fill="rgba(241,170,155,.08)"/>
+            </svg>
+          </div>
+
+          <div class="t-body">
+            <div class="t-head">
+              <span class="t-title">Tempo</span>
+              <span class="ghost" aria-hidden="true">⋯</span>
+            </div>
+
+            <div class="seg" id="seg">
+              <span class="glider"></span>
+              <button class="on" id="mCron" type="button">Cronometro</button>
+              <button id="mRest" type="button">Recupero</button>
+            </div>
+
+            <div class="dial" id="dial">
+              <span class="halo"></span><span class="halo"></span><span class="halo"></span>
+              <svg width="238" height="238" viewBox="0 0 238 238" aria-hidden="true">
+                <g id="ticks"></g>
+                <circle class="trk" cx="119" cy="119" r="102" fill="none" stroke-width="9"></circle>
+                <circle class="prg" id="prg" cx="119" cy="119" r="102" fill="none" stroke-width="9"
+                        stroke-dasharray="640.9" stroke-dashoffset="640.9"></circle>
+              </svg>
+              <div class="read">
+                <div class="digits" id="digits" role="timer" aria-live="off"></div>
+                <div class="sublab" id="sublab">pronto</div>
+              </div>
+            </div>
+
+            <div class="presets" id="presets" hidden>
+              <button class="pst" data-s="60" type="button">1 min</button>
+              <button class="pst on" data-s="90" type="button">90 sec</button>
+              <button class="pst" data-s="120" type="button">2 min</button>
+              <button class="pst" data-s="180" type="button">3 min</button>
+            </div>
+
+            <div class="controls">
+              <button class="btn side" id="bReset" type="button" aria-label="Azzera" disabled>↺</button>
+              <button class="btn primary" id="bMain" type="button" aria-label="Avvia">▶</button>
+              <button class="btn side" id="bLap" type="button" aria-label="Segna giro" disabled>⚑</button>
+            </div>
+
+            <div class="laps" id="laps"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note">
+          <h3>Tutta l'altezza, un solo protagonista</h3>
+          <p>Il quadrante prende lo spazio che avanza fra intestazione e comandi, invece di stare in una card. Con le mani occupate il tempo si valuta dalla porzione di anello rimasta, senza mettere a fuoco le cifre.</p>
+        </div>
+        <div class="note">
+          <h3>Le cifre rotolano, non lampeggiano</h3>
+          <p>Ogni cifra che cambia esce verso l'alto e la nuova entra dal basso, con una sfocatura minima in transito. Solo la cifra che cambia si muove: i secondi ballano, i minuti restano fermi. In Flutter è <span class="k">AnimatedSwitcher</span> con <span class="k">SlideTransition</span>.</p>
+        </div>
+        <div class="note">
+          <h3>Il pulsante cambia forma</h3>
+          <p>Da cerchio a rettangolo stondato quando parte, e si allarga. È il <span class="k">shape morphing</span> di Material 3 Expressive: la forma dice lo stato prima dell'icona. La curva è elastica, non lineare.</p>
+        </div>
+        <div class="note">
+          <h3>Onde mentre scorre</h3>
+          <p>Tre cerchi concentrici si espandono a intervalli sfalsati durante il conteggio, e si fermano in pausa. Danno il senso che il tempo stia scorrendo anche guardando di sbieco.</p>
+        </div>
+        <div class="note">
+          <h3>Il cursore scivola, non salta</h3>
+          <p>Cambiando modalità l'ambra scorre sotto le etichette con una curva enfatizzata, e il colore del quadrante vira sul salmone. Due proprietà animate insieme comunicano un cambio di contesto.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Il repertorio del movimento</h2>
+    <p class="sub">Le micro-interazioni che useremo in tutta l'app. Passaci sopra o toccale: sono tutte provabili.</p>
+
+    <div class="lab">
+      <div class="cellule">
+        <div class="stagelet"><button class="morph" id="mo" type="button" aria-label="Cambia forma">▶</button></div>
+        <h4>Forma che muta</h4>
+        <p>Cerchio verso stondato con rotazione. La forma porta lo stato, non solo l'icona.</p>
+      </div>
+
+      <div class="cellule">
+        <div class="stagelet">
+          <div class="fabgroup">
+            <button type="button" aria-label="Modifica">✎</button>
+            <button type="button" aria-label="Duplica">⧉</button>
+            <button type="button" aria-label="Elimina">🗑</button>
+          </div>
+        </div>
+        <h4>Gruppo di pulsanti</h4>
+        <p>Al passaggio si sollevano e si arrotondano uno per volta, invece di illuminarsi tutti.</p>
+      </div>
+
+      <div class="cellule">
+        <div class="stagelet"><div class="stackcards" id="sc" tabindex="0" role="button" aria-label="Apri il ventaglio"><div class="c1">Gambe</div><div class="c2">Tirate</div><div class="c3">Spinte</div></div></div>
+        <h4>Carte sovrapposte</h4>
+        <p>Le schede si aprono a ventaglio invece di comparire in lista. È il layering dei riferimenti.</p>
+      </div>
+
+      <div class="cellule">
+        <div class="stagelet">
+          <div class="counter">
+            <button id="cMinus" type="button" aria-label="Meno">−</button>
+            <span class="n" id="cVal">62,5</span>
+            <button id="cPlus" type="button" aria-label="Più">+</button>
+          </div>
+        </div>
+        <h4>Valore che pulsa</h4>
+        <p>Il numero si ingrandisce e vira sull'ambra al cambio. Conferma senza un messaggio.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>La Now Bar del tuo S26 Ultra</h2>
+    <p class="sub">Verificato: One UI 8 collega la Now Bar alle Live Updates di Android 16. Non serve un'API proprietaria Samsung — si implementa la notifica standard e il sistema la porta in tre posti diversi.</p>
+
+    <div class="nowbar-demo">
+      <div class="surface">
+        <p class="cap2">Schermata di blocco · Now Bar</p>
+        <div class="lockclock"><b id="lockT">9:41</b><span>giovedì 6 agosto</span></div>
+        <div class="nowbar">
+          <div class="ic">⏱</div>
+          <div class="txt"><b>Recupero</b><span>Panca piana · serie 3</span></div>
+          <div class="val" id="nb1">01:12</div>
+        </div>
+        <div class="progline"><i id="nbp" style="width:62%"></i></div>
+      </div>
+
+      <div class="surface">
+        <p class="cap2">Barra di stato · chip</p>
+        <div class="statusrow">
+          <span class="chip-status">⏱ <span id="nb2">01:12</span></span>
+          <span>▮▮▮ ᯤ 84%</span>
+        </div>
+        <div style="background:rgba(247,245,251,.07);border-radius:16px;padding:.9rem;font-size:.78rem;line-height:1.55;color:rgba(247,245,251,.72)">
+          Il chip resta visibile mentre usi qualunque altra app. Un tocco riporta a GymFlow, sulla schermata del timer.
+        </div>
+      </div>
+
+      <div class="surface">
+        <p class="cap2">Pannello notifiche · in cima</p>
+        <div style="background:#F7F5FB;color:#241F3C;border-radius:18px;padding:.8rem .9rem;display:flex;gap:.7rem;align-items:center">
+          <div style="width:30px;height:30px;border-radius:10px;background:#312C51;display:grid;place-items:center;color:#F0C38E;flex:none">⏱</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.78rem;font-weight:800">GymFlow · recupero</div>
+            <div style="font-family:var(--mono);font-size:1.05rem;font-weight:700;letter-spacing:-.03em" id="nb3">01:12</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:.66rem;background:#312C51;color:#F0C38E;padding:3px 9px;border-radius:99px;font-weight:700">Pausa</span>
+            <span style="font-size:.66rem;background:rgba(49,44,81,.1);padding:3px 9px;border-radius:99px;font-weight:700">+30s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroller" style="margin-top:2rem">
+      <table>
+        <thead><tr><th>Serve</th><th>Cosa comporta</th></tr></thead>
+        <tbody>
+          <tr><td><code>Notification.ProgressStyle</code></td><td>API Android 16. Codice nativo Kotlin: nessun plugin Flutter la espone oggi</td></tr>
+          <tr><td>Foreground service</td><td>Il conteggio prosegue con l'app chiusa. Tipo di servizio dichiarato nel manifest</td></tr>
+          <tr><td><code>POST_NOTIFICATIONS</code></td><td>Permesso da chiedere all'utente, con motivazione a schermo</td></tr>
+          <tr><td>Azioni nella notifica</td><td>Pausa e +30 secondi raggiungibili senza sbloccare il telefono</td></tr>
+          <tr><td>Ripiego sotto Android 16</td><td>Notifica ordinaria con cronometro: nessun dispositivo resta senza timer</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:1.5rem"><strong>È una storia a sé</strong>, non un dettaglio del timer: tocca codice nativo, permessi e ciclo di vita del servizio. Ma è ciò che rende il timer utile davvero — nessuno resta con l'app aperta durante il recupero.</p>
+  </section>
+
+  <hr>
+
+  <footer>
+    <p>GymFlow · timer e movimento · 6 agosto 2026<br>
+    Le animazioni di questa pagina usano le stesse curve dei token di US-033: <code>Easing.standard</code>, <code>Easing.emphasizedDecelerate</code>, e una curva elastica per i cambi di forma.</p>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    'use strict';
+
+    // ---- tacche del quadrante
+    var ticks = document.getElementById('ticks');
+    for (var i = 0; i < 60; i++) {
+      var a = (i / 60) * Math.PI * 2, big = i % 5 === 0;
+      var r1 = big ? 84 : 88, r2 = 92;
+      var l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      l.setAttribute('class', 'tick');
+      l.setAttribute('x1', 119 + Math.cos(a) * r1); l.setAttribute('y1', 119 + Math.sin(a) * r1);
+      l.setAttribute('x2', 119 + Math.cos(a) * r2); l.setAttribute('y2', 119 + Math.sin(a) * r2);
+      l.setAttribute('opacity', big ? '.5' : '.2');
+      ticks.appendChild(l);
+    }
+
+    var CIRC = 640.9;
+    var screen = document.getElementById('screen');
+    var dial = document.getElementById('dial');
+    var prg = document.getElementById('prg');
+    var digitsEl = document.getElementById('digits');
+    var sublab = document.getElementById('sublab');
+    var bMain = document.getElementById('bMain');
+    var bReset = document.getElementById('bReset');
+    var bLap = document.getElementById('bLap');
+    var lapsEl = document.getElementById('laps');
+    var presets = document.getElementById('presets');
+    var seg = document.getElementById('seg');
+
+    var mode = 'cron';         // 'cron' | 'rest'
+    var running = false;
+    var elapsed = 0;           // ms
+    var restTotal = 90000;
+    var last = 0, raf = 0;
+    var laps = [];
+    var shown = '';
+
+    function fmt(ms) {
+      var t = Math.max(0, Math.round(ms / 10));
+      var cs = t % 100, s = Math.floor(t / 100) % 60, m = Math.floor(t / 6000);
+      var p = function (n) { return n < 10 ? '0' + n : '' + n; };
+      return p(m) + ':' + p(s) + '.' + p(cs);
+    }
+
+    // rende le cifre, animando solo quelle cambiate
+    function paint(str) {
+      if (!digitsEl.childNodes.length || digitsEl.dataset.len !== String(str.length)) {
+        digitsEl.innerHTML = '';
+        digitsEl.dataset.len = String(str.length);
+        for (var i = 0; i < str.length; i++) {
+          var ch = str[i];
+          if (ch === ':' || ch === '.') {
+            var sep = document.createElement('span');
+            sep.className = 'colon';
+            sep.textContent = ch;
+            sep.style.padding = '0 .04em';
+            digitsEl.appendChild(sep);
+          } else {
+            var box = document.createElement('span');
+            box.className = 'dg';
+            var v = document.createElement('span');
+            v.textContent = ch;
+            box.appendChild(v);
+            digitsEl.appendChild(box);
+          }
+        }
+        shown = str;
+        return;
+      }
+      var boxes = digitsEl.querySelectorAll('.dg');
+      var bi = 0;
+      for (var j = 0; j < str.length; j++) {
+        var c = str[j];
+        if (c === ':' || c === '.') continue;
+        var box2 = boxes[bi++];
+        if (!box2 || shown[j] === c) continue;
+        var old = box2.querySelector('span:not(.out)');
+        if (old) { old.classList.add('out'); setTimeout(function (n) { return function () { n.remove(); }; }(old), 420); }
+        var nw = document.createElement('span');
+        nw.className = 'in';
+        nw.textContent = c;
+        box2.appendChild(nw);
+      }
+      shown = str;
+    }
+
+    function render() {
+      if (mode === 'cron') {
+        paint(fmt(elapsed));
+        prg.setAttribute('stroke-dashoffset', CIRC - (CIRC * ((elapsed / 1000 % 60) / 60)));
+      } else {
+        var left = Math.max(0, restTotal - elapsed);
+        paint(fmt(left));
+        prg.setAttribute('stroke-dashoffset', CIRC - (CIRC * (left / restTotal)));
+        if (left === 0 && running) { stop(); sublab.textContent = 'recupero finito'; }
+      }
+    }
+
+    function tick(now) {
+      if (!running) return;
+      if (!last) last = now;
+      elapsed += now - last;
+      last = now;
+      render();
+      raf = requestAnimationFrame(tick);
+    }
+
+    function start() {
+      running = true; last = 0;
+      screen.classList.add('running');
+      bMain.classList.add('playing');
+      bMain.textContent = '❙❙';
+      bMain.setAttribute('aria-label', 'Metti in pausa');
+      sublab.textContent = mode === 'cron' ? 'in corso' : 'recupero';
+      bReset.disabled = false; bLap.disabled = mode !== 'cron';
+      raf = requestAnimationFrame(tick);
+    }
+
+    function stop() {
+      running = false;
+      cancelAnimationFrame(raf);
+      screen.classList.remove('running');
+      bMain.classList.remove('playing');
+      bMain.textContent = '▶';
+      bMain.setAttribute('aria-label', 'Riprendi');
+      sublab.textContent = 'in pausa';
+      bLap.disabled = true;
+    }
+
+    function reset() {
+      stop(); elapsed = 0; laps = []; lapsEl.innerHTML = '';
+      sublab.textContent = 'pronto';
+      bReset.disabled = true;
+      render();
+    }
+
+    bMain.addEventListener('click', function () { running ? stop() : start(); });
+    bReset.addEventListener('click', reset);
+
+    bLap.addEventListener('click', function () {
+      var prev = laps.length ? laps[laps.length - 1].abs : 0;
+      laps.push({ abs: elapsed, split: elapsed - prev });
+      var best = Math.min.apply(null, laps.map(function (l) { return l.split; }));
+      lapsEl.innerHTML = '';
+      laps.slice().reverse().forEach(function (l, idx) {
+        var row = document.createElement('div');
+        row.className = 'lap' + (l.split === best && laps.length > 1 ? ' best' : '');
+        row.innerHTML = '<span>Giro ' + (laps.length - idx) + '</span><b>' + fmt(l.split) + '</b>';
+        lapsEl.appendChild(row);
+      });
+    });
+
+    function setMode(m) {
+      mode = m; reset();
+      var isRest = m === 'rest';
+      seg.classList.toggle('b', isRest);
+      dial.classList.toggle('rest', isRest);
+      document.getElementById('mCron').classList.toggle('on', !isRest);
+      document.getElementById('mRest').classList.toggle('on', isRest);
+      presets.hidden = !isRest;
+      bLap.style.visibility = isRest ? 'hidden' : 'visible';
+      render();
+    }
+    document.getElementById('mCron').addEventListener('click', function () { setMode('cron'); });
+    document.getElementById('mRest').addEventListener('click', function () { setMode('rest'); });
+
+    Array.prototype.forEach.call(presets.querySelectorAll('.pst'), function (b) {
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call(presets.querySelectorAll('.pst'), function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        restTotal = parseInt(b.dataset.s, 10) * 1000;
+        reset();
+      });
+    });
+
+    render();
+
+    // ---- galleria
+    var mo = document.getElementById('mo');
+    mo.addEventListener('click', function () {
+      mo.classList.toggle('sq');
+      mo.textContent = mo.classList.contains('sq') ? '❙❙' : '▶';
+    });
+
+    var sc = document.getElementById('sc');
+    function fan() { sc.classList.toggle('fan'); }
+    sc.addEventListener('click', fan);
+    sc.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fan(); } });
+
+    var val = 62.5, cv = document.getElementById('cVal');
+    function bump(d) {
+      val = Math.max(0, Math.round((val + d) * 10) / 10);
+      cv.textContent = String(val).replace('.', ',');
+      cv.classList.remove('bump');
+      void cv.offsetWidth;
+      cv.classList.add('bump');
+    }
+    document.getElementById('cPlus').addEventListener('click', function () { bump(2.5); });
+    document.getElementById('cMinus').addEventListener('click', function () { bump(-2.5); });
+
+    // ---- now bar: conto alla rovescia dimostrativo
+    var nb = 72;
+    setInterval(function () {
+      nb = nb <= 0 ? 90 : nb - 1;
+      var m = Math.floor(nb / 60), s = nb % 60;
+      var txt = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      ['nb1', 'nb2', 'nb3'].forEach(function (id) { document.getElementById(id).textContent = txt; });
+      document.getElementById('nbp').style.width = (nb / 90 * 100) + '%';
+    }, 1000);
+  })();
+</script>
