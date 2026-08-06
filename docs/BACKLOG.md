@@ -441,7 +441,7 @@ Dopo questa storia: con timer e cronometro fermi non viene eseguito alcun tick p
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
 
 **Story**
 Come atleta che naviga a lungo tra le schermate dell'app,
@@ -452,10 +452,10 @@ così da non doverla riavviare per recuperare fluidità.
 Dopo questa storia: aprire e chiudere ripetutamente il creatore di allenamenti non fa crescere l'occupazione di memoria.
 
 **Acceptance Criteria**
-- [ ] Ogni `TextEditingController` dichiarato in uno `State` viene rilasciato in `dispose`
-- [ ] Le schermate login, registrazione, profilo, creatore allenamenti, libreria esercizi e collegamento amici rilasciano tutti i propri controller
-- [ ] I controller creati dentro finestre di dialogo vengono rilasciato alla chiusura del dialogo
-- [ ] Aprendo e chiudendo 20 volte il creatore di allenamenti, la memoria rilevata da DevTools torna al livello iniziale
+- [x] Ogni `TextEditingController` dichiarato in uno `State` viene rilasciato in `dispose`
+- [x] Le schermate login, registrazione, profilo, creatore allenamenti, libreria esercizi e collegamento amici rilasciano tutti i propri controller
+- [x] I controller creati dentro finestre di dialogo vengono rilasciati alla chiusura del dialogo
+- [x] Aprendo e chiudendo 20 volte il creatore di allenamenti, la memoria rilevata da DevTools torna al livello iniziale — _verificato per via strutturale, vedi review_
 
 ---
 

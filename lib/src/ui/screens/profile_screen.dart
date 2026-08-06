@@ -42,6 +42,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadProfile();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
     final profile = await _auth.getUserProfile();

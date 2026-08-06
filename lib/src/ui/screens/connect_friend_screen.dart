@@ -28,6 +28,12 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
     _loadMyCode();
   }
 
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadMyCode() async {
     // Ensure code exists (backfill for legacy users)
     final code = await _auth.ensureFriendCode();

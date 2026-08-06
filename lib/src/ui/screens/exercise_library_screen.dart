@@ -219,11 +219,11 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
     );
   }
 
-  void _showAddExerciseDialog() {
+  Future<void> _showAddExerciseDialog() async {
     final nameController = TextEditingController();
     ExerciseType selectedType = ExerciseType.strength;
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('New Custom Exercise'),
@@ -289,5 +289,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
         ],
       ),
     );
+
+    nameController.dispose();
   }
 }

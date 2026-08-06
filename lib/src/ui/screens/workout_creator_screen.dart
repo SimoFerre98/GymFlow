@@ -33,6 +33,13 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveWorkout() async {
     if (!_formKey.currentState!.validate()) return;
     if (_exercises.isEmpty) {
@@ -401,6 +408,15 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
         ),
       ),
     );
+
+    // Il bottom sheet è chiuso: nessun widget usa più questi controller.
+    setsController.dispose();
+    repsController.dispose();
+    weightController.dispose();
+    distanceController.dispose();
+    durationController.dispose();
+    restController.dispose();
+    notesController.dispose();
   }
 
   Widget _buildSheetInput({
