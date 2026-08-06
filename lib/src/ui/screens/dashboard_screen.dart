@@ -8,6 +8,7 @@ import '../../core/utils/statistics_helper.dart';
 import '../widgets/charts/activity_chart.dart';
 import '../widgets/charts/body_measurements_chart.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/expressive_card.dart';
 import '../../services/health_service.dart';
 import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
@@ -323,7 +324,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                             _buildHealthSection(loc),
                             const SizedBox(height: 16),
                             RepaintBoundary(
-                              child: _buildBentoCard(
+                              child: ExpressiveCard(
                                 title: loc.t('workout_activity_chart'),
                                 child: SizedBox(
                                   height: 200,
@@ -333,7 +334,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                             ),
                             const SizedBox(height: 16),
                             RepaintBoundary(
-                              child: _buildBentoCard(
+                              child: ExpressiveCard(
                                 title: loc.t('body_progress_chart'),
                                 child: BodyMeasurementsChart(userId: userId),
                               ),
@@ -545,7 +546,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     Color color, {
     String? suffix,
   }) {
-    return _buildBentoCard(
+    return ExpressiveCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -582,52 +583,6 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildBentoCard({
-    required Widget child,
-    String? title,
-    VoidCallback? onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (title != null) ...[
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                child,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildHealthSection(Localization loc) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -642,7 +597,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         return Row(
           children: [
             Expanded(
-              child: _buildBentoCard(
+              child: ExpressiveCard(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -666,7 +621,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildBentoCard(
+              child: ExpressiveCard(
                 onTap: () {
                   Navigator.push(
                     context,

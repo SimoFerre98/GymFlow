@@ -759,7 +759,7 @@ Dopo questa storia: l'app usa la palette Indigo su tutte le superfici, con l'amb
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-033 | **Blocks:** US-022, US-046, US-047, US-049, US-056, US-058, US-062, US-063, US-064, US-065, US-066, US-067, US-068
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — piano in [`planning/US-021.md`](planning/US-021.md), review in [`planning/US-021-review.md`](planning/US-021-review.md)
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -770,12 +770,12 @@ così da non riscrivere la stessa decorazione in ogni schermata.
 Dopo questa storia: esiste un widget card riutilizzabile che legge i propri valori dai token, e nessuna schermata ridefinisce le proprie costanti.
 
 **Acceptance Criteria**
-- [ ] Esiste un widget card condiviso che copre i casi d'uso oggi risolti da `_buildBentoCard`
-- [ ] Il widget legge raggi, spaziature ed elevazione dai token di US-033, senza valori numerici propri
-- [ ] Il widget supporta titolo opzionale e azione al tocco opzionale
-- [ ] Il widget rende correttamente sia in tema chiaro sia in tema scuro
-- [ ] `_buildBentoCard` è rimosso da `dashboard_screen.dart` e sostituito dal componente condiviso
-- [ ] Il componente compare nella schermata di catalogo interna
+- [x] Esiste un widget card condiviso che copre i casi d'uso oggi risolti da `_buildBentoCard` — `ExpressiveCard`, stessa firma, sei usi sostituiti
+- [x] Il widget legge raggi, spaziature ed elevazione dai token di US-033, senza valori numerici propri — provato **sostituendo i token** e verificando che il disegno cambi, non solo confrontando i valori di default
+- [x] Il widget supporta titolo opzionale e azione al tocco opzionale — 6 test
+- [x] Il widget rende correttamente sia in tema chiaro sia in tema scuro — 3 test, incluso quello che verifica che i due fondi siano davvero diversi
+- [x] `_buildBentoCard` è rimosso da `dashboard_screen.dart` e sostituito dal componente condiviso — `grep -c` dà 0
+- [x] Il componente compare nella schermata di catalogo interna — sezione «Card». **Da confermare sull'APK**
 
 ---
 

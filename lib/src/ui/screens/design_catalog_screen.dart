@@ -6,6 +6,7 @@ import '../../core/theme/muscle_group_visuals.dart';
 import '../../models/exercise.dart';
 import '../widgets/exercise_image.dart';
 import '../widgets/exercise_thumbnail.dart';
+import '../widgets/expressive_card.dart';
 
 /// Catalogo dei token del design system, visibile solo nelle build di debug.
 ///
@@ -46,6 +47,7 @@ class DesignCatalogScreen extends StatelessWidget {
             children: [_ElevationScale(tokens: t, scheme: scheme)],
           ),
           _Section(title: 'Movimento', children: [_MotionScale(tokens: t)]),
+          _Section(title: 'Card', children: const [_Cards()]),
           _Section(
             title: 'Immagini degli esercizi',
             children: const [
@@ -436,6 +438,40 @@ class _RegionPlaceholders extends StatelessWidget {
             ),
           )
           .toList(),
+    );
+  }
+}
+
+/// La card del design system, nelle sue tre forme.
+///
+/// Sta qui perche e il posto dove si guarda un componente senza dover navigare
+/// fino alla schermata che lo usa — e perche una card senza titolo e una con
+/// titolo sono due cose che si giudicano una accanto all'altra.
+class _Cards extends StatelessWidget {
+  const _Cards();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.expressive;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const ExpressiveCard(child: Text('Solo contenuto, nessun titolo')),
+        SizedBox(height: t.spacing.md),
+        const ExpressiveCard(
+          title: 'Con titolo',
+          child: Text('Il titolo prende uno stile del tema, non una misura'),
+        ),
+        SizedBox(height: t.spacing.md),
+        ExpressiveCard(
+          title: 'Toccabile',
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tocco ricevuto')),
+          ),
+          child: const Text("L'onda del tocco segue gli angoli della card"),
+        ),
+      ],
     );
   }
 }
