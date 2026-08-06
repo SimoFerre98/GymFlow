@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:ui';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:gymflow/src/core/providers/firestore_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
@@ -10,8 +11,6 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
-// Prefisso: convive con flutter_riverpod finche il timer non e migrato (US-007).
-import 'package:provider/provider.dart' as legacy;
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
@@ -485,7 +484,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Future<void> _startWorkout(ScheduledWorkout schedule) async {
-    final firestore = legacy.Provider.of<FirestoreService>(context, listen: false);
+    final firestore = ref.read(firestoreServiceProvider);
     final workout = await firestore.getWorkout(schedule.workoutTemplateId);
     if (workout != null && mounted) {
       Navigator.push(

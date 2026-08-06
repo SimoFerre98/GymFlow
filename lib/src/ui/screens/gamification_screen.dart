@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gymflow/src/core/providers/firestore_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// Prefisso: convive con flutter_riverpod finche il timer non e migrato (US-007).
-import 'package:provider/provider.dart' as legacy;
 import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/badge_model.dart';
@@ -88,7 +86,7 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firestore = legacy.Provider.of<FirestoreService>(context, listen: false);
+    final firestore = ref.read(firestoreServiceProvider);
     final loc = ref.watch(localizationNotifierProvider);
     final userId = AuthService().currentUser?.uid ?? '';
 

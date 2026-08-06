@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
-// Prefisso: convive con flutter_riverpod finche il timer non e migrato (US-007).
-import 'package:provider/provider.dart' as legacy;
 import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
@@ -25,7 +23,7 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      legacy.Provider.of<TimerService>(context, listen: false).setToolsVisible(true);
+      ref.read(timerNotifierProvider.notifier).setToolsVisible(true);
     });
   }
 
@@ -59,12 +57,12 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Ensure visible when refined
-    legacy.Provider.of<TimerService>(context, listen: false).setToolsVisible(true);
+    ref.read(timerNotifierProvider.notifier).setToolsVisible(true);
   }
 
   @override
   void deactivate() {
-    legacy.Provider.of<TimerService>(context, listen: false).setToolsVisible(false);
+    ref.read(timerNotifierProvider.notifier).setToolsVisible(false);
     super.deactivate();
   }
 
@@ -159,7 +157,7 @@ class StopwatchView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Consume TimerService
-    final service = legacy.Provider.of<TimerService>(context);
+    final service = ref.read(timerNotifierProvider.notifier);
     final loc = ref.watch(localizationNotifierProvider);
 
     // Logic for Buttons:
@@ -305,7 +303,7 @@ class TimerView extends ConsumerWidget {
     return '$minutes:$seconds:$deciseconds';
   }
 
-  void _showTimePicker(BuildContext context, TimerService service) {
+  void _showTimePicker(BuildContext context, TimerNotifier service) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
@@ -327,7 +325,7 @@ class TimerView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final service = legacy.Provider.of<TimerService>(context);
+    final service = ref.read(timerNotifierProvider.notifier);
     final loc = ref.watch(localizationNotifierProvider);
     final isRunning = service.isTimerRunning;
 
@@ -514,7 +512,7 @@ class TimerView extends ConsumerWidget {
     );
   }
 
-  Widget _buildPresetButton(TimerService service, int minutes, bool isRunning) {
+  Widget _buildPresetButton(TimerNotifier service, int minutes, bool isRunning) {
     final isSelected = !isRunning && service.timerDuration.inMinutes == minutes;
     return ElevatedButton(
       onPressed: isRunning

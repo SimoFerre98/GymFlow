@@ -1,20 +1,21 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../../../core/providers/firestore_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/body_measurement.dart';
-import '../../../services/firestore_service.dart';
 
-class BodyMeasurementsChart extends StatefulWidget {
+class BodyMeasurementsChart extends ConsumerStatefulWidget {
   final String userId;
 
   const BodyMeasurementsChart({super.key, required this.userId});
 
   @override
-  State<BodyMeasurementsChart> createState() => _BodyMeasurementsChartState();
+  ConsumerState<BodyMeasurementsChart> createState() =>
+      _BodyMeasurementsChartState();
 }
 
-class _BodyMeasurementsChartState extends State<BodyMeasurementsChart> {
+class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
   String _selectedMetric = 'Weight'; // Default
 
   final Map<String, String> _metrics = {
@@ -60,7 +61,7 @@ class _BodyMeasurementsChartState extends State<BodyMeasurementsChart> {
 
   @override
   Widget build(BuildContext context) {
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
+    final firestore = ref.read(firestoreServiceProvider);
 
     return StreamBuilder<List<BodyMeasurement>>(
       stream: firestore.getBodyMeasurements(widget.userId),

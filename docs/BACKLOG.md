@@ -14,7 +14,7 @@
 
 | Epic | Title | Stories | Story Points | Scope |
 |---|---|---|---|---|
-| EP-001 | Stabilità della build e della pipeline | 2 | 2 | MVP |
+| EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
 | EP-002 | Unificazione dello state management | 5 | 15 | MVP |
 | EP-003 | Performance runtime e consumo risorse | 8 | 20 | MVP |
 | EP-004 | Integrità dei dati e sicurezza Firestore | 3 | 9 | MVP |
@@ -23,9 +23,9 @@
 | EP-007 | Qualità del codice e test automatizzati | 4 | 11 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 39
-**Total story points:** 115
-**MVP stories:** 18 (46pt)
+**Total stories:** 40
+**Total story points:** 117
+**MVP stories:** 19 (48pt)
 **Accantonate (Later):** 3 (10pt)
 
 ---
@@ -220,6 +220,43 @@ Dopo questa storia: nessun push su `main` produce una notifica di fallimento cau
 
 ---
 
+#### US-040: Ripristinare la compilabilità della build release
+
+**Epic:** EP-001 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+**Story**
+Come sviluppatore del team GymFlow,
+voglio poter produrre un pacchetto di release installabile,
+così da poter distribuire l'applicazione a chi deve provarla o usarla.
+
+**Demonstrates**
+Dopo questa storia: `flutter build apk --release` completa e produce un pacchetto installabile.
+
+**Acceptance Criteria**
+- [ ] `flutter build apk --release` termina con exit code 0
+- [ ] Il pacchetto prodotto si installa e si avvia su un telefono Android reale
+- [ ] `flutter build apk --debug` continua a funzionare
+- [ ] La causa della correzione è documentata nel file di configurazione toccato
+- [ ] La dimensione del pacchetto release è riportata nella storia per riferimento futuro
+
+> **Difetto rilevato il 2026-08-06** durante la verifica di US-007, fuori dallo scope di quella storia.
+>
+> `flutter build apk --release` fallisce al task `:isar_flutter_libs:verifyReleaseResources` con
+> `AAPT: error: resource android:attr/lStar not found`. È un difetto noto di `isar_flutter_libs`
+> con versioni di `androidx.core` non allineate: la risorsa `lStar` compare da `androidx.core` 1.7.
+> La build **debug** funziona, quindi il problema si manifesta solo in release e non era mai emerso.
+>
+> **Conseguenza: oggi l'applicazione non e distribuibile.** Le prove sul telefono si fanno con
+> pacchetti di debug, molto più pesanti (101 MB contro i 57 MB dell'ultima release riuscita,
+> risalente al 28 gennaio 2026).
+>
+> Da valutare in fase di planning: forzare la versione di `androidx.core` nella configurazione
+> Gradle, oppure sostituire Isar, il che intreccia questa storia con EP-008.
+
+---
+
 ### EP-002: Unificazione dello state management
 
 > Eliminare la convivenza di Provider e Riverpod, portando tutta l'applicazione su un unico sistema di dependency injection.
@@ -276,7 +313,7 @@ Dopo questa storia: il cambio lingua funziona come prima e nessuna schermata usa
 
 **Epic:** EP-002 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-005, US-006 | **Blocks:** US-013
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -287,11 +324,11 @@ così da avere un unico albero di stato e un solo punto di configurazione.
 Dopo questa storia: `app.dart` contiene solo `MaterialApp`, senza alcun `MultiProvider` annidato dentro `ProviderScope`.
 
 **Acceptance Criteria**
-- [ ] Lo stato di cronometro e timer è esposto da un provider Riverpod
-- [ ] L'overlay flottante del timer continua a comparire, essere trascinabile e controllabile come prima
-- [ ] `MultiProvider` è rimosso da `app.dart`
-- [ ] La dipendenza `provider` è rimossa da `pubspec.yaml`
-- [ ] Il doppio `@override` su `build` in `app.dart` è corretto
+- [x] Lo stato di cronometro e timer è esposto da un provider Riverpod
+- [ ] L'overlay flottante del timer continua a comparire, essere trascinabile e controllabile come prima — _da confermare sull'APK_
+- [x] `MultiProvider` è rimosso da `app.dart`
+- [x] La dipendenza `provider` è rimossa da `pubspec.yaml`
+- [x] Il doppio `@override` su `build` in `app.dart` è corretto
 
 ---
 
