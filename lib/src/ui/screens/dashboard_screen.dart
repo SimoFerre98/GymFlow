@@ -300,7 +300,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                               children: [
                                 Expanded(
                                   child: _buildStatCard(
-                                    loc.t('volume_label') ?? 'Volume',
+                                    loc.t('volume_label'),
                                     volumeStr,
                                     Icons.layers,
                                     Colors.purple,
@@ -309,7 +309,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: _buildStatCard(
-                                    loc.t('rpe_label') ?? 'Intensity',
+                                    loc.t('rpe_label'),
                                     StatisticsHelper.calculateAverageRPE(
                                       sessions,
                                     ).toStringAsFixed(1),

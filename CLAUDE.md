@@ -12,7 +12,7 @@ App Flutter per il tracciamento degli allenamenti. Backend Firebase (Auth, Fires
 
 Per avviare il ciclo su una storia: `/gymflow-story US-XXX`.
 
-**Il baseline degli avvisi è 66.** Una storia che lo alza ha introdotto qualcosa: va sistemato prima del merge, non spiegato dopo.
+**Il baseline degli avvisi è 63.** Una storia che lo alza ha introdotto qualcosa: va sistemato prima del merge, non spiegato dopo. (Era 66 fino a US-071, che ha rimosso tre avvisi togliendo due `??` che non si eseguivano mai.)
 
 **Quando un criterio non è verificabile, dichiaralo.** Non spuntarlo. Ogni review fatta finora ha una sezione sui limiti, ed è quella che rende credibile il resto.
 
@@ -109,7 +109,7 @@ lib/src/
 
 ## Stato del progetto
 
-Il backlog è in [`docs/BACKLOG.md`](docs/BACKLOG.md): **69 storie, 15 epiche, 220 punti**, di cui 12 completate. Ogni storia riporta `Depends on`, `Blocks` e `Status`. Una storia è eseguibile quando tutte quelle in `Depends on` sono `✅ DONE`.
+Il backlog è in [`docs/BACKLOG.md`](docs/BACKLOG.md): **71 storie, 15 epiche, 224 punti**, di cui 19 completate. Ogni storia riporta `Depends on`, `Blocks` e `Status`. Una storia è eseguibile quando tutte quelle in `Depends on` sono `✅ DONE`.
 
 **Direzione visiva: palette Indigo, app scura per impostazione predefinita.** Ambra `#F0C38E` significa sempre e solo "cosa fare adesso"; salmone `#F1AA9B` è riservato ai dati vitali. Tenerli distinti è deliberato: se l'ambra compare su qualcosa che non è un'azione, perde la sua funzione.
 
@@ -120,7 +120,7 @@ Debito noto e già tracciato — non aprire storie nuove per queste, esistono gi
 | Stream ricreati dentro `build` in undici punti | US-010, US-011, US-012 |
 | 61 istanziazioni dirette dei servizi nelle schermate | US-008, US-009 |
 | Regole Firestore non versionate | US-018 |
-| 66 avvisi dell'analyzer | US-030 |
+| 63 avvisi dell'analyzer | US-030 |
 | Ticker del timer sempre attivo a 30 ms | US-013 |
 | Limite `whereIn` a 10 non gestito | US-019, US-020 |
 

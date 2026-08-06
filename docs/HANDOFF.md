@@ -36,9 +36,9 @@ Da leggere in quest'ordine:
 | US-044 | Video dell'esecuzione in un foglio, senza lasciare la sessione |
 | US-045 | Libreria curata: 43 esercizi importabili dalle impostazioni |
 
-**Stato di salute:** 66 avvisi, **zero errori**, **253 test verdi** (erano 102), CI verde su entrambi i branch.
+**Stato di salute:** **63 avvisi** (erano 66: US-071 ne ha tolti tre), **zero errori**, **282 test verdi** (erano 102), CI verde su entrambi i branch.
 
-I 66 avvisi sono debito preesistente tracciato in **US-030**. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
+I 63 avvisi sono debito preesistente tracciato in **US-030**. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
 
 ---
 

@@ -112,14 +112,7 @@ class ProgramListScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              loc.t('cancel') != 'cancel' ? loc.t('cancel') : 'Cancel',
-            ), // Just guarding if I missed 'cancel' key, but 'Cancel' is universal enough or I should add it.
-            // Wait, I didn't add 'cancel' key explicitly in my previous step, let me check _en map. I added 'cancel' inside _confirmDelete dialog elsewhere?
-            // I'll assume 'Cancel' is English. If I want full italian, I need a 'cancel' key.
-            // I'll use 'Annulla' hardcoded if 'it' or just add 'cancel' key next time.
-            // Actually, I'll use 'Cancel' hardcoded for now or add key later if I can.
-            // Better: use loc.t('cancel') and if it returns key, use 'Cancel'.
+            child: Text(loc.t('cancel'))
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),

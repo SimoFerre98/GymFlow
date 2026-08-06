@@ -154,6 +154,20 @@ class Localization {
     'badge_name_social_butterfly': 'Social Butterfly',
     'badge_desc_social_butterfly': 'Connect with a friend',
 
+    // Missing strings found on screen: `t` returns the key when it is absent,
+    // so these were being displayed as `rpe_label`, `cancel`, and so on.
+    'cancel': 'Cancel',
+    'login_required': 'Sign in to continue',
+    'completed_at': 'Completed at',
+    'scheduled_for': 'Scheduled for',
+    'friend_label': '(friend)',
+    'event_deleted': 'Event deleted',
+    'no_workouts_create_first': 'No workouts yet. Create one first!',
+    'error_connecting': 'Error while connecting',
+    'error_deleting': 'Error while deleting',
+    'gymflow_user': 'GymFlow user',
+    'rpe_label': 'Avg Effort',
+
     // Exercises
     'exercises_menu': 'Exercises',
     'exercises_title': 'Exercise library',
@@ -315,6 +329,22 @@ class Localization {
     'badge_desc_unstoppable': 'Raggiungi una serie di 7 giorni',
     'badge_name_social_butterfly': 'Animale Sociale',
     'badge_desc_social_butterfly': 'Connettiti con un amico',
+
+    // Stringhe mancanti trovate a schermo: `t` restituisce la chiave quando
+    // manca, quindi al loro posto si leggeva `rpe_label`, `cancel`, e cosi via.
+    'cancel': 'Annulla',
+    'login_required': 'Accedi per continuare',
+    'completed_at': 'Completato alle',
+    'scheduled_for': 'Programmato per le',
+    'friend_label': '(amico)',
+    'event_deleted': 'Evento eliminato',
+    'no_workouts_create_first': 'Nessun allenamento. Creane uno prima!',
+    'error_connecting': 'Errore durante la connessione',
+    'error_deleting': "Errore durante l'eliminazione",
+    'gymflow_user': 'Utente GymFlow',
+    // Il valore che accompagna viene da calculateAverageRPE: e lo sforzo
+    // percepito, non l'intensita, che e gia un'altra voce.
+    'rpe_label': 'Sforzo medio',
 
     // Esercizi
     'exercises_menu': 'Esercizi',

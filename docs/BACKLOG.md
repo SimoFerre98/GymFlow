@@ -1923,6 +1923,31 @@ Dopo questa storia: dal menu si apre la libreria in consultazione, con le miniat
 
 ---
 
+#### US-071: Stringhe non tradotte visibili a schermo
+
+**Epic:** EP-005 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ✅ DONE — piano in [`planning/US-071.md`](planning/US-071.md), review in [`planning/US-071-review.md`](planning/US-071-review.md)
+
+> ⚠️ **Aperta il 2026-08-06 guardando l'app sul telefono.** Sulla dashboard, al posto del nome della metrica, si legge `rpe_label`. Un controllo su tutto il codice ha trovato **11 chiavi usate e mai definite**, in nessuna delle due lingue: `Localization.t` restituisce la chiave quando manca — scelta giusta, che rende il problema visibile — ma nessuno stava guardando. Due punti del codice contengono già aggiramenti scritti a mano per nascondere il buco.
+
+**Story**
+Come atleta che usa l'app in italiano,
+voglio leggere parole al posto di codici,
+così da non avere l'impressione di usare qualcosa di incompiuto.
+
+**Demonstrates**
+Dopo questa storia: nessuna schermata mostra il nome di una chiave, e un test impedisce che succeda di nuovo.
+
+**Acceptance Criteria**
+- [x] Le 11 chiavi mancanti esistono in EN e IT, con traduzioni pertinenti al punto in cui compaiono — la **pertinenza** resta da leggere sul telefono
+- [x] Un test verifica che **ogni** chiave usata nel codice esista in entrambe le lingue, e fallisce se qualcuno ne aggiunge una senza tradurla — **provato al contrario**: rimossa `cancel` dall'italiano, il test è fallito nominando i due file che la usano
+- [x] Un test verifica che le due tabelle contengano le stesse chiavi — più un test che verifica che non siano la stessa parola
+- [x] Gli aggiramenti scritti a mano per nascondere le chiavi mancanti sono rimossi — il conteggio degli avvisi scende **da 66 a 63**
+- [x] Nessuna stringa visibile viene introdotta al posto di una chiave — il diff ne toglie tre e non ne aggiunge
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2026,6 +2051,8 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 ---
 
 ## Change Log
+
+**2026-08-06** — Aggiunta **US-071** dopo aver guardato l'app sul telefono: 11 chiavi di localizzazione usate e mai definite, visibili a schermo come `rpe_label`.
 
 **2026-08-06** — Aggiunta **US-070** dopo una verifica richiesta dall'utente: la libreria esercizi non era raggiungibile dal menu, quindi tutto EP-009 era di fatto invisibile. Le epiche restano 15; EP-009 passa da 5 a 6 storie e da 15 a 17 punti.
 
