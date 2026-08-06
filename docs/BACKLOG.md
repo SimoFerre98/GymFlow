@@ -1126,12 +1126,18 @@ Dopo questa storia: rimuovere per errore il pulsante di login fa fallire un test
 
 ---
 
-### EP-009: Contenuti degli esercizi
+### EP-009: Contenuti degli esercizi — ✅ COMPLETATA
 
 > Dare all'app il materiale visivo che oggi non ha: foto e video di esecuzione per ogni esercizio.
 > **Scope:** MVP | **Stories:** 5 | **Story Points:** 15
 
 > ⚠️ **È il presupposto del ridisegno, non una funzionalità fra le altre.** Le tre app di riferimento vivono di immagini: senza foto degli esercizi, qualunque cambio di colori resta cosmesi su una lista di testo. Ogni storia di EP-014 che mostra miniature dipende da qui.
+
+> ✅ **Chiusa il 2026-08-06**, tutte e cinque le storie in `main`. Cosa esiste adesso: il modello porta immagine e video (US-041), un widget unico decide sempre cosa mostrare con quattro anelli di ripiego (US-042), le liste mostrano le miniature con l'indicatore del video (US-043), toccarle apre l'esecuzione senza lasciare la schermata (US-044), e la libreria curata di 43 esercizi si importa dalle impostazioni (US-045).
+>
+> **Cosa resta aperto, e non è un difetto**: solo **15 esercizi su 43 hanno un video**, quindi 28 mostrano il segnaposto e aprono una ricerca invece dell'esecuzione. Completarli è la domanda aperta n. 2 del [documento di passaggio](HANDOFF.md#6-domande-aperte-che-richiedono-lutente) e **non richiede modifiche al codice**: basta popolare `videoUrl` nel file della libreria.
+>
+> **Da confermare sul dispositivo**: i 55 fps di US-043, l'import e la sua idempotenza (US-045), e il comportamento del video durante una sessione attiva (US-044).
 
 ---
 
@@ -1213,7 +1219,7 @@ Dopo questa storia: libreria, scheda e sessione mostrano la miniatura accanto a 
 
 **Epic:** EP-009 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-041 | **Blocks:** —  _(nessuna)_
-**Status:** 🔍 IN REVIEW — piano in [`planning/US-044.md`](planning/US-044.md), review in [`planning/US-044-review.md`](planning/US-044-review.md)
+**Status:** ✅ DONE — piano in [`planning/US-044.md`](planning/US-044.md), review in [`planning/US-044-review.md`](planning/US-044-review.md)
 
 **Story**
 Come atleta che non ricorda come si esegue un movimento,
