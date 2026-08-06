@@ -16,12 +16,21 @@ import 'exercise_image.dart';
 /// Chi ha in mano solo l'identificativo dell'esercizio — una scheda, una
 /// sessione — usa [ExerciseThumbnailById].
 class ExerciseThumbnail extends ConsumerWidget {
-  const ExerciseThumbnail({super.key, required this.exercise, this.side});
+  const ExerciseThumbnail({
+    super.key,
+    required this.exercise,
+    this.side,
+    this.onTap,
+  });
 
   final Exercise exercise;
 
   /// Lato della miniatura. Di norma `thumbnailMd` dei token.
   final double? side;
+
+  /// Cosa fare al tocco. Nullo significa **nessun tocco**: la miniatura resta
+  /// decorativa e la cella che la contiene mantiene il proprio gesto.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,6 +53,19 @@ class ExerciseThumbnail extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Sopra l'immagine e sotto l'indicatore: il tocco copre tutta la
+          // miniatura, mentre il resto della cella conserva il proprio gesto.
+          if (onTap != null)
+            Positioned.fill(
+              child: Material(
+                // `transparency` invece di un colore trasparente: qui non c'e
+                // una scelta di colore da fare, serve solo la superficie che
+                // disegna l'onda del tocco.
+                type: MaterialType.transparency,
+                child: InkWell(onTap: onTap, borderRadius: t.shape.cornerMd),
+              ),
+            ),
 
           // Solo per un video vero, non per una ricerca: un indicatore su un
           // esercizio che porta a una lista di risultati promette l'esecuzione
@@ -97,11 +119,16 @@ class ExerciseThumbnailById extends ConsumerWidget {
     required this.exerciseId,
     required this.exerciseName,
     this.side,
+    this.onTap,
   });
 
   final String exerciseId;
   final String exerciseName;
   final double? side;
+
+  /// Riceve l'esercizio risolto: chi tocca una miniatura in una scheda vuole
+  /// agire su quell'esercizio, non sul suo identificativo.
+  final void Function(Exercise exercise)? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,10 +137,17 @@ class ExerciseThumbnailById extends ConsumerWidget {
     final found = ref.watch(
       exerciseIndexProvider.select((index) => index[exerciseId]),
     );
+    final resolved = found ?? _unknown();
+    final handler = onTap;
 
     return ExerciseThumbnail(
-      exercise: found ?? _unknown(),
+      exercise: resolved,
       side: side,
+      // Finche l'indice non ha risolto l'esercizio non si sa se abbia un video:
+      // meglio nessun gesto che un gesto che apre "non disponibile".
+      onTap: (handler == null || found == null)
+          ? null
+          : () => handler(resolved),
     );
   }
 

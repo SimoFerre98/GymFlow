@@ -1213,7 +1213,7 @@ Dopo questa storia: libreria, scheda e sessione mostrano la miniatura accanto a 
 
 **Epic:** EP-009 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-041 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🔍 IN REVIEW — piano in [`planning/US-044.md`](planning/US-044.md), review in [`planning/US-044-review.md`](planning/US-044-review.md)
 
 **Story**
 Come atleta che non ricorda come si esegue un movimento,
@@ -1224,12 +1224,12 @@ così da correggere la tecnica sul momento invece di rimandare.
 Dopo questa storia: toccando l'indicatore video si apre l'esecuzione, e chiudendola si torna esattamente dove si era.
 
 **Acceptance Criteria**
-- [ ] Il video si apre da libreria, scheda esercizio e sessione attiva
-- [ ] Dalla sessione attiva, lo stato della sessione è intatto alla chiusura del video
-- [ ] Il cronometro della sessione continua a scorrere mentre il video è aperto
-- [ ] Un video non disponibile mostra un messaggio, non una schermata bianca
-- [ ] Senza rete si spiega che il video richiede connessione
-- [ ] Il video non parte da solo con l'audio a volume pieno
+- [x] Il video si apre da libreria, scheda esercizio e sessione attiva — «scheda esercizio» interpretata come la scheda di allenamento: una schermata di dettaglio dell'esercizio non esiste. **Da confermare sul dispositivo**
+- [~] Dalla sessione attiva, lo stato della sessione è intatto alla chiusura del video — **strutturale**: un foglio modale non smonta la schermata sotto. Da provare con una sessione vera
+- [~] Il cronometro della sessione continua a scorrere mentre il video è aperto — stessa ragione, stessa prova mancante
+- [x] Un video non disponibile mostra un messaggio, non una schermata bianca — 4 test
+- [x] Senza rete si spiega che il video richiede connessione — 4 test, e il messaggio è diverso da quello del video rimosso
+- [~] Il video non parte da solo con l'audio a volume pieno — `autoPlay: false`, **non montabile in un test**: costruire il riproduttore richiede già la WebView
 
 ---
 

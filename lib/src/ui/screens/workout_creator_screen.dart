@@ -5,6 +5,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
+import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
 class WorkoutCreatorScreen extends StatefulWidget {
   final WorkoutTemplate? workout; // If provided, we are editing
@@ -606,6 +607,8 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                               leading: ExerciseThumbnailById(
                                 exerciseId: _exercises[index].exerciseId,
                                 exerciseName: _exercises[index].exerciseName,
+                                onTap: (exercise) =>
+                                    ExerciseVideoSheet.show(context, exercise),
                               ),
                               title: Text(
                                 _exercises[index].exerciseName,

@@ -8,6 +8,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
+import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
@@ -320,6 +321,10 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                       ExerciseThumbnailById(
                         exerciseId: exercise.exerciseId,
                         exerciseName: exercise.exerciseName,
+                        // Il foglio non smonta questa schermata: alla chiusura
+                        // la sessione e dov'era e il cronometro non ha smesso.
+                        onTap: (resolved) =>
+                            ExerciseVideoSheet.show(context, resolved),
                       ),
                       SizedBox(width: context.expressive.spacing.md),
                       Expanded(

@@ -71,6 +71,8 @@ dependencies:
   lottie: ^3.0.0
   rive: ^0.13.0
   cached_network_image: ^3.4.1
+  youtube_player_flutter: ^10.0.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

@@ -164,6 +164,17 @@ class Localization {
     'import_with_search': 'With search only',
     'import_discarded': 'Discarded while reading',
     'import_failed': 'Import failed',
+
+    // Execution video
+    'video_none': 'No execution video for this exercise yet.',
+    'video_search_only':
+        'No specific video has been picked for this exercise yet. You can search for it on YouTube.',
+    'video_open_search': 'Search on YouTube',
+    'video_unavailable':
+        'This video is no longer available, or its author does not allow it to be played here.',
+    'video_offline':
+        'Watching the video needs a connection. Check your network and try again.',
+    'video_open_failed': 'Could not open YouTube',
   };
 
   static final Map<String, String> _it = {
@@ -311,6 +322,17 @@ class Localization {
     'import_with_search': 'Con la sola ricerca',
     'import_discarded': 'Scartati durante la lettura',
     'import_failed': 'Importazione fallita',
+
+    // Video dell'esecuzione
+    'video_none': "Per questo esercizio non c'e ancora un video.",
+    'video_search_only':
+        "Per questo esercizio non e ancora stato scelto un video preciso. Puoi cercarlo su YouTube.",
+    'video_open_search': 'Cerca su YouTube',
+    'video_unavailable':
+        "Questo video non e piu disponibile, oppure il suo autore non ne permette la visione qui.",
+    'video_offline':
+        'Per vedere il video serve una connessione. Controlla la rete e riprova.',
+    'video_open_failed': 'Non e stato possibile aprire YouTube',
   };
 }
 

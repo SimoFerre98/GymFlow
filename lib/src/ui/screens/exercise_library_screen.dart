@@ -3,6 +3,7 @@ import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
+import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
 class ExerciseLibraryScreen extends StatefulWidget {
   final bool isSelecting; // If true, allows returning the selected exercise
@@ -192,7 +193,12 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        leading: ExerciseThumbnail(exercise: exercise),
+        leading: ExerciseThumbnail(
+          exercise: exercise,
+          // Il tocco sulla miniatura mostra l'esecuzione; quello sulla cella
+          // resta la selezione dell'esercizio. Due gesti, due significati.
+          onTap: () => ExerciseVideoSheet.show(context, exercise),
+        ),
         title: Text(
           exercise.name,
           style: const TextStyle(fontWeight: FontWeight.bold),
