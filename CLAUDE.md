@@ -2,11 +2,19 @@
 
 App Flutter per il tracciamento degli allenamenti. Backend Firebase (Auth, Firestore, Storage), stato con Riverpod, persistenza locale con Isar.
 
+## Se è la tua prima sessione su questo progetto
+
+**Leggi [`docs/HANDOFF.md`](docs/HANDOFF.md) prima di toccare qualsiasi cosa.** Contiene ciò che non si deduce dal repository: decisioni prese a voce, trappole dell'ambiente che costano mezz'ora se le scopri da solo, il livello di rigore atteso nelle verifiche, e i limiti noti del materiale ricevuto.
+
 ## Regola prima di tutte
 
-**Il lavoro sul backlog segue il processo in [`docs/WORKFLOW.md`](docs/WORKFLOW.md).** Quando ti viene chiesto di implementare una storia (`US-XXX`), esegui il ciclo completo: planning → branch → implementazione → verifica → review → via libera → PR → chiusura. Non saltare fasi, non anticipare il merge.
+**Il lavoro sul backlog segue il processo in [`docs/WORKFLOW.md`](docs/WORKFLOW.md).** Quando ti viene chiesto di implementare una storia (`US-XXX`), esegui il ciclo completo: planning → branch → implementazione → verifica → review → via libera → merge → chiusura. Non saltare fasi, non anticipare il merge.
 
 Per avviare il ciclo su una storia: `/gymflow-story US-XXX`.
+
+**Il baseline degli avvisi è 66.** Una storia che lo alza ha introdotto qualcosa: va sistemato prima del merge, non spiegato dopo.
+
+**Quando un criterio non è verificabile, dichiaralo.** Non spuntarlo. Ogni review fatta finora ha una sezione sui limiti, ed è quella che rende credibile il resto.
 
 ## Comandi
 
@@ -88,13 +96,34 @@ lib/src/
 - `lib/firebase_options.dart` — generato da FlutterFire CLI.
 - `**/*.g.dart` — generati da build_runner.
 
+## Documenti di riferimento
+
+| File | Cosa contiene |
+|---|---|
+| [`docs/HANDOFF.md`](docs/HANDOFF.md) | Stato, decisioni prese, trappole, domande aperte. **Da leggere per primo.** |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md) | 69 storie con dipendenze, blocchi e stato |
+| [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | Il processo per ogni storia |
+| [`docs/adr/001-material-3-expressive.md`](docs/adr/001-material-3-expressive.md) | Perché Material 3 Expressive è costruito e non installato |
+| `docs/planning/US-XXX.md` | Piano di ogni storia affrontata |
+| `docs/planning/US-XXX-review.md` | Review, con i limiti dichiarati |
+
 ## Stato del progetto
 
-Il backlog è in [`docs/BACKLOG.md`](docs/BACKLOG.md): 39 storie, 8 epiche, 115 punti. Ogni storia riporta `Depends on`, `Blocks` e `Status`.
+Il backlog è in [`docs/BACKLOG.md`](docs/BACKLOG.md): **69 storie, 15 epiche, 220 punti**, di cui 12 completate. Ogni storia riporta `Depends on`, `Blocks` e `Status`. Una storia è eseguibile quando tutte quelle in `Depends on` sono `✅ DONE`.
+
+**Direzione visiva: palette Indigo, app scura per impostazione predefinita.** Ambra `#F0C38E` significa sempre e solo "cosa fare adesso"; salmone `#F1AA9B` è riservato ai dati vitali. Tenerli distinti è deliberato: se l'ambra compare su qualcosa che non è un'azione, perde la sua funzione.
 
 Debito noto e già tracciato — non aprire storie nuove per queste, esistono già:
-- Doppio state management, Provider e Riverpod in parallelo (EP-002)
-- Stream ricreati dentro `build` in tredici punti (EP-003)
-- Controller mai rilasciati in sei file (US-014)
-- Regole Firestore non versionate (US-018)
-- Copertura di test quasi nulla (EP-007)
+
+| Debito | Storia |
+|---|---|
+| Stream ricreati dentro `build` in undici punti | US-010, US-011, US-012 |
+| 61 istanziazioni dirette dei servizi nelle schermate | US-008, US-009 |
+| Regole Firestore non versionate | US-018 |
+| 66 avvisi dell'analyzer | US-030 |
+| Ticker del timer sempre attivo a 30 ms | US-013 |
+| Limite `whereIn` a 10 non gestito | US-019, US-020 |
+
+**Debito visibile a schermo**: l'app è diventata scura con US-034, ma le schermate contengono ancora `Colors.grey[...]` ereditati dal fondo chiaro. **Alcuni testi secondari appaiono sbiaditi**: lo sistemano US-022 e US-023. Se l'utente lo segnala, è questo — non un difetto nuovo.
+
+Già risolti, non riaprirli: doppio state management (EP-002), controller non rilasciati (US-014), API deprecate (US-024), assenza di CI e test (US-029), build release rotta (US-040).
