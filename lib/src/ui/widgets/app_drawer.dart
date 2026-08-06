@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
@@ -8,13 +8,13 @@ import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
 import 'package:gymflow/src/ui/screens/time_tools_screen.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = AuthService().currentUser;
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     return Drawer(
       child: Column(

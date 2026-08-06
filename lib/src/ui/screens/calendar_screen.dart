@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:ui';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -9,7 +10,8 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
-import 'package:provider/provider.dart';
+// Prefisso: convive con flutter_riverpod finche il timer non e migrato (US-007).
+import 'package:provider/provider.dart' as legacy;
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
@@ -17,14 +19,14 @@ import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import '../../core/providers/localization_provider.dart';
 
-class CalendarScreen extends StatefulWidget {
+class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  State<CalendarScreen> createState() => _CalendarScreenState();
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -94,7 +96,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     if (user == null) {
       return Scaffold(body: Center(child: Text(loc.t('login_required'))));
@@ -252,7 +254,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildEventListSliver(
     Map<DateTime, List<dynamic>> eventsMap,
-    LocalizationProvider loc,
+    Localization loc,
   ) {
     if (_selectedDay == null) {
       return SliverFillRemaining(
@@ -323,7 +325,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildEventCard(dynamic event, LocalizationProvider loc) {
+  Widget _buildEventCard(dynamic event, Localization loc) {
     bool isCompleted = event is WorkoutSession;
     String id = isCompleted
         ? (event as WorkoutSession).id
@@ -483,7 +485,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _startWorkout(ScheduledWorkout schedule) async {
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
+    final firestore = legacy.Provider.of<FirestoreService>(context, listen: false);
     final workout = await firestore.getWorkout(schedule.workoutTemplateId);
     if (workout != null && mounted) {
       Navigator.push(
@@ -501,7 +503,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _showScheduleDialog(
     BuildContext context,
     String userId,
-    LocalizationProvider loc, {
+    Localization loc, {
     DateTime? initialDate,
   }) {
     showModalBottomSheet(

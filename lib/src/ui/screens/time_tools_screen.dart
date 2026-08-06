@@ -1,20 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
+// Prefisso: convive con flutter_riverpod finche il timer non e migrato (US-007).
+import 'package:provider/provider.dart' as legacy;
 import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
-class TimeToolsScreen extends StatefulWidget {
+class TimeToolsScreen extends ConsumerStatefulWidget {
   const TimeToolsScreen({super.key});
 
   @override
-  State<TimeToolsScreen> createState() => _TimeToolsScreenState();
+  ConsumerState<TimeToolsScreen> createState() => _TimeToolsScreenState();
 }
 
-class _TimeToolsScreenState extends State<TimeToolsScreen>
+class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -23,7 +25,7 @@ class _TimeToolsScreenState extends State<TimeToolsScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TimerService>(context, listen: false).setToolsVisible(true);
+      legacy.Provider.of<TimerService>(context, listen: false).setToolsVisible(true);
     });
   }
 
@@ -57,18 +59,18 @@ class _TimeToolsScreenState extends State<TimeToolsScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Ensure visible when refined
-    Provider.of<TimerService>(context, listen: false).setToolsVisible(true);
+    legacy.Provider.of<TimerService>(context, listen: false).setToolsVisible(true);
   }
 
   @override
   void deactivate() {
-    Provider.of<TimerService>(context, listen: false).setToolsVisible(false);
+    legacy.Provider.of<TimerService>(context, listen: false).setToolsVisible(false);
     super.deactivate();
   }
 
   @override
   Widget build(BuildContext context) {
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -143,7 +145,7 @@ class _TimeToolsScreenState extends State<TimeToolsScreen>
   }
 }
 
-class StopwatchView extends StatelessWidget {
+class StopwatchView extends ConsumerWidget {
   const StopwatchView({super.key});
 
   String _formatDuration(Duration d) {
@@ -155,10 +157,10 @@ class StopwatchView extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Consume TimerService
-    final service = Provider.of<TimerService>(context);
-    final loc = Provider.of<LocalizationProvider>(context);
+    final service = legacy.Provider.of<TimerService>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     // Logic for Buttons:
     // Left:
@@ -287,7 +289,7 @@ class StopwatchView extends StatelessWidget {
   }
 }
 
-class TimerView extends StatelessWidget {
+class TimerView extends ConsumerWidget {
   const TimerView({super.key});
 
   String _formatDuration(Duration d) {
@@ -324,9 +326,9 @@ class TimerView extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final service = Provider.of<TimerService>(context);
-    final loc = Provider.of<LocalizationProvider>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final service = legacy.Provider.of<TimerService>(context);
+    final loc = ref.watch(localizationNotifierProvider);
     final isRunning = service.isTimerRunning;
 
     // Logic for Buttons (requested):

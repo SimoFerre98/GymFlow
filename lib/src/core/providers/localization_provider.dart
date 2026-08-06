@@ -1,41 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LocalizationProvider extends ChangeNotifier {
-  Locale _locale = const Locale(
-    'it',
-  ); // Default to Italian for now as per user language
+part 'localization_provider.g.dart';
 
-  Locale get locale => _locale;
+/// Traduzioni per la lingua corrente.
+///
+/// Immutabile: cambiare lingua produce una nuova istanza, non muta questa.
+@immutable
+class Localization {
+  const Localization(this.locale);
 
-  LocalizationProvider() {
-    _loadLocale();
-  }
+  final Locale locale;
 
-  void setLocale(Locale locale) async {
-    _locale = locale;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language_code', locale.languageCode);
-  }
-
-  Future<void> _loadLocale() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedCode = prefs.getString('language_code');
-    if (savedCode != null) {
-      _locale = Locale(savedCode);
-      notifyListeners();
-    }
-  }
-
-  // Simple Translation Map
-  // In a real large app, JSON files are better, but for speed and simplicity here:
+  /// Traduce [key]. Se manca nel dizionario restituisce la chiave stessa,
+  /// cosi la stringa non tradotta e visibile invece di sparire.
   String t(String key) {
-    if (_locale.languageCode == 'it') {
-      return _it[key] ?? key;
-    } else {
-      return _en[key] ?? key;
-    }
+    final table = locale.languageCode == 'it' ? _it : _en;
+    return table[key] ?? key;
   }
 
   static final Map<String, String> _en = {
@@ -308,4 +290,34 @@ class LocalizationProvider extends ChangeNotifier {
     'badge_name_social_butterfly': 'Animale Sociale',
     'badge_desc_social_butterfly': 'Connettiti con un amico',
   };
+}
+
+/// Espone la lingua corrente e le sue traduzioni, persistendo la scelta.
+///
+/// Come per il tema, [build] restituisce subito il default e avvia la lettura
+/// da `SharedPreferences`: nessuno stato di caricamento da gestire nella UI.
+@Riverpod(keepAlive: true)
+class LocalizationNotifier extends _$LocalizationNotifier {
+  static const _languageKey = 'language_code';
+  static const _defaultLocale = Locale('it');
+
+  @override
+  Localization build() {
+    _restore();
+    return const Localization(_defaultLocale);
+  }
+
+  Future<void> _restore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedCode = prefs.getString(_languageKey);
+    if (savedCode != null && savedCode.isNotEmpty) {
+      state = Localization(Locale(savedCode));
+    }
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    state = Localization(locale);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_languageKey, locale.languageCode);
+  }
 }

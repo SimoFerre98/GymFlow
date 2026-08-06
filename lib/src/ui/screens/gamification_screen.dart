@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// Prefisso: convive con flutter_riverpod finche il timer non e migrato (US-007).
+import 'package:provider/provider.dart' as legacy;
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -12,14 +14,14 @@ import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
 import '../widgets/app_drawer.dart';
 
-class GamificationScreen extends StatefulWidget {
+class GamificationScreen extends ConsumerStatefulWidget {
   const GamificationScreen({super.key});
 
   @override
-  State<GamificationScreen> createState() => _GamificationScreenState();
+  ConsumerState<GamificationScreen> createState() => _GamificationScreenState();
 }
 
-class _GamificationScreenState extends State<GamificationScreen> {
+class _GamificationScreenState extends ConsumerState<GamificationScreen> {
   int _monthlySteps = 0;
   double _monthlyCalories = 0;
   double _monthlyDistance = 0;
@@ -86,8 +88,8 @@ class _GamificationScreenState extends State<GamificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    final loc = Provider.of<LocalizationProvider>(context);
+    final firestore = legacy.Provider.of<FirestoreService>(context, listen: false);
+    final loc = ref.watch(localizationNotifierProvider);
     final userId = AuthService().currentUser?.uid ?? '';
 
     return Scaffold(
@@ -193,7 +195,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     );
   }
 
-  Widget _buildStepChallengeCard(LocalizationProvider loc) {
+  Widget _buildStepChallengeCard(Localization loc) {
     final progress = (_monthlySteps / _monthlyStepGoal).clamp(0.0, 1.0);
     final percentage = (progress * 100).toInt();
 
@@ -285,7 +287,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     );
   }
 
-  Widget _buildCaloriesChallengeCard(LocalizationProvider loc) {
+  Widget _buildCaloriesChallengeCard(Localization loc) {
     final progress = (_monthlyCalories / _monthlyCalorieGoal).clamp(0.0, 1.0);
     final percentage = (progress * 100).toInt();
 
@@ -361,7 +363,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     );
   }
 
-  Widget _buildDistanceChallengeCard(LocalizationProvider loc) {
+  Widget _buildDistanceChallengeCard(Localization loc) {
     final progress = (_monthlyDistance / _monthlyDistanceGoal).clamp(0.0, 1.0);
     // Convert to km
     final currentKm = (_monthlyDistance / 1000).toStringAsFixed(1);
@@ -433,7 +435,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
     BuildContext context,
     BadgeModel badge,
     bool isUnlocked,
-    LocalizationProvider loc,
+    Localization loc,
   ) {
     return Container(
       decoration: BoxDecoration(

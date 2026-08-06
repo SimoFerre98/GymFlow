@@ -254,7 +254,7 @@ Dopo questa storia: cambiare tema e colore primario dalle impostazioni funziona 
 
 **Epic:** EP-002 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-001 | **Blocks:** US-007, US-025, US-026
-**Status:** ⬜ TODO
+**Status:** ✅ DONE
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -265,10 +265,10 @@ così da eliminare la seconda dipendenza da `package:provider` nelle schermate.
 Dopo questa storia: il cambio lingua funziona come prima e nessuna schermata usa più `Provider.of<LocalizationProvider>`.
 
 **Acceptance Criteria**
-- [ ] La lingua corrente e la funzione di traduzione sono esposte da un provider Riverpod
-- [ ] Cambiando lingua dalle impostazioni, tutte le schermate aperte si aggiornano
-- [ ] La preferenza di lingua persiste tra riavvii
-- [ ] Nessun file in `lib/src/ui` importa più `LocalizationProvider` via `package:provider`
+- [x] La lingua corrente e la funzione di traduzione sono esposte da un provider Riverpod
+- [x] Cambiando lingua dalle impostazioni, tutte le schermate aperte si aggiornano
+- [x] La preferenza di lingua persiste tra riavvii
+- [x] Nessun file in `lib/src/ui` importa più `LocalizationProvider` via `package:provider`
 
 ---
 

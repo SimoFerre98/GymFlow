@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/auth_service.dart';
 import '../../models/session.dart';
@@ -65,7 +64,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     // Legacy provider
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
     // Use AuthService directly to avoid provider generation issues
     final user = AuthService().currentUser;
     final userName =
@@ -407,7 +406,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     BuildContext context,
     WorkoutSession session,
     bool isToday,
-    LocalizationProvider loc,
+    Localization loc,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -630,7 +629,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildHealthSection(LocalizationProvider loc) {
+  Widget _buildHealthSection(Localization loc) {
     return FutureBuilder<Map<String, dynamic>>(
       future: _healthDataFuture,
       builder: (context, snapshot) {

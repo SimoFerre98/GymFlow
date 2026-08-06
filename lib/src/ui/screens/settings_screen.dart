@@ -5,9 +5,6 @@ import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/profile_screen.dart';
 import 'package:gymflow/src/ui/screens/body_measurements_screen.dart';
-// Prefisso: convive con flutter_riverpod finche la localizzazione non e
-// migrata (US-006). Entrambi dichiarano Provider.
-import 'package:provider/provider.dart' as legacy;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
@@ -45,7 +42,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     // 1. Get Providers
-    final loc = legacy.Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
     final theme = ref.watch(themeSettingsNotifierProvider);
     final themeNotifier = ref.read(themeSettingsNotifierProvider.notifier);
 
@@ -331,7 +328,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                       onChanged: (val) {
                         if (val != null) {
-                          loc.setLocale(Locale(val));
+                          ref
+                              .read(localizationNotifierProvider.notifier)
+                              .setLocale(Locale(val));
                         }
                       },
                     ),

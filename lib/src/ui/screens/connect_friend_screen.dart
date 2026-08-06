@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
-import 'package:provider/provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
-class ConnectFriendScreen extends StatefulWidget {
+class ConnectFriendScreen extends ConsumerStatefulWidget {
   const ConnectFriendScreen({super.key});
 
   @override
-  State<ConnectFriendScreen> createState() => _ConnectFriendScreenState();
+  ConsumerState<ConnectFriendScreen> createState() => _ConnectFriendScreenState();
 }
 
-class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
+class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
   final _codeController = TextEditingController();
   final FirestoreService _firestore = FirestoreService();
   final AuthService _auth = AuthService();
@@ -43,7 +43,7 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
   }
 
   Future<void> _connectWithFriend() async {
-    final loc = Provider.of<LocalizationProvider>(context, listen: false);
+    final loc = ref.read(localizationNotifierProvider);
     final code = _codeController.text.trim().toUpperCase();
     if (code.isEmpty) {
       ToastUtils.showInfo(
@@ -83,7 +83,7 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -277,16 +277,16 @@ class _ConnectFriendScreenState extends State<ConnectFriendScreen> {
   }
 }
 
-class _AccessControlDialog extends StatefulWidget {
+class _AccessControlDialog extends ConsumerStatefulWidget {
   final UserProfile friend;
 
   const _AccessControlDialog({required this.friend});
 
   @override
-  State<_AccessControlDialog> createState() => _AccessControlDialogState();
+  ConsumerState<_AccessControlDialog> createState() => _AccessControlDialogState();
 }
 
-class _AccessControlDialogState extends State<_AccessControlDialog> {
+class _AccessControlDialogState extends ConsumerState<_AccessControlDialog> {
   bool _shareCalendar = false;
   bool _sharePrograms = false;
   bool _isLoading = true;
@@ -324,7 +324,7 @@ class _AccessControlDialogState extends State<_AccessControlDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     return AlertDialog(
       title: Text('${loc.t('privacy_settings')} ${widget.friend.displayName}'),

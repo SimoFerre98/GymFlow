@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
@@ -6,17 +7,16 @@ import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
-import 'package:provider/provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
-class ProgramListScreen extends StatelessWidget {
+class ProgramListScreen extends ConsumerWidget {
   const ProgramListScreen({super.key});
 
   @override
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = AuthService().currentUser;
-    final loc = Provider.of<LocalizationProvider>(context);
+    final loc = ref.watch(localizationNotifierProvider);
 
     if (user == null) {
       return const Scaffold(body: Center(child: Text('Login required')));
@@ -70,7 +70,7 @@ class ProgramListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, LocalizationProvider loc) {
+  Widget _buildEmptyState(BuildContext context, Localization loc) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +100,7 @@ class ProgramListScreen extends StatelessWidget {
   Future<void> _confirmDelete(
     BuildContext context,
     WorkoutProgram program,
-    LocalizationProvider loc,
+    Localization loc,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -154,7 +154,7 @@ class ProgramListScreen extends StatelessWidget {
   Widget _buildProgramCard(
     BuildContext context,
     WorkoutProgram program,
-    LocalizationProvider loc,
+    Localization loc,
   ) {
     return Card(
       elevation: 4,
