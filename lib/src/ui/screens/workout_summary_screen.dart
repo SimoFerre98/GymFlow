@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/theme/expressive_tokens.dart';
+import '../../core/utils/personal_record.dart';
 import '../../core/utils/workout_summary.dart';
 import '../../models/session.dart';
 import '../widgets/workout_receipt.dart';
@@ -13,11 +15,13 @@ class WorkoutSummaryScreen extends ConsumerWidget {
   const WorkoutSummaryScreen({
     super.key,
     required this.session,
+    this.records,
     this.calories,
     this.avgHeartRate,
   });
 
   final WorkoutSession session;
+  final List<PersonalRecord>? records;
   final int? calories;
   final int? avgHeartRate;
 
@@ -72,6 +76,12 @@ class WorkoutSummaryScreen extends ConsumerWidget {
       calories: calories,
       avgHeartRate: avgHeartRate,
     );
+
+    final recordsList = records ??
+        PersonalRecord.detectSessionRecords(
+          session: session,
+          allSessions: ref.watch(dashboardSessionsProvider).value ?? [],
+        );
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -142,6 +152,14 @@ class WorkoutSummaryScreen extends ConsumerWidget {
               // Scontrino di riepilogo
               WorkoutReceipt(summary: summary),
 
+              // Record personali battuti nella sessione
+              if (recordsList.isNotEmpty) ...[
+                for (final record in recordsList) ...[
+                  SizedBox(height: expressive.spacing.md),
+                  _PersonalRecordCard(record: record),
+                ],
+              ],
+
               SizedBox(height: expressive.spacing.xl),
 
               // CTA Salva e chiudi
@@ -175,3 +193,122 @@ class WorkoutSummaryScreen extends ConsumerWidget {
     );
   }
 }
+
+/// Card contornata di evidenza per un record personale superato.
+///
+/// La variante «contornata» del mockup e trasparente con il solo bordo ambra:
+/// e cio che la distingue dalla card piena, che grida «questo e il livello
+/// primario». Un fondo la farebbe somigliare a una card normale col bordo.
+class _PersonalRecordCard extends ConsumerWidget {
+  const _PersonalRecordCard({required this.record});
+
+  final PersonalRecord record;
+
+  /// 2 — il bordo di 1,4 px del mockup convertito (`dp = px x 1,36`).
+  ///
+  /// Non e un token: `ExpressiveCard` non ha ancora la variante contornata, e
+  /// `expressive_tokens.dart` non ospita costanti di un solo componente.
+  static const double _borderWidth = 2;
+
+  static String _formatWeight(double v) {
+    final text = v == v.roundToDouble()
+        ? v.toStringAsFixed(0)
+        : v.toStringAsFixed(1);
+    return text.replaceAll('.', ',');
+  }
+
+  static String _formatDate(DateTime? date, String languageCode) {
+    if (date == null) return '';
+    final months = languageCode == 'it'
+        ? WorkoutSummaryScreen._itMonths
+        : WorkoutSummaryScreen._enMonths;
+    final monthStr =
+        (date.month >= 1 && date.month <= 12) ? months[date.month - 1] : '';
+    return '${date.day} $monthStr';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final expressive = context.expressive;
+    final loc = ref.watch(localizationNotifierProvider);
+    final previousDateStr =
+        _formatDate(record.previousDate, loc.locale.languageCode);
+
+    final previousText = previousDateStr.isNotEmpty
+        ? '${loc.t('previous_max_was')} ${_formatWeight(record.previousWeight)} kg, ${loc.t('on_date')} $previousDateStr'
+        : '${loc.t('previous_max_was')} ${_formatWeight(record.previousWeight)} kg';
+
+    return Container(
+      padding: EdgeInsets.all(expressive.spacing.md),
+      decoration: BoxDecoration(
+        borderRadius: expressive.shape.cornerLg,
+        border: Border.all(
+          color: theme.colorScheme.primary,
+          width: _borderWidth,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: expressive.spacing.sm,
+                  vertical: expressive.spacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  // «Fondo = accento al 20%», come tutte le pillole del mockup.
+                  color: theme.colorScheme.primary.withValues(alpha: 0.20),
+                  borderRadius: expressive.shape.cornerFull,
+                ),
+                child: Text(
+                  loc.t('record_pill').toUpperCase(),
+                  style: (theme.textTheme.labelSmall ?? const TextStyle())
+                      .copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.1,
+                      ),
+                ),
+              ),
+              Text(
+                '+${_formatWeight(record.diffWeight)} kg',
+                style: (expressive.typography.metricSmall ??
+                        theme.textTheme.labelLarge ??
+                        const TextStyle())
+                    .copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+          SizedBox(height: expressive.spacing.sm),
+          Text(
+            '${record.exerciseName} · ${_formatWeight(record.newWeight)} kg × ${record.newReps}',
+            style: (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          SizedBox(height: expressive.spacing.xs),
+          Text(
+            previousText,
+            style: (theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
+              // `onSurfaceVariant` e gia il ruolo del testo secondario:
+              // smorzarlo ancora lo porterebbe fra i testi sbiaditi che
+              // US-022 deve andare a recuperare. Come il resto di questa
+              // schermata, che usa il ruolo pieno.
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

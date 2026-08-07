@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:gymflow/src/core/providers/personal_best_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
@@ -14,7 +16,7 @@ import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
 
-class ActiveSessionScreen extends StatefulWidget {
+class ActiveSessionScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate workout;
   final String? scheduledWorkoutId;
 
@@ -25,10 +27,11 @@ class ActiveSessionScreen extends StatefulWidget {
   });
 
   @override
-  State<ActiveSessionScreen> createState() => _ActiveSessionScreenState();
+  ConsumerState<ActiveSessionScreen> createState() =>
+      _ActiveSessionScreenState();
 }
 
-class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
+class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   late Stopwatch _stopwatch;
   late Timer _timer;
   String _formattedTime = "00:00:00";
@@ -272,6 +275,14 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
   Widget build(BuildContext context) {
     final expressive = context.expressive;
 
+    // Tiene vivi i massimi storici per tutta la durata della schermata.
+    // `personalBestsProvider` e autoDispose e legge le sessioni da uno stream
+    // di Isar: la sola `ref.read` all'apertura del foglio della serie lo
+    // creerebbe da freddo e otterrebbe una mappa vuota, perche lo stream non ha
+    // ancora emesso. Funzionerebbe soltanto per il caso fortunato in cui la
+    // dashboard, restando montata sotto, lo tiene gia caldo.
+    ref.watch(personalBestsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -514,11 +525,15 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     required bool showWeight,
   }) async {
     final set = exercise.sets[setIndex];
+    final personalBests = ref.read(personalBestsProvider);
+    final personalBest = personalBests[exercise.exerciseId];
     final result = await SetEditorSheet.show(
       context,
       set: set,
       setNumber: setIndex + 1,
       exerciseName: exercise.exerciseName,
+      exerciseId: exercise.exerciseId,
+      personalBest: personalBest,
       previous: setIndex > 0 ? exercise.sets[setIndex - 1] : null,
       showWeight: showWeight,
     );

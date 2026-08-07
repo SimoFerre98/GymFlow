@@ -215,6 +215,12 @@ class Localization {
     'live_metrics_in_progress': 'In progress',
     'live_metrics_kcal': 'kcal',
     'live_metrics_bpm': 'bpm',
+
+    // Personal records (US-050)
+    'record_pill': 'Record',
+    'record_over_max': 'over your max',
+    'previous_max_was': 'Previous max was',
+    'on_date': 'on',
   };
 
   static final Map<String, String> _it = {
@@ -415,6 +421,12 @@ class Localization {
     'live_metrics_in_progress': 'In corso',
     'live_metrics_kcal': 'kcal',
     'live_metrics_bpm': 'bpm',
+
+    // Record personali (US-050)
+    'record_pill': 'Record',
+    'record_over_max': 'sul tuo massimo',
+    'previous_max_was': 'Il massimo precedente era',
+    'on_date': 'il',
   };
 }
 

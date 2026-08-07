@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymflow/src/core/providers/dashboard_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
+import 'package:gymflow/src/core/utils/personal_record.dart';
 import 'package:gymflow/src/core/utils/workout_summary.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
@@ -136,6 +138,9 @@ void main() {
                 const Localization(Locale('it')),
               ),
             ),
+            dashboardSessionsProvider.overrideWith(
+              () => _FakeDashboardSessions(),
+            ),
           ],
           child: MaterialApp(
             theme: AppTheme.darkTheme(const Color(0xFFF0C38E)),
@@ -157,6 +162,89 @@ void main() {
       await tester.tap(find.text('Chiudi'));
       await tester.pumpAndSettle();
     });
+
+    testWidgets('mostra la card del record personale quando presente', (tester) async {
+      final session = WorkoutSession(
+        id: 's1',
+        userId: 'u1',
+        workoutTemplateId: 't1',
+        workoutName: 'Spinte & Petto',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 48),
+        exercises: [],
+      );
+
+      final record = PersonalRecord(
+        exerciseId: 'bench',
+        exerciseName: 'Panca piana',
+        newWeight: 62.5,
+        newReps: 8,
+        previousWeight: 60.0,
+        previousDate: DateTime(2026, 7, 21),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            localizationNotifierProvider.overrideWith(
+              () => _FakeLocalizationNotifier(
+                const Localization(Locale('it')),
+              ),
+            ),
+            dashboardSessionsProvider.overrideWith(
+              () => _FakeDashboardSessions(),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.darkTheme(const Color(0xFFF0C38E)),
+            home: WorkoutSummaryScreen(session: session, records: [record]),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('RECORD'), findsOneWidget);
+      expect(find.text('+2,5 kg'), findsOneWidget);
+      expect(find.text('Panca piana · 62,5 kg × 8'), findsOneWidget);
+      expect(
+        find.textContaining('Il massimo precedente era 60 kg, il 21 lug'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('non mostra card dei record se la lista dei record e vuota', (tester) async {
+      final session = WorkoutSession(
+        id: 's1',
+        userId: 'u1',
+        workoutTemplateId: 't1',
+        workoutName: 'Spinte & Petto',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 48),
+        exercises: [],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            localizationNotifierProvider.overrideWith(
+              () => _FakeLocalizationNotifier(
+                const Localization(Locale('it')),
+              ),
+            ),
+            dashboardSessionsProvider.overrideWith(
+              () => _FakeDashboardSessions(),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.darkTheme(const Color(0xFFF0C38E)),
+            home: WorkoutSummaryScreen(session: session, records: const []),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('RECORD'), findsNothing);
+    });
   });
 }
 
@@ -166,4 +254,11 @@ class _FakeLocalizationNotifier extends LocalizationNotifier {
 
   @override
   Localization build() => _loc;
+}
+
+class _FakeDashboardSessions extends DashboardSessions {
+  @override
+  Stream<List<WorkoutSession>> build() async* {
+    yield [];
+  }
 }

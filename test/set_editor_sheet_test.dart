@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymflow/src/core/utils/personal_record.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/set_value_slider.dart';
@@ -14,6 +15,7 @@ void main() {
 
   Widget host({
     required WorkoutSet set,
+    PersonalBest? personalBest,
     WorkoutSet? previous,
     bool showWeight = true,
   }) {
@@ -24,6 +26,7 @@ void main() {
             set: set,
             setNumber: 3,
             exerciseName: 'Panca piana',
+            personalBest: personalBest,
             previous: previous,
             showWeight: showWeight,
           ),
@@ -247,6 +250,70 @@ void main() {
 
       expect(sliders[2].color, scheme.tertiary);
       expect(sliders[0].color, isNull, reason: 'carico usa il primario');
+    });
+  });
+
+  group('riconoscimento record personale nel foglio', () {
+    testWidgets('mostra il riferimento al record superato quando il carico supera il PB', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          set: WorkoutSet(weight: 62.5, reps: 8),
+          personalBest: PersonalBest(
+            exerciseId: 'bench',
+            exerciseName: 'Panca piana',
+            weight: 60.0,
+            reps: 8,
+            date: DateTime(2026, 7, 21),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('+2,5 kg'), findsOneWidget);
+      expect(find.textContaining('sul tuo massimo'), findsOneWidget);
+    });
+
+    testWidgets('mostra sia la serie precedente che il delta record quando presenti entrambi', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          set: WorkoutSet(weight: 65.0, reps: 8),
+          previous: WorkoutSet(weight: 65.0, reps: 8),
+          personalBest: PersonalBest(
+            exerciseId: 'bench',
+            exerciseName: 'Panca piana',
+            weight: 60.0,
+            reps: 8,
+            date: DateTime(2026, 7, 21),
+          ),
+        ),
+      );
+
+      expect(find.text('65 kg × 8'), findsOneWidget);
+      expect(find.textContaining('+5 kg'), findsOneWidget);
+      expect(find.textContaining('sul tuo massimo'), findsOneWidget);
+    });
+
+    testWidgets('non mostra il testo di record se il carico e inferiore o uguale al PB', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          set: WorkoutSet(weight: 60, reps: 8),
+          previous: WorkoutSet(weight: 55, reps: 8),
+          personalBest: PersonalBest(
+            exerciseId: 'bench',
+            exerciseName: 'Panca piana',
+            weight: 60.0,
+            reps: 8,
+            date: DateTime(2026, 7, 21),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('sul tuo massimo'), findsNothing);
     });
   });
 }

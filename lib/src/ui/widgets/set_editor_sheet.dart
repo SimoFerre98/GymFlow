@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/localization_provider.dart';
 import '../../core/theme/expressive_tokens.dart';
+import '../../core/utils/personal_record.dart';
 import '../../models/workout.dart';
 import 'set_value_slider.dart';
 
@@ -22,6 +23,8 @@ class SetEditorSheet extends ConsumerStatefulWidget {
     required this.set,
     required this.setNumber,
     required this.exerciseName,
+    this.exerciseId,
+    this.personalBest,
     this.previous,
     this.showWeight = true,
   });
@@ -29,6 +32,10 @@ class SetEditorSheet extends ConsumerStatefulWidget {
   final WorkoutSet set;
   final int setNumber;
   final String exerciseName;
+  final String? exerciseId;
+
+  /// Il massimo storico precedente per questo esercizio, se presente.
+  final PersonalBest? personalBest;
 
   /// La serie precedente dello stesso esercizio, se c'e: da qui vengono i
   /// valori di partenza, ed e quella mostrata in cima come riferimento.
@@ -43,6 +50,8 @@ class SetEditorSheet extends ConsumerStatefulWidget {
     required WorkoutSet set,
     required int setNumber,
     required String exerciseName,
+    String? exerciseId,
+    PersonalBest? personalBest,
     WorkoutSet? previous,
     bool showWeight = true,
   }) {
@@ -54,6 +63,8 @@ class SetEditorSheet extends ConsumerStatefulWidget {
         set: set,
         setNumber: setNumber,
         exerciseName: exerciseName,
+        exerciseId: exerciseId,
+        personalBest: personalBest,
         previous: previous,
         showWeight: showWeight,
       ),
@@ -171,6 +182,13 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
     final scheme = Theme.of(context).colorScheme;
     final loc = ref.watch(localizationNotifierProvider);
     final previous = widget.previous;
+    final personalBest = widget.personalBest;
+
+    final isRecord = widget.showWeight &&
+        personalBest != null &&
+        personalBest.weight > 0 &&
+        _weight > personalBest.weight;
+    final diff = isRecord ? _weight - personalBest.weight : 0.0;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -206,13 +224,20 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
 
             // Il riferimento: cosa si era fatto la volta prima. Senza, si
             // impostano tre numeri senza sapere rispetto a cosa.
-            if (previous != null) ...[
+            if (previous != null || isRecord) ...[
               SizedBox(height: t.spacing.md),
               _PreviousSet(
-                text: widget.showWeight
-                    ? '${_weightText(previous.weight)} kg × ${previous.reps}'
-                    : '${previous.reps} ${loc.t('reps_label')}',
-                label: loc.t('previous_set'),
+                text: previous != null
+                    ? (widget.showWeight
+                        ? '${_weightText(previous.weight)} kg × ${previous.reps}'
+                        : '${previous.reps} ${loc.t('reps_label')}')
+                    : '',
+                label: previous != null
+                    ? loc.t('previous_set')
+                    : loc.t('record_pill'),
+                comparisonText: isRecord
+                    ? '+${_weightText(diff)} kg ${loc.t('record_over_max')}'
+                    : null,
               ),
             ],
 
@@ -295,10 +320,15 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
 
 /// La serie precedente, come riferimento sopra i cursori.
 class _PreviousSet extends StatelessWidget {
-  const _PreviousSet({required this.label, required this.text});
+  const _PreviousSet({
+    required this.label,
+    required this.text,
+    this.comparisonText,
+  });
 
   final String label;
   final String text;
+  final String? comparisonText;
 
   @override
   Widget build(BuildContext context) {
@@ -314,24 +344,44 @@ class _PreviousSet extends StatelessWidget {
         color: scheme.surfaceContainerHigh,
         borderRadius: t.shape.cornerMd,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label.toUpperCase(),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 1.2,
+          if (text.isNotEmpty)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                Text(
+                  text,
+                  style:
+                      t.typography.metricSmall?.copyWith(
+                        color: scheme.onSurface,
+                      ) ??
+                      const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-          ),
-          Text(
-            text,
-            style:
-                t.typography.metricSmall?.copyWith(color: scheme.onSurface) ??
-                const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          if (comparisonText != null) ...[
+            if (text.isNotEmpty) SizedBox(height: t.spacing.xs),
+            Text(
+              comparisonText!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
+
