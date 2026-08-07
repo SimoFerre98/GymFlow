@@ -160,6 +160,13 @@ class ExpressiveSizing {
   /// Legato alla miniatura e non un valore libero: sotto questa misura il
   /// simbolo dentro non si riconosce piu.
   double get badge => 20;
+
+  /// 48 — lato minimo di una zona che si tocca.
+  ///
+  /// E la misura delle linee guida di accessibilita, e un criterio di US-046 la
+  /// chiede esplicitamente: un cursore da usare con le mani sudate fra due
+  /// serie non puo avere l'area di tocco alta quanto il tratto disegnato.
+  double get minTouchTarget => 48;
 }
 
 /// Ombre dei contenitori.

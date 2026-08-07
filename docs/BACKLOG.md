@@ -1277,8 +1277,8 @@ Dopo questa storia: la libreria di base contiene gli esercizi forniti dal team, 
 #### US-046: Registrare una serie senza tastiera
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 5
-**Depends on:** US-021 | **Blocks:** US-048, US-050, US-066
-**Status:** ⬜ TODO
+**Depends on:** US-021 (✅) | **Blocks:** US-048, US-050, US-066
+**Status:** ✅ DONE — piano in [`planning/US-046.md`](planning/US-046.md)
 
 **Story**
 Come atleta con le mani sudate fra due serie,
@@ -1289,13 +1289,13 @@ così da chiudere una serie in tre secondi senza combattere con un tastierino nu
 Dopo questa storia: carico, ripetizioni e RPE si impostano con i cursori, partendo dai valori della serie precedente.
 
 **Acceptance Criteria**
-- [ ] I tre valori si impostano con cursori a passo definito: 2,5 kg per il carico, 1 per le ripetizioni, 1 per l'RPE
-- [ ] I valori iniziali sono quelli della serie precedente dello stesso esercizio
-- [ ] La serie precedente è visibile come riferimento mentre si imposta la nuova
-- [ ] Resta possibile inserire un valore da tastiera per i casi fuori scala
-- [ ] I cursori sono azionabili con una sola mano, con aree di tocco di almeno 48 dp
-- [ ] Ogni cursore è raggiungibile da tastiera e annunciato dallo screen reader con valore e unità
-- [ ] Il valore cambiato è confermato da un riscontro visivo immediato
+- [x] I tre valori si impostano con cursori a passo definito: 2,5 kg per il carico, 1 per le ripetizioni, 1 per l'RPE
+- [x] I valori iniziali sono quelli della serie precedente dello stesso esercizio — **della sessione in corso**; quella della sessione precedente richiede lo storico ed è dichiarata fuori
+- [x] La serie precedente è visibile come riferimento mentre si imposta la nuova
+- [x] Resta possibile inserire un valore da tastiera per i casi fuori scala — toccando il valore di carico o ripetizioni
+- [x] I cursori sono azionabili con una sola mano, con aree di tocco di almeno 48 dp — misurato nel test; **la comodità con una mano sola è da confermare sull'APK**
+- [x] Ogni cursore è raggiungibile da tastiera e annunciato dallo screen reader con valore e unità — il test ha trovato che annunciava «14%»: corretto con `semanticFormatterCallback`
+- [x] Il valore cambiato è confermato da un riscontro visivo immediato
 
 ---
 

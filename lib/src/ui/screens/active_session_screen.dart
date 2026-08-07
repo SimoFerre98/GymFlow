@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
+import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
@@ -448,27 +449,18 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
           return TableRow(
             children: [
               Center(child: Text('${setIndex + 1}')),
+              // I tre valori si impostano nel foglio, con i cursori: con le
+              // mani sudate fra due serie, tre campi numerici larghi poche
+              // decine di pixel costavano piu tempo di quanto ne facessero
+              // risparmiare (US-046).
               if (showWeight)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextFormField(
-                    initialValue: set.weight.toString(),
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(isDense: true),
-                    onChanged: (val) => set.weight =
-                        double.tryParse(val.replaceAll(',', '.')) ?? set.weight,
-                  ),
+                _SetValueCell(
+                  text: _formatWeight(set.weight),
+                  onTap: () => _editSet(exercise, setIndex, showWeight: true),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  initialValue: set.reps.toString(),
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(isDense: true),
-                  onChanged: (val) => set.reps = int.tryParse(val) ?? set.reps,
-                ),
+              _SetValueCell(
+                text: '${set.reps}',
+                onTap: () => _editSet(exercise, setIndex, showWeight: showWeight),
               ),
               Checkbox(
                 value: set.isCompleted,
@@ -480,6 +472,41 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
         }).toList(),
       ],
     );
+  }
+
+  static String _formatWeight(double value) {
+    final text = value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(1);
+    return text.replaceAll('.', ',');
+  }
+
+  /// Apre il foglio dei cursori per una serie.
+  ///
+  /// Il valore di partenza viene dalla serie precedente **dello stesso
+  /// esercizio in questa sessione**: e l'informazione piu vicina a quella che
+  /// il criterio chiede, e non richiede di leggere lo storico.
+  Future<void> _editSet(
+    WorkoutExercise exercise,
+    int setIndex, {
+    required bool showWeight,
+  }) async {
+    final set = exercise.sets[setIndex];
+    final result = await SetEditorSheet.show(
+      context,
+      set: set,
+      setNumber: setIndex + 1,
+      exerciseName: exercise.exerciseName,
+      previous: setIndex > 0 ? exercise.sets[setIndex - 1] : null,
+      showWeight: showWeight,
+    );
+    if (result == null) return;
+
+    setState(() {
+      set.weight = result.weight;
+      set.reps = result.reps;
+      set.rpe = result.rpe;
+    });
   }
 
   Widget _buildCardioTable(WorkoutExercise exercise) {
@@ -630,6 +657,32 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
           );
         }).toList(),
       ],
+    );
+  }
+}
+
+/// Un valore della serie in tabella: si legge, e toccandolo si apre il foglio.
+///
+/// Non e piu un campo di testo, ma resta alto quanto serve a essere toccato
+/// senza mirare.
+class _SetValueCell extends StatelessWidget {
+  const _SetValueCell({required this.text, required this.onTap});
+
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.expressive;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: t.shape.cornerSm,
+      child: Container(
+        height: t.sizing.minTouchTarget,
+        alignment: Alignment.center,
+        margin: EdgeInsets.symmetric(horizontal: t.spacing.xs),
+        child: Text(text, style: t.typography.metricSmall),
+      ),
     );
   }
 }

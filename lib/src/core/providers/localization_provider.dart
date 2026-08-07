@@ -154,6 +154,14 @@ class Localization {
     'badge_name_social_butterfly': 'Social Butterfly',
     'badge_desc_social_butterfly': 'Connect with a friend',
 
+    // Set editor (US-046)
+    'set_label': 'Set',
+    'previous_set': 'Previous set',
+    'load_label': 'Load',
+    'reps_label': 'Reps',
+    'rpe_full_label': 'Perceived effort',
+    'close_set': 'Close the set',
+
     // Missing strings found on screen: `t` returns the key when it is absent,
     // so these were being displayed as `rpe_label`, `cancel`, and so on.
     'cancel': 'Cancel',
@@ -321,6 +329,14 @@ class Localization {
     'badge_desc_unstoppable': 'Raggiungi una serie di 7 giorni',
     'badge_name_social_butterfly': 'Animale Sociale',
     'badge_desc_social_butterfly': 'Connettiti con un amico',
+
+    // Editor della serie (US-046)
+    'set_label': 'Serie',
+    'previous_set': 'Serie precedente',
+    'load_label': 'Carico',
+    'reps_label': 'Ripetizioni',
+    'rpe_full_label': 'Sforzo percepito',
+    'close_set': 'Chiudi la serie',
 
     // Stringhe mancanti trovate a schermo: `t` restituisce la chiave quando
     // manca, quindi al loro posto si leggeva `rpe_label`, `cancel`, e cosi via.
