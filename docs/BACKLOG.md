@@ -1303,7 +1303,7 @@ Dopo questa storia: carico, ripetizioni e RPE si impostano con i cursori, parten
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-021 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-047.md`](planning/US-047.md) · **delegabile con cautela**
+**Status:** ✅ DONE — mandato in [`planning/US-047.md`](planning/US-047.md), review in [`planning/US-047-review.md`](planning/US-047-review.md)
 
 **Story**
 Come atleta che si sta allenando,
@@ -1314,13 +1314,13 @@ così da capire l'intensità reale dell'allenamento invece di scoprirla alla fin
 Dopo questa storia: il pannello della sessione mostra cronometro, calorie e battito con l'andamento dell'ultimo minuto.
 
 **Acceptance Criteria**
-- [ ] Calorie e battito si aggiornano durante la sessione, con periodo dichiarato
-- [ ] Ogni metrica porta l'andamento recente come sparkline
-- [ ] L'assenza del permesso Salute mostra come concederlo, non un errore
-- [ ] Su un dispositivo senza sensore di battito la metrica è assente, non a zero
-- [ ] L'aggiornamento non fa scendere lo scorrimento sotto i 55 fps
-- [ ] Il pannello resta leggibile sopra la foto dell'esercizio, con qualunque immagine
-- [ ] La lettura si interrompe alla chiusura della sessione: nessuna sottoscrizione sopravvive
+- [x] Calorie e battito si aggiornano durante la sessione, con periodo dichiarato — 30 s in una costante nominata, e un test fa scorrere il periodo con l'orologio finto invece di fidarsi della costante
+- [x] Ogni metrica porta l'andamento recente come sparkline — la finestra è di 20 campioni; sotto i due punti la sparkline non traccia nulla. In review: il pannello dentro la lista veniva smontato scorrendo e azzerava la finestra
+- [x] L'assenza del permesso Salute mostra come concederlo, non un errore — il test cerca l'invito e il pulsante, e verifica che non compaia nessuno zero. Prima non cercava niente
+- [ ] Su un dispositivo senza sensore di battito la metrica è assente, non a zero — **non implementabile da Dart**: `health` 13.3.0 non distingue il sensore del dispositivo (`isDataTypeAvailable` è una capacità di piattaforma, verificata nel sorgente). Il codice nasconde la tessera quando il battito non è leggibile e mostra «—», mai zero: il danno non si verifica, il criterio come è scritto no. Serve il controllo nativo, come US-053 e US-054
+- [ ] L'aggiornamento non fa scendere lo scorrimento sotto i 55 fps — **da confermare sull'APK**, non misurabile in un test. Prove strutturali: lettura ogni 30 s, `RepaintBoundary` sulla sparkline, pannello fuori dalla lista. Sospetto aperto: il velo sfocato si ricalcola al secondo per il cronometro
+- [ ] Il pannello resta leggibile sopra la foto dell'esercizio, con qualunque immagine — **non verificabile oggi**: la foto a tutta larghezza è US-062. Prova strutturale: fondo al 90% con bordo al 10%. Da riaprire con US-062
+- [x] La lettura si interrompe alla chiusura della sessione: nessuna sottoscrizione sopravvive — chiuso l'ascoltatore, il contatore del servizio finto non si muove per tre periodi, e un timer sopravvissuto farebbe fallire `testWidgets` da solo
 
 ---
 
