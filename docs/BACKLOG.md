@@ -1303,7 +1303,7 @@ Dopo questa storia: carico, ripetizioni e RPE si impostano con i cursori, parten
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-021 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-047.md`](planning/US-047.md) · **delegabile con cautela**
 
 **Story**
 Come atleta che si sta allenando,
@@ -1352,7 +1352,7 @@ Dopo questa storia: chiudendo una serie il recupero parte con la durata prevista
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-021 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-049.md`](planning/US-049.md) · **delegabile**
 
 **Story**
 Come atleta che ha finito di allenarsi,
@@ -1376,7 +1376,7 @@ Dopo questa storia: chiudendo la sessione compare il riepilogo con volume, serie
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-046 | **Blocks:** US-068
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-050.md`](planning/US-050.md) · **delegabile**, dopo US-049
 
 **Story**
 Come atleta che ha appena superato il proprio massimo,
@@ -1982,7 +1982,7 @@ Dopo questa storia: aprendo la libreria si vedono i 43 esercizi curati, anche al
 
 **Epic:** EP-005 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-021 (✅), US-042 (✅), US-043 (✅) | **Blocks:** US-022
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-073.md`](planning/US-073.md) · **delegabile**
 
 > ⚠️ **Aperta il 2026-08-06.** I mockup approvati esistevano solo come artefatti privati: non erano nel repository, non erano citati in `CLAUDE.md`, e chi ha implementato EP-009 e US-021 non li ha letti. Ora sono in [`docs/design/`](design/) con l'estratto in [`DESIGN-SPEC.md`](DESIGN-SPEC.md), e il confronto mostra **quattro scelte che li contraddicono**. Le misure invece tornano, una volta applicata la conversione `dp ≈ px × 1,36`.
 
@@ -2108,6 +2108,8 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 ---
 
 ## Change Log
+
+**2026-08-06** — Scritti in anticipo i mandati di **US-073, US-047, US-049 e US-050**, pronti da assegnare a esecutori diversi. Ogni piano ha ora una sezione **«Fedeltà al mockup»** con i valori esatti convertiti in dp: è la cosa che mancava a US-042, che ha prodotto una grafica che il disegno approvato non prevede. Il processo per il lavoro parallelo è in [`DELEGA.md`](DELEGA.md).
 
 **2026-08-06** — **Rimosso il catalogo del design system dall'app.** Decisione del prodotto: *«se dobbiamo tenere traccia delle cose grafiche creiamo dei mockup dentro la cartella del progetto; dentro l'app non ha il minimo senso»*. Spariscono la schermata, la voce di menu e la lista di prova da 100 esercizi. I riferimenti visivi restano in `docs/design/`. Decadono due criteri, di US-021 e US-043, marcati come tali.
 
