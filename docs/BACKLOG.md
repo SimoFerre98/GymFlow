@@ -23,7 +23,7 @@
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
 | EP-007 | Qualità del codice e test automatizzati | 4 | 11 | Growth |
 | EP-009 | Contenuti degli esercizi | 5 | 15 | MVP |
-| EP-010 | Sessione di allenamento | 5 | 19 | MVP |
+| EP-010 | Sessione di allenamento | 6 | 22 | MVP |
 | EP-011 | Timer e gestione del tempo | 4 | 16 | MVP |
 | EP-012 | Obiettivi e traguardi | 4 | 12 | Growth |
 | EP-013 | Allenamenti oltre la palestra | 3 | 11 | Growth |
@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 69
-**Total story points:** 220
+**Total stories:** 74
+**Total story points:** 233
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -1268,7 +1268,7 @@ Dopo questa storia: la libreria di base contiene gli esercizi forniti dal team, 
 ### EP-010: Sessione di allenamento
 
 > Ripensare il momento in cui l'app viene davvero usata: sotto il bilanciere, con le mani occupate.
-> **Scope:** MVP | **Stories:** 5 | **Story Points:** 19
+> **Scope:** MVP | **Stories:** 6 | **Story Points:** 22
 
 > È l'epica con il maggiore impatto sull'uso quotidiano. Il criterio che guida ogni scelta: **niente tastiera durante l'allenamento**.
 
@@ -1365,7 +1365,7 @@ Dopo questa storia: chiudendo la sessione compare il riepilogo con volume, serie
 **Acceptance Criteria**
 - [x] Il riepilogo mostra volume sollevato, serie completate sul totale, sforzo medio, calorie e battito medio — il volume troncava i mezzi chili, corretto in review
 - [x] Le serie non completate sono indicate, non nascoste — «12 / 18», con un test
-- [ ] Un record superato durante la sessione è riportato con il valore precedente — **è US-050**, non questa storia: il posto sotto lo scontrino è libero
+- [x] Un record superato durante la sessione è riportato con il valore precedente — chiuso da **US-050**: la card contornata è fra lo scontrino e «Chiudi», con il valore precedente e la sua data. La schermata resta senza stringhe scritte a mano, che era la condizione dell'accettazione
 - [x] Il riepilogo è raggiungibile anche dopo, dallo storico della sessione — riempie un `// TODO` nella dashboard. **Da confermare sull'APK**
 - [x] Chiudendo il riepilogo la sessione risulta salvata — il salvataggio precede la schermata; la CTA diceva «Salva e chiudi» e mentiva, corretta in «Chiudi»
 - [x] Interrompendo un allenamento a metà, il riepilogo riporta ciò che è stato fatto — test dedicato
@@ -1376,7 +1376,7 @@ Dopo questa storia: chiudendo la sessione compare il riepilogo con volume, serie
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-046 | **Blocks:** US-068
-**Status:** 📋 PLANNED — mandato in [`planning/US-050.md`](planning/US-050.md) · **delegabile**, dopo US-049
+**Status:** ✅ DONE — mandato in [`planning/US-050.md`](planning/US-050.md), review in [`planning/US-050-review.md`](planning/US-050-review.md)
 
 **Story**
 Come atleta che ha appena superato il proprio massimo,
@@ -1387,12 +1387,12 @@ così da accorgermi dei miglioramenti mentre succedono invece di dedurli dai num
 Dopo questa storia: chiudendo una serie che supera il massimo precedente, l'app lo segnala subito.
 
 **Acceptance Criteria**
-- [ ] Il massimo per esercizio è calcolato dalle serie completate, non da quelle pianificate
-- [ ] Il confronto tiene conto sia del carico sia delle ripetizioni
-- [ ] Il superamento è segnalato alla chiusura della serie, senza interrompere l'allenamento
-- [ ] La storia dei record per esercizio è consultabile
-- [ ] Al primo allenamento di un esercizio non si segnala alcun record
-- [ ] Il calcolo è coperto da test, compresi i casi limite di parità
+- [x] Il massimo per esercizio è calcolato dalle serie completate, non da quelle pianificate — il test mancava e l'ha aggiunto la review: aprendo un allenamento i carichi della volta prima si precompilano con `isCompleted` a false, quindi è il caso che succede sempre
+- [ ] Il confronto tiene conto sia del carico sia delle ripetizioni — **non soddisfatto**: il confronto è sul solo carico, per la scelta motivata nel piano. Tracciato in **US-074**. Era stato spuntato nel rapporto di consegna e non lo era
+- [x] Il superamento è segnalato alla chiusura della serie, senza interrompere l'allenamento — la riga compare mentre imposti il carico, prima ancora di chiudere la serie. In review: leggeva i massimi da freddo e non si sarebbe segnalato nell'app vera
+- [ ] La storia dei record per esercizio è consultabile — **fuori scope di questa storia**: il piano la assegna a US-068, che dipende da questa
+- [x] Al primo allenamento di un esercizio non si segnala alcun record — due test: massimo assente, ed esercizio nuovo dentro una sessione con altri record
+- [x] Il calcolo è coperto da test, compresi i casi limite di parità — pareggio, carico inferiore, zero ripetizioni, corpo libero, storia vuota, serie non completate
 
 ---
 
@@ -2006,6 +2006,35 @@ Dopo questa storia: miniature, segnaposto, indicatore video e card corrispondono
 
 ---
 
+#### US-074: Il record tiene conto anche delle ripetizioni
+
+**Epic:** EP-010 | **Priority:** LOW | **Story Points:** 3
+**Depends on:** US-050 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-07**, dalla review di US-050. Il criterio «il confronto tiene conto sia del carico sia delle ripetizioni» era fra quelli di US-050 e **non è stato soddisfatto**: il piano di US-050 ha scelto deliberatamente la regola più semplice — è record il carico più alto sollevato per almeno una ripetizione — e ha dichiarato il resto come limite. La scelta è motivata: «record» deve essere una parola che l'utente capisce senza spiegazioni, e un massimale stimato sposterebbe la soglia a ogni cambio di ripetizioni. Il criterio resta però scoperto, e questa storia è il posto dove decidere se coprirlo.
+
+**Story**
+Come atleta che solleva lo stesso carico per più ripetizioni di prima,
+voglio che l'app riconosca anche questo come un miglioramento,
+così da non sentirmi fermo quando invece sto progredendo.
+
+**Demonstrates**
+Dopo questa storia: 60 kg × 10 dopo un 60 kg × 8 viene riconosciuto come miglioramento, con parole che restano comprensibili.
+
+**Acceptance Criteria**
+- [ ] A parità di carico, più ripetizioni della volta prima sono riconosciute come miglioramento
+- [ ] Il messaggio distingue un record di carico da un record di ripetizioni: non sono la stessa cosa e non vanno chiamati allo stesso modo
+- [ ] La formula usata è dichiarata nel codice e nella review, con la ragione della scelta
+- [ ] Un massimale stimato, se adottato, non fa comparire e sparire un record al solo cambiare delle ripetizioni impostate
+- [ ] I casi di parità piena (stesso carico, stesse ripetizioni) non producono alcun record
+- [ ] La regola resta una funzione pura, coperta da test
+
+**Note**
+La strada più ovvia è un massimale stimato (Epley, Brzycki), che US-050 ha messo esplicitamente fuori scope. Prima di implementarla va deciso **se** serve: il rischio è un numero corretto in palestra e illeggibile in un messaggio. L'alternativa è un secondo tipo di record, dichiarato come tale.
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2230,4 +2259,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[69 storie in 15 epiche — 220 story points totali · 3 storie accantonate in EP-008]_
+_[74 storie in 15 epiche — 233 story points totali · 3 storie accantonate in EP-008 · 25 completate]_
