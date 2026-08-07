@@ -27,6 +27,95 @@ class HealthService {
     return requested;
   }
 
+  /// I tipi che servono al pannello della sessione, calorie a parte il battito.
+  static final List<HealthDataType> _liveCalorieTypes = [
+    HealthDataType.ACTIVE_ENERGY_BURNED,
+    HealthDataType.BASAL_ENERGY_BURNED,
+  ];
+
+  /// Se le calorie sono leggibili, cioe se il pannello dal vivo ha qualcosa da
+  /// mostrare.
+  ///
+  /// Chiede solo i tipi che gli servono e non tutti e otto di [_dataTypes]: il
+  /// pannello non deve invitare a concedere i permessi perche manca quello sul
+  /// sonno o sul peso, che non mostra.
+  Future<bool> hasLiveMetricsPermissions() async {
+    try {
+      final hasPerm = await _health.hasPermissions(_liveCalorieTypes);
+      return hasPerm == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Se il battito e leggibile.
+  ///
+  /// **Non dice se il dispositivo ha un sensore di battito**, e non e un
+  /// dettaglio: `health` 13.3.0 non lo espone. `isDataTypeAvailable` risponde
+  /// per la piattaforma e non per il dispositivo, e su Android `HEART_RATE` e
+  /// sempre nell'elenco, quindi direbbe sempre si. Verificato nel sorgente del
+  /// pacchetto, non dedotto.
+  ///
+  /// Quello che si puo sapere da Dart e se il permesso sul battito c'e. Un
+  /// dispositivo senza sensore ma con il permesso concesso mostra la tessera
+  /// con «—», cioe «non lo so»: non mostra mai uno zero, che e il caso che il
+  /// criterio della storia vuole evitare.
+  Future<bool> hasHeartRateAccess() async {
+    try {
+      final hasPerm = await _health.hasPermissions([HealthDataType.HEART_RATE]);
+      return hasPerm == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Legge i campioni di calorie e battito cardiaco nell'intervallo specificato.
+  Future<Map<String, dynamic>> fetchLiveMetrics({
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    try {
+      final healthData = await _health.getHealthDataFromTypes(
+        startTime: startTime,
+        endTime: endTime,
+        types: [
+          HealthDataType.ACTIVE_ENERGY_BURNED,
+          HealthDataType.BASAL_ENERGY_BURNED,
+          HealthDataType.HEART_RATE,
+        ],
+      );
+
+      double? calories;
+      int? lastHeartRate;
+
+      for (var point in healthData) {
+        if (point.type == HealthDataType.ACTIVE_ENERGY_BURNED ||
+            point.type == HealthDataType.BASAL_ENERGY_BURNED) {
+          if (point.value is NumericHealthValue) {
+            final val =
+                (point.value as NumericHealthValue).numericValue.toDouble();
+            calories = (calories ?? 0) + val;
+          }
+        } else if (point.type == HealthDataType.HEART_RATE) {
+          if (point.value is NumericHealthValue) {
+            lastHeartRate =
+                (point.value as NumericHealthValue).numericValue.toInt();
+          }
+        }
+      }
+
+      return {
+        'calories': calories,
+        'heartRate': lastHeartRate,
+      };
+    } catch (_) {
+      return {
+        'calories': null,
+        'heartRate': null,
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> fetchDailySummary() async {
     final now = DateTime.now();
     final midnight = DateTime(now.year, now.month, now.day);

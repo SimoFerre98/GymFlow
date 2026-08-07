@@ -205,6 +205,16 @@ class Localization {
     'workout_receipt_avg_rpe': 'Average effort',
     'workout_receipt_calories': 'Calories',
     'workout_receipt_avg_heart_rate': 'Average heart rate',
+
+    // Live metrics (US-047)
+    'live_metrics_calories': 'CALORIES',
+    'live_metrics_heart_rate': 'HEART RATE',
+    'live_metrics_permission_prompt':
+        'Enable Health to see live calories and heart rate.',
+    'live_metrics_grant_permission': 'Enable Health',
+    'live_metrics_in_progress': 'In progress',
+    'live_metrics_kcal': 'kcal',
+    'live_metrics_bpm': 'bpm',
   };
 
   static final Map<String, String> _it = {
@@ -395,6 +405,16 @@ class Localization {
     'workout_receipt_avg_rpe': 'Sforzo medio',
     'workout_receipt_calories': 'Calorie',
     'workout_receipt_avg_heart_rate': 'Battito medio',
+
+    // Live metrics (US-047)
+    'live_metrics_calories': 'CALORIE',
+    'live_metrics_heart_rate': 'BATTITO',
+    'live_metrics_permission_prompt':
+        'Attiva Salute per vedere calorie e battito dal vivo.',
+    'live_metrics_grant_permission': 'Attiva Salute',
+    'live_metrics_in_progress': 'In corso',
+    'live_metrics_kcal': 'kcal',
+    'live_metrics_bpm': 'bpm',
   };
 }
 

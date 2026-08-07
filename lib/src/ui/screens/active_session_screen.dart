@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
+import 'package:gymflow/src/ui/widgets/live_metrics_panel.dart';
 import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
@@ -269,16 +270,15 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final expressive = context.expressive;
+
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          children: [
-            const Text('Active Session', style: TextStyle(fontSize: 12)),
-            Text(
-              _formattedTime,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
+        title: Text(
+          widget.workout.name,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
         ),
         centerTitle: true,
         actions: [
@@ -308,8 +308,26 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                 ),
         ],
       ),
+      // Il pannello sta in fondo e fuori dalla lista, non ne e il primo
+      // elemento: dentro il ListView verrebbe smontato scorrendo, e con lui
+      // morirebbe il provider autoDispose che tiene la finestra recente delle
+      // sparkline. Ancorato qui riserva la propria altezza, quindi non copre
+      // mai l'ultimo esercizio: un pannello sovrapposto renderebbe irrag-
+      // giungibile il suo pulsante «Add Set». La sovrapposizione alla foto
+      // dell'esercizio del mockup arriva con la foto stessa, in US-062.
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(expressive.spacing.sm),
+          child: LiveMetricsPanel(formattedTime: _formattedTime),
+        ),
+      ),
       body: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 120),
+        padding: EdgeInsets.only(
+          left: expressive.spacing.sm,
+          right: expressive.spacing.sm,
+          top: expressive.spacing.sm,
+          bottom: expressive.spacing.md,
+        ),
         itemCount: _sessionExercises.length,
         itemBuilder: (context, index) {
           final exercise = _sessionExercises[index];
