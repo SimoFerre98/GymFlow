@@ -11,6 +11,7 @@ import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
+import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
   final WorkoutTemplate workout;
@@ -258,8 +259,11 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     }
 
     if (mounted) {
-      Navigator.of(context).pop();
-      ToastUtils.showSuccess(context, 'Great job! Workout saved. 💪');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => WorkoutSummaryScreen(session: session),
+        ),
+      );
     }
   }
 

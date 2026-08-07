@@ -1,0 +1,169 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/app_theme.dart';
+import 'package:gymflow/src/core/utils/workout_summary.dart';
+import 'package:gymflow/src/models/session.dart';
+import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
+import 'package:gymflow/src/ui/widgets/workout_receipt.dart';
+
+void main() {
+  Widget createReceiptWidget({
+    required WorkoutSummary summary,
+    Locale locale = const Locale('it'),
+  }) {
+    return ProviderScope(
+      overrides: [
+        localizationNotifierProvider.overrideWith(
+          () => _FakeLocalizationNotifier(Localization(locale)),
+        ),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.darkTheme(const Color(0xFFF0C38E)),
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 340,
+              child: WorkoutReceipt(summary: summary),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  group('WorkoutReceipt Widget', () {
+    testWidgets('mostra tutti i dati quando presenti', (tester) async {
+      final summary = WorkoutSummary(
+        workoutName: 'Spinte',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 48),
+        totalVolume: 4240,
+        completedSets: 18,
+        totalSets: 18,
+        averageRpe: 7.6,
+        calories: 412,
+        avgHeartRate: 131,
+      );
+
+      await tester.pumpWidget(createReceiptWidget(summary: summary));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Spinte'), findsOneWidget);
+      expect(find.text('48 min'), findsOneWidget);
+      expect(find.text('4 240 kg'), findsOneWidget);
+      expect(find.text('18 / 18'), findsOneWidget);
+      expect(find.text('RPE 7,6'), findsOneWidget);
+      expect(find.text('412 kcal'), findsOneWidget);
+      expect(find.text('131 bpm'), findsOneWidget);
+    });
+
+    testWidgets('non mostra le righe di calorie, battito e rpe se sono null', (tester) async {
+      final summary = WorkoutSummary(
+        workoutName: 'Trazioni',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 30),
+        totalVolume: 1200,
+        completedSets: 10,
+        totalSets: 12,
+        averageRpe: null,
+        calories: null,
+        avgHeartRate: null,
+      );
+
+      await tester.pumpWidget(createReceiptWidget(summary: summary));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trazioni'), findsOneWidget);
+      expect(find.text('30 min'), findsOneWidget);
+      expect(find.text('1 200 kg'), findsOneWidget);
+      expect(find.text('10 / 12'), findsOneWidget);
+
+      // Nessuna riga a zero per calorie, battito o rpe
+      expect(find.textContaining('kcal'), findsNothing);
+      expect(find.textContaining('bpm'), findsNothing);
+      expect(find.textContaining('RPE'), findsNothing);
+      expect(find.textContaining('0 kcal'), findsNothing);
+      expect(find.textContaining('0 bpm'), findsNothing);
+    });
+
+    testWidgets('le serie non completate sono visibili nel denominatore', (tester) async {
+      final summary = WorkoutSummary(
+        workoutName: 'Gambe Interrotte',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 25),
+        totalVolume: 2500,
+        completedSets: 12,
+        totalSets: 18,
+      );
+
+      await tester.pumpWidget(createReceiptWidget(summary: summary));
+      await tester.pumpAndSettle();
+
+      expect(find.text('12 / 18'), findsOneWidget);
+    });
+  });
+
+  group('ReceiptClipper', () {
+    test('genera un Path non vuoto con le dimensioni specificate', () {
+      const clipper = ReceiptClipper(topRadius: 22, scallopRadius: 7);
+      final path = clipper.getClip(const Size(300, 200));
+
+      expect(path, isNotNull);
+      final bounds = path.getBounds();
+      expect(bounds.width, 300);
+      expect(bounds.height, 200);
+    });
+  });
+  group('WorkoutSummaryScreen Widget', () {
+    testWidgets('mostra pillola di stato, data, scontrino e pulsante chiudi', (tester) async {
+      final session = WorkoutSession(
+        id: 's1',
+        userId: 'u1',
+        workoutTemplateId: 't1',
+        workoutName: 'Spinte & Petto',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 48),
+        exercises: [],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            localizationNotifierProvider.overrideWith(
+              () => _FakeLocalizationNotifier(
+                const Localization(Locale('it')),
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.darkTheme(const Color(0xFFF0C38E)),
+            home: WorkoutSummaryScreen(session: session),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Allenamento chiuso'), findsOneWidget);
+      expect(find.text('6 ago'), findsOneWidget);
+      expect(find.text('Spinte & Petto'), findsOneWidget);
+      // "Salva e chiudi" mentiva: il salvataggio avviene prima, e dallo
+      // storico non c'e niente da salvare.
+      expect(find.text('Chiudi'), findsOneWidget);
+      expect(find.byType(WorkoutReceipt), findsOneWidget);
+
+      // Toccare Chiudi
+      await tester.tap(find.text('Chiudi'));
+      await tester.pumpAndSettle();
+    });
+  });
+}
+
+class _FakeLocalizationNotifier extends LocalizationNotifier {
+  _FakeLocalizationNotifier(this._loc);
+  final Localization _loc;
+
+  @override
+  Localization build() => _loc;
+}

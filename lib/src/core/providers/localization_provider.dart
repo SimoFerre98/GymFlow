@@ -193,6 +193,18 @@ class Localization {
     'video_offline':
         'Watching the video needs a connection. Check your network and try again.',
     'video_open_failed': 'Could not open YouTube',
+
+    // Workout summary & receipt
+    'workout_summary_title': 'Workout Summary',
+    'workout_summary_completed_pill': 'Workout completed',
+    'workout_summary_close_cta': 'Close',
+    'workout_untitled': 'Workout',
+    'workout_receipt_header': 'WORKOUT',
+    'workout_receipt_volume': 'Volume lifted',
+    'workout_receipt_completed_sets': 'Completed sets',
+    'workout_receipt_avg_rpe': 'Average effort',
+    'workout_receipt_calories': 'Calories',
+    'workout_receipt_avg_heart_rate': 'Average heart rate',
   };
 
   static final Map<String, String> _it = {
@@ -371,6 +383,18 @@ class Localization {
     'video_offline':
         'Per vedere il video serve una connessione. Controlla la rete e riprova.',
     'video_open_failed': 'Non e stato possibile aprire YouTube',
+
+    // Workout summary & receipt
+    'workout_summary_title': 'Riepilogo allenamento',
+    'workout_summary_completed_pill': 'Allenamento chiuso',
+    'workout_summary_close_cta': 'Chiudi',
+    'workout_untitled': 'Allenamento',
+    'workout_receipt_header': 'SCHEDA',
+    'workout_receipt_volume': 'Volume sollevato',
+    'workout_receipt_completed_sets': 'Serie completate',
+    'workout_receipt_avg_rpe': 'Sforzo medio',
+    'workout_receipt_calories': 'Calorie',
+    'workout_receipt_avg_heart_rate': 'Battito medio',
   };
 }
 

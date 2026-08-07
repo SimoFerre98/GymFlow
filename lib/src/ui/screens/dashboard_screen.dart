@@ -19,6 +19,7 @@ import '../../services/firestore_service.dart';
 import '../../models/workout_program.dart';
 import '../../models/workout.dart'; // WorkoutTemplate
 import 'active_session_screen.dart';
+import 'workout_summary_screen.dart';
 
 class DashboardScreen extends riverpod.ConsumerStatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -425,7 +426,11 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // TODO: Detail view
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => WorkoutSummaryScreen(session: session),
+              ),
+            );
           },
           borderRadius: BorderRadius.circular(20),
           child: Padding(

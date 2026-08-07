@@ -66,6 +66,22 @@ Nel mockup lo schermo è `ink-900` e le card sono `ink-700`: **due gradini di di
 `ExpressiveCard` oggi usa `surfaceContainer` (= `ink-800`), quindi le card staccano meno di quanto
 disegnato.
 
+### ⚠️ L'ambra come **fondo** non è `primary` nel tema chiaro
+
+Vale per lo scontrino di US-049, per la card ambra piena e per ogni superficie ambra del mockup.
+
+| Tema | Fondo ambra | Testo sopra |
+|---|---|---|
+| Scuro | `scheme.primary` | `scheme.onPrimary` |
+| **Chiaro** | **`scheme.primaryContainer`** | **`scheme.onPrimaryContainer`** |
+
+Nel tema chiaro `primary` è `amberOnLight` `#7A5A2E` — **marrone scuro**, perché l'ambra non regge
+il testo su fondo chiaro e i ruoli testuali usano una variante scurita. Chi scrive `primary` come
+colore di sfondo ottiene una superficie marrone che il mockup non prevede.
+
+Il mandato di US-049 diceva `primary` senza distinguere i due temi: l'esecutore se n'è accorto e ha
+fatto la cosa giusta. Questa riga esiste perché non ricapiti.
+
 ### ⚠️ L'indicatore video è salmone
 
 `.play { background: var(--salmon); color: var(--ink-800); }` — pallino salmone con il triangolo

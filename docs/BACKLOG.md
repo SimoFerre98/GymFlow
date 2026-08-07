@@ -1352,7 +1352,7 @@ Dopo questa storia: chiudendo una serie il recupero parte con la durata prevista
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-021 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-049.md`](planning/US-049.md) · **delegabile**
+**Status:** ✅ DONE — mandato in [`planning/US-049.md`](planning/US-049.md), review in [`planning/US-049-review.md`](planning/US-049-review.md)
 
 **Story**
 Come atleta che ha finito di allenarsi,
@@ -1363,12 +1363,12 @@ così da avere la soddisfazione di ciò che ho fatto e accorgermi di quello che 
 Dopo questa storia: chiudendo la sessione compare il riepilogo con volume, serie, sforzo medio, calorie e battito.
 
 **Acceptance Criteria**
-- [ ] Il riepilogo mostra volume sollevato, serie completate sul totale, sforzo medio, calorie e battito medio
-- [ ] Le serie non completate sono indicate, non nascoste
-- [ ] Un record superato durante la sessione è riportato con il valore precedente
-- [ ] Il riepilogo è raggiungibile anche dopo, dallo storico della sessione
-- [ ] Chiudendo il riepilogo la sessione risulta salvata
-- [ ] Interrompendo un allenamento a metà, il riepilogo riporta ciò che è stato fatto
+- [x] Il riepilogo mostra volume sollevato, serie completate sul totale, sforzo medio, calorie e battito medio — il volume troncava i mezzi chili, corretto in review
+- [x] Le serie non completate sono indicate, non nascoste — «12 / 18», con un test
+- [ ] Un record superato durante la sessione è riportato con il valore precedente — **è US-050**, non questa storia: il posto sotto lo scontrino è libero
+- [x] Il riepilogo è raggiungibile anche dopo, dallo storico della sessione — riempie un `// TODO` nella dashboard. **Da confermare sull'APK**
+- [x] Chiudendo il riepilogo la sessione risulta salvata — il salvataggio precede la schermata; la CTA diceva «Salva e chiudi» e mentiva, corretta in «Chiudi»
+- [x] Interrompendo un allenamento a metà, il riepilogo riporta ciò che è stato fatto — test dedicato
 
 ---
 
