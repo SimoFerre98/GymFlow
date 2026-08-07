@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/providers/exercise_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
+import 'package:gymflow/src/core/theme/app_theme.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/ui/widgets/exercise_image.dart';
@@ -56,13 +58,16 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  Widget host(Widget child, {Map<String, Exercise>? index}) {
+  Widget host(Widget child, {Map<String, Exercise>? index, ThemeData? theme}) {
     return ProviderScope(
       overrides: [
         if (index != null)
           exerciseIndexProvider.overrideWith(() => _StubIndex(index)),
       ],
-      child: MaterialApp(home: Scaffold(body: Center(child: child))),
+      child: MaterialApp(
+        theme: theme ?? AppTheme.darkTheme(AppPalette.amber),
+        home: Scaffold(body: Center(child: child)),
+      ),
     );
   }
 
@@ -73,6 +78,37 @@ void main() {
       );
 
       expect(videoBadge, findsOneWidget);
+    });
+
+    testWidgets('il badge e salmone (tertiary) e misura 18x18', (tester) async {
+      final theme = AppTheme.darkTheme(AppPalette.amber);
+      await tester.pumpWidget(
+        host(
+          ExerciseThumbnail(exercise: exercise(videoUrl: _videoUrl)),
+          theme: theme,
+        ),
+      );
+
+      final badgeContainer = tester.widget<Container>(
+        find
+            .ancestor(
+              of: videoBadge,
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+
+      final decoration = badgeContainer.decoration as BoxDecoration?;
+      expect(decoration?.color, theme.colorScheme.tertiary);
+      const tokens = ExpressiveTokens();
+      expect(badgeContainer.constraints?.minWidth, tokens.sizing.badge);
+      expect(badgeContainer.constraints?.minHeight, tokens.sizing.badge);
+
+      final icon = tester.widget<Icon>(videoBadge);
+      expect(icon.color, theme.colorScheme.onTertiary);
+      // Derivata dal token, non un numero a parte: se la misura del badge
+      // cambia, il simbolo dentro la segue.
+      expect(icon.size, tokens.sizing.badge * 0.72);
     });
 
     testWidgets('una sola ricerca NON porta l indicatore', (tester) async {

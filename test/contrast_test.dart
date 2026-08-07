@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
 import 'package:gymflow/src/core/theme/contrast.dart';
-import 'package:gymflow/src/core/theme/muscle_group_visuals.dart';
 
 /// Questi test sono la rete che impedisce all'accessibilita di regredire in
 /// silenzio. Senza, basta ritoccare un colore per rendere illeggibile del
@@ -144,58 +143,55 @@ void main() {
   });
 
   group('segnaposto degli esercizi', () {
-    for (final region in BodyRegion.values) {
-      test('la sagoma di ${region.name} si vede sul suo fondo', () {
-        // WCAG 1.4.11: un elemento grafico che porta informazione richiede 3:1.
-        // La sagoma e l'unica cosa che distingue due segnaposti della stessa
-        // regione, quindi deve essere leggibile, non solo presente.
-        final r = Contrast.ratio(AppPalette.regionGlyph, region.tint);
-        expect(
-          r,
-          greaterThanOrEqualTo(Contrast.aaLarge),
-          reason: '${region.name}: ${r.toStringAsFixed(2)}:1',
-        );
-      });
+    testWidgets('la sagoma si vede su entrambi gli estremi del gradiente, tema scuro', (
+      tester,
+    ) async {
+      final s = AppTheme.darkTheme(AppPalette.amber).colorScheme;
+      final glyphColor = s.onSurface.withValues(alpha: 0.92);
 
-      test('la sagoma di ${region.name} si vede anche sul fondo profondo', () {
-        // Il gradiente scurisce: se il controllo fosse solo sulla tinta chiara,
-        // l'angolo in basso a destra potrebbe cadere sotto soglia.
-        final r = Contrast.ratio(AppPalette.regionGlyph, region.tintDeep);
-        expect(
-          r,
-          greaterThanOrEqualTo(Contrast.aaLarge),
-          reason: '${region.name} profondo: ${r.toStringAsFixed(2)}:1',
-        );
-      });
+      final rStart = Contrast.ratio(glyphColor, s.outline);
+      final rEnd = Contrast.ratio(glyphColor, s.surfaceContainer);
 
-      test('${region.name} legge come superficie, non come accento', () {
-        // In questa app l'ambra significa "cosa fare adesso" e il salmone
-        // "dato vitale". Un segnaposto che somigliasse a uno dei due
-        // insegnerebbe all'occhio a non fidarsi piu di quel colore.
-        expect(
-          region.tint.computeLuminance(),
-          lessThan(AppPalette.indigo400.computeLuminance()),
-          reason:
-              '${region.name} e troppo chiaro: a questa luminosita competerebbe '
-              'con gli accenti invece di stare sotto il contenuto',
-        );
-      });
-    }
+      expect(
+        rStart,
+        greaterThanOrEqualTo(Contrast.aaLarge),
+        reason: 'inizio gradiente scuro: ${rStart.toStringAsFixed(2)}:1',
+      );
+      expect(
+        rEnd,
+        greaterThanOrEqualTo(Contrast.aaLarge),
+        reason: 'fine gradiente scuro: ${rEnd.toStringAsFixed(2)}:1',
+      );
+    });
+
+    testWidgets('la sagoma si vede su entrambi gli estremi del gradiente, tema chiaro', (
+      tester,
+    ) async {
+      final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;
+      final glyphColor = s.onSurface.withValues(alpha: 0.92);
+
+      final rStart = Contrast.ratio(glyphColor, s.outline);
+      final rEnd = Contrast.ratio(glyphColor, s.surfaceContainer);
+
+      expect(
+        rStart,
+        greaterThanOrEqualTo(Contrast.aaLarge),
+        reason: 'inizio gradiente chiaro: ${rStart.toStringAsFixed(2)}:1',
+      );
+      expect(
+        rEnd,
+        greaterThanOrEqualTo(Contrast.aaLarge),
+        reason: 'fine gradiente chiaro: ${rEnd.toStringAsFixed(2)}:1',
+      );
+    });
   });
 
   group('indicatore del video sulla miniatura', () {
-    // Il badge e opaco di proposito: sopra una fotografia qualunque, il
-    // contrasto di un fondo translucido non e calcolabile, quindi non e
-    // verificabile. Opaco si misura, ed e questo il posto dove si misura.
-    //
-    // I temi si costruiscono dentro il test e non a fianco: `AppTheme` passa da
-    // GoogleFonts, che ha bisogno del binding, e il binding esiste solo dentro
-    // un caso di prova.
     testWidgets('il simbolo si vede sul fondo del badge, tema scuro', (
       tester,
     ) async {
       final s = AppTheme.darkTheme(AppPalette.amber).colorScheme;
-      final r = Contrast.ratio(s.onSurface, s.surfaceContainerLowest);
+      final r = Contrast.ratio(s.onTertiary, s.tertiary);
       expect(
         r,
         greaterThanOrEqualTo(Contrast.aaLarge),
@@ -207,7 +203,7 @@ void main() {
       tester,
     ) async {
       final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;
-      final r = Contrast.ratio(s.onSurface, s.surfaceContainerLowest);
+      final r = Contrast.ratio(s.onTertiary, s.tertiary);
       expect(
         r,
         greaterThanOrEqualTo(Contrast.aaLarge),

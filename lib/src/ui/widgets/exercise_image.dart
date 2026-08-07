@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_palette.dart';
 import '../../core/theme/expressive_tokens.dart';
 import '../../core/theme/muscle_group_visuals.dart';
 import '../../models/exercise.dart';
@@ -211,6 +210,8 @@ class ExercisePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // In un riquadro senza limiti il segnaposto si dimensiona sulla sagoma
@@ -225,14 +226,14 @@ class ExercisePlaceholder extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [region.tint, region.tintDeep],
+              colors: [scheme.outline, scheme.surfaceContainer],
             ),
           ),
           child: Center(
             child: Icon(
               region.glyph,
               size: (shortestSide * 0.42).clamp(14.0, 72.0),
-              color: AppPalette.regionGlyph,
+              color: scheme.onSurface.withValues(alpha: 0.92),
             ),
           ),
         );

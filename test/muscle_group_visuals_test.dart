@@ -154,28 +154,13 @@ void main() {
 
   group('aspetto di ogni regione', () {
     for (final region in BodyRegion.values) {
-      test('${region.name} ha tinta, sagoma e fondo profondo', () {
+      test('${region.name} ha una sagoma valida', () {
         expect(region.glyph, isNotNull);
-        expect(region.tintDeep, isNot(region.tint));
       });
     }
 
-    test('le sette tinte sono tutte diverse', () {
-      expect(BodyRegion.values.map((r) => r.tint).toSet().length, 7);
-    });
-
     test('le sette sagome sono tutte diverse', () {
       expect(BodyRegion.values.map((r) => r.glyph).toSet().length, 7);
-    });
-
-    test('il fondo profondo e piu scuro della tinta', () {
-      for (final region in BodyRegion.values) {
-        expect(
-          region.tintDeep.computeLuminance(),
-          lessThan(region.tint.computeLuminance()),
-          reason: 'il gradiente di ${region.name} deve scurire, non schiarire',
-        );
-      }
     });
   });
 }

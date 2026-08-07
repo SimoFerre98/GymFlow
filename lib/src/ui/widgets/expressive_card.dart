@@ -47,7 +47,7 @@ class ExpressiveCard extends StatelessWidget {
         // Il ruolo che significa "superficie di una card", invece di
         // `cardColor`: quel campo precede Material 3, il tema non lo imposta, e
         // oggi funziona per un valore di default, non per una decisione.
-        color: scheme.surfaceContainer,
+        color: scheme.surfaceContainerHigh,
         borderRadius: t.shape.cornerLg,
         // L'ombra segue il tema invece di essere nera per sempre.
         boxShadow: t.elevation.level2(scheme.shadow),
@@ -60,7 +60,7 @@ class ExpressiveCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: t.shape.cornerLg,
           child: Padding(
-            padding: EdgeInsets.all(t.spacing.lg),
+            padding: EdgeInsets.all(t.spacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

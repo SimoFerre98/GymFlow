@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/exercise_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
-import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
+import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
 class ExerciseLibraryScreen extends ConsumerStatefulWidget {
@@ -207,28 +208,18 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
   }
 
   Widget _buildExerciseCard(Exercise exercise, BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ListTile(
-        leading: ExerciseThumbnail(
-          exercise: exercise,
-          // Il tocco sulla miniatura mostra l'esecuzione; quello sulla cella
-          // resta la selezione dell'esercizio. Due gesti, due significati.
-          onTap: () => ExerciseVideoSheet.show(context, exercise),
-        ),
-        title: Text(
-          exercise.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(exercise.type.name.toUpperCase()),
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.expressive.spacing.md,
+        vertical: context.expressive.spacing.xs,
+      ),
+      child: ExerciseRow(
+        exercise: exercise,
+        onThumbnailTap: () => ExerciseVideoSheet.show(context, exercise),
         onTap: () {
           if (widget.isSelecting) {
             Navigator.pop(context, exercise);
           } else {
-            // In consultazione la cella non aveva nessun gesto: un tocco
-            // morto proprio dove si prova per primo. La schermata di dettaglio
-            // dell'esercizio non esiste ancora ed e US-062; l'esecuzione si.
             ExerciseVideoSheet.show(context, exercise);
           }
         },

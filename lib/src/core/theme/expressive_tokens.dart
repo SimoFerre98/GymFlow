@@ -155,11 +155,12 @@ class ExpressiveSizing {
   /// 72 — miniatura di rilievo: la testata di una card, l'esercizio in corso.
   double get thumbnailLg => 72;
 
-  /// 20 — lato dell'indicatore sovrapposto a una miniatura.
+  /// 18 — lato dell'indicatore sovrapposto a una miniatura.
   ///
-  /// Legato alla miniatura e non un valore libero: sotto questa misura il
-  /// simbolo dentro non si riconosce piu.
-  double get badge => 20;
+  /// I 13 px del mockup convertiti (`dp = px x 1,36`). Legato alla miniatura e
+  /// non un valore libero: sotto questa misura il simbolo dentro non si
+  /// riconosce piu.
+  double get badge => 18;
 
   /// 48 — lato minimo di una zona che si tocca.
   ///

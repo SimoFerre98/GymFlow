@@ -1982,7 +1982,7 @@ Dopo questa storia: aprendo la libreria si vedono i 43 esercizi curati, anche al
 
 **Epic:** EP-005 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-021 (✅), US-042 (✅), US-043 (✅) | **Blocks:** US-022
-**Status:** 📋 PLANNED — mandato in [`planning/US-073.md`](planning/US-073.md) · **delegabile**
+**Status:** ✅ DONE — mandato in [`planning/US-073.md`](planning/US-073.md), review in [`planning/US-073-review.md`](planning/US-073-review.md)
 
 > ⚠️ **Aperta il 2026-08-06.** I mockup approvati esistevano solo come artefatti privati: non erano nel repository, non erano citati in `CLAUDE.md`, e chi ha implementato EP-009 e US-021 non li ha letti. Ora sono in [`docs/design/`](design/) con l'estratto in [`DESIGN-SPEC.md`](DESIGN-SPEC.md), e il confronto mostra **quattro scelte che li contraddicono**. Le misure invece tornano, una volta applicata la conversione `dp ≈ px × 1,36`.
 
@@ -1995,13 +1995,14 @@ così da riconoscere il prodotto che ho scelto invece di una sua variante.
 Dopo questa storia: miniature, segnaposto, indicatore video e card corrispondono al disegno approvato.
 
 **Acceptance Criteria**
-- [ ] Il segnaposto della miniatura è il gradiente indigo del mockup (`ink-600 → ink-800`), uguale per tutti gli esercizi, con la sagoma a tratto — non sette tinte per regione del corpo
-- [ ] L'indicatore del video è un pallino **salmone** con il simbolo scuro, in basso a destra
-- [ ] Le card e le righe degli esercizi stanno su `surfaceContainerHigh` (`ink-700`), due gradini sopra lo sfondo, come nel mockup
-- [ ] Il padding della card è quello del mockup (16 dp), non 20
-- [ ] La riga dell'esercizio è il componente del mockup — fondo proprio, raggio 22 dp, miniatura, nome, riga di dettaglio, pillola — non un `ListTile` dentro una `Card`
-- [ ] Le tinte per regione del corpo e le loro prove di contrasto sono rimosse, o restano solo se il mockup le prevede da qualche parte
-- [ ] Nessuna misura scritta a mano: tutto dai token, con i valori convertiti dai mockup
+- [x] Il segnaposto della miniatura è il gradiente indigo del mockup (`ink-600 → ink-800`), uguale per tutti gli esercizi, con la sagoma a tratto — **limite dichiarato**: cinque sagome su sette restano piene, perché in Flutter non esiste la variante `_outlined` (verificato)
+- [x] L'indicatore del video è un pallino **salmone** con il simbolo scuro, in basso a destra
+- [x] Le card e le righe degli esercizi stanno su `surfaceContainerHigh` (`ink-700`), due gradini sopra lo sfondo, come nel mockup
+- [x] Il padding della card è quello del mockup (16 dp), non 20
+- [x] La riga dell'esercizio è il componente del mockup — il raggio era stato **copiato** dal mockup (16) invece che convertito (22): corretto in review
+- [x] Le tinte per regione del corpo e le loro prove di contrasto sono rimosse — i test sono stati riscritti sul gradiente unico, non cancellati
+- [x] Nessuna misura scritta a mano — non era rispettato: `18`, `13`, `3`, `56` e i margini della libreria sono stati riportati ai token in review
+- [ ] **Da confermare sull'APK**: in Menu → Esercizi, i 28 senza video con lo stesso segnaposto e i 15 con video col pallino salmone
 
 ---
 

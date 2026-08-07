@@ -83,16 +83,15 @@ class ExerciseThumbnail extends ConsumerWidget {
                   width: t.sizing.badge,
                   height: t.sizing.badge,
                   decoration: BoxDecoration(
-                    // Opaco, non un velo: sopra una fotografia qualunque, il
-                    // contrasto di un fondo translucido non e calcolabile, e
-                    // quindi non e verificabile.
-                    color: scheme.surfaceContainerLowest,
+                    // Salmone come nel mockup: la palette lo riserva ai dati
+                    // vitali, e un indicatore non e un'azione.
+                    color: scheme.tertiary,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.play_arrow_rounded,
                     size: t.sizing.badge * 0.72,
-                    color: scheme.onSurface,
+                    color: scheme.onTertiary,
                   ),
                 ),
               ),

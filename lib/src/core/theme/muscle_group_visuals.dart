@@ -1,40 +1,22 @@
 import 'package:flutter/material.dart';
 
-import 'app_palette.dart';
-
 /// Regioni del corpo usate dal segnaposto dell'esercizio.
 ///
-/// Sono sette perche i gruppi muscolari sono dodici, e dodici colori sono
-/// troppi per restare distinguibili a 56 pixel di lato. La divisione del lavoro
-/// e questa: **il colore dice dove, la sagoma dice cosa**.
+/// La regione definisce la sagoma a tratto che distingue un esercizio di petto
+/// da uno di gambe quando manca l'immagine.
 enum BodyRegion {
-  chest(AppPalette.regionChest, Icons.fitness_center),
-  back(AppPalette.regionBack, Icons.rowing),
-  shoulders(AppPalette.regionShoulders, Icons.sports_handball),
-  arms(AppPalette.regionArms, Icons.sports_martial_arts),
-  legs(AppPalette.regionLegs, Icons.directions_run),
-  core(AppPalette.regionCore, Icons.self_improvement),
-  cardio(AppPalette.regionCardio, Icons.monitor_heart);
+  chest(Icons.fitness_center_outlined),
+  back(Icons.rowing),
+  shoulders(Icons.sports_handball),
+  arms(Icons.sports_martial_arts),
+  legs(Icons.directions_run),
+  core(Icons.self_improvement),
+  cardio(Icons.monitor_heart_outlined);
 
-  const BodyRegion(this.tint, this.glyph);
-
-  /// Fondo del segnaposto.
-  final Color tint;
+  const BodyRegion(this.glyph);
 
   /// Sagoma disegnata sopra il fondo.
   final IconData glyph;
-
-  /// Estremo scuro del gradiente.
-  ///
-  /// Un fondo piatto, alla dimensione di una miniatura, legge come un
-  /// rettangolo colorato; una variazione di luce legge come una superficie.
-  /// Calcolato dalla tinta abbassandone la luminosita, non scelto a parte:
-  /// due valori da tenere in accordo a mano sono due valori che finiranno per
-  /// non essere piu in accordo.
-  Color get tintDeep {
-    final hsl = HSLColor.fromColor(tint);
-    return hsl.withLightness((hsl.lightness * 0.62).clamp(0.0, 1.0)).toColor();
-  }
 }
 
 /// Dal gruppo muscolare alla regione del corpo.

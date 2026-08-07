@@ -88,7 +88,7 @@ void main() {
             )
             .first,
       );
-      expect(padding.padding, EdgeInsets.all(tokens.spacing.lg));
+      expect(padding.padding, EdgeInsets.all(tokens.spacing.md));
     });
 
     testWidgets('cambiando i token cambia il padding', (tester) async {
@@ -109,7 +109,7 @@ void main() {
             )
             .first,
       );
-      expect(padding.padding, const EdgeInsets.all(60));
+      expect(padding.padding, const EdgeInsets.all(40));
     });
 
     testWidgets('l ombra e quella dei token, e non e nera per sempre', (
@@ -222,7 +222,7 @@ void main() {
         host(const ExpressiveCard(child: Text('contenuto')), theme: theme),
       );
 
-      expect(decorationOf(tester).color, theme.colorScheme.surfaceContainer);
+      expect(decorationOf(tester).color, theme.colorScheme.surfaceContainerHigh);
     });
 
     testWidgets('nel tema chiaro il fondo e quello chiaro', (tester) async {
@@ -231,7 +231,7 @@ void main() {
         host(const ExpressiveCard(child: Text('contenuto')), theme: theme),
       );
 
-      expect(decorationOf(tester).color, theme.colorScheme.surfaceContainer);
+      expect(decorationOf(tester).color, theme.colorScheme.surfaceContainerHigh);
     });
 
     testWidgets('i due fondi sono davvero diversi', (tester) async {
@@ -239,7 +239,7 @@ void main() {
       // ignorasse il tema e usasse sempre lo stesso colore.
       final dark = AppTheme.darkTheme(AppPalette.amber).colorScheme;
       final light = AppTheme.lightTheme(AppPalette.amber).colorScheme;
-      expect(dark.surfaceContainer, isNot(light.surfaceContainer));
+      expect(dark.surfaceContainerHigh, isNot(light.surfaceContainerHigh));
     });
   });
 }
