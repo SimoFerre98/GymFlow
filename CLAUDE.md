@@ -2,6 +2,10 @@
 
 App Flutter per il tracciamento degli allenamenti. Backend Firebase (Auth, Firestore, Storage), stato con Riverpod, persistenza locale con Isar.
 
+> **Le regole operative valgono per chiunque lavori al codice e stanno in [`AGENTS.md`](AGENTS.md)** — leggibile da qualunque assistente o strumento. Questo file contiene le specificità di Claude Code e non ripete quelle regole: se divergessero, varrebbe `AGENTS.md`.
+>
+> Per far lavorare più assistenti in parallelo: [`docs/DELEGA.md`](docs/DELEGA.md).
+
 ## Se è la tua prima sessione su questo progetto
 
 **Leggi [`docs/HANDOFF.md`](docs/HANDOFF.md) prima di toccare qualsiasi cosa.** Contiene ciò che non si deduce dal repository: decisioni prese a voce, trappole dell'ambiente che costano mezz'ora se le scopri da solo, il livello di rigore atteso nelle verifiche, e i limiti noti del materiale ricevuto.
