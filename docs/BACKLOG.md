@@ -2097,7 +2097,7 @@ Dopo questa storia: aprendo la libreria la lista compare una volta e non lampegg
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 1
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-077.md`](planning/US-077.md) · **delegabile**
 
 > ⚠️ **Aperta il 2026-08-07** durante US-022, e **provata con una sonda**, non dedotta.
 >
