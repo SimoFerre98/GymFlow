@@ -1774,7 +1774,7 @@ Dopo questa storia: il calendario mostra un pallino colorato per tipo di allenam
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-043, US-021 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-065.md`](planning/US-065.md) · **delegabile** · risponde al «non era quello che volevo» del 2026-08-07
 
 **Story**
 Come atleta che cerca un esercizio da aggiungere,
