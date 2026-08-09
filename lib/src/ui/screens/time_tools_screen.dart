@@ -18,52 +18,46 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  /// Il notifier del tempo, catturato dopo il primo frame.
+  ///
+  /// Serve per spegnere la visibilita in `dispose`, dove leggere `ref` non e
+  /// piu sicuro. Tenerne il riferimento e lecito perche `TimerNotifier` e
+  /// `keepAlive`: non viene distrutto quando questa schermata muore.
+  TimerNotifier? _timerNotifier;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Dopo il frame e non subito: modificare un provider mentre l'albero si
+    // costruisce solleva un'eccezione, e la schermata diventa rossa.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(timerNotifierProvider.notifier).setToolsVisible(true);
+      if (!mounted) return;
+      _timerNotifier = ref.read(timerNotifierProvider.notifier);
+      _timerNotifier!.setToolsVisible(true);
     });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    // We can't access context easily in dispose if the widget is removed from tree,
-    // but we can try. However, usually clean up is done via a route observer or similar.
-    // For simplicity, we'll assume if this screen disposes, tools are not visible.
-    // But since Provider might be disposed too if it was local (it's global now), we need to be careful.
-    // Actually, accessing Provider in dispose is unsafe.
-    // Better approach: Use a WillPopScope or RouteObserver.
-    // But for MVP, let's rely on the Overlay checking if the user is on this page.
-    // Actually, the simplest way is to assume if this widget is built, we are visible.
-    // If we leave, we might not be able to set it to false easily without a RouteObserver.
-    // Let's postpone setToolsVisible(false) and rely on the fact that if we navigate away,
-    // this widget is still in the stack? No, if we pop, it disposes.
-    // If we push, it stays. The user said "esco dal time tool" (pop) or "vado da un'altra parte" (push?).
-    // If we use the Drawer to navigate, we usually Replace or Pop then Push.
-    // Let's Try Microtask in dispose.
-    scheduleMicrotask(() {
-      // This might throw if context is unmounted, but since Service is global...
-      // We need an instance ref.
-    });
+
+    // L'overlay flottante torna visibile uscendo di qui.
+    //
+    // In un microtask perche `dispose` gira dentro la stessa fase in cui
+    // l'albero si smonta, e modificare un provider la' dentro e la stessa
+    // eccezione di prima: il microtask parte quando quella fase e finita. E la
+    // via che il messaggio d'errore di Riverpod indica esplicitamente.
+    //
+    // In `dispose` e non in `deactivate`: `deactivate` scatta anche quando un
+    // widget viene riagganciato altrove nell'albero, e nasconderebbe l'overlay
+    // per un movimento che non ha portato l'utente da nessuna parte.
+    final notifier = _timerNotifier;
+    if (notifier != null) {
+      scheduleMicrotask(() => notifier.setToolsVisible(false));
+    }
 
     super.dispose();
-  }
-
-  // Actually, to handle Dispose correctly for global provider:
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Ensure visible when refined
-    ref.read(timerNotifierProvider.notifier).setToolsVisible(true);
-  }
-
-  @override
-  void deactivate() {
-    ref.read(timerNotifierProvider.notifier).setToolsVisible(false);
-    super.deactivate();
   }
 
   @override
