@@ -2039,7 +2039,7 @@ La strada più ovvia è un massimale stimato (Epley, Brzycki), che US-050 ha mes
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 1
 **Depends on:** US-007 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** 🔵 IN PROGRESS — mandato in [`planning/US-075.md`](planning/US-075.md)
+**Status:** ✅ DONE — mandato in [`planning/US-075.md`](planning/US-075.md), review in [`planning/US-075-review.md`](planning/US-075-review.md)
 
 > ⚠️ **Aperta il 2026-08-07**, segnalata dall'utente sul dispositivo e **riprodotta**: aprendo gli strumenti del tempo compare l'`ErrorWidget` rosso con «Tried to modify a provider while the widget tree was building».
 >
@@ -2056,11 +2056,11 @@ così da non trovarmi davanti a una schermata di errore.
 Dopo questa storia: la voce Cronometro del menu apre gli strumenti del tempo, e l'overlay flottante si nasconde mentre ci si è dentro.
 
 **Acceptance Criteria**
-- [ ] Aprendo gli strumenti del tempo non compare nessun `ErrorWidget`, e un test lo dimostra montando la schermata
-- [ ] L'overlay flottante si nasconde entrando nella schermata e ricompare uscendone
-- [ ] Nessun provider viene modificato dentro `build`, `initState`, `didChangeDependencies`, `deactivate` o `dispose`
-- [ ] Il cronometro che stava scorrendo continua a scorrere: la correzione non azzera lo stato
-- [ ] I commenti-diario nel corpo di `dispose` sono sostituiti dalla ragione della scelta
+- [x] Aprendo gli strumenti del tempo non compare nessun `ErrorWidget`, e un test lo dimostra montando la schermata — verificato anche al contrario: reintroducendo il difetto due test su tre diventano rossi. **E riaperto sul telefono dopo la correzione**
+- [x] L'overlay flottante si nasconde entrando nella schermata e ricompare uscendone — con un test. Che sia *trascinabile* resta il criterio non confermato di US-007
+- [x] Nessun provider viene modificato dentro `build`, `initState`, `didChangeDependencies`, `deactivate` o `dispose` — quelle tre erano le uniche modifiche fuori da un callback in tutto `lib/src`
+- [x] Il cronometro che stava scorrendo continua a scorrere: la correzione non azzera lo stato — con un test sulla durata impostata e sullo stato «in corsa»
+- [x] I commenti-diario nel corpo di `dispose` sono sostituiti dalla ragione della scelta
 
 ---
 
@@ -2317,4 +2317,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[76 storie in 15 epiche — 237 story points totali · 3 storie accantonate in EP-008 · 25 completate]_
+_[76 storie in 15 epiche — 237 story points totali · 3 storie accantonate in EP-008 · 26 completate]_
