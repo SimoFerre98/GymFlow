@@ -71,7 +71,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     // Use AuthService directly to avoid provider generation issues
     final user = AuthService().currentUser;
     final userName =
-        user?.displayName ?? user?.email?.split('@')[0] ?? 'Athlete';
+        user?.displayName ?? user?.email?.split('@')[0] ?? loc.t('athlete');
     final userId = user?.uid ?? '';
     final sessionsAsync = ref.watch(dashboardSessionsProvider);
     final t = context.expressive;
@@ -94,7 +94,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      'Welcome back,',
+                      loc.t('welcome_back'),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
@@ -115,7 +115,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                   padding: EdgeInsets.only(right: t.spacing.md),
                   child: Center(
                     child: InkWell(
-                      onTap: () => _showQuickStartMenu(context, userId),
+                      onTap: () => _showQuickStartMenu(context, userId, loc),
                       borderRadius: t.shape.cornerFull,
                       child: Container(
                         padding: EdgeInsets.symmetric(
@@ -709,7 +709,11 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     );
   }
 
-  void _showQuickStartMenu(BuildContext context, String userId) {
+  void _showQuickStartMenu(
+    BuildContext context,
+    String userId,
+    Localization loc,
+  ) {
     final t = context.expressive;
     final scheme = Theme.of(context).colorScheme;
 
@@ -730,7 +734,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
             Padding(
               padding: EdgeInsets.all(t.spacing.xl),
               child: Text(
-                'Start Workout',
+                loc.t('start_workout'),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -744,8 +748,8 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text("No programs found. Create one first!"),
+                    return Center(
+                      child: Text(loc.t('no_programs_found')),
                     );
                   }
 
@@ -813,7 +817,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                               ),
                                             ),
                                             subtitle: Text(
-                                              '${template.exercises.length} Exercises',
+                                              '${template.exercises.length} ${loc.t('exercises_suffix')}',
                                             ),
                                             trailing: Icon(
                                               Icons.play_circle_fill,

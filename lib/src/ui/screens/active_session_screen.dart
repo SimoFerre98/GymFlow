@@ -15,6 +15,7 @@ import 'package:gymflow/src/ui/widgets/live_metrics_panel.dart';
 import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 
 class ActiveSessionScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate workout;
@@ -123,10 +124,11 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         }
       });
 
+      final loc = ref.read(localizationNotifierProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Weights loaded from last session!'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(loc.t('weights_loaded_msg')),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -151,6 +153,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   Future<void> _finishWorkout() async {
     final user = AuthService().currentUser;
     if (user == null) return;
+    final loc = ref.read(localizationNotifierProvider);
 
     // Ask user for date/time
     DateTime? selectedDate = DateTime.now();
@@ -159,14 +162,14 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Finish Workout'),
+        title: Text(loc.t('finish_workout_title')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Great job! Save this workout?'),
+            Text(loc.t('finish_workout_body')),
             const SizedBox(height: 16),
             ListTile(
-              title: const Text('Date'),
+              title: Text(loc.t('date_label')),
               subtitle: Text(selectedDate!.toString().split(' ')[0]),
               trailing: const Icon(Icons.calendar_today),
               onTap: () async {
@@ -190,11 +193,11 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(loc.t('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
+            child: Text(loc.t('save')),
           ),
         ],
       ),
@@ -216,7 +219,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
-      helpText: 'CONFIRM DATE',
+      helpText: loc.t('confirm_date'),
     );
 
     if (pickedDate == null) return; // User cancelled
@@ -224,7 +227,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      helpText: 'CONFIRM END TIME',
+      helpText: loc.t('confirm_end_time'),
     );
 
     if (pickedTime == null) return;
@@ -274,12 +277,13 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   @override
   Widget build(BuildContext context) {
     final expressive = context.expressive;
+    final loc = ref.watch(localizationNotifierProvider);
 
     // Tiene vivi i massimi storici per tutta la durata della schermata.
     // `personalBestsProvider` e autoDispose e legge le sessioni da uno stream
     // di Isar: la sola `ref.read` all'apertura del foglio della serie lo
     // creerebbe da freddo e otterrebbe una mappa vuota, perche lo stream non ha
-    // ancora emesso. Funzionerebbe soltanto per il caso fortunato in cui la
+    // ancora emetto. Funzionerebbe soltanto per il caso fortunato in cui la
     // dashboard, restando montata sotto, lo tiene gia caldo.
     ref.watch(personalBestsProvider);
 
@@ -310,7 +314,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               : TextButton(
                   onPressed: _finishWorkout,
                   child: Text(
-                    'FINISH',
+                    loc.t('finish_btn'),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -377,14 +381,14 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              title: const Text('Remove Exercise?'),
-                              content: const Text(
-                                'Remove this exercise from the current session?',
+                              title: Text(loc.t('remove_exercise_title')),
+                              content: Text(
+                                loc.t('remove_exercise_body'),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx),
-                                  child: const Text('Cancel'),
+                                  child: Text(loc.t('cancel')),
                                 ),
                                 TextButton(
                                   onPressed: () {
@@ -393,9 +397,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                                       _sessionExercises.removeAt(index);
                                     });
                                   },
-                                  child: const Text(
-                                    'Remove',
-                                    style: TextStyle(color: Colors.red),
+                                  child: Text(
+                                    loc.t('remove_btn'),
+                                    style: const TextStyle(color: Colors.red),
                                   ),
                                 ),
                               ],
@@ -409,13 +413,13 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                 // Dynamic Table Header
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: _buildExerciseTable(exercise, context),
+                  child: _buildExerciseTable(exercise, context, loc),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton.icon(
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Set'),
+                    label: Text(loc.t('add_set')),
                     onPressed: () {
                       setState(() {
                         // Add set with appropriate defaults based on type?
@@ -433,23 +437,28 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   }
 
   // Helper to build the table based on type
-  Widget _buildExerciseTable(WorkoutExercise exercise, BuildContext context) {
+  Widget _buildExerciseTable(
+    WorkoutExercise exercise,
+    BuildContext context,
+    Localization loc,
+  ) {
     switch (exercise.type) {
       case ExerciseType.cardio:
-        return _buildCardioTable(exercise);
+        return _buildCardioTable(exercise, loc);
       case ExerciseType.timed:
       case ExerciseType.isometric:
-        return _buildDurationTable(exercise);
+        return _buildDurationTable(exercise, loc);
       case ExerciseType.bodyweight:
-        return _buildStrengthTable(exercise, showWeight: false);
+        return _buildStrengthTable(exercise, loc, showWeight: false);
       case ExerciseType.strength:
       default:
-        return _buildStrengthTable(exercise, showWeight: true);
+        return _buildStrengthTable(exercise, loc, showWeight: true);
     }
   }
 
   Widget _buildStrengthTable(
-    WorkoutExercise exercise, {
+    WorkoutExercise exercise,
+    Localization loc, {
     required bool showWeight,
   }) {
     return Table(
@@ -470,8 +479,8 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               const Center(
                 child: Text('Kg', style: TextStyle(color: Colors.grey)),
               ),
-            const Center(
-              child: Text('Reps', style: TextStyle(color: Colors.grey)),
+            Center(
+              child: Text(loc.t('reps_label'), style: const TextStyle(color: Colors.grey)),
             ),
             const SizedBox(),
           ],
@@ -546,7 +555,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     });
   }
 
-  Widget _buildCardioTable(WorkoutExercise exercise) {
+  Widget _buildCardioTable(WorkoutExercise exercise, Localization loc) {
     return Table(
       columnWidths: const {
         0: FlexColumnWidth(1),
@@ -556,18 +565,18 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
-        const TableRow(
+        TableRow(
           children: [
-            Center(
+            const Center(
               child: Text('#', style: TextStyle(color: Colors.grey)),
             ),
-            Center(
+            const Center(
               child: Text('Km', style: TextStyle(color: Colors.grey)),
             ),
             Center(
-              child: Text('Time (min)', style: TextStyle(color: Colors.grey)),
+              child: Text(loc.t('time_min_label'), style: const TextStyle(color: Colors.grey)),
             ),
-            SizedBox(),
+            const SizedBox(),
           ],
         ),
         ...exercise.sets.asMap().entries.map((entry) {
@@ -620,7 +629,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     );
   }
 
-  Widget _buildDurationTable(WorkoutExercise exercise) {
+  Widget _buildDurationTable(WorkoutExercise exercise, Localization loc) {
     return Table(
       columnWidths: const {
         0: FlexColumnWidth(1),
@@ -629,18 +638,18 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
-        const TableRow(
+        TableRow(
           children: [
-            Center(
+            const Center(
               child: Text('#', style: TextStyle(color: Colors.grey)),
             ),
             Center(
               child: Text(
-                'Duration (sec)',
-                style: TextStyle(color: Colors.grey),
+                loc.t('duration_sec_label'),
+                style: const TextStyle(color: Colors.grey),
               ),
             ),
-            SizedBox(),
+            const SizedBox(),
           ],
         ),
         ...exercise.sets.asMap().entries.map((entry) {
@@ -678,7 +687,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                         // Start a mini timer? For now just visual.
                         ToastUtils.showInfo(
                           context,
-                          'Timer started (visual only)',
+                          loc.t('timer_started_msg'),
                         );
                       },
                     ),

@@ -230,6 +230,30 @@ class Localization {
     'record_over_max': 'over your max',
     'previous_max_was': 'Previous max was',
     'on_date': 'on',
+
+    // Main screens & Active Session (US-026)
+    'athlete': 'Athlete',
+    'welcome_back': 'Welcome back,',
+    'start_workout': 'Start Workout',
+    'no_programs_found': 'No programs found. Create one first!',
+    'exercises_suffix': 'Exercises',
+    'gym_label': 'Gym',
+    'weights_loaded_msg': 'Weights loaded from last session!',
+    'finish_workout_title': 'Finish Workout',
+    'finish_workout_body': 'Great job! Save this workout?',
+    'date_label': 'Date',
+    'save': 'Save',
+    'confirm_date': 'CONFIRM DATE',
+    'confirm_end_time': 'CONFIRM END TIME',
+    'finish_btn': 'FINISH',
+    'remove_exercise_title': 'Remove Exercise?',
+    'remove_exercise_body':
+        'Remove this exercise from the current session?',
+    'remove_btn': 'Remove',
+    'add_set': 'Add Set',
+    'time_min_label': 'Time (min)',
+    'duration_sec_label': 'Duration (sec)',
+    'timer_started_msg': 'Timer started (visual only)',
   };
 
   static final Map<String, String> _it = {
@@ -445,6 +469,30 @@ class Localization {
     'record_over_max': 'sul tuo massimo',
     'previous_max_was': 'Il massimo precedente era',
     'on_date': 'il',
+
+    // Main screens & Active Session (US-026)
+    'athlete': 'Atleta',
+    'welcome_back': 'Bentornato,',
+    'start_workout': 'Avvia allenamento',
+    'no_programs_found': 'Nessuna scheda trovata. Creane una prima!',
+    'exercises_suffix': 'Esercizi',
+    'gym_label': 'Palestra',
+    'weights_loaded_msg': 'Pesi caricati dall\'ultimo allenamento!',
+    'finish_workout_title': 'Termina Allenamento',
+    'finish_workout_body': 'Ottimo lavoro! Salvare questo allenamento?',
+    'date_label': 'Data',
+    'save': 'Salva',
+    'confirm_date': 'CONFERMA DATA',
+    'confirm_end_time': 'CONFERMA ORA DI FINE',
+    'finish_btn': 'TERMINA',
+    'remove_exercise_title': 'Rimuovere l\'esercizio?',
+    'remove_exercise_body':
+        'Rimuovere questo esercizio dalla sessione corrente?',
+    'remove_btn': 'Rimuovi',
+    'add_set': 'Aggiungi serie',
+    'time_min_label': 'Tempo (min)',
+    'duration_sec_label': 'Durata (sec)',
+    'timer_started_msg': 'Timer avviato (solo visuale)',
   };
 }
 

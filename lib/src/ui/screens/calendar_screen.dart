@@ -418,8 +418,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         IconButton(
                           icon: const Icon(Icons.calendar_month),
                           onPressed: () => _addToDeviceCalendar(event),
-                          tooltip:
-                              'Sync to Calendar', // Maybe localize tooltip?
+                          tooltip: loc.t('sync_calendar'),
                         ),
                       if (!isCompleted)
                         IconButton(
@@ -491,10 +490,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   void _addToDeviceCalendar(ScheduledWorkout schedule) {
+    final loc = ref.read(localizationNotifierProvider);
     final event = Event(
-      title: 'Workout: ${schedule.workoutName}',
-      description: 'Scheduled using GymFlow',
-      location: 'Gym',
+      title: '${loc.t('workout_label')} ${schedule.workoutName}',
+      description: loc.t('scheduled_using'),
+      location: loc.t('gym_label'),
       startDate: schedule.scheduledDate,
       endDate: schedule.scheduledDate.add(const Duration(hours: 1)),
     );
