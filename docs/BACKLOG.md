@@ -470,7 +470,7 @@ Dopo questa storia: interagire con filtri e controlli in calendario, amici, impo
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-007 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-013.md`](planning/US-013.md) · **delegabile**
 
 **Story**
 Come atleta che usa l'app durante l'allenamento,
@@ -1086,7 +1086,7 @@ Dopo questa storia: `flutter analyze` termina pulito e la CI può trattare gli a
 
 **Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-029 | **Blocks:** US-032
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-031.md`](planning/US-031.md) · **delegabile** · **il lavoro residuo è il solo mapper**
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -2068,7 +2068,7 @@ Dopo questa storia: la voce Cronometro del menu apre gli strumenti del tempo, e 
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-072 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-076.md`](planning/US-076.md) · **delegabile**
 
 > ⚠️ **Aperta il 2026-08-07**, segnalata dall'utente: «la sezione degli esercizi lagga di brutto e sfarfalla».
 >
