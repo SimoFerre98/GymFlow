@@ -10,6 +10,7 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
@@ -145,12 +146,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildGlassCalendar(eventsMap),
-                        const SizedBox(height: 16),
+                        SizedBox(height: context.expressive.spacing.md),
                       ],
                     ),
                   ),
                   _buildEventListSliver(eventsMap, loc),
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
+                  SliverPadding(
+                    padding: EdgeInsets.only(
+                      bottom: context.expressive.spacing.lg,
+                    ),
+                  ),
                 ],
               );
             },
@@ -161,25 +166,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _buildGlassCalendar(Map<DateTime, List<dynamic>> eventsMap) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ), // Adjusted margin
+      margin: EdgeInsets.symmetric(
+        horizontal: t.spacing.md,
+        vertical: t.spacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 16,
-            spreadRadius: 4,
-          ),
-        ],
+        // `surfaceContainerHigh` e non `cardColor`: quel campo precede
+        // Material 3, il tema non lo imposta, e il mockup vuole le superfici
+        // due gradini sopra lo sfondo.
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.3),
+        borderRadius: t.shape.cornerLg,
+        border: Border.all(color: scheme.onSurface.withValues(alpha: 0.1)),
+        // L'ombra viene dal design system e segue il tema, invece di essere
+        // nera per sempre.
+        boxShadow: t.elevation.level2(scheme.shadow),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: t.shape.cornerLg,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: TableCalendar(
@@ -204,45 +211,39 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             },
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                color: scheme.primary.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+                color: scheme.primary,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.5),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                // Il giorno scelto e l'elemento che galleggia sopra la
+                // griglia: e il livello che il design system riserva a questo.
+                boxShadow: t.elevation.level3(scheme.primary),
               ),
-              markerDecoration: const BoxDecoration(
-                color: Colors.greenAccent,
+              // Il pallino dice «qui c'e qualcosa», non «fai questo»: resta
+              // fuori dall'ambra, che significa solo azione.
+              markerDecoration: BoxDecoration(
+                color: scheme.secondary,
                 shape: BoxShape.circle,
               ),
             ),
             headerStyle: HeaderStyle(
               formatButtonShowsNext: false,
               titleCentered: true,
-              formatButtonTextStyle: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              titleTextStyle: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              formatButtonTextStyle: TextStyle(color: scheme.onSurface),
+              titleTextStyle:
+                  t.typography.titleEmphasized?.copyWith(
+                    color: scheme.onSurface,
+                  ) ??
+                  TextStyle(color: scheme.onSurface),
               leftChevronIcon: Icon(
                 Icons.chevron_left,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: scheme.onSurface,
               ),
               rightChevronIcon: Icon(
                 Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: scheme.onSurface,
               ),
             ),
           ),
@@ -278,15 +279,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             children: [
               Icon(
                 Icons.event_available,
-                size: 64,
-                color: Colors.grey.withValues(alpha: 0.3),
+                size: context.expressive.sizing.thumbnailLg,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.expressive.spacing.md),
               Text(
                 loc.t('no_workouts_day'),
-                style: const TextStyle(color: Colors.grey, fontSize: 16),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.expressive.spacing.md),
               ElevatedButton.icon(
                 onPressed: () => _showScheduleDialog(
                   context,
@@ -297,16 +300,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 icon: const Icon(Icons.add),
                 label: Text(loc.t('schedule_workout_btn')),
                 style: ElevatedButton.styleFrom(
+                  // I pulsanti d'azione del mockup hanno il raggio pieno.
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: context.expressive.shape.cornerFull,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.expressive.spacing.xl,
+                    vertical: context.expressive.spacing.sm,
                   ),
                 ),
               ),
-              const SizedBox(height: 40), // Extra space
+              SizedBox(height: context.expressive.spacing.xxl),
             ],
           ),
         ),
@@ -317,7 +321,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       delegate: SliverChildBuilderDelegate((context, index) {
         final event = dailyEvents[index];
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.expressive.spacing.md,
+          ),
           child: _buildEventCard(event, loc),
         );
       }, childCount: dailyEvents.length),
@@ -345,52 +351,63 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     bool isMine = ownerId == _auth.currentUser?.uid;
 
-    // Theme colors
-    Color glowColor;
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
+    // I tre stati di un evento portavano viola, verde e arancione acceso,
+    // nessuno dei quali e in palette. Il criterio con cui sono stati riportati
+    // sui ruoli:
+    //
+    // - **da fare, tuo** -> `primary` ambra, perche l'ambra significa una cosa
+    //   sola: cosa fare adesso, ed e esattamente questo;
+    // - **fatto, tuo** -> `onSurfaceVariant`, perche cio che e concluso deve
+    //   arretrare invece di chiedere attenzione;
+    // - **di un amico** -> `secondary` indigo, perche non e una tua azione.
+    //
+    // Il salmone resta fuori: la palette lo riserva ai dati vitali, e un
+    // evento in calendario non lo e. US-064 potra rivedere questa scala quando
+    // distinguera i tipi di allenamento.
+    Color accent;
     IconData icon;
 
     if (!isMine) {
-      // Friend event
-      glowColor = Colors.purpleAccent;
+      accent = scheme.secondary;
       icon = isCompleted ? Icons.check_circle_outline : Icons.schedule_send;
       subtitle += ' ${loc.t('friend_label')}';
     } else {
-      glowColor = isCompleted ? Colors.greenAccent : Colors.orangeAccent;
+      accent = isCompleted ? scheme.onSurfaceVariant : scheme.primary;
       icon = isCompleted ? Icons.check_circle : Icons.schedule;
     }
 
     Widget cardContent = Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.symmetric(vertical: t.spacing.sm),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: glowColor.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+        borderRadius: t.shape.cornerLg,
+        border: Border.all(color: scheme.onSurface.withValues(alpha: 0.05)),
+        boxShadow: t.elevation.level1(accent),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: t.shape.cornerLg,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
+            contentPadding: EdgeInsets.all(t.spacing.md),
             leading: Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(t.spacing.sm),
               decoration: BoxDecoration(
-                color: glowColor.withValues(alpha: 0.1),
+                color: accent.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: glowColor.withValues(alpha: 0.5)),
+                border: Border.all(color: accent.withValues(alpha: 0.5)),
               ),
-              child: Icon(icon, color: glowColor),
+              child: Icon(icon, color: accent),
             ),
             title: Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: scheme.onSurface,
+              ),
             ),
             subtitle: Text(subtitle),
             trailing: isMine
@@ -406,9 +423,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         ),
                       if (!isCompleted)
                         IconButton(
-                          icon: const Icon(
+                          // Avviare l'allenamento e l'azione principale della
+                          // riga: ambra, non il blu che c'era qui.
+                          icon: Icon(
                             Icons.play_circle_fill,
-                            color: Colors.blue,
+                            color: scheme.primary,
                           ),
                           onPressed: () => _startWorkout(event),
                         ),
@@ -428,14 +447,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       key: Key(id),
       direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
+        margin: EdgeInsets.symmetric(vertical: t.spacing.sm),
         decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(16),
+          color: scheme.error.withValues(alpha: 0.8),
+          borderRadius: t.shape.cornerMd,
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+        padding: EdgeInsets.only(right: t.spacing.lg),
+        child: Icon(Icons.delete, color: scheme.onError),
       ),
       confirmDismiss: (direction) async {
         return await showDialog(
@@ -452,7 +471,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   loc.t('delete'),
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: scheme.error),
                 ),
               ),
             ],
@@ -509,31 +528,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        final t = context.expressive;
+        final scheme = Theme.of(context).colorScheme;
+
         return Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(t.shape.radiusLg),
+            ),
           ),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(t.spacing.md),
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: t.sizing.thumbnailSm,
+                  height: t.spacing.xs,
                   decoration: BoxDecoration(
-                    color: Colors.grey[600],
-                    borderRadius: BorderRadius.circular(2),
+                    color: scheme.onSurfaceVariant,
+                    borderRadius: t.shape.cornerXs,
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
+                padding: EdgeInsets.only(bottom: t.spacing.md),
                 child: Text(
                   loc.t('select_workout_schedule'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  style: t.typography.titleEmphasized?.copyWith(
+                    color: scheme.onSurface,
                   ),
                 ),
               ),
@@ -562,10 +585,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         final programMap = {for (var p in programs) p.id: p};
 
                         return ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(t.spacing.md),
                           itemCount: workouts.length,
                           separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
+                              SizedBox(height: t.spacing.sm),
                           itemBuilder: (context, index) {
                             final workout = workouts[index];
                             final parentProgram =
@@ -573,10 +596,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 ? programMap[workout.parentProgramId]
                                 : null;
 
-                            // Use program color if available, else blue default
-                            final colorValue =
-                                parentProgram?.color ?? 0xFF2196F3;
-                            final color = Color(colorValue);
+                            // Il colore della scheda e un dato scelto
+                            // dall'utente, quindi resta suo. Il ripiego invece
+                            // era una decisione visiva scritta a mano — il blu
+                            // di Material — e diventa un ruolo.
+                            final color = parentProgram != null
+                                ? Color(parentProgram.color)
+                                : scheme.secondary;
 
                             return InkWell(
                               onTap: () async {
@@ -600,18 +626,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 if (mounted) Navigator.of(context).pop();
                               },
                               child: Container(
-                                padding: const EdgeInsets.all(16),
+                                padding: EdgeInsets.all(t.spacing.md),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).cardColor,
-                                  borderRadius: BorderRadius.circular(16),
+                                  color: scheme.surfaceContainerHigh,
+                                  borderRadius: t.shape.cornerMd,
                                   border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.05),
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.05,
+                                    ),
                                   ),
                                 ),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.all(10),
+                                      padding: EdgeInsets.all(t.spacing.sm),
                                       decoration: BoxDecoration(
                                         color: color.withValues(alpha: 0.1),
                                         shape: BoxShape.circle,
@@ -621,7 +649,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                         color: color,
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
+                                    SizedBox(width: t.spacing.md),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -629,33 +657,41 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                         children: [
                                           Text(
                                             workout.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: scheme.onSurface,
+                                                ),
                                           ),
                                           if (parentProgram != null)
                                             Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 4.0,
+                                              padding: EdgeInsets.only(
+                                                top: t.spacing.xs,
                                               ),
                                               child: Row(
                                                 children: [
                                                   Container(
-                                                    width: 8,
-                                                    height: 8,
+                                                    width: t.spacing.sm,
+                                                    height: t.spacing.sm,
                                                     decoration: BoxDecoration(
                                                       color: color,
                                                       shape: BoxShape.circle,
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 6),
+                                                  SizedBox(
+                                                    width: t.spacing.xs,
+                                                  ),
                                                   Text(
                                                     parentProgram.name,
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontSize: 12,
-                                                    ),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: scheme
+                                                              .onSurfaceVariant,
+                                                        ),
                                                   ),
                                                 ],
                                               ),

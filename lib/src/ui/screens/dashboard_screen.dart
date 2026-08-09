@@ -9,6 +9,7 @@ import '../widgets/charts/activity_chart.dart';
 import '../widgets/charts/body_measurements_chart.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/expressive_card.dart';
+import '../../core/theme/expressive_tokens.dart';
 import '../../services/health_service.dart';
 import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
@@ -73,6 +74,8 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         user?.displayName ?? user?.email?.split('@')[0] ?? 'Athlete';
     final userId = user?.uid ?? '';
     final sessionsAsync = ref.watch(dashboardSessionsProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: NestedScrollView(
@@ -81,7 +84,10 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
             SliverAppBar.large(
               title: null,
               flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.only(left: 20, bottom: 20),
+                titlePadding: EdgeInsets.only(
+                  left: t.spacing.lg,
+                  bottom: t.spacing.lg,
+                ),
                 title: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,20 +95,15 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                   children: [
                     Text(
                       'Welcome back,',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
                       userName,
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
+                      style: t.typography.titleEmphasized?.copyWith(
+                        color: scheme.onSurface,
                       ),
                     ),
                   ],
@@ -111,44 +112,41 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
               actions: [
                 // Styled Quick Start Button
                 Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
+                  padding: EdgeInsets.only(right: t.spacing.md),
                   child: Center(
                     child: InkWell(
                       onTap: () => _showQuickStartMenu(context, userId),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: t.shape.cornerFull,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: t.spacing.md,
+                          vertical: t.spacing.sm,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          // `primary` e non `primaryColor`: quel campo precede
+                          // Material 3 e il tema non lo imposta.
+                          color: scheme.primary,
+                          // I pulsanti d'azione del mockup hanno il raggio pieno.
+                          borderRadius: t.shape.cornerFull,
+                          boxShadow: t.elevation.level1(scheme.primary),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.play_arrow_rounded,
-                              color: Colors.white,
-                              size: 20,
+                              // Il testo sopra l'ambra: nel tema chiaro non e
+                              // bianco, e `onPrimary` lo sa.
+                              color: scheme.onPrimary,
+                              size: t.spacing.lg,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: t.spacing.xs),
                             Text(
                               loc.t('quick_start'),
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                color: scheme.onPrimary,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
                               ),
                             ),
                           ],
@@ -169,21 +167,17 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
               SliverToBoxAdapter(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    padding: EdgeInsets.symmetric(vertical: t.spacing.md),
                     child: Container(
-                      width:
-                          300, // Fixed width for better control or responsive? Let's use flexible width within constraints
-                      height: 50,
+                      // La larghezza fissa e una scelta di impaginazione che
+                      // precede il design system, non un valore da token: resta
+                      // com'e, e la meta dentro dipende da lei.
+                      width: 300,
+                      height: t.sizing.minTouchTarget,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        color: scheme.surfaceContainerHigh,
+                        borderRadius: t.shape.cornerFull,
+                        boxShadow: t.elevation.level1(scheme.shadow),
                       ),
                       child: Stack(
                         children: [
@@ -195,11 +189,11 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                             duration: const Duration(milliseconds: 250),
                             curve: Curves.easeInOut,
                             child: Container(
-                              width: 150, // Half of 300
-                              height: 50,
+                              width: 150, // meta della larghezza fissa sopra
+                              height: t.sizing.minTouchTarget,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
-                                borderRadius: BorderRadius.circular(25),
+                                color: scheme.primary,
+                                borderRadius: t.shape.cornerFull,
                               ),
                             ),
                           ),
@@ -213,12 +207,14 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                   child: Center(
                                     child: Text(
                                       loc.t('dashboard_title'),
-                                      style: TextStyle(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
                                         color: _currentView == 0
-                                            ? Colors.white
-                                            : Colors.grey,
+                                            ? scheme.onPrimary
+                                            : scheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ),
@@ -231,12 +227,14 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                   child: Center(
                                     child: Text(
                                       loc.t('history_tab'),
-                                      style: TextStyle(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
                                         color: _currentView == 1
-                                            ? Colors.white
-                                            : Colors.grey,
+                                            ? scheme.onPrimary
+                                            : scheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ),
@@ -256,7 +254,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                 // DASHBOARD VIEW (Stats + Charts)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: EdgeInsets.all(t.spacing.lg),
                     child: sessionsAsync.when(
                       data: (sessions) {
                         final streak = StatisticsHelper.calculateCurrentStreak(
@@ -277,53 +275,62 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                               children: [
                                 Expanded(
                                   child: _buildStatCard(
+                                    context,
                                     loc.t('workouts_label'),
                                     '${sessions.length}',
                                     Icons.fitness_center,
-                                    Colors.blue,
+                                    scheme.secondary,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                SizedBox(width: t.spacing.md),
                                 Expanded(
                                   child: _buildStatCard(
+                                    context,
                                     loc.t('streak_label'),
                                     '$streak',
                                     Icons.local_fire_department,
-                                    Colors.orange,
+                                    scheme.secondary,
                                     suffix: loc.t('days_label'),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: t.spacing.md),
                             // Row 2: Volume & RPE
                             Row(
                               children: [
                                 Expanded(
                                   child: _buildStatCard(
+                                    context,
                                     loc.t('volume_label'),
                                     volumeStr,
                                     Icons.layers,
-                                    Colors.purple,
+                                    scheme.secondary,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                SizedBox(width: t.spacing.md),
                                 Expanded(
                                   child: _buildStatCard(
+                                    context,
                                     loc.t('rpe_label'),
                                     StatisticsHelper.calculateAverageRPE(
                                       sessions,
                                     ).toStringAsFixed(1),
                                     Icons.star_half,
-                                    Colors.amber,
+                                    // Lo sforzo percepito e un dato vitale, e il
+                                    // salmone e il ruolo che la palette riserva
+                                    // a quelli. Le altre tre tessere sono
+                                    // conteggi: nessuna e un'azione, quindi
+                                    // nessuna porta l'ambra.
+                                    scheme.tertiary,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: t.spacing.md),
 
                             _buildHealthSection(loc),
-                            const SizedBox(height: 16),
+                            SizedBox(height: t.spacing.md),
                             RepaintBoundary(
                               child: ExpressiveCard(
                                 title: loc.t('workout_activity_chart'),
@@ -333,7 +340,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: t.spacing.md),
                             RepaintBoundary(
                               child: ExpressiveCard(
                                 title: loc.t('body_progress_chart'),
@@ -357,7 +364,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                       return SliverToBoxAdapter(
                         child: Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(40),
+                            padding: EdgeInsets.all(t.spacing.xxl),
                             child: Text(loc.t('no_workouts_history')),
                           ),
                         ),
@@ -395,7 +402,9 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                 ),
               ],
 
-              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: t.spacing.bottomInset),
+              ),
             ],
           ),
         ),
@@ -410,17 +419,14 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     bool isToday,
     Localization loc,
   ) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        color: scheme.surfaceContainerHigh,
+        borderRadius: t.shape.cornerLg,
+        boxShadow: t.elevation.level2(scheme.shadow),
       ),
       child: Material(
         color: Colors.transparent,
@@ -432,25 +438,25 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
               ),
             );
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: t.shape.cornerLg,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(t.spacing.lg),
             child: Row(
               children: [
                 // Date Badge
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: t.sizing.thumbnailMd,
+                  height: t.sizing.thumbnailMd,
                   decoration: BoxDecoration(
+                    // Oggi porta l'ambra perche e la giornata su cui stai
+                    // agendo; le altre restano una superficie neutra.
                     color: isToday
-                        ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
-                        : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(16),
+                        ? scheme.primary.withValues(alpha: 0.1)
+                        : scheme.surfaceContainerHighest,
+                    borderRadius: t.shape.cornerMd,
                     border: isToday
                         ? Border.all(
-                            color: Theme.of(
-                              context,
-                            ).primaryColor.withValues(alpha: 0.5),
+                            color: scheme.primary.withValues(alpha: 0.5),
                           )
                         : null,
                   ),
@@ -459,12 +465,9 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     children: [
                       Text(
                         DateFormat('dd').format(session.startTime),
-                        style: TextStyle(
-                          fontSize: 20,
+                        style: t.typography.metricSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isToday
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey[800],
+                          color: isToday ? scheme.primary : scheme.onSurface,
                           height: 1.0,
                         ),
                       ),
@@ -472,18 +475,18 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                         DateFormat(
                           'MMM',
                         ).format(session.startTime).toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: Theme.of(context).textTheme.labelSmall
+                            ?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isToday
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey[500],
+                              ? scheme.primary
+                              : scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: t.spacing.md),
                 // Content
                 Expanded(
                   child: Column(
@@ -491,42 +494,41 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     children: [
                       Text(
                         session.workoutName,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: scheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: t.spacing.xs),
                       Row(
                         children: [
                           Icon(
                             Icons.access_time,
-                            size: 14,
-                            color: Colors.grey[500],
+                            size: t.spacing.md,
+                            color: scheme.onSurfaceVariant,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: t.spacing.xs),
                           Text(
                             DateFormat('HH:mm').format(session.startTime),
                             style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
+                              color: scheme.onSurfaceVariant,
                             ),
                           ),
                           if (session.durationSeconds > 0) ...[
-                            const SizedBox(width: 10),
+                            SizedBox(width: t.spacing.sm),
                             Icon(
                               Icons.timer_outlined,
-                              size: 14,
-                              color: Colors.grey[500],
+                              size: t.spacing.md,
+                              color: scheme.onSurfaceVariant,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: t.spacing.xs),
                             Text(
                               '${session.durationSeconds ~/ 60} min',
                               style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600],
+                                color: scheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -535,7 +537,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey[300]),
+                Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
               ],
             ),
           ),
@@ -545,44 +547,57 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
   }
 
   Widget _buildStatCard(
+    BuildContext context,
     String title,
     String value,
     IconData icon,
     Color color, {
     String? suffix,
   }) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return ExpressiveCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(t.spacing.sm),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 24, color: color),
+            child: Icon(icon, size: t.spacing.xl, color: color),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: t.spacing.sm),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 24,
+                // I numeri del mockout sono monospaziati con cifre tabulari,
+                // cosi non ballano quando cambiano.
+                style: t.typography.metricMedium?.copyWith(
+                  color: scheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               if (suffix != null)
                 Text(
                   ' $suffix',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
-          Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -598,6 +613,8 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         final data = snapshot.data ?? {};
         final steps = data['steps'] ?? 0;
         final calories = data['calories'] ?? 0;
+        final t = context.expressive;
+        final scheme = Theme.of(context).colorScheme;
 
         return Row(
           children: [
@@ -610,21 +627,22 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                       builder: (_) => HealthDetailScreen(
                         dataType: HealthDataType.STEPS,
                         title: loc.t('steps_label'),
-                        baseColor: Colors.teal,
+                        baseColor: scheme.secondary,
                         unit: 'steps',
                       ),
                     ),
                   );
                 },
                 child: _buildStatColumn(
+                  context,
                   loc.t('steps_label'),
                   '$steps',
                   Icons.directions_walk,
-                  Colors.teal,
+                  scheme.secondary,
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: t.spacing.md),
             Expanded(
               child: ExpressiveCard(
                 onTap: () {
@@ -634,17 +652,20 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                       builder: (_) => HealthDetailScreen(
                         dataType: HealthDataType.ACTIVE_ENERGY_BURNED,
                         title: loc.t('active_cal_label'),
-                        baseColor: Colors.red,
+                        baseColor: scheme.tertiary,
                         unit: 'kcal',
                       ),
                     ),
                   );
                 },
                 child: _buildStatColumn(
+                  context,
                   loc.t('active_cal_label'),
                   '${calories.toInt()}',
                   Icons.local_fire_department,
-                  Colors.red,
+                  // Le calorie sono un dato vitale come il battito: salmone.
+                  // Il rosso che c'era qui e il ruolo dell'errore.
+                  scheme.tertiary,
                   suffix: ' kcal',
                 ),
               ),
@@ -656,27 +677,42 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
   }
 
   Widget _buildStatColumn(
+    BuildContext context,
     String title,
     String value,
     IconData icon,
     Color color, {
     String? suffix,
   }) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: color),
-        const SizedBox(height: 8),
+        SizedBox(height: t.spacing.sm),
         Text(
           value + (suffix ?? ''),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: t.typography.metricSmall?.copyWith(
+            color: scheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }
 
   void _showQuickStartMenu(BuildContext context, String userId) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -685,12 +721,14 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(t.shape.radiusXl),
+          ),
         ),
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(t.spacing.xl),
               child: Text(
                 'Start Workout',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -721,7 +759,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                       : programs;
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: EdgeInsets.symmetric(horizontal: t.spacing.xl),
                     itemCount: displayPrograms.length,
                     itemBuilder: (context, index) {
                       final program = displayPrograms[index];
@@ -729,13 +767,15 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            padding: EdgeInsets.symmetric(
+                              vertical: t.spacing.sm,
+                            ),
                             child: Text(
                               program.name.toUpperCase(),
-                              style: TextStyle(
-                                color: Colors.grey[600],
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                color: scheme.onSurfaceVariant,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 12,
                               ),
                             ),
                           ),
@@ -775,10 +815,12 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                             subtitle: Text(
                                               '${template.exercises.length} Exercises',
                                             ),
-                                            trailing: const Icon(
+                                            trailing: Icon(
                                               Icons.play_circle_fill,
-                                              color: Colors.blue,
-                                              size: 32,
+                                              // Avviare l'allenamento e
+                                              // l'azione: ambra, non blu.
+                                              color: scheme.primary,
+                                              size: t.spacing.xxl,
                                             ),
                                             onTap: () {
                                               Navigator.pop(ctx);
