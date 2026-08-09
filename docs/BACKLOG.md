@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
 | EP-002 | Unificazione dello state management | 5 | 15 | MVP |
-| EP-003 | Performance runtime e consumo risorse | 10 | 24 | MVP |
+| EP-003 | Performance runtime e consumo risorse | 11 | 25 | MVP |
 | EP-004 | Integrità dei dati e sicurezza Firestore | 3 | 9 | MVP |
 | EP-005 | Design system Material 3 Expressive | 10 | 36 | Growth |
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 76
-**Total story points:** 237
+**Total stories:** 77
+**Total story points:** 238
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -394,7 +394,7 @@ Dopo questa storia: una ricerca di `FirestoreService()` in `lib/src/ui` non prod
 ### EP-003: Performance runtime e consumo risorse
 
 > Eliminare le riletture inutili da Firestore, i rebuild superflui e le perdite di memoria.
-> **Scope:** MVP | **Stories:** 10 | **Story Points:** 24
+> **Scope:** MVP | **Stories:** 11 | **Story Points:** 25
 
 ---
 
@@ -2093,6 +2093,41 @@ Dopo questa storia: aprendo la libreria la lista compare una volta e non lampegg
 
 ---
 
+#### US-077: Le date localizzate non fanno crollare la lista degli allenamenti
+
+**Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 1
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-07** durante US-022, e **provata con una sonda**, non dedotta.
+>
+> `program_list_screen.dart:254` formatta le date con `DateFormat.yMMMd(loc.locale.languageCode)`, ma **`initializeDateFormatting` non viene chiamata da nessuna parte** nel progetto. Un test-sonda in un worktree lo conferma:
+>
+> ```
+> LocaleDataException: Locale data has not been initialized,
+> call initializeDateFormatting(<locale>).
+> ```
+>
+> Conseguenza: **la lista degli allenamenti va in schermata rossa appena una scheda ha una data di inizio.** Non si è ancora visto perché serve una scheda con le date impostate. È lo stesso difetto di US-075 — un'eccezione a schermo intero su una funzionalità raggiungibile dal menu — con una condizione di innesco meno probabile.
+>
+> `workout_summary_screen.dart` aveva già evitato la trappola scrivendo i nomi dei mesi a mano, con il commento che spiega perché: la conoscenza c'era, in un file solo.
+
+**Story**
+Come utente che ha una scheda con una data di inizio,
+voglio vedere la lista delle mie schede,
+così da non trovarmi davanti a una schermata di errore.
+
+**Demonstrates**
+Dopo questa storia: le schede con le date si vedono, e le date sono nella lingua dell'app.
+
+**Acceptance Criteria**
+- [ ] La lista degli allenamenti mostra una scheda con data di inizio e fine senza sollevare eccezioni, con un test che lo dimostra
+- [ ] La scelta è dichiarata: o si chiama `initializeDateFormatting` all'avvio, o si formatta senza `intl` come fa già il riepilogo
+- [ ] Se si sceglie `initializeDateFormatting`, un test copre almeno le due lingue del progetto, EN e IT
+- [ ] Nessun altro punto del progetto usa `DateFormat` con una locale senza che i dati siano inizializzati — verificato su tutto `lib/`
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2317,4 +2352,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[76 storie in 15 epiche — 237 story points totali · 3 storie accantonate in EP-008 · 26 completate]_
+_[77 storie in 15 epiche — 238 story points totali · 3 storie accantonate in EP-008 · 26 completate]_
