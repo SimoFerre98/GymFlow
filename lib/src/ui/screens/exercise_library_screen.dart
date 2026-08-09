@@ -9,6 +9,31 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
+/// Cosa mostrare al posto della lista, se qualcosa.
+enum ExerciseLibraryView { loading, empty, list }
+
+/// Decide fra girella, messaggio di lista vuota e lista.
+///
+/// Sta fuori dal widget per una ragione precisa: la schermata istanzia
+/// `FirestoreService` nel proprio `State` — debito di US-008 — e quindi non si
+/// monta in un test. Con la decisione qui, il caso che conta si prova sul codice
+/// vero invece che su una copia.
+///
+/// Il caso che conta e il primo: **`isLoading` da solo non basta**. Un
+/// `AsyncValue` che ricarica avendo gia un valore ha `isLoading` vero, e
+/// mostrargli la girella sostituisce la lista intera per un istante. Succedeva a
+/// ogni emissione dello stream Firestore che `exercisesProvider` osserva — due
+/// volte all'apertura, cache e server — ed e da li che veniva lo sfarfallio.
+ExerciseLibraryView exerciseLibraryViewFor(AsyncValue<List<Exercise>> snapshot) {
+  if (snapshot.isLoading && !snapshot.hasValue) {
+    return ExerciseLibraryView.loading;
+  }
+  if (!snapshot.hasValue || snapshot.value!.isEmpty) {
+    return ExerciseLibraryView.empty;
+  }
+  return ExerciseLibraryView.list;
+}
+
 class ExerciseLibraryScreen extends ConsumerStatefulWidget {
   /// Vero quando la schermata serve a **scegliere** un esercizio per qualcos
   /// altro: la creazione di una scheda. Falso quando la si consulta, che e il
@@ -111,10 +136,12 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
             child: Builder(
               builder: (context) {
                 final snapshot = ref.watch(exercisesProvider);
-                if (snapshot.isLoading) {
+                final vista = exerciseLibraryViewFor(snapshot);
+
+                if (vista == ExerciseLibraryView.loading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (!snapshot.hasValue || snapshot.value!.isEmpty) {
+                if (vista == ExerciseLibraryView.empty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(40),
