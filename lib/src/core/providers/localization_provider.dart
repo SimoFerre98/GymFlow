@@ -180,7 +180,16 @@ class Localization {
     'exercises_menu': 'Exercises',
     'exercises_title': 'Exercise library',
     'exercises_search': 'Search exercise',
+    'exercises_search_placeholder': 'Search among your exercises',
     'exercises_empty': 'No exercises yet. Load the curated library from Settings, or add your own.',
+    'exercises_recent_empty': 'No history yet',
+    'exercises_no_match': 'No exercise matches these filters.',
+    'exercises_new_btn': 'New exercise',
+    'exercise_filter_all': 'All',
+    'exercise_filter_mine': 'Mine',
+    'exercise_filter_recent': 'Recent',
+    'exercise_tag_yours': 'yours',
+    'exercise_tag_no_video': 'no video',
     'video_available': 'Execution video available',
 
     // Execution video
@@ -386,7 +395,16 @@ class Localization {
     'exercises_menu': 'Esercizi',
     'exercises_title': 'Libreria esercizi',
     'exercises_search': 'Cerca esercizio',
+    'exercises_search_placeholder': 'Cerca fra i tuoi esercizi',
     'exercises_empty': 'Nessun esercizio. Carica la libreria dalle impostazioni, oppure creane uno tuo.',
+    'exercises_recent_empty': 'Ancora nessuno storico',
+    'exercises_no_match': 'Nessun esercizio corrisponde a questi filtri.',
+    'exercises_new_btn': 'Nuovo esercizio',
+    'exercise_filter_all': 'Tutti',
+    'exercise_filter_mine': 'Miei',
+    'exercise_filter_recent': 'Recenti',
+    'exercise_tag_yours': 'tuo',
+    'exercise_tag_no_video': 'senza video',
     'video_available': "Video dell'esecuzione disponibile",
 
     // Video dell'esecuzione

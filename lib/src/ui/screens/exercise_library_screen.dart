@@ -12,6 +12,9 @@ import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 /// Cosa mostrare al posto della lista, se qualcosa.
 enum ExerciseLibraryView { loading, empty, list }
 
+/// Opzioni del segmentato in cima alla libreria.
+enum ExerciseSegmentFilter { all, mine, recent }
+
 /// Decide fra girella, messaggio di lista vuota e lista.
 ///
 /// Sta fuori dal widget per una ragione precisa: la schermata istanzia
@@ -34,6 +37,75 @@ ExerciseLibraryView exerciseLibraryViewFor(AsyncValue<List<Exercise>> snapshot) 
   return ExerciseLibraryView.list;
 }
 
+/// Estrae i gruppi muscolari dagli esercizi caricati, ordinati per frequenza.
+///
+/// Raccoglie `musclesTargeted` di tutti gli esercizi e restituisce i piu
+/// frequenti in ordine decrescente (e in ordine alfabetico a parita di frequenza).
+List<String> extractMuscleGroups(List<Exercise> exercises) {
+  final counts = <String, int>{};
+  for (final exercise in exercises) {
+    for (final muscle in exercise.musclesTargeted) {
+      final trimmed = muscle.trim();
+      if (trimmed.isNotEmpty) {
+        counts[trimmed] = (counts[trimmed] ?? 0) + 1;
+      }
+    }
+  }
+  final list = counts.keys.toList();
+  list.sort((a, b) {
+    final countA = counts[a]!;
+    final countB = counts[b]!;
+    if (countA != countB) {
+      return countB.compareTo(countA);
+    }
+    return a.toLowerCase().compareTo(b.toLowerCase());
+  });
+  return list;
+}
+
+/// Filtra gli esercizi in base alla ricerca, al segmentato e al gruppo muscolare scelto.
+List<Exercise> filterExercises({
+  required List<Exercise> exercises,
+  required String searchQuery,
+  required ExerciseSegmentFilter segment,
+  String? selectedMuscleGroup,
+}) {
+  final query = searchQuery.trim().toLowerCase();
+  return exercises.where((e) {
+    final matchesSearch =
+        query.isEmpty || e.name.toLowerCase().contains(query);
+    final matchesSegment = switch (segment) {
+      ExerciseSegmentFilter.all => true,
+      ExerciseSegmentFilter.mine => e.isCustom,
+      ExerciseSegmentFilter.recent => false,
+    };
+    final matchesMuscle = selectedMuscleGroup == null ||
+        selectedMuscleGroup.isEmpty ||
+        e.musclesTargeted.any(
+          (m) => m.toLowerCase() == selectedMuscleGroup.toLowerCase(),
+        );
+
+    return matchesSearch && matchesSegment && matchesMuscle;
+  }).toList();
+}
+
+/// Costruisce la stringa di dettaglio per l'esercizio.
+///
+/// Esempio: "Petto · Tricipiti", "Petto alto · tuo", "senza video" oppure "Petto · tuo · senza video".
+String buildExerciseSubtitleText(Exercise exercise, Localization loc) {
+  final parts = <String>[];
+  if (exercise.musclesTargeted.isNotEmpty) {
+    parts.add(exercise.musclesTargeted.join(' · '));
+  }
+  if (exercise.isCustom) {
+    parts.add(loc.t('exercise_tag_yours'));
+  }
+  if (!exercise.hasSpecificVideo) {
+    parts.add(loc.t('exercise_tag_no_video'));
+  }
+  return parts.join(' · ');
+}
+
 class ExerciseLibraryScreen extends ConsumerStatefulWidget {
   /// Vero quando la schermata serve a **scegliere** un esercizio per qualcos
   /// altro: la creazione di una scheda. Falso quando la si consulta, che e il
@@ -46,96 +118,190 @@ class ExerciseLibraryScreen extends ConsumerStatefulWidget {
       _ExerciseLibraryScreenState();
 }
 
-class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
+class _ExerciseLibraryScreenState
+    extends ConsumerState<ExerciseLibraryScreen> {
   final FirestoreService _firestore = FirestoreService();
   final AuthService _auth = AuthService();
   String _searchQuery = '';
-  final Set<ExerciseType> _selectedFilters = {};
+  ExerciseSegmentFilter _selectedSegment = ExerciseSegmentFilter.all;
+  String? _selectedMuscleGroup;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.expressive;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final loc = ref.watch(localizationNotifierProvider);
     final user = _auth.currentUser;
     if (user == null) return const Center(child: Text('Please log in'));
 
+    final snapshot = ref.watch(exercisesProvider);
+    final totalCount = snapshot.value?.length ?? 0;
+
     return Scaffold(
-      appBar: AppBar(title: Text(loc.t('exercises_title'))),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(loc.t('exercises_title')),
+            SizedBox(width: t.spacing.sm),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: t.spacing.sm,
+                vertical: t.spacing.xs / 2,
+              ),
+              decoration: ShapeDecoration(
+                color: scheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(
+                  borderRadius: t.shape.cornerFull,
+                ),
+              ),
+              child: Text(
+                '$totalCount',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
-          // Filter Chips Section
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: ExerciseType.values.map((type) {
-                final isSelected = _selectedFilters.contains(type);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: FilterChip(
-                    label: Text(type.name.toUpperCase()),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedFilters.add(type);
-                        } else {
-                          _selectedFilters.remove(type);
-                        }
-                      });
-                    },
-                    backgroundColor: Theme.of(context).cardColor,
-                    selectedColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.2),
-                    checkmarkColor: Theme.of(context).colorScheme.primary,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.grey.withValues(alpha: 0.3),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(
+              horizontal: t.spacing.md,
+              vertical: t.spacing.xs,
+            ),
             child: TextField(
               decoration: InputDecoration(
-                labelText: loc.t('exercises_search'),
+                hintText: loc.t('exercises_search_placeholder'),
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Theme.of(context).cardColor,
+                fillColor: scheme.surfaceContainerHigh,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: t.shape.cornerMd,
                   borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: t.spacing.md,
+                  vertical: t.spacing.sm,
                 ),
               ),
               onChanged: (val) =>
                   setState(() => _searchQuery = val.toLowerCase()),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: t.spacing.xs),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: t.spacing.md),
+            child: Container(
+              decoration: ShapeDecoration(
+                color: scheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(
+                  borderRadius: t.shape.cornerFull,
+                ),
+              ),
+              padding: EdgeInsets.all(t.spacing.xs),
+              child: Row(
+                children: ExerciseSegmentFilter.values.map((seg) {
+                  final isSelected = _selectedSegment == seg;
+                  final labelKey = switch (seg) {
+                    ExerciseSegmentFilter.all => 'exercise_filter_all',
+                    ExerciseSegmentFilter.mine => 'exercise_filter_mine',
+                    ExerciseSegmentFilter.recent => 'exercise_filter_recent',
+                  };
+                  return Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _selectedSegment = seg),
+                      borderRadius: t.shape.cornerFull,
+                      child: AnimatedContainer(
+                        duration: t.motion.quick,
+                        padding: EdgeInsets.symmetric(vertical: t.spacing.sm),
+                        decoration: ShapeDecoration(
+                          color: isSelected
+                              ? scheme.primary
+                              : Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: t.shape.cornerFull,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          loc.t(labelKey),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: isSelected
+                                ? scheme.onPrimary
+                                : scheme.onSurfaceVariant,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          SizedBox(height: t.spacing.xs),
+          if (snapshot.hasValue && snapshot.value!.isNotEmpty) ...[
+            Builder(
+              builder: (context) {
+                final muscleGroups = extractMuscleGroups(snapshot.value!);
+                if (muscleGroups.isEmpty) return const SizedBox.shrink();
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: t.spacing.md,
+                    vertical: t.spacing.xs,
+                  ),
+                  child: Row(
+                    children: muscleGroups.map((group) {
+                      final isSelected = _selectedMuscleGroup == group;
+                      return Padding(
+                        padding: EdgeInsets.only(right: t.spacing.sm),
+                        child: FilterChip(
+                          label: Text(group),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedMuscleGroup = selected ? group : null;
+                            });
+                          },
+                          backgroundColor: scheme.surfaceContainerHigh,
+                          selectedColor: scheme.primary,
+                          checkmarkColor: scheme.onPrimary,
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? scheme.onPrimary
+                                : scheme.onSurfaceVariant,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: t.shape.cornerFull,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? scheme.primary
+                                  : Colors.transparent,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            ),
+          ],
+          SizedBox(height: t.spacing.xs),
           Expanded(
-            // Dal provider e non da uno stream creato qui: `build` girava a
-            // ogni ricostruzione e ne creava uno nuovo ogni volta. Ed e il
-            // provider che unisce i curati dell'asset agli esercizi
-            // dell'utente.
             child: Builder(
               builder: (context) {
-                final snapshot = ref.watch(exercisesProvider);
                 final vista = exerciseLibraryViewFor(snapshot);
 
                 if (vista == ExerciseLibraryView.loading) {
@@ -144,7 +310,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
                 if (vista == ExerciseLibraryView.empty) {
                   return Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(40),
+                      padding: EdgeInsets.all(t.spacing.xl),
                       child: Text(
                         loc.t('exercises_empty'),
                         textAlign: TextAlign.center,
@@ -153,59 +319,79 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
                   );
                 }
 
-                final exercises = snapshot.value!.where((e) {
-                  final matchesSearch = e.name.toLowerCase().contains(
-                    _searchQuery,
+                final exercises = filterExercises(
+                  exercises: snapshot.value!,
+                  searchQuery: _searchQuery,
+                  segment: _selectedSegment,
+                  selectedMuscleGroup: _selectedMuscleGroup,
+                );
+
+                if (exercises.isEmpty) {
+                  // Tre vuoti diversi, e dirli tutti «non ci sono esercizi»
+                  // manderebbe l'utente a caricare una libreria che ha gia.
+                  // Qui gli esercizi ci sono per definizione — `vista` sarebbe
+                  // `empty` altrimenti — quindi sono i filtri a non trovare
+                  // niente.
+                  final emptyMsg =
+                      _selectedSegment == ExerciseSegmentFilter.recent
+                          ? loc.t('exercises_recent_empty')
+                          : loc.t('exercises_no_match');
+                  return Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(t.spacing.xl),
+                      child: Text(
+                        emptyMsg,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   );
-                  final matchesFilter =
-                      _selectedFilters.isEmpty ||
-                      _selectedFilters.contains(e.type);
-                  return matchesSearch && matchesFilter;
-                }).toList();
+                }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 80),
+                  padding: EdgeInsets.only(bottom: t.spacing.bottomInset),
                   itemCount: exercises.length,
                   itemBuilder: (context, index) {
                     final exercise = exercises[index];
                     if (!exercise.isCustom) {
-                      return _buildExerciseCard(exercise, context);
+                      return _buildExerciseCard(exercise, context, loc);
                     }
 
                     return Dismissible(
                       key: Key(exercise.id),
                       direction: DismissDirection.endToStart,
                       background: Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
+                        margin: EdgeInsets.symmetric(
+                          horizontal: t.spacing.md,
+                          vertical: t.spacing.xs,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(16),
+                        decoration: ShapeDecoration(
+                          color: scheme.error,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: t.shape.cornerLg,
+                          ),
                         ),
                         alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
+                        padding: EdgeInsets.only(right: t.spacing.lg),
+                        child: Icon(Icons.delete, color: scheme.onError),
                       ),
                       confirmDismiss: (direction) async {
-                        return await showDialog(
+                        return await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('Delete Exercise?'),
+                            title: Text(loc.t('delete_event_title')),
                             content: Text(
-                              'Delete "${exercise.name}"? This cannot be undone.',
+                              '${exercise.name} - ${loc.t('delete_event_body')}',
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('Cancel'),
+                                child: Text(loc.t('cancel')),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.red),
+                                child: Text(
+                                  loc.t('delete'),
+                                  style: TextStyle(color: scheme.error),
                                 ),
                               ),
                             ],
@@ -215,10 +401,10 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
                       onDismissed: (direction) {
                         _firestore.deleteExercise(exercise.id);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Exercise deleted')),
+                          SnackBar(content: Text(loc.t('event_deleted'))),
                         );
                       },
-                      child: _buildExerciseCard(exercise, context),
+                      child: _buildExerciseCard(exercise, context, loc),
                     );
                   },
                 );
@@ -234,14 +420,31 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
     );
   }
 
-  Widget _buildExerciseCard(Exercise exercise, BuildContext context) {
+  Widget _buildExerciseCard(
+    Exercise exercise,
+    BuildContext context,
+    Localization loc,
+  ) {
+    final t = context.expressive;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final subtitleText = buildExerciseSubtitleText(exercise, loc);
+
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: context.expressive.spacing.md,
-        vertical: context.expressive.spacing.xs,
+        horizontal: t.spacing.md,
+        vertical: t.spacing.xs,
       ),
       child: ExerciseRow(
         exercise: exercise,
+        subtitle: Text(
+          subtitleText,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         onThumbnailTap: () => ExerciseVideoSheet.show(context, exercise),
         onTap: () {
           if (widget.isSelecting) {
@@ -269,9 +472,10 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Exercise Name'),
+                  decoration:
+                      const InputDecoration(labelText: 'Exercise Name'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: context.expressive.spacing.md),
                 DropdownButton<ExerciseType>(
                   value: selectedType,
                   isExpanded: true,
@@ -313,10 +517,7 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
                   Navigator.of(dialogContext).pop();
                 }
               } catch (e) {
-                // Ignore or show error
                 debugPrint('Error saving exercise: $e');
-                // Ensure we pop even on error? Or let user retry?
-                // Better to let retry.
               }
             },
             child: const Text('Save'),
