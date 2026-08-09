@@ -2039,7 +2039,7 @@ La strada più ovvia è un massimale stimato (Epley, Brzycki), che US-050 ha mes
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 1
 **Depends on:** US-007 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🔵 IN PROGRESS — mandato in [`planning/US-075.md`](planning/US-075.md)
 
 > ⚠️ **Aperta il 2026-08-07**, segnalata dall'utente sul dispositivo e **riprodotta**: aprendo gli strumenti del tempo compare l'`ErrorWidget` rosso con «Tried to modify a provider while the widget tree was building».
 >
