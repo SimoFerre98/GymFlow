@@ -2068,7 +2068,7 @@ Dopo questa storia: la voce Cronometro del menu apre gli strumenti del tempo, e 
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-072 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-076.md`](planning/US-076.md) · **delegabile**
+**Status:** 🔍 IN REVIEW — sfarfallio corretto e mergiato, **il rallentamento resta da misurare**. Mandato in [`planning/US-076.md`](planning/US-076.md), review in [`planning/US-076-review.md`](planning/US-076-review.md) · implementata da Agy
 
 > ⚠️ **Aperta il 2026-08-07**, segnalata dall'utente: «la sezione degli esercizi lagga di brutto e sfarfalla».
 >
@@ -2085,10 +2085,10 @@ così da poter leggere quello che sto scorrendo.
 Dopo questa storia: aprendo la libreria la lista compare una volta e non lampeggia più, e lo scorrimento non perde fotogrammi.
 
 **Acceptance Criteria**
-- [ ] Lo spinner compare **solo** quando non c'è ancora nessun valore: un aggiornamento non sostituisce una lista già mostrata
-- [ ] Un test dimostra che, passando da valore a ricaricamento con valore presente, la lista resta a schermo
-- [ ] Il rallentamento è **misurato** con `dumpsys gfxinfo` prima e dopo, e il numero è riportato nella review
-- [ ] Se la causa del rallentamento risulta diversa da quella dello sfarfallio, viene dichiarata e non corretta a naso
+- [x] Lo spinner compare **solo** quando non c'è ancora nessun valore: un aggiornamento non sostituisce una lista già mostrata
+- [x] Un test dimostra che, passando da valore a ricaricamento con valore presente, la lista resta a schermo — **il test consegnato non lo dimostrava**: montava una copia del widget, e col difetto rimesso nel file vero restava verde. Rifatto in review sulla funzione della schermata
+- [ ] Il rallentamento è **misurato** con `dumpsys gfxinfo` prima e dopo, e il numero è riportato nella review — **non eseguito**: serve il telefono, e il piano lo autorizzava
+- [ ] Se la causa del rallentamento risulta diversa da quella dello sfarfallio, viene dichiarata e non corretta a naso — non applicabile finché non è misurato
 - [ ] Scorrendo i 43 esercizi non si perdono fotogrammi — **da confermare sul dispositivo**
 
 ---
