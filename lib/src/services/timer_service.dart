@@ -5,6 +5,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'timer_service.g.dart';
 
+/// 100 ms — i decimi di secondo sono la cifra piu fine che lo schermo mostra
+/// (`time_tools_screen.dart`), quindi aggiornare piu spesso ridisegna senza
+/// cambiare niente.
+const Duration kTickerInterval = Duration(milliseconds: 100);
+
 /// Stato osservabile di cronometro e timer.
 @immutable
 class TimerState {
@@ -56,10 +61,7 @@ class TimerState {
 /// keepAlive perche devono continuare a scorrere anche quando l'utente lascia
 /// la schermata degli strumenti: e il presupposto dell'overlay flottante.
 ///
-/// Il ticker gira a 30 ms ed e sempre attivo, come nella versione precedente.
-/// Fermarlo quando cronometro e timer sono inattivi e compito di US-013:
-/// cambiarlo qui renderebbe indistinguibile una regressione della migrazione
-/// da un cambio voluto di comportamento.
+/// Il ticker gira a 100 ms ed e attivo solo quando serve.
 @Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
   Timer? _ticker;
@@ -75,7 +77,6 @@ class TimerNotifier extends _$TimerNotifier {
 
   @override
   TimerState build() {
-    _ticker = Timer.periodic(const Duration(milliseconds: 30), _onTick);
     ref.onDispose(() {
       _ticker?.cancel();
       _ticker = null;
@@ -93,9 +94,30 @@ class TimerNotifier extends _$TimerNotifier {
   bool get isTimerRunning => state.isTimerRunning;
   bool get isToolsVisible => state.isToolsVisible;
 
+  /// Se il ticker sta battendo.
+  ///
+  /// Esiste perche altrimenti «il ticker non parte nel costruttore» non e
+  /// verificabile: appoggiarsi al fatto che `testWidgets` protesti per i timer
+  /// pendenti non basta, perche smontare il container li cancella comunque e il
+  /// test passerebbe anche col difetto. Verificato: rimettendo l'avvio dentro
+  /// `build()`, senza questo getter la suite restava verde.
+  bool get isTickerActive => _ticker != null;
+
+  /// Il ticker serve solo se c'e qualcosa che scorre.
+  void _syncTicker() {
+    final serve = state.isStopwatchRunning || state.isTimerRunning;
+    if (serve && _ticker == null) {
+      _ticker = Timer.periodic(kTickerInterval, _onTick);
+    } else if (!serve && _ticker != null) {
+      _ticker!.cancel();
+      _ticker = null;
+    }
+  }
+
   void _onTick(Timer _) {
     var next = state;
     var changed = false;
+    var timerReachedZero = false;
 
     if (state.isStopwatchRunning && _stopwatchStartedAt != null) {
       next = next.copyWith(
@@ -113,6 +135,7 @@ class TimerNotifier extends _$TimerNotifier {
           timerRemaining: Duration.zero,
           isTimerRunning: false,
         );
+        timerReachedZero = true;
       } else {
         next = next.copyWith(timerRemaining: remaining);
       }
@@ -120,6 +143,7 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     if (changed) state = next;
+    if (timerReachedZero) _syncTicker();
   }
 
   void setToolsVisible(bool visible) {
@@ -134,11 +158,22 @@ class TimerNotifier extends _$TimerNotifier {
         _stopwatchOffset += DateTime.now().difference(_stopwatchStartedAt!);
         _stopwatchStartedAt = null;
       }
-      state = state.copyWith(isStopwatchRunning: false);
+      // Il valore mostrato si allinea al tempo vero **nel momento della pausa**,
+      // e non resta quello dell'ultimo tick.
+      //
+      // Con il ticker a 30 ms lo scarto era invisibile; a 100 ms puo essere di
+      // un decimo intero, cioe esattamente la cifra piu fine che lo schermo
+      // mostra: il cronometro si fermerebbe su un numero diverso da quello
+      // raggiunto, e sarebbe quello registrato dai giri.
+      state = state.copyWith(
+        isStopwatchRunning: false,
+        stopwatchElapsed: _stopwatchOffset,
+      );
     } else {
       _stopwatchStartedAt = DateTime.now();
       state = state.copyWith(isStopwatchRunning: true);
     }
+    _syncTicker();
   }
 
   void resetStopwatch() {
@@ -149,6 +184,7 @@ class TimerNotifier extends _$TimerNotifier {
       stopwatchElapsed: Duration.zero,
       stopwatchLaps: const [],
     );
+    _syncTicker();
   }
 
   void lapStopwatch() {
@@ -177,6 +213,7 @@ class TimerNotifier extends _$TimerNotifier {
       _timerEndsAt = DateTime.now().add(remaining);
       state = state.copyWith(isTimerRunning: true, timerRemaining: remaining);
     }
+    _syncTicker();
   }
 
   void resetTimer() {
@@ -185,5 +222,6 @@ class TimerNotifier extends _$TimerNotifier {
       isTimerRunning: false,
       timerRemaining: state.timerDuration,
     );
+    _syncTicker();
   }
 }

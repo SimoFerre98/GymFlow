@@ -27,10 +27,6 @@ void main() {
 
     testWidgets('entrando nasconde e uscendo mostra l overlay flottante',
         (tester) async {
-      // Il container si smonta **dentro** il corpo del test e non in un
-      // tearDown: `TimerNotifier` avvia un ticker periodico che non si ferma
-      // mai — il debito che US-013 traccia — e `testWidgets` fallisce se al
-      // termine restano timer pendenti.
       final container = ProviderContainer();
 
       // Prima di aprire la schermata l'overlay e visibile.
@@ -110,6 +106,10 @@ void main() {
       expect(dopo.timerDuration, const Duration(minutes: 3));
       expect(dopo.isStopwatchRunning, isTrue);
 
+      // Smontato dentro il corpo e non in un `addTearDown`: qui il cronometro
+      // e in corsa, quindi da US-013 il ticker **c'e**, e `testWidgets`
+      // fallisce se al termine resta un timer pendente. Nei test dove nulla
+      // scorre il ticker non parte e questo giro non servirebbe.
       container.dispose();
     });
   });
