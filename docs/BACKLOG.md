@@ -832,7 +832,7 @@ Dopo questa storia: aprire l'avvio rapido e cambiare scheda produce transizioni 
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-021 (✅), US-034 (✅), US-073 (✅) | **Blocks:** US-023, US-062
-**Status:** 🔵 IN PROGRESS — piano in [`planning/US-022.md`](planning/US-022.md)
+**Status:** ✅ DONE — piano in [`planning/US-022.md`](planning/US-022.md), review in [`planning/US-022-review.md`](planning/US-022-review.md)
 
 > 📌 **Dipendenza da US-035 rimossa il 2026-08-06, con il consenso dell'utente.** Nessuno dei sei criteri di accettazione qui sotto nomina forme o morphing: chiedono la card condivisa (US-021), i token di spaziatura, elevazione e tipografia (US-033) e i ruoli del `ColorScheme` (US-034), tutti già disponibili. US-035 serve ai **badge della schermata Obiettivi**, che sono materia di US-023, US-037 e US-051 — non delle tre schermate principali. Era un residuo di pianificazione, non un vincolo reale.
 
@@ -845,12 +845,14 @@ così da percepire un prodotto curato invece di schermate assemblate.
 Dopo questa storia: le tre schermate principali sono indistinguibili per stile e differiscono solo per contenuto.
 
 **Acceptance Criteria**
-- [ ] Dashboard, lista allenamenti e calendario usano il componente card condiviso
-- [ ] Non esistono più `BoxDecoration` con ombre definite inline in queste schermate
-- [ ] Le spaziature usano i token condivisi invece di valori numerici sparsi
-- [ ] I colori provengono dai ruoli del `ColorScheme`, non da costanti locali
-- [ ] L'aspetto resta corretto in tema chiaro e scuro
-- [ ] La gerarchia tipografica emphasized è applicata ai titoli di sezione
+- [ ] Le tre schermate usano il componente card condiviso — **due su tre**: il calendario no, e la ragione è dichiarata. Le sue righe sono vetro sfocato e `ExpressiveCard` porta un fondo opaco; allargarla per coprirle è il punto in cui un componente condiviso comincia a marcire
+- [x] Non esistono più `BoxDecoration` con ombre definite inline — sei ombre nere per sempre sostituite dai livelli del design system, con un test sul sorgente e la controprova
+- [x] Le spaziature usano i token invece di valori numerici sparsi — il test ha trovato tre residui che il controllo a mano aveva mancato
+- [x] I colori provengono dai ruoli del `ColorScheme` — dodici colori fuori palette riportati sui ruoli. Restano quattro `Colors.transparent`, che significano «non disegnare niente»
+- [ ] L'aspetto resta corretto in tema chiaro e scuro — **da confermare sull'APK**, e è il criterio che conta di più per una storia che cambia solo l'aspetto. Attenzione ai due fondi ambra in tema chiaro, dove `primary` è un marrone scuro
+- [x] La gerarchia tipografica emphasized è applicata ai titoli di sezione — `titleEmphasized` esisteva da US-033 e non la usava nessuno
+
+**Decisioni da confermare**, elencate nella review: la scala dei colori delle tessere della dashboard (due tinte invece di quattro), quella degli eventi del calendario, e la pillola «ATTIVA» in ambra.
 
 ---
 
@@ -2383,4 +2385,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 29 completate]_
+_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 30 completate]_
