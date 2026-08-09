@@ -963,7 +963,7 @@ Dopo questa storia: la scheda allenamenti è completamente in italiano e nel cod
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-006 | **Blocks:** US-027
-**Status:** 📋 PLANNED — mandato in [`planning/US-026.md`](planning/US-026.md) · **delegabile**
+**Status:** ✅ DONE — mandato in [`planning/US-026.md`](planning/US-026.md), review in [`planning/US-026-review.md`](planning/US-026-review.md) · implementata da Agy
 
 **Story**
 Come atleta italiano,
@@ -2385,4 +2385,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 31 completate]_
+_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 32 completate]_
