@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
 | EP-002 | Unificazione dello state management | 5 | 15 | MVP |
-| EP-003 | Performance runtime e consumo risorse | 8 | 20 | MVP |
+| EP-003 | Performance runtime e consumo risorse | 10 | 24 | MVP |
 | EP-004 | Integrità dei dati e sicurezza Firestore | 3 | 9 | MVP |
 | EP-005 | Design system Material 3 Expressive | 10 | 36 | Growth |
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 74
-**Total story points:** 233
+**Total stories:** 76
+**Total story points:** 237
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -394,7 +394,7 @@ Dopo questa storia: una ricerca di `FirestoreService()` in `lib/src/ui` non prod
 ### EP-003: Performance runtime e consumo risorse
 
 > Eliminare le riletture inutili da Firestore, i rebuild superflui e le perdite di memoria.
-> **Scope:** MVP | **Stories:** 8 | **Story Points:** 20
+> **Scope:** MVP | **Stories:** 10 | **Story Points:** 24
 
 ---
 
@@ -2035,6 +2035,64 @@ La strada più ovvia è un massimale stimato (Epley, Brzycki), che US-050 ha mes
 
 ---
 
+#### US-075: Il cronometro si apre invece di mostrare una schermata rossa
+
+**Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 1
+**Depends on:** US-007 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-07**, segnalata dall'utente sul dispositivo e **riprodotta**: aprendo gli strumenti del tempo compare l'`ErrorWidget` rosso con «Tried to modify a provider while the widget tree was building».
+>
+> **Causa individuata**, non ipotizzata: [`time_tools_screen.dart:57-61`](planning/US-075.md) modifica `timerNotifierProvider` dentro `didChangeDependencies`, e [`:63-67`](planning/US-075.md) dentro `deactivate`. Riverpod lo vieta, e il messaggio d'errore elenca `didChangeDependencies` fra i metodi proibiti. `didChangeDependencies` viene chiamato **al primo build**, quindi la schermata è rotta **sempre**, non a intermittenza.
+>
+> È il prezzo del criterio di US-007 «l'overlay flottante del timer continua a comparire, essere trascinabile e controllabile come prima», rimasto **non confermato sul dispositivo** dal 2026-08-06. Una schermata intera irraggiungibile per due mesi di lavoro non è un dettaglio.
+
+**Story**
+Come utente che tocca «Cronometro» nel menu,
+voglio vedere il cronometro,
+così da non trovarmi davanti a una schermata di errore.
+
+**Demonstrates**
+Dopo questa storia: la voce Cronometro del menu apre gli strumenti del tempo, e l'overlay flottante si nasconde mentre ci si è dentro.
+
+**Acceptance Criteria**
+- [ ] Aprendo gli strumenti del tempo non compare nessun `ErrorWidget`, e un test lo dimostra montando la schermata
+- [ ] L'overlay flottante si nasconde entrando nella schermata e ricompare uscendone
+- [ ] Nessun provider viene modificato dentro `build`, `initState`, `didChangeDependencies`, `deactivate` o `dispose`
+- [ ] Il cronometro che stava scorrendo continua a scorrere: la correzione non azzera lo stato
+- [ ] I commenti-diario nel corpo di `dispose` sono sostituiti dalla ragione della scelta
+
+---
+
+#### US-076: La libreria esercizi non sfarfalla e non rallenta
+
+**Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-072 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-07**, segnalata dall'utente: «la sezione degli esercizi lagga di brutto e sfarfalla».
+>
+> **Causa dello sfarfallio individuata leggendo il codice**: `exercise_library_screen.dart:115` controlla `snapshot.isLoading` **prima** di `hasValue`, e restituisce un `CircularProgressIndicator` a tutta pagina. `exercisesProvider` osserva `customExercisesProvider`, che è uno stream Firestore: **a ogni emissione** il provider ricalcola, torna in stato di caricamento pur avendo già un valore, e la lista intera viene sostituita dallo spinner per un istante. Uno `snapshots()` di Firestore emette tipicamente due volte all'apertura, cache e server: da qui il lampeggio.
+>
+> **Il rallentamento non è stato diagnosticato e non va indovinato.** Due ipotesi verificate e **scartate**: le immagini passano già da `ResizeImage.resizeIfNeeded` (quindi non si decodificano a piena risoluzione) e la lista non crea stream dentro `build`. Va misurato con `adb shell dumpsys gfxinfo` prima di cambiare qualsiasi cosa.
+
+**Story**
+Come utente che cerca un esercizio,
+voglio una lista che resti ferma e scorra fluida,
+così da poter leggere quello che sto scorrendo.
+
+**Demonstrates**
+Dopo questa storia: aprendo la libreria la lista compare una volta e non lampeggia più, e lo scorrimento non perde fotogrammi.
+
+**Acceptance Criteria**
+- [ ] Lo spinner compare **solo** quando non c'è ancora nessun valore: un aggiornamento non sostituisce una lista già mostrata
+- [ ] Un test dimostra che, passando da valore a ricaricamento con valore presente, la lista resta a schermo
+- [ ] Il rallentamento è **misurato** con `dumpsys gfxinfo` prima e dopo, e il numero è riportato nella review
+- [ ] Se la causa del rallentamento risulta diversa da quella dello sfarfallio, viene dichiarata e non corretta a naso
+- [ ] Scorrendo i 43 esercizi non si perdono fotogrammi — **da confermare sul dispositivo**
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2259,4 +2317,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[74 storie in 15 epiche — 233 story points totali · 3 storie accantonate in EP-008 · 25 completate]_
+_[76 storie in 15 epiche — 237 story points totali · 3 storie accantonate in EP-008 · 25 completate]_
