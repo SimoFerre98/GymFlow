@@ -963,7 +963,7 @@ Dopo questa storia: la scheda allenamenti è completamente in italiano e nel cod
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-006 | **Blocks:** US-027
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-026.md`](planning/US-026.md) · **delegabile**
 
 **Story**
 Come atleta italiano,
@@ -1800,7 +1800,7 @@ Dopo questa storia: la libreria filtra per gruppo muscolare e tipo, con miniatur
 
 **Epic:** EP-014 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-021, US-046 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-066.md`](planning/US-066.md) · **delegabile**
 
 **Story**
 Come atleta che si pesa la mattina,
@@ -1856,7 +1856,7 @@ Dopo questa storia: le impostazioni sono raggruppate per motivo e mostrano il va
 
 **Epic:** EP-015 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-041, US-050, US-021 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-068.md`](planning/US-068.md) · **delegabile**
 
 **Story**
 Come atleta che vuole sapere se sta migliorando su un movimento,
