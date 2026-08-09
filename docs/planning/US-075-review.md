@@ -70,12 +70,16 @@ provider fuori da un callback in tutto il progetto**, quindi non esisteva un sec
 candidato; e dopo la correzione né il menu né il cronometro sollevano più niente. Se il
 percorso del menu avesse avuto una causa propria, sarebbe ancora rotto.
 
-### 🔵 2 — Il cronometro mostra «00:00:0»: l'ultima cifra è tagliata
+### ~~🔵 2 — Il cronometro mostra «00:00:0»: l'ultima cifra è tagliata~~ — **RILIEVO SBAGLIATO**
 
-Visibile nello screenshot di verifica. Il tempo è formattato su otto caratteri e il testo
-non ci sta nella larghezza disponibile: l'ultima cifra viene troncata. **Non è questa
-storia** — è grafica, e la schermata del tempo la ridisegna US-051 sul mockup 03 — ma è un
-difetto vero e visibile, non un dettaglio di stile.
+**Ritirato il 2026-08-07.** Avevo letto lo screenshot e concluso che il testo fosse
+troncato. Non lo è: `_formatDuration` in `time_tools_screen.dart:143` costruisce
+`'$minutes:$seconds:$deciseconds'`, cioè **minuti, secondi e decimi** — e i decimi sono una
+cifra sola per definizione. «00:00:0» è il formato previsto, non un troncamento.
+
+Lascio il rilievo visibile invece di cancellarlo: è la terza volta in questo progetto che
+un rilievo nasce dal guardare un risultato senza leggere il codice che lo produce, e
+l'elenco degli errori di chi rivede vale quanto quello dei difetti trovati.
 
 ### 🔵 3 — I pulsanti sono rosso e verde acceso
 
