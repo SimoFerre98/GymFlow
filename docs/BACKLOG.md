@@ -1776,7 +1776,7 @@ Dopo questa storia: il calendario mostra un pallino colorato per tipo di allenam
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-043, US-021 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-065.md`](planning/US-065.md) · **delegabile** · risponde al «non era quello che volevo» del 2026-08-07
+**Status:** ✅ DONE — mandato in [`planning/US-065.md`](planning/US-065.md), review in [`planning/US-065-review.md`](planning/US-065-review.md) · implementata da Agy · **da confermare sull'APK**: è la prova che chiude la storia
 
 **Story**
 Come atleta che cerca un esercizio da aggiungere,
@@ -2385,4 +2385,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 30 completate]_
+_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 31 completate]_
