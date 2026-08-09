@@ -831,8 +831,8 @@ Dopo questa storia: aprire l'avvio rapido e cambiare scheda produce transizioni 
 #### US-022: Applicare il design system alle schermate principali
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 3
-**Depends on:** US-021 (✅), US-034 (✅), **US-073** | **Blocks:** US-023, US-062
-**Status:** 📋 PLANNED — piano in [`planning/US-022.md`](planning/US-022.md), in attesa di US-073
+**Depends on:** US-021 (✅), US-034 (✅), US-073 (✅) | **Blocks:** US-023, US-062
+**Status:** 🔵 IN PROGRESS — piano in [`planning/US-022.md`](planning/US-022.md)
 
 > 📌 **Dipendenza da US-035 rimossa il 2026-08-06, con il consenso dell'utente.** Nessuno dei sei criteri di accettazione qui sotto nomina forme o morphing: chiedono la card condivisa (US-021), i token di spaziatura, elevazione e tipografia (US-033) e i ruoli del `ColorScheme` (US-034), tutti già disponibili. US-035 serve ai **badge della schermata Obiettivi**, che sono materia di US-023, US-037 e US-051 — non delle tre schermate principali. Era un residuo di pianificazione, non un vincolo reale.
 
