@@ -18,7 +18,7 @@
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
 | EP-002 | Unificazione dello state management | 5 | 15 | MVP |
 | EP-003 | Performance runtime e consumo risorse | 11 | 25 | MVP |
-| EP-004 | Integrità dei dati e sicurezza Firestore | 3 | 9 | MVP |
+| EP-004 | Integrità dei dati e sicurezza Firestore | 4 | 12 | MVP |
 | EP-005 | Design system Material 3 Expressive | 10 | 36 | Growth |
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
 | EP-007 | Qualità del codice e test automatizzati | 4 | 11 | Growth |
@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 77
-**Total story points:** 238
+**Total stories:** 78
+**Total story points:** 241
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -1086,7 +1086,7 @@ Dopo questa storia: `flutter analyze` termina pulito e la CI può trattare gli a
 
 **Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-029 | **Blocks:** US-032
-**Status:** 📋 PLANNED — mandato in [`planning/US-031.md`](planning/US-031.md) · **delegabile** · **il lavoro residuo è il solo mapper**
+**Status:** ✅ DONE — mandato in [`planning/US-031.md`](planning/US-031.md), review in [`planning/US-031-review.md`](planning/US-031-review.md) · implementata da Agy · **era da 1 punto, non da 3**: i test dei calcoli esistevano già
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -1097,10 +1097,10 @@ così da poter rifattorizzare senza il timore di alterare i numeri mostrati all'
 Dopo questa storia: modificare il calcolo della serie di giorni consecutivi fa fallire un test se il risultato cambia.
 
 **Acceptance Criteria**
-- [ ] Esistono test per volume totale, RPE medio, distribuzione per tipo e serie di giorni consecutivi
-- [ ] I test coprono i casi limite: lista vuota, un solo allenamento, più allenamenti nello stesso giorno, interruzione della serie
-- [ ] Esistono test di andata e ritorno per la conversione tra modello locale e modello di dominio
-- [ ] I test passano con `flutter test`
+- [x] Esistono test per volume totale, RPE medio, distribuzione per tipo e serie di giorni consecutivi — **esistevano già** in `statistics_helper_test.dart`, arrivati con US-047÷US-050
+- [x] I test coprono i casi limite: lista vuota, un solo allenamento, più allenamenti nello stesso giorno, interruzione della serie — idem
+- [x] Esistono test di andata e ritorno per la conversione tra modello locale e modello di dominio — **è il lavoro di questa consegna**: diciassette casi, più la serializzazione verso Firestore che era scoperta
+- [x] I test passano con `flutter test` — 364 verdi
 
 ---
 
@@ -2128,6 +2128,37 @@ Dopo questa storia: le schede con le date si vedono, e le date sono nella lingua
 
 ---
 
+#### US-078: Un campo aggiunto a un modello non può sparire nel mapper
+
+**Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 3
+**Depends on:** US-031 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-07**, dall'osservazione dell'esecutore di US-031 durante la sua stessa consegna: *«il mapper fa cascate di assegnazioni dirette. Un campo aggiunto al modello e dimenticato nel mapper non produce errori di compilazione»*.
+>
+> È vero, e US-031 ha reso il rischio più visibile invece di ridurlo: ora ci sono diciassette test che **passano** finché il mapper è completo, ma nessuno di essi si accorge di un campo **nuovo**. I modelli di dominio non definiscono `==`, quindi il confronto è campo per campo e va aggiornato a mano; e Dart senza `dart:mirrors` — non disponibile in Flutter — non permette di contare i campi di una classe a runtime.
+>
+> Perché conta: [`session_mapper.dart`](../lib/src/models/mappers/session_mapper.dart) è **l'unico punto in cui i dati dell'utente attraversano un confine**. Un campo dimenticato non fa fallire niente: salva un allenamento incompleto, per sempre, in silenzio.
+
+**Story**
+Come sviluppatore che aggiunge un campo a una serie o a una sessione,
+voglio che qualcosa mi fermi se dimentico di mapparlo,
+così da non scoprire fra sei mesi che un dato non è mai stato salvato.
+
+**Demonstrates**
+Dopo questa storia: aggiungere un campo a `WorkoutSet` senza toccare il mapper fa fallire la costruzione o un test, non passa in silenzio.
+
+**Acceptance Criteria**
+- [ ] Aggiungere un campo a un modello di sessione senza mapparlo **non compila** oppure fa fallire un test, e la prova è fatta aggiungendo davvero un campo di prova
+- [ ] La strada scelta è dichiarata con le alternative scartate: generazione del mapper, `freezed`, oppure un controllo sul sorgente che confronti i campi del modello con quelli toccati dal mapper
+- [ ] I diciassette casi di andata e ritorno di US-031 continuano a passare
+- [ ] Nessun dato già salvato cambia forma: se la strada scelta tocca la serializzazione, la compatibilità con quanto è in Isar e in Firestore è dimostrata
+
+**Note**
+Non è delegabile: `docs/DELEGA.md` mette modello dati e migrazioni fra ciò che non si affida a un esecutore, e questa storia sta esattamente lì.
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2352,4 +2383,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[77 storie in 15 epiche — 238 story points totali · 3 storie accantonate in EP-008 · 28 completate]_
+_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 29 completate]_
