@@ -148,5 +148,89 @@ E poi la checklist adversariale, che per il lavoro altrui ha due voci in più:
 
 ---
 
+---
+
+## Consegnare una storia ad Agy (Antigravity), con l'umano come tramite
+
+**Perché serve un tramite.** `agy -p` — la modalità non interattiva — **non funziona**:
+risponde `timeout waiting for response` con `duration_seconds: 0` e zero turni, sia dentro
+una shell senza tty sia nel terminale dell'utente, sia in 1.1.8 sia in 1.1.11. `agy models`
+invece risponde, quindi non è l'autenticazione. Finché il difetto resta, l'orchestratore non
+può lanciare Agy da sé: prepara il mandato, l'utente lo incolla nella sessione interattiva,
+e riporta indietro il rapporto di consegna.
+
+**Cosa prepara l'orchestratore, prima di passare la palla:**
+
+1. Il piano in `docs/planning/US-XXX.md`, committato su `main`.
+2. Lo stato della storia a `📋 PLANNED · delegabile` nel backlog.
+3. **Il worktree già creato**, con il branch giusto:
+   ```bash
+   git worktree add ../GF0XX -b fix/US-0XX-slug
+   ```
+   Il worktree lo crea l'orchestratore e non l'esecutore: è ciò che garantisce che Agy non
+   scriva mai nella cartella principale, dove qualcun altro sta lavorando.
+
+### Il mandato da incollare
+
+Va incollato così com'è, cambiando solo il codice della storia e i due percorsi. È
+autosufficiente: rimanda ai file del repository invece di ripetere le regole, perché il
+piano e `AGENTS.md` sono scritti per essere letti da chi non ha la conversazione.
+
+```
+Lavora in: C:\Users\s.ferrero\Code\GF0XX
+Questo e un git worktree del progetto GymFlow, sul branch fix/US-0XX-slug.
+NON toccare C:\Users\s.ferrero\Code\GymFlow: e un'altra cartella di lavoro.
+
+Leggi, in quest'ordine:
+1. AGENTS.md               le regole operative del progetto
+2. docs/planning/US-0XX.md il tuo mandato: cosa fare, quali file, quali test
+3. docs/DESIGN-SPEC.md     solo se tocchi qualcosa che si vede
+
+Fai le fasi 2, 3 e 4 del ciclo in docs/WORKFLOW.md:
+- implementa quello che dice il piano, e nient'altro
+- resta nei file elencati nel piano
+- commit in italiano con il codice storia in testa, nessuna firma e nessun
+  riferimento ad assistenti AI
+- verifica con:
+    C:/Users/s.ferrero/Flutter/bin/flutter.bat analyze
+    C:/Users/s.ferrero/Flutter/bin/flutter.bat test
+  analyze deve dare 63 o meno. Se sale, hai introdotto qualcosa: sistemalo.
+
+NON fare: merge in main, push, dipendenze nuove in pubspec.yaml, file fuori
+dal piano, modifiche alle regole Firestore o ai workflow CI.
+
+Quando hai finito, scrivi SOLO questo rapporto, senza altro testo attorno:
+
+=== CONSEGNA US-0XX ===
+Branch:      <nome del branch>
+Commit:      <lista dei messaggi di commit, uno per riga>
+File:        <file toccati, uno per riga>
+Fuori piano: <file toccati che il piano non prevedeva, con il motivo; oppure "nessuno">
+analyze:     <numero> avvisi   (baseline 63)
+test:        <numero> verdi    (erano 348)
+Test rotto:  <hai provato a rompere il codice per vedere il test fallire? cosa
+             hai rotto e cosa e diventato rosso; oppure "non provato">
+Criteri:     <per ogni criterio del piano: soddisfatto, oppure non soddisfatto
+             e perche, oppure "da confermare sul dispositivo">
+Dubbi:       <cosa non ti convince del tuo stesso lavoro>
+=== FINE ===
+```
+
+**La riga «Test rotto» è quella che vale di più.** In questo progetto tre difetti sono
+passati perché i test verificavano meno di quanto dicesse il loro nome, o provavano un
+oggetto finto invece del codice. Chiedere all'esecutore di rompere il codice di proposito
+costa un minuto e trova quella classe di errori prima della review.
+
+**La riga «Dubbi» è la seconda.** Chi rivede sa già dove guardare, se gliela scrivono.
+
+### Cosa fa l'orchestratore quando torna il rapporto
+
+Non si fida del rapporto: **rifà `analyze` e `test` nel worktree**, riparte dal diff con
+`git diff main...HEAD`, e applica la checklist adversariale della fase 5. I numeri
+dichiarati vanno confrontati con quelli misurati — è già capitato che due storie
+dichiarassero gli stessi numeri perché erano misurati sullo stesso albero.
+
+---
+
 _Scritto il 2026-08-06, dopo che una collisione fra due sessioni parallele ha reso evidente il
-problema._
+problema. Sezione su Agy aggiunta il 2026-08-07._
