@@ -470,7 +470,7 @@ Dopo questa storia: interagire con filtri e controlli in calendario, amici, impo
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-007 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-013.md`](planning/US-013.md) · **delegabile**
+**Status:** ✅ DONE — mandato in [`planning/US-013.md`](planning/US-013.md), review in [`planning/US-013-review.md`](planning/US-013-review.md) · implementata da Agy
 
 **Story**
 Come atleta che usa l'app durante l'allenamento,
@@ -481,11 +481,11 @@ così da arrivare a fine sessione senza aver scaricato il telefono.
 Dopo questa storia: con timer e cronometro fermi non viene eseguito alcun tick periodico.
 
 **Acceptance Criteria**
-- [ ] Il ticker parte all'avvio di cronometro o timer e si ferma quando entrambi sono inattivi
-- [ ] Il ticker non viene avviato nel costruttore del servizio
-- [ ] La frequenza di aggiornamento è coerente con la precisione mostrata a schermo
-- [ ] Il tempo trascorso resta corretto anche quando l'app va in background e torna in primo piano
-- [ ] Il ticker viene fermato in `dispose`
+- [x] Il ticker parte all'avvio di cronometro o timer e si ferma quando entrambi sono inattivi — cinque test su `isTickerActive`, compreso il caso «entrambi in corsa, ne fermo uno»
+- [x] Il ticker non viene avviato nel costruttore del servizio — **il test consegnato non lo dimostrava**: col difetto reintrodotto la suite restava verde. Reso verificabile in review con un getter osservabile
+- [x] La frequenza di aggiornamento è coerente con la precisione mostrata a schermo — 100 ms contro i decimi di `time_tools_screen`, in una costante nominata
+- [x] Il tempo trascorso resta corretto anche quando l'app va in background e torna in primo piano — dimostrato che il valore viene da `DateTime.now()` e non dai tick. **Limite dichiarato**: il vero background non è riproducibile in un test
+- [x] Il ticker viene fermato in `dispose`
 
 ---
 
@@ -2352,4 +2352,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[77 storie in 15 epiche — 238 story points totali · 3 storie accantonate in EP-008 · 27 completate]_
+_[77 storie in 15 epiche — 238 story points totali · 3 storie accantonate in EP-008 · 28 completate]_
