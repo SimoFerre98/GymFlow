@@ -2097,7 +2097,7 @@ Dopo questa storia: aprendo la libreria la lista compare una volta e non lampegg
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 1
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-077.md`](planning/US-077.md) · **delegabile**
+**Status:** ✅ DONE — mandato in [`planning/US-077.md`](planning/US-077.md), review in [`planning/US-077-review.md`](planning/US-077-review.md) · implementata da Agy
 
 > ⚠️ **Aperta il 2026-08-07** durante US-022, e **provata con una sonda**, non dedotta.
 >
@@ -2121,10 +2121,10 @@ così da non trovarmi davanti a una schermata di errore.
 Dopo questa storia: le schede con le date si vedono, e le date sono nella lingua dell'app.
 
 **Acceptance Criteria**
-- [ ] La lista degli allenamenti mostra una scheda con data di inizio e fine senza sollevare eccezioni, con un test che lo dimostra
-- [ ] La scelta è dichiarata: o si chiama `initializeDateFormatting` all'avvio, o si formatta senza `intl` come fa già il riepilogo
-- [ ] Se si sceglie `initializeDateFormatting`, un test copre almeno le due lingue del progetto, EN e IT
-- [ ] Nessun altro punto del progetto usa `DateFormat` con una locale senza che i dati siano inizializzati — verificato su tutto `lib/`
+- [x] La lista degli allenamenti mostra una scheda con data di inizio e fine senza sollevare eccezioni, con un test che lo dimostra — la prova è **in due pezzi**, perché la schermata non è montabile in un test (Firebase, stream in `build`): `intl` funziona una volta inizializzato, e un test sul sorgente garantisce che `main` lo inizializzi. **L'apertura con una scheda che ha le date resta da confermare sull'APK**
+- [x] La scelta è dichiarata: `initializeDateFormatting()` nel main, con il prezzo scritto nel piano — i dati di tutte le locale invece delle sole EN e IT
+- [x] Se si sceglie `initializeDateFormatting`, un test copre almeno le due lingue del progetto, EN e IT
+- [x] Nessun altro punto del progetto usa `DateFormat` con una locale senza che i dati siano inizializzati — il test si è rivelato fragile e la via d'uscita prevista dal piano era un `grep`, rifatto in review: `program_list_screen.dart:254` è l'unico punto con un argomento di locale
 
 ---
 
@@ -2352,4 +2352,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[77 storie in 15 epiche — 238 story points totali · 3 storie accantonate in EP-008 · 26 completate]_
+_[77 storie in 15 epiche — 238 story points totali · 3 storie accantonate in EP-008 · 27 completate]_
