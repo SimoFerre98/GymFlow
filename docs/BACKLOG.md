@@ -2214,7 +2214,7 @@ Dopo questa storia: «Nuovo esercizio» salva davvero, l'esercizio compare in «
 
 **Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-018 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — ⚠️ **assorbita da US-087**: il meccanismo di invito di EP-017 risolve lo stesso problema, e non va progettato due volte. Quando US-087 è fatta, questa diventa «gli amici usano gli inviti»
 
 > ⚠️ **Aperta il 2026-08-10**, come conseguenza dichiarata di US-018. La condivisione con gli amici **oggi non funziona**, e le regole pubblicate la lasciano chiusa deliberatamente.
 >
@@ -2331,6 +2331,307 @@ Dopo questa storia: la sessione attiva ha gli stessi colori e le stesse misure d
 
 **Note**
 Fuori scope: il ridisegno secondo il mockup (storia sua), le stringhe non localizzate (**US-027**, in parallelo: non aprire `localization_provider.dart`), gli stream dentro `build` (US-011, US-012) e i servizi istanziati nello `State` (**US-008**, in parallelo).
+
+---
+
+### EP-016: Schede come le scrive un allenatore
+
+**Obiettivo:** il modello sa esprimere le schede reali, invece di costringerle in serie × ripetizioni × carico.
+
+**Perché prima del resto.** `SchedePalestra.md` contiene quattro schede vere dell'utente, e **nessuna delle quattro è rappresentabile** con il modello di oggi. Verificato in `lib/src/models/workout.dart:104-116`: `WorkoutTemplateExercise` ha **un** `targetSets` (`int`), **un** `targetReps` (`String`, tipo `"8-12"`) e **un** `targetWeight` per l'esercizio intero.
+
+| Formato reale | Perché non entra nel modello di oggi |
+|---|---|
+| `4x(15-12-10-8)` con pesi `45-50-55-60` | Servono ripetizioni **e** carico per singola serie: ce n'è uno solo per esercizio |
+| `2x6 + 2x12` | Due blocchi con ripetizioni diverse nello stesso esercizio: `targetSets` è un numero solo |
+| `1x10 + 1x10 + Max + Max` | «a cedimento» non è un numero di ripetizioni |
+| `Superserie: Crunch + Crunch inversi` | Gli esercizi sono una lista piatta: niente esprime «questi due si fanno insieme» |
+| `3x12 (4 iso 3" + 4 negativa 4" + 4)` | La tecnica sopravvive solo come testo libero in `notes` |
+| `10 kg per parte` | Il carico per lato non è distinguibile da quello totale, e sbaglia il volume |
+| Recuperi `90s`, `1'`, `1:30'` | `restSeconds` regge, ma nessuno interpreta i tre formati |
+
+**Il costo di non farlo** è doppio: l'utente non può importare come si allena davvero, e un trainer che scrive schede per lavoro non può usare l'app. **EP-017 dipende da questa epica**, non il contrario.
+
+⚠️ **Non delegabile**: modello dati e migrazione dei dati già salvati. Un campo sbagliato si porta dietro le sessioni esistenti.
+
+---
+
+#### US-083: Serie pianificate una per una
+
+**Epic:** EP-016 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** —  _(nessuna)_ | **Blocks:** US-084, US-085, US-090
+**Status:** ⬜ TODO — ⚠️ **non delegabile**, e da pianificare prima di toccare il codice
+
+> **La decisione, presa il 2026-08-10:** si copre il formato reale, non l'80%. L'alternativa — coprire i casi semplici e conservare il resto come testo — è stata scartata: renderebbe i volumi calcolati approssimati proprio sulle schede che l'utente usa, e lascerebbe il trainer senza il suo strumento di lavoro.
+>
+> **La forma:** `targetSets` + `targetReps` + `targetWeight` diventano una **lista di serie pianificate**, ognuna con le proprie ripetizioni, il proprio carico e il proprio tipo. `4x10` resta quattro serie identiche generate da una scorciatoia, quindi il caso semplice non diventa più faticoso da scrivere.
+>
+> ⚠️ **La retrocompatibilità non è opzionale.** `WorkoutTemplate.fromMap` (`workout.dart:238-262`) contiene già una migrazione da una struttura precedente: è il precedente da seguire. Una scheda salvata prima di questa storia deve continuare ad aprirsi.
+
+**Story**
+Come atleta che ha una scheda scritta da un professionista,
+voglio inserirla nell'app come è scritta,
+così da non doverla semplificare per farla entrare.
+
+**Demonstrates**
+Dopo questa storia: una piramide `4x(15-12-10-8)` con carichi `45-50-55-60` si inserisce e si esegue, e il volume calcolato è quello vero.
+
+**Acceptance Criteria**
+- [ ] Ogni serie pianificata ha ripetizioni e carico propri, indipendenti dalle altre
+- [ ] Una serie può essere «a cedimento» invece di avere un numero di ripetizioni
+- [ ] Il carico si può dichiarare **per lato**, e il volume ne tiene conto
+- [ ] `4x10` si inserisce con un gesto solo: il caso semplice non diventa più lento
+- [ ] Il recupero si può indicare per singola serie, non solo per esercizio
+- [ ] **Una scheda salvata prima di questa storia si apre senza perdere niente**, con un test che parte dai dati nel formato vecchio
+- [ ] Il volume e le statistiche esistenti danno gli stessi numeri sulle schede semplici, con un test che lo dimostra
+- [ ] I modelli Isar e i mapper sono aggiornati insieme, e la sincronizzazione locale non si rompe
+
+**Note**
+⚠️ Cinque punti su otto sono migrazione e retrocompatibilità, non modello. Il rischio più grande è **cancellare dati senza accorgersene**, che è esattamente cosa è successo in US-066: undici campi diventati quattro e i dati salvati invisibili, senza che niente fallisse.
+
+---
+
+#### US-084: Superserie, circuiti ed esercizi accoppiati
+
+**Epic:** EP-016 | **Priority:** MEDIUM | **Story Points:** 5
+**Depends on:** US-083 | **Blocks:** US-085
+**Status:** ⬜ TODO — ⚠️ **non delegabile** (modello dati)
+
+**Story**
+Come atleta la cui scheda dice «Superserie: Crunch + Crunch inversi»,
+voglio che l'app sappia che quei due esercizi si fanno insieme,
+così da eseguirli come sono scritti invece di uno dopo l'altro.
+
+**Demonstrates**
+Dopo questa storia: due o più esercizi si raggruppano, l'allenamento li propone alternati e il recupero si prende alla fine del giro, non fra i due.
+
+**Acceptance Criteria**
+- [ ] Due o più esercizi si possono raggruppare, e il gruppo ha un nome (superserie, circuito)
+- [ ] Durante l'allenamento il gruppo si esegue alternando gli esercizi, un giro per volta
+- [ ] Il recupero del gruppo vale alla fine del giro, non fra un esercizio e l'altro
+- [ ] Un esercizio non raggruppato si comporta esattamente come prima
+- [ ] Le schede esistenti, che non hanno gruppi, si aprono identiche
+
+---
+
+#### US-085: Importare le quattro schede vere
+
+**Epic:** EP-016 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-083, US-084 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> È la prova che EP-016 è servita a qualcosa: le quattro schede di `SchedePalestra.md` entrano nell'app **senza semplificazioni**, e l'elenco di ciò che eventualmente non entra è dichiarato riga per riga.
+
+**Story**
+Come atleta che ha già le sue schede su carta,
+voglio trovarle nell'app senza riscriverle,
+così da iniziare a usarla da domani.
+
+**Demonstrates**
+Dopo questa storia: le quattro schede reali sono nell'app, complete di piramidi, superserie e recuperi.
+
+**Acceptance Criteria**
+- [ ] Le quattro schede di `SchedePalestra.md` sono importabili
+- [ ] Ogni formato del materiale è convertito o **dichiarato non convertibile con il motivo**: nessuna semplificazione silenziosa
+- [ ] I tre formati di recupero (`90s`, `1'`, `1:30'`) sono interpretati
+- [ ] Un test confronta la scheda importata con quella scritta a mano nel materiale
+
+---
+
+### EP-017: Trainer e clienti
+
+**Obiettivo:** un professionista usa l'app per lavoro — scrive le schede dei suoi clienti e ne segue l'andamento — e il cliente resta padrone dei propri dati.
+
+**Le decisioni prese il 2026-08-10, in conversazione:**
+
+1. **Il trainer è un ruolo dentro la stessa app**, non un'app a parte. Una base di codice, e il trainer si allena anche lui.
+2. **Il legame nasce da un invito che il cliente accetta.** Non dal trainer che cerca un utente e gli scrive: quella strada richiede Cloud Functions, che nel progetto non esistono. L'invito si consegna con un **codice**, un **QR code** (mostrabile e leggibile) o **via email**: il meccanismo è lo stesso, cambia la consegna.
+3. **Il trainer vede tutto** ciò che serve a fare il suo lavoro: se il cliente si è allenato e quando, carichi e progressi, peso e misure, note e sensazioni. **Con il consenso per categoria**, perché «vede tutto» deve restare una scelta del cliente e non un effetto collaterale dell'invito.
+
+⚠️ **Questa epica dipende da EP-016.** Un trainer che non può scrivere `4x(15-12-10-8)` con i carichi non usa l'app: è il suo strumento di lavoro.
+
+⚠️ **US-087 sostituisce e assorbe US-080.** La condivisione fra amici è stata chiusa da US-018 perché il codice scriveva sul documento di un altro utente e leggeva i documenti utente di tutti. Il meccanismo di invito costruito qui risolve lo stesso problema: **non progettarlo due volte.** Quando US-087 è fatta, US-080 diventa «gli amici usano gli inviti».
+
+⚠️ **Non delegabile per intero**: regole Firestore e disposizione delle collezioni. US-088 e US-089 lo diventano dopo che US-087 ha fondato il modello.
+
+---
+
+#### US-086: Il profilo sa se sei atleta o trainer
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** US-087, US-089, US-090, US-091
+**Status:** ⬜ TODO — ⚠️ **non delegabile** (modello dati e regole)
+
+**Story**
+Come professionista che usa l'app per lavoro,
+voglio dichiarare di essere un trainer,
+così da vedere gli strumenti che mi servono senza che li veda chi non ne ha bisogno.
+
+**Demonstrates**
+Dopo questa storia: un profilo può essere trainer, e chi non lo è non vede nulla di diverso da oggi.
+
+**Acceptance Criteria**
+- [ ] `UserProfile` porta il ruolo, con `atleta` come valore predefinito
+- [ ] Le regole Firestore **non permettono a un utente di darsi il ruolo di trainer sui dati di un altro**
+- [ ] Un profilo esistente senza il campo si legge come atleta, con un test sui dati vecchi
+- [ ] Chi è atleta vede l'app identica a prima: nessuna voce nuova, nessuna schermata in più
+- [ ] Il ruolo si può essere entrambe le cose: un trainer si allena anche lui
+
+---
+
+#### US-087: L'invito che lega trainer e cliente
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** US-086 | **Blocks:** US-088, US-089, US-090, US-091, US-092, US-080
+**Status:** ⬜ TODO — ⚠️ **non delegabile**: è il cuore del modello e delle regole
+
+> **È la storia che decide se questa epica sta in piedi.** Le regole di US-018 danno a ogni utente **solo i propri dati**, e non esiste modo sicuro di concedere a un altro utente la scrittura sui tuoi senza un patto registrato. L'invito **è** quel patto: vive in una collezione propria, chi invita crea, chi è invitato accetta, e da quel momento le regole guardano il patto invece della lista di amici sul documento utente.
+>
+> Il difetto che questo evita è documentato in US-080: cercare un utente dal suo codice richiedeva di poter **leggere i documenti utente di tutti**, perché Firestore non sa limitare i campi restituiti da una query.
+
+**Story**
+Come trainer che prende un cliente nuovo,
+voglio mandargli un invito che lui accetta,
+così da poter lavorare sui suoi dati con il suo consenso, e senza che nessun altro possa.
+
+**Demonstrates**
+Dopo questa storia: un trainer invita, il cliente accetta, e le regole Firestore consentono esattamente quel legame e nessun altro.
+
+**Acceptance Criteria**
+- [ ] L'invito vive in una collezione propria: chi invita crea, chi è invitato accetta. Nessuno scrive sul documento utente di un altro
+- [ ] Trovare la persona da invitare **non richiede di leggere i documenti utente**: il codice sta in una collezione con i soli campi necessari
+- [ ] Un invito ha una scadenza, e uno scaduto non lega niente
+- [ ] Un invito si può rifiutare, e un legame si può sciogliere da **entrambe** le parti
+- [ ] Le regole non contengono nessuna concessione fra utenti diversi che non passi da un invito accettato
+- [ ] **Un test dimostra che un utente non invitato NON vede i dati**: è il criterio che conta più di tutti
+- [ ] `firestore.rules` è aggiornato nello stesso commit del codice, e il deploy è verificato leggendo il ruleset attivo dall'API — non fidandosi di «Deploy complete!»
+- [ ] Il meccanismo regge anche il caso amico↔amico, così US-080 non richiede un secondo modello
+
+---
+
+#### US-088: Legare gli account con un QR code
+
+**Epic:** EP-017 | **Priority:** MEDIUM | **Story Points:** 3
+**Depends on:** US-087 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — 🚧 **richiede due dipendenze nuove: da approvare prima di iniziare**
+
+> ⚠️ **Cancello esplicito.** Mostrare un QR code e leggerlo con la fotocamera richiede due pacchetti che il progetto non ha, e aggiungere dipendenze è una decisione che si chiede prima. Va anche verificato il permesso fotocamera su Android, che oggi l'app non domanda.
+>
+> Il codice scritto e l'invito via email di US-087 funzionano **senza** questa storia: il QR è comodità, non fondamento.
+
+**Story**
+Come trainer che ha il cliente davanti in palestra,
+voglio mostrargli un codice da inquadrare,
+così da legarci in due secondi invece di dettargli dei caratteri.
+
+**Demonstrates**
+Dopo questa storia: due telefoni vicini si legano inquadrando uno schermo.
+
+**Acceptance Criteria**
+- [ ] Il trainer mostra un QR che contiene l'invito di US-087, non un identificativo utente grezzo
+- [ ] Il cliente lo inquadra e vede **chi** lo sta invitando prima di accettare: nessun legame silenzioso
+- [ ] Funziona anche al contrario: il cliente mostra, il trainer inquadra
+- [ ] Il permesso fotocamera si chiede al momento giusto, e un rifiuto non blocca il codice scritto
+- [ ] Un QR scaduto o già usato lo dice, invece di non fare niente
+
+---
+
+#### US-089: I clienti di un trainer
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-086, US-087 | **Blocks:** US-090, US-091
+**Status:** ⬜ TODO
+
+**Story**
+Come trainer con dieci clienti,
+voglio l'elenco di chi seguo e a che punto è,
+così da sapere con chi devo occuparmi oggi senza aprirli uno per uno.
+
+**Demonstrates**
+Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo allenamento di ciascuno.
+
+**Acceptance Criteria**
+- [ ] L'elenco mostra i clienti con un legame accettato e attivo
+- [ ] Per ciascuno si vede quando si è allenato l'ultima volta
+- [ ] Chi non si allena da troppo tempo si distingue a colpo d'occhio
+- [ ] L'elenco regge dieci clienti senza una query per ciascuno, e le query con `whereIn` si suddividono a gruppi di dieci: **non si troncano**
+- [ ] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota
+
+---
+
+#### US-090: Il trainer scrive la scheda di un cliente
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
+**Depends on:** US-083, US-089 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> Dipende da **US-083**, non per comodità: è il punto in cui il modello delle serie diventa la differenza fra un'app usabile per lavoro e una no.
+
+**Story**
+Come trainer,
+voglio scrivere la scheda di un cliente dal mio telefono,
+così da consegnargliela senza carta e senza messaggi.
+
+**Demonstrates**
+Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la assegna, e il cliente la trova nell'app.
+
+**Acceptance Criteria**
+- [ ] Il trainer compone una scheda per un cliente usando tutto ciò che US-083 e US-084 permettono
+- [ ] La scheda compare al cliente, e il cliente vede **da chi** arriva
+- [ ] Il cliente può eseguirla; se la modifica, il trainer se ne accorge
+- [ ] Il trainer riusa una scheda già scritta come modello per un altro cliente
+- [ ] Un trainer **non** può scrivere la scheda di chi non lo ha invitato, con un test che lo dimostra
+
+---
+
+#### US-091: Il trainer segue l'andamento di un cliente
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
+**Depends on:** US-089, US-092 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> Le quattro categorie sono state scelte dall'utente il 2026-08-10: **allenamenti e date, carichi e progressi, peso e misure, note e sensazioni.** Dipende da US-092 e non il contrario: il consenso esiste prima di ciò che ne approfitta.
+
+**Story**
+Come trainer,
+voglio vedere come sta andando un cliente,
+così da correggere la scheda su quello che fa davvero invece che su quello che mi racconta.
+
+**Demonstrates**
+Dopo questa storia: il trainer apre un cliente e vede allenamenti, carichi, misure e note, per le categorie che il cliente ha concesso.
+
+**Acceptance Criteria**
+- [ ] Si vedono le sessioni completate con le date, e i buchi si notano
+- [ ] Si vedono carichi, ripetizioni e record per esercizio: è ciò che serve per progredire la scheda
+- [ ] Si vedono peso e misure nel tempo, **se** il cliente ha concesso quella categoria
+- [ ] Si leggono le note del cliente sulle serie
+- [ ] Una categoria non concessa **non compare**, e non compare nemmeno come casella vuota che suggerisce di chiederla
+- [ ] Il trainer non vede nulla di un cliente che ha sciolto il legame, dal momento in cui lo scioglie
+
+---
+
+#### US-092: Il cliente decide cosa condivide, e lo revoca
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-087 | **Blocks:** US-091
+**Status:** ⬜ TODO — ⚠️ **non delegabile** (regole Firestore)
+
+> **Viene prima di US-091, non dopo.** Un consenso aggiunto sopra una funzione che già mostra tutto è un consenso finto: le regole devono nascere già per categoria.
+
+**Story**
+Come cliente di un trainer,
+voglio scegliere cosa vede di me e potergli togliere l'accesso,
+così da farmi seguire senza cedere tutto per sempre.
+
+**Demonstrates**
+Dopo questa storia: il cliente vede cosa condivide, cambia idea quando vuole, e la revoca ha effetto subito.
+
+**Acceptance Criteria**
+- [ ] Il cliente vede l'elenco di chi lo segue e **cosa** vede ciascuno, in parole comprensibili
+- [ ] Le quattro categorie si concedono e si revocano una per una
+- [ ] La revoca ha effetto **nelle regole**, non solo nell'interfaccia: un test dimostra che la lettura viene negata
+- [ ] Sciogliere il legame revoca tutto, e il trainer smette di comparire
+- [ ] Quando accetta un invito, il cliente vede chiaramente cosa sta concedendo prima di confermare
 
 ---
 
@@ -2452,6 +2753,36 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 
 **2026-08-06** — Aggiunta **US-070** dopo una verifica richiesta dall'utente: la libreria esercizi non era raggiungibile dal menu, quindi tutto EP-009 era di fatto invisibile. Le epiche restano 15; EP-009 passa da 5 a 6 storie e da 15 a 17 punti.
 
+### 2026-08-10 — Update v2.1 · le schede vere, e il trainer
+
+Nasce da due richieste dell'utente: «continuo a vedere la vecchia grafica» e «vorrei poter dare
+questa app a un amico che la userebbe per lavoro».
+
+**Added — due epiche, 10 storie, 45 punti:**
+
+| Epica | Storie | Punti | Cosa porta |
+|---|---|---|---|
+| **EP-016** Schede come le scrive un allenatore | 3 | 16 | Serie pianificate una per una, superserie e circuiti, importazione delle quattro schede reali |
+| **EP-017** Trainer e clienti | 7 | 29 | Ruolo sul profilo, inviti, QR code, elenco clienti, schede assegnate, andamento, consenso e revoca |
+
+Aggiunta anche **US-082** (la sessione attiva prende il design system): la schermata più usata
+dell'app era rimasta fra US-022 e US-023 senza che nessuna delle due la coprisse.
+
+**Le decisioni prese in conversazione, che non si deducono dal codice:**
+
+1. **Il modello delle serie si affronta prima del trainer.** Verificato in `workout.dart:104-116`: `WorkoutTemplateExercise` ha un solo `targetSets`, un solo `targetReps` e un solo `targetWeight`, quindi **nessuna delle quattro schede reali dell'utente è rappresentabile**. Scartata l'alternativa «coprire l'80% e conservare il resto come testo»: renderebbe i volumi approssimati proprio sulle schede in uso.
+2. **Il trainer è un ruolo nella stessa app**, non un'app a parte.
+3. **Il legame nasce da un invito che il cliente accetta**, consegnato con codice, QR code o email. Scartato «il trainer cerca il cliente e gli assegna»: richiederebbe Cloud Functions, che nel progetto non esistono.
+4. **Il trainer vede quattro categorie** — allenamenti e date, carichi e progressi, peso e misure, note — **con il consenso per categoria**, e la revoca vive nelle regole Firestore e non nell'interfaccia.
+
+**Modified:**
+- **US-080** (condivisione fra amici) è assorbita da **US-087**: lo stesso meccanismo di invito serve a entrambe, e progettarlo due volte sarebbe lavoro doppio sulle regole.
+- **US-008** e **US-082** portate a `📋 PLANNED · delegabile`, in parallelo su file disgiunti.
+
+**Triggered by:** la richiesta di poter dare l'app a un professionista, e la constatazione che la grafica dei mockup non si vede perché **EP-014 è a 1 storia su 6** e US-035÷US-038 sono tutte da fare.
+
+---
+
 ### 2026-08-06 — Update v2.0 · ridisegno di interfaccia ed esperienza
 
 Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione della direzione visiva **Indigo** e dall'elenco di funzionalità richieste.
@@ -2558,4 +2889,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[82 storie in 15 epiche — 255 story points totali · 3 storie accantonate in EP-008 · 36 completate]_
+_[92 storie in 17 epiche — 300 story points totali · 3 storie accantonate in EP-008 · 36 completate]_
