@@ -15,7 +15,6 @@ class ProgramListScreen extends ConsumerWidget {
   const ProgramListScreen({super.key});
 
   @override
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = AuthService().currentUser;
     final loc = ref.watch(localizationNotifierProvider);
@@ -133,9 +132,7 @@ class ProgramListScreen extends ConsumerWidget {
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: Text(
-              loc.t('delete') != 'delete' ? loc.t('delete') : 'Delete',
-            ), // Same for delete.
+            child: Text(loc.t('delete')),
           ),
         ],
       ),
@@ -150,11 +147,7 @@ class ProgramListScreen extends ConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          // ToastUtils.showError(context, 'Error deleting program: $e');
           ToastUtils.showError(context, '${loc.t('error_deleting')}: $e');
-          // I missed 'error_deleting', will fallback to English if missing or I should fix it.
-          // I'll stick to English for technical error part.
-          ToastUtils.showError(context, 'Error deleting program: $e');
         }
       }
     }

@@ -3,8 +3,8 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 
 import 'package:gymflow/src/ui/screens/calendar_screen.dart';
 import 'package:gymflow/src/ui/screens/dashboard_screen.dart';
-import 'package:gymflow/src/ui/screens/home_screen.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
+import 'package:gymflow/src/ui/screens/program_list_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const CalendarScreen(),
-    const HomeScreen(),
+    const ProgramListScreen(),
   ];
 
   @override
