@@ -1,37 +1,120 @@
 // Regole di sicurezza Firestore — database `gymflow`
 //
-// ⚠️ QUESTO FILE È LO STATO TROVATO IN PRODUZIONE IL 2026-08-10, NON UNA
-// PROPOSTA. È versionato così com'è perché US-018 esiste per rendere visibile
-// ciò che nessuno poteva leggere, e perché la storia deve mostrare da dove si
-// parte.
+// Ogni utente accede **solo ai propri dati**. Deciso dall'utente il 2026-08-10,
+// dopo aver scoperto che le regole precedenti — quelle di prova, con la scadenza
+// al 24 febbraio 2026 — negavano ogni lettura e ogni scrittura a chiunque da
+// quasi sei mesi.
 //
-// SONO LE REGOLE DI PROVA GENERATE ALLA CREAZIONE DEL DATABASE, CON LA LORO
-// SCADENZA: `request.time < timestamp.date(2026, 2, 24)`.
+// ⚠️ **La condivisione con gli amici non funziona con queste regole, ed è
+// voluto.** Il codice attuale, per aggiungere un amico, **scrive sul documento
+// di un altro utente** (`friends` di entrambi) e per trovarlo dal codice
+// **legge i documenti utente di tutti**. Permetterlo significherebbe rendere
+// ogni documento utente leggibile da qualunque utente autenticato, perché
+// Firestore non sa limitare i campi restituiti da una query.
 //
-// Quella condizione è **falsa dal 24 febbraio 2026**. Da quel giorno Firestore
-// nega ogni lettura e ogni scrittura a chiunque, e l'app funziona solo con ciò
-// che non passa da Firestore.
+// Quel modello va rifatto: vedi **US-080** nel backlog.
 //
-// Verificato sul dispositivo il 2026-08-10, non dedotto: sei `PERMISSION_DENIED`
-// in dodici secondi di avvio, su `sessions`, `programs` e `users`.
+// Come si legge una regola qui:
+//   - le collezioni di primo livello appartengono a chi ha scritto `userId`
+//     dentro il documento, ed è il campo su cui l'app filtra tutte le query;
+//   - `users/{uid}` e la sua sotto-collezione `measurements` appartengono
+//     all'utente il cui identificativo **è il nome del documento**.
 //
-// Spiega, tutti insieme:
-//   - lo storico degli allenamenti vuoto sulla dashboard;
-//   - «Nuovo esercizio» che non salva niente (US-079);
-//   - US-045 morta con `permission-denied`, e US-072 nata per aggirarla;
-//   - l'errore su `ensureFriendCode` all'avvio;
-//   - la query sugli esercizi che «restituiva sempre zero documenti».
-//
-// La sostituzione non è in questo commit: richiede una decisione di prodotto
-// sulla condivisione fra amici, che nel codice attuale ha bisogno di leggere e
-// scrivere documenti di altri utenti. Vedi US-018 nel backlog.
+// Le query dell'app sono compatibili perché filtrano già su
+// `where('userId', isEqualTo: <mio uid>)`: Firestore accetta una query solo se
+// può dimostrare che ogni risultato soddisfa la regola.
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if
-        request.time < timestamp.date(2026, 2, 24);
+
+    function autenticato() {
+      return request.auth != null;
     }
+
+    // Il documento esistente e' mio.
+    function eMio() {
+      return autenticato() && resource.data.userId == request.auth.uid;
+    }
+
+    // Il documento che sto creando dichiara me come proprietario.
+    function loCreoMio() {
+      return autenticato() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Nessuno puo' regalare o rubare un documento cambiandone il proprietario.
+    function proprietarioInvariato() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    // ── Il profilo, e le misure corporee che gli stanno sotto ──────────────
+    //
+    // Qui il proprietario e' il **nome del documento**, non un campo.
+
+    match /users/{userId} {
+      allow read: if autenticato() && request.auth.uid == userId;
+      allow create, update: if autenticato() && request.auth.uid == userId;
+      // La cancellazione del profilo non e' una funzione dell'app: negarla
+      // evita che un difetto la renda possibile per sbaglio.
+      allow delete: if false;
+
+      match /measurements/{measurementId} {
+        allow read, write: if autenticato() && request.auth.uid == userId;
+      }
+
+      // Qualunque altra sotto-collezione futura resta chiusa finche' non ha una
+      // regola sua: e' il verso giusto in cui sbagliare.
+    }
+
+    // ── Le collezioni di primo livello, possedute tramite `userId` ─────────
+
+    match /workouts/{workoutId} {
+      allow read: if eMio();
+      allow create: if loCreoMio();
+      allow update: if eMio() && proprietarioInvariato();
+      allow delete: if eMio();
+    }
+
+    match /programs/{programId} {
+      allow read: if eMio();
+      allow create: if loCreoMio();
+      allow update: if eMio() && proprietarioInvariato();
+      allow delete: if eMio();
+    }
+
+    match /sessions/{sessionId} {
+      allow read: if eMio();
+      allow create: if loCreoMio();
+      allow update: if eMio() && proprietarioInvariato();
+      allow delete: if eMio();
+    }
+
+    match /scheduled_workouts/{scheduledId} {
+      allow read: if eMio();
+      allow create: if loCreoMio();
+      allow update: if eMio() && proprietarioInvariato();
+      allow delete: if eMio();
+    }
+
+    // Gli esercizi dell'utente.
+    //
+    // La libreria curata di 43 esercizi **non sta qui**: da US-072 viaggia come
+    // asset dentro l'app e si unisce in lettura a questi. In Firestore restano
+    // solo gli esercizi creati dall'utente, piu otto documenti inglesi caricati
+    // in passato senza `userId`, che queste regole rendono illeggibili — e va
+    // bene, perche l'app li filtra comunque per `userId`.
+    match /exercises/{exerciseId} {
+      allow read: if eMio();
+      allow create: if loCreoMio();
+      allow update: if eMio() && proprietarioInvariato();
+      allow delete: if eMio();
+    }
+
+    // ── Tutto il resto e' negato ───────────────────────────────────────────
+    //
+    // Non c'e' una regola `match /{document=**}` finale, ed e' deliberato: in
+    // Firestore l'assenza di regola significa negato, e una collezione nuova
+    // deve guadagnarsi la sua riga invece di essere aperta per dimenticanza.
   }
 }
