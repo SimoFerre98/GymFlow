@@ -2,6 +2,11 @@
 
 **GymFlow** is a dynamic, highly customizable fitness application built with **Flutter** and **Firebase**. It is designed to help users track their workouts, monitor progress, and connect with gym buddies in real-time.
 
+> ⚠️ **Questo README descrive l'intenzione del prodotto, non lo stato del codice.** Alcune funzioni
+> elencate sotto sono parziali o non implementate. La fonte di verità su cosa l'app fa davvero è
+> [`docs/HANDOFF.md`](docs/HANDOFF.md), e sullo stato di ogni storia
+> [`docs/BACKLOG.md`](docs/BACKLOG.md).
+
 ## 🚀 Features
 
 - **🔐 Authentication**: Secure User Registration & Login via Firebase Auth.
@@ -21,11 +26,11 @@
 
 - **Frontend**: Flutter (Mobile - iOS & Android)
 - **Backend**: Firebase (Firestore, Auth, Storage)
-- **State Management**: Provider
-- **UI Components**: Material 3 Design
+- **State Management**: Riverpod (`package:provider` rimosso in EP-002)
+- **UI Components**: Material 3, con i token Expressive costruiti internamente (vedi `docs/adr/001-material-3-expressive.md`)
 - **Key Packages**:
   - `cloud_firestore`, `firebase_auth`
-  - `provider`
+  - `flutter_riverpod`, `riverpod_annotation`
   - `table_calendar`
   - `fl_chart`
   - `google_fonts`
