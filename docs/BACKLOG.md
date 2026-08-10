@@ -2362,7 +2362,7 @@ Fuori scope: il ridisegno secondo il mockup (storia sua), le stringhe non locali
 
 **Epic:** EP-016 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-084, US-085, US-090
-**Status:** ⬜ TODO — ⚠️ **non delegabile**, e da pianificare prima di toccare il codice
+**Status:** 📋 PLANNED — piano in [`planning/US-083.md`](planning/US-083.md) · ⚠️ **non delegabile** · **serve una tua risposta prima di scrivere codice**: il punto 4 del piano, se `perSide` arriva fino a Isar o si ferma al piano
 
 > **La decisione, presa il 2026-08-10:** si copre il formato reale, non l'80%. L'alternativa — coprire i casi semplici e conservare il resto come testo — è stata scartata: renderebbe i volumi calcolati approssimati proprio sulle schede che l'utente usa, e lascerebbe il trainer senza il suo strumento di lavoro.
 >
@@ -2731,6 +2731,40 @@ Dopo questa storia: la home mostra solo l'allenamento di oggi, e statistiche, sa
 
 ---
 
+#### US-096: Il volume totale non tronca i mezzi chili
+
+**Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 1
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — 📋 **delegabile**
+
+> ⚠️ **Trovata il 2026-08-10 pianificando US-083.** In `statistics_helper.dart:96-107`:
+>
+> ```dart
+> totalVolume += (set.weight! * set.reps!).toInt();
+> ```
+>
+> Il `.toInt()` è **dentro il ciclo**, quindi tronca a ogni serie invece che una volta alla fine. Con il passo da 2,5 kg dei cursori di US-046 i mezzi chili sono la norma, non l'eccezione: una serie da 62,5 × 3 conta 187 invece di 187,5, e l'errore si accumula su tutto lo storico.
+>
+> **È lo stesso difetto che la review di US-049 ha corretto nel riepilogo di fine allenamento**, sopravvissuto qui perché sono due calcoli diversi. Nessun test lo prende: usano tutti pesi interi.
+>
+> Non è stato corretto dentro US-083 di proposito: è un numero che l'utente vede, e cambiarlo in un commit sul modello dei dati lo renderebbe impossibile da attribuire.
+
+**Story**
+Come atleta che carica 62,5 kg,
+voglio che il volume totale li conti tutti,
+così da vedere il numero vero e non uno arrotondato in basso a ogni serie.
+
+**Demonstrates**
+Dopo questa storia: il volume di uno storico con mezzi chili è esatto, e un test con pesi non interi lo dimostra.
+
+**Acceptance Criteria**
+- [ ] Il troncamento avviene **una volta sola**, sul totale, oppure non avviene
+- [ ] Un test con pesi da 62,5 e 2,5 kg dimostra il numero esatto — è il test che oggi manca
+- [ ] I test esistenti sulle statistiche restano verdi senza modifiche: sui pesi interi il risultato non cambia
+- [ ] Cercato e dichiarato se lo stesso `.toInt()` dentro un ciclo esiste altrove nel file
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2985,4 +3019,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[95 storie in 17 epiche — 309 story points totali · 3 storie accantonate in EP-008 · 40 completate]_
+_[96 storie in 17 epiche — 310 story points totali · 3 storie accantonate in EP-008 · 40 completate]_
