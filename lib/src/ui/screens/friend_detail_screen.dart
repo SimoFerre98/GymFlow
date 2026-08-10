@@ -196,7 +196,7 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
         }
         final sessions = snapshot.data ?? [];
         if (sessions.isEmpty) {
-          return const Center(child: Text('No workout history shared.'));
+          return Center(child: Text(ref.read(localizationNotifierProvider).t('no_history_shared')));
         }
 
         return ListView.builder(
@@ -233,7 +233,7 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
         }
         final programs = snapshot.data ?? [];
         if (programs.isEmpty) {
-          return const Center(child: Text('No programs shared.'));
+          return Center(child: Text(ref.read(localizationNotifierProvider).t('no_programs_shared')));
         }
 
         return ListView.builder(

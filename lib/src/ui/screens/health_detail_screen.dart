@@ -160,8 +160,8 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
             ),
             child: Row(
               children: [
-                _buildPeriodTab(loc.t('week_tab'), _isWeekly),
-                _buildPeriodTab(loc.t('month_tab'), !_isWeekly),
+                _buildPeriodTab(loc.t('week_tab'), _isWeekly, true),
+                _buildPeriodTab(loc.t('month_tab'), !_isWeekly, false),
               ],
             ),
           ),
@@ -251,13 +251,13 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     );
   }
 
-  Widget _buildPeriodTab(String text, bool isSelected) {
+  Widget _buildPeriodTab(String text, bool isSelected, bool isWeeklyTab) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           if (isSelected) return;
           setState(() {
-            _isWeekly = text == ref.read(localizationNotifierProvider).t('week_tab');
+            _isWeekly = isWeeklyTab;
             // Reset date to now on switch? Or keep context?
             // Resetting to latest is usually better UX
             _currentDate = DateTime.now();

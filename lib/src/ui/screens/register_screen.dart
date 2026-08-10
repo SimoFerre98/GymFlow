@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -43,7 +43,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: ${e.toString()}')));
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -113,7 +113,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   onPressed: _isLoading ? null : _register,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('SIGN UP'),
+                      : Text(loc.t('signup_btn')),
                 ),
               ],
             ),

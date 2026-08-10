@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -348,6 +348,20 @@ class Localization {
     'user_not_authenticated': 'User not authenticated',
     'add_at_least_one_exercise': 'Add at least one exercise',
     'add_btn': 'Add',
+    'gender_male': 'Male',
+    'error_prefix': 'Error',
+    'login_btn': 'LOGIN',
+    'no_account_signup': "Don't have an account? Sign Up",
+    'signup_btn': 'SIGN UP',
+    'basic_info': 'Basic Info',
+    'color_label': 'Color',
+    'duration_section': 'Duration',
+    'no_days_added': 'No days added yet',
+    'notes_optional': 'Notes / Cue (Optional)',
+    'day_name_hint': 'Day Name (e.g. Push Day)',
+    'no_history_shared': 'No workout history shared.',
+    'no_programs_shared': 'No programs shared.',
+    'error_loading_programs': 'Error loading programs',
 };
 
   static final Map<String, String> _it = {
@@ -681,6 +695,20 @@ class Localization {
     'user_not_authenticated': 'Utente non autenticato',
     'add_at_least_one_exercise': 'Aggiungi almeno un esercizio',
     'add_btn': 'Aggiungi',
+    'gender_male': 'Uomo',
+    'error_prefix': 'Errore',
+    'login_btn': 'ACCEDI',
+    'no_account_signup': 'Non hai un account? Registrati',
+    'signup_btn': 'REGISTRATI',
+    'basic_info': 'Info di base',
+    'color_label': 'Colore',
+    'duration_section': 'Durata',
+    'no_days_added': 'Nessun giorno aggiunto',
+    'notes_optional': 'Note / Spunti (Opzionale)',
+    'day_name_hint': 'Nome Giorno (es. Spinta)',
+    'no_history_shared': 'Nessuno storico condiviso.',
+    'no_programs_shared': 'Nessuna scheda condivisa.',
+    'error_loading_programs': 'Errore caricamento schede',
 };
 }
 

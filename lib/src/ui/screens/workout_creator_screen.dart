@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
@@ -85,7 +85,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -332,7 +332,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
               TextField(
                 controller: notesController,
                 decoration: InputDecoration(
-                  labelText: 'Notes / Cue (Optional)',
+                  labelText: ref.read(localizationNotifierProvider).t('notes_optional'),
                   filled: true,
                   fillColor: Theme.of(context).cardColor,
                   border: OutlineInputBorder(
@@ -515,7 +515,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Day Name (e.g. Push Day)',
+                      labelText: loc.t('day_name_hint'),
                       filled: true,
                       fillColor: Theme.of(context).cardColor,
                       border: OutlineInputBorder(

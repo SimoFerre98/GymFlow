@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
@@ -337,7 +337,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               items: [
                                 DropdownMenuItem(
                                   value: 'male',
-                                  child: Text('Male'),
+                                  child: Text(loc.t('gender_male')),
                                 ),
                                 DropdownMenuItem(
                                   value: 'female',

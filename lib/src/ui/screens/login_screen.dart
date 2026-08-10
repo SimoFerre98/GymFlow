@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -38,7 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: ${e.toString()}')));
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -102,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: ${e.toString()}'),
+                        content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: ${e.toString()}'),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -156,7 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: ref.read(localizationNotifierProvider).t('password_label'),
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -193,7 +193,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('LOGIN'),
+                      : Text(ref.read(localizationNotifierProvider).t('login_btn')),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
@@ -203,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       MaterialPageRoute(builder: (_) => const RegisterScreen()),
                     );
                   },
-                  child: const Text('Don\'t have an account? Sign Up'),
+                  child: Text(ref.read(localizationNotifierProvider).t('no_account_signup')),
                 ),
               ],
             ),

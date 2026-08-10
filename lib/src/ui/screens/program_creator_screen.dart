@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -122,7 +122,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
             children: [
               // Basic Info Card
               _buildSection(
-                title: 'Basic Info',
+                title: loc.t('basic_info'),
                 child: Column(
                   children: [
                     TextFormField(
@@ -151,7 +151,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
               const SizedBox(height: 16),
 
               _buildSection(
-                title: 'Color',
+                title: loc.t('color_label'),
                 child: SizedBox(
                   height: 50,
                   child: ListView(
@@ -208,7 +208,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
 
               // Duration Card
               _buildSection(
-                title: 'Duration',
+                title: loc.t('duration_section'),
                 child: InkWell(
                   onTap: _pickDateRange,
                   borderRadius: BorderRadius.circular(8),
@@ -310,8 +310,8 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Center(
-                              child: Text('No days added yet'),
+                            child: Center(
+                              child: Text(loc.t('no_days_added')),
                             ),
                           )
                         else
