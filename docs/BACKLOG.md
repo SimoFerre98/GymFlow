@@ -1392,7 +1392,7 @@ Dopo questa storia: chiudendo una serie che supera il massimo precedente, l'app 
 - [x] Il massimo per esercizio è calcolato dalle serie completate, non da quelle pianificate — il test mancava e l'ha aggiunto la review: aprendo un allenamento i carichi della volta prima si precompilano con `isCompleted` a false, quindi è il caso che succede sempre
 - [ ] Il confronto tiene conto sia del carico sia delle ripetizioni — **non soddisfatto**: il confronto è sul solo carico, per la scelta motivata nel piano. Tracciato in **US-074**. Era stato spuntato nel rapporto di consegna e non lo era
 - [x] Il superamento è segnalato alla chiusura della serie, senza interrompere l'allenamento — la riga compare mentre imposti il carico, prima ancora di chiudere la serie. In review: leggeva i massimi da freddo e non si sarebbe segnalato nell'app vera
-- [ ] La storia dei record per esercizio è consultabile — **fuori scope di questa storia**: il piano la assegna a US-068, che dipende da questa
+- [x] La storia dei record per esercizio è consultabile — chiusa da **US-068**: scheda dell'esercizio con record, data e grafico del massimo nel tempo
 - [x] Al primo allenamento di un esercizio non si segnala alcun record — due test: massimo assente, ed esercizio nuovo dentro una sessione con altri record
 - [x] Il calcolo è coperto da test, compresi i casi limite di parità — pareggio, carico inferiore, zero ripetizioni, corpo libero, storia vuota, serie non completate
 
@@ -1856,7 +1856,7 @@ Dopo questa storia: le impostazioni sono raggruppate per motivo e mostrano il va
 
 **Epic:** EP-015 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-041, US-050, US-021 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-068.md`](planning/US-068.md) · **delegabile**
+**Status:** ✅ DONE — mandato in [`planning/US-068.md`](planning/US-068.md), review in [`planning/US-068-review.md`](planning/US-068-review.md) · implementata da Agy
 
 **Story**
 Come atleta che vuole sapere se sta migliorando su un movimento,
@@ -2385,4 +2385,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 32 completate]_
+_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 33 completate]_
