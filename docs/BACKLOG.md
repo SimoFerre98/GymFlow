@@ -940,7 +940,7 @@ Dopo questa storia: nessuna schermata dell'app definisce decorazioni o costanti 
 
 **Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-006 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — ⚠️ **priorità alzata il 2026-08-10**
+**Status:** 📋 PLANNED — mandato in [`planning/US-025.md`](planning/US-025.md) · **delegabile**
 
 > ⚠️ **Le due schermate non sono un doppione estetico: una delle due è quella che l'utente vede, e non è quella su cui si è lavorato.**
 >
@@ -2176,7 +2176,7 @@ Non è delegabile: `docs/DELEGA.md` mette modello dati e migrazioni fra ciò che
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-018 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-079.md`](planning/US-079.md) · **delegabile** · **la parte non delegabile l'ha risolta US-018**
 
 > ⚠️ **Aperta il 2026-08-07, segnalata dall'utente**: «se faccio save quando tento di aggiungere un nuovo esercizio non succede nulla».
 >
