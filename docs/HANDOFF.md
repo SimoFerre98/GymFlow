@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `0db20f9` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `05b1f81` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**44 storie completate su 101** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**45 storie completate su 101** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -72,7 +72,7 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-036 | Il movimento a molla nei token, e sul cambio di voce della barra. `motor` installato |
 | US-062 | **La home apre con l'allenamento di oggi e una sola azione**: e la prima schermata del mockup 01 a schermo |
 
-**Stato di salute:** **55 avvisi**, **zero errori**, **490 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **55 avvisi**, **zero errori**, **492 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
 ### Le due storie consegnate da Agy, e cosa ha trovato la review
 

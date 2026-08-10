@@ -2736,7 +2736,7 @@ Dopo questa storia: la home mostra solo l'allenamento di oggi, e statistiche, sa
 
 **Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 1
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — 📋 **delegabile**
+**Status:** ✅ DONE — corretta il 2026-08-10, senza delega
 
 > ⚠️ **Trovata il 2026-08-10 pianificando US-083.** In `statistics_helper.dart:96-107`:
 >
@@ -2759,10 +2759,10 @@ così da vedere il numero vero e non uno arrotondato in basso a ogni serie.
 Dopo questa storia: il volume di uno storico con mezzi chili è esatto, e un test con pesi non interi lo dimostra.
 
 **Acceptance Criteria**
-- [ ] Il troncamento avviene **una volta sola**, sul totale, oppure non avviene
-- [ ] Un test con pesi da 62,5 e 2,5 kg dimostra il numero esatto — è il test che oggi manca
-- [ ] I test esistenti sulle statistiche restano verdi senza modifiche: sui pesi interi il risultato non cambia
-- [ ] Cercato e dichiarato se lo stesso `.toInt()` dentro un ciclo esiste altrove nel file
+- [x] Il troncamento avviene **una volta sola**, sul totale: si somma in `double` e si arrotonda alla fine
+- [x] Un test con pesi da 62,5 e 2,5 kg dimostra il numero esatto — **provato** rimettendo il `toInt()` nel ciclo: 561 invece di 563, e 7 invece di 8
+- [x] I test esistenti restano verdi **senza modifiche**: sui pesi interi il risultato non cambia
+- [x] Cercato: nel file c'era **un solo** `.toInt()`, quello. Nessun altro dentro un ciclo
 
 ---
 
@@ -3143,4 +3143,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[101 storie in 17 epiche — 321 story points totali · 3 storie accantonate in EP-008 · 44 completate]_
+_[101 storie in 17 epiche — 321 story points totali · 3 storie accantonate in EP-008 · 45 completate]_
