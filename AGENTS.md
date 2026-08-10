@@ -51,8 +51,12 @@ Sono le uniche non negoziabili. Tutto il resto è nel piano della storia.
 
 ### 1. Gli avvisi dell'analyzer non salgono
 
-Il baseline è **63**. `flutter analyze` deve finire con lo stesso numero o meno. Uno in più
+Il baseline è **56**. `flutter analyze` deve finire con lo stesso numero o meno. Uno in più
 significa che hai introdotto qualcosa: si sistema prima di consegnare, non si spiega dopo.
+
+**Il totale da solo non basta.** Confronta l'**elenco** con quello di `main`: due esecutori
+hanno scambiato avvisi preesistenti per propri, e un calo puo venire dal codice che hai
+riscritto — legittimo — oppure da un rifacimento fuori mandato, che non lo e.
 
 ### 2. I test passano tutti, e ne aggiungi
 
@@ -136,7 +140,7 @@ Un branch pushato, e un messaggio che riporta:
 ```
 Storia:      US-XXX
 Branch:      feature/US-XXX-slug
-analyze:     <numero> avvisi (baseline 63)
+analyze:     <numero> avvisi (baseline 56)
 test:        <numero> verdi
 APK:         costruito / non costruito
 Criteri:     quali soddisfatti, quali da confermare sul dispositivo e perché
