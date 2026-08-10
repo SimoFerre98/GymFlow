@@ -1717,7 +1717,7 @@ Dopo questa storia: mobilità e sport si registrano con durata, lato e intensit�
 
 **Epic:** EP-014 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-021, US-022, US-042 | **Blocks:** US-069
-**Status:** 📋 PLANNED — mandato in [`planning/US-062.md`](planning/US-062.md) · **delegabile**, con la decisione chiave già presa nel piano: **aggiunge in cima, non riscrive**
+**Status:** ✅ DONE — piano in [`planning/US-062.md`](planning/US-062.md), review in [`planning/US-062-review.md`](planning/US-062-review.md) · implementata da Gemini, **RESPINTA alla consegna** e approvata dopo le correzioni · **due criteri da confermare sull'APK**
 
 **Story**
 Come atleta che apre l'app,
@@ -1728,12 +1728,13 @@ così da iniziare ad allenarmi in un tocco invece di cercare da dove ripartire.
 Dopo questa storia: la home apre con la scheda in corso, l'avanzamento del ciclo e la lista degli esercizi di oggi.
 
 **Acceptance Criteria**
-- [ ] La scheda in corso occupa la posizione primaria con l'anello di avanzamento del ciclo
-- [ ] Una sola azione principale, in ambra: riprendere o iniziare l'allenamento
-- [ ] La lista degli esercizi di oggi mostra miniature e indicatori video
-- [ ] Senza scheda attiva, la home propone di crearne una invece di restare vuota
-- [ ] Il nome dell'utente e il saluto sono localizzati
-- [ ] L'apertura non attende dati remoti per mostrare la struttura
+- [ ] ⚠️ **Parziale, e dichiarato:** la card della scheda in corso è in posizione primaria, **l'anello no**. `currentDay: 3` e `progressFraction: 0.72` erano i numeri d'esempio del mockup scritti a mano, identici per ogni utente: l'anello avrebbe indicato 72% a chi non si è mai allenato. «A che punto sono dentro la scheda» è **US-063**, bloccata da US-059. Un numero inventato è peggio di un numero assente
+- [x] Una sola azione principale, in ambra — `scheme.primary` come fondo compare **una volta sola**, con un test che lo conta
+- [x] La lista degli esercizi di oggi mostra miniature e indicatori video — `ExerciseRow` **riusato**, non clonato, e un id sconosciuto mostra il segnaposto invece di lasciare un buco
+- [x] Senza scheda attiva, la home propone di crearne una — con test
+- [x] Il nome dell'utente e il saluto sono localizzati
+- [ ] L'apertura non attende dati remoti per mostrare la struttura — **da confermare sull'APK**
+- [x] **Niente è stato perso**: +155 righe, **zero cancellazioni**. Tessere, salute, storico, grafici ed elenco schede sono dov'erano — era il rischio con la stella, l'errore di US-066, e non si è ripetuto
 
 ---
 
@@ -2865,6 +2866,29 @@ così da vedere i passi invece di una sezione vuota che non spiega perché.
 
 ---
 
+#### US-101: Il saluto non finisce sotto l'hamburger
+
+**Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — 📋 **delegabile**
+
+> ⚠️ **Segnalato dall'utente il 2026-08-10** provando l'APK: «c'è il saluto correttamente, unica cosa che quando scorro verso il basso poi si sovrappone con l'icona dell'hamburger».
+>
+> Non è un difetto di US-062: viene dalla `SliverAppBar.large` **preesistente** in `dashboard_screen.dart`, che comprimendosi porta il titolo — saluto e nome su due righe — a collidere con l'icona in alto. Il diff di US-062 non la tocca.
+
+**Story**
+Come atleta che scorre la dashboard,
+voglio che il mio nome non finisca sotto un'icona,
+così da leggerlo invece di indovinarlo.
+
+**Acceptance Criteria**
+- [ ] Scorrendo, il saluto e il nome non si sovrappongono a nessuna icona della barra
+- [ ] Il nome resta leggibile anche quando è lungo, e se non ci sta viene troncato con le ellissi invece di finire sotto qualcosa
+- [ ] Il comportamento è verificato con un nome corto e con uno lungo
+- [ ] **Da confermare sull'APK**: è un difetto di sovrapposizione, e si giudica guardandolo
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -3119,4 +3143,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[100 storie in 17 epiche — 319 story points totali · 3 storie accantonate in EP-008 · 43 completate]_
+_[101 storie in 17 epiche — 321 story points totali · 3 storie accantonate in EP-008 · 44 completate]_

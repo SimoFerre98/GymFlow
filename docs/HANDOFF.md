@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `bb02bfc` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `0db20f9` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**43 storie completate su 100** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**44 storie completate su 101** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -70,8 +70,9 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-093 | **Il cronometro e il timer rispondono di nuovo ai tasti**: due viste non si iscrivevano allo stato, e lo schermo restava fermo sul primo frame |
 | US-008 | I servizi arrivano dai provider nelle tre schermate principali, e per la prima volta **un test monta una schermata vera** con un servizio finto |
 | US-036 | Il movimento a molla nei token, e sul cambio di voce della barra. `motor` installato |
+| US-062 | **La home apre con l'allenamento di oggi e una sola azione**: e la prima schermata del mockup 01 a schermo |
 
-**Stato di salute:** **55 avvisi**, **zero errori**, **473 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **55 avvisi**, **zero errori**, **490 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
 ### Le due storie consegnate da Agy, e cosa ha trovato la review
 
@@ -212,7 +213,7 @@ Questo è il punto che si perde più facilmente cambiando sessione. Esempi concr
 
 Serve per sapere dove guardare per primi in una review. Ogni voce è successa davvero.
 
-1. **Valori del mockup copiati invece che convertiti.** `dp = px × 1,36` per i mockup 01 e 02, `× 1,20` per il 03. Successo in US-073 (raggio della riga: 16 invece di 22), in US-047 (tratto della sparkline: 2 invece di 2,7) e in US-050 (raggio e bordo della card dei record). **Tre storie su tre** che toccavano il mockup.
+1. **Valori del mockup copiati invece che convertiti.** ⚠️ **La forma piu letterale l'ha portata US-062**: cinque `fontSize: 8.5`, che e la riga `.exr-meta { font-size: 8.5px }` del CSS. E la lezione dentro la lezione: la guardia ne ha visti tre su undici, perche il piano chiedeva di aggiungere i **file nuovi** alla lista sorvegliata e non era stato fatto. Un test che sorveglia solo i file vecchi non sorveglia niente. `dp = px × 1,36` per i mockup 01 e 02, `× 1,20` per il 03. Successo in US-073 (raggio della riga: 16 invece di 22), in US-047 (tratto della sparkline: 2 invece di 2,7) e in US-050 (raggio e bordo della card dei record). **Tre storie su tre** che toccavano il mockup.
 2. **Test che certificano meno di quanto dica il loro nome.** In US-073 un test si chiamava «il raggio segue cornerMd» e attestava l'errore. In US-047 il test «mostra il prompt» non cercava il prompt, e quello su `autoDispose` verificava solo che non si sollevassero eccezioni.
 3. **Test che provano i pezzi e non il cablaggio fra loro.** In **US-093** il cronometro non si muoveva da un giorno: le viste prendevano il notifier con `ref.read`, che non crea iscrizioni, e non venivano mai ricostruite. I test di US-075 provavano il **notifier** — corretto — e che la schermata **si aprisse senza eccezioni**. Entrambi verdi, entrambi ciechi: **nessuno guardava cosa viene disegnato.** Quando una schermata e provata solo con asserzioni sullo stato, il difetto vive nel mezzo.
 4. **Test che provano il finto invece del codice.** In US-047 il caso «senza sensore» passava perché il servizio finto sostituiva il metodo; nel codice vero quello stato era **irraggiungibile**. In US-050 il record si provava passando il valore al widget, scavalcando il provider che nell'app non funzionava.
@@ -384,6 +385,7 @@ Nessuna di queste blocca il lavoro, ma ognuna è un criterio non spuntato in una
 | Il calendario funziona ancora: eventi visibili, allenamento programmato, cancellazione con lo scorrimento | e la schermata col diff piu grosso di US-008 e **nessun test la monta** | US-008 |
 | Il saluto della dashboard mostra il nome dal primo istante, non «Atleta» | apri l'app | US-008 |
 | L'assestamento a molla sul cambio voce si vede, non risulta lento, e non costa piu di 16 ms | tocca le tre voci della barra, avanti e indietro | US-036 |
+| ⭐ **La home nuova si legge, e senza l'anello non risulta povera.** Se lo fosse, la risposta non e rimettere i numeri finti: e sbloccare US-059 e fare US-063 | apri l'app | US-062 |
 | ⭐ **L'evento programmato compare nel calendario.** Se ancora non compare, il difetto e nella **scrittura** e non nella lettura, e va cercato altrove | Calendario → «+», oppure «programma allenamento» | US-098 |
 | Creare un esercizio non fa piu schermata rossa. **E se ne fa una che dice `_dependents.isEmpty`, serve lo stack**: `adb logcat -c`, riprodurre, `adb logcat -d \| grep -A40 dependents` | Menu → Esercizi → «+» | US-097, US-081 |
 
