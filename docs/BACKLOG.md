@@ -940,7 +940,7 @@ Dopo questa storia: nessuna schermata dell'app definisce decorazioni o costanti 
 
 **Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-006 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-025.md`](planning/US-025.md) · **delegabile**
+**Status:** ✅ DONE — piano in [`planning/US-025.md`](planning/US-025.md), review in [`planning/US-025-review.md`](planning/US-025-review.md) · implementata da Agy, review indipendente
 
 > ⚠️ **Le due schermate non sono un doppione estetico: una delle due è quella che l'utente vede, e non è quella su cui si è lavorato.**
 >
@@ -962,10 +962,10 @@ così da non trovarmi metà applicazione in inglese.
 Dopo questa storia: la scheda allenamenti è completamente in italiano e nel codice resta una sola implementazione invece di due.
 
 **Acceptance Criteria**
-- [ ] Esiste una sola schermata per l'elenco dei programmi, quella localizzata
-- [ ] La navigazione principale punta alla schermata localizzata
-- [ ] Con lingua italiana selezionata, nessun testo della scheda allenamenti resta in inglese
-- [ ] Le funzioni di eliminazione e apertura programma continuano a funzionare
+- [x] Esiste una sola schermata per l'elenco dei programmi, quella localizzata — `home_screen.dart` cancellato, nessun file di `lib/` nomina `HomeScreen`
+- [x] La navigazione principale punta alla schermata localizzata — `main_screen.dart:22`, con un test che controlla la **posizione** della terza voce
+- [ ] ⚠️ **Parzialmente, e dichiarato:** con lingua italiana selezionata nessun testo resta in inglese **nel percorso normale**. Restano inglesi due casi limite che il piano lasciava fuori: `'Login required'` a utente nullo e `'Error loading programs: …'` quando lo stream fallisce. Sono di **US-027**, non di questa storia
+- [ ] Le funzioni di eliminazione e apertura programma continuano a funzionare — **da confermare sull'APK**: nessun test le copre, la schermata non è montabile
 - [ ] Il file duplicato non localizzato è rimosso dal progetto
 
 ---
@@ -2176,7 +2176,7 @@ Non è delegabile: `docs/DELEGA.md` mette modello dati e migrazioni fra ciò che
 
 **Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-018 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-079.md`](planning/US-079.md) · **delegabile** · **la parte non delegabile l'ha risolta US-018**
+**Status:** ✅ DONE — piano in [`planning/US-079.md`](planning/US-079.md), review in [`planning/US-079-review.md`](planning/US-079-review.md) · implementata da Agy, review indipendente · **un criterio resta da confermare sul dispositivo**
 
 > ⚠️ **Aperta il 2026-08-07, segnalata dall'utente**: «se faccio save quando tento di aggiungere un nuovo esercizio non succede nulla».
 >
@@ -2197,13 +2197,13 @@ così da registrare i miei allenamenti veri invece di adattarli all'elenco.
 Dopo questa storia: «Nuovo esercizio» salva davvero, l'esercizio compare in «Miei», e se qualcosa non funziona lo schermo lo dice.
 
 **Acceptance Criteria**
-- [ ] Un esercizio creato dall'utente viene salvato e compare nella libreria, anche dopo aver chiuso e riaperto l'app
-- [ ] La destinazione della scrittura è **decisa e dichiarata**: le regole Firestore aprono la scrittura sui documenti dell'utente sulla collezione `exercises`, oppure gli esercizi propri vanno in una sotto-collezione dell'utente. La scelta va scritta nella review con l'alternativa scartata
-- [ ] `getExercises` e `deleteExercise` leggono e cancellano da dove `addExercise` scrive: oggi puntano tutti a `exercises`, e se la destinazione cambia devono cambiare insieme
-- [ ] **Un fallimento del salvataggio è visibile a schermo**, non solo in `debugPrint`. Nessun `catch` che inghiotte un errore di scrittura in questa schermata
-- [ ] Il dialogo non si chiude quando il salvataggio fallisce
-- [ ] Il nome vuoto è rifiutato con un messaggio, non con un `return` muto
-- [ ] Un test dimostra che, con il servizio che solleva, la schermata mostra l'errore e non chiude il dialogo
+- [ ] ⚠️ **Da confermare sull'APK, ed è il criterio che chiude la storia:** un esercizio creato viene salvato e compare in «Miei», anche dopo aver chiuso e riaperto l'app. Serve Firestore vero. Il rapporto di consegna lo dichiarava funzionante **per deduzione dalle regole**, e la review ha riaperto il criterio: è lo stesso passaggio che ha ucciso US-045
+- [x] La destinazione della scrittura è **decisa e dichiarata**: resta la collezione `exercises`, e le regole pubblicate da US-018 (`firestore.rules:107-112`) aprono `create` a chi si dichiara proprietario nel documento. **Alternativa scartata**: la sotto-collezione dell'utente, che avrebbe richiesto di cambiare insieme `getExercises`, `deleteExercise` e la fusione con la libreria curata dell'asset, cioè di rifare US-072 per un problema che le regole nuove già risolvono
+- [x] `getExercises` e `deleteExercise` leggono e cancellano da dove `addExercise` scrive — la destinazione non è cambiata, puntano tutti a `exercises`
+- [x] **Un fallimento del salvataggio è visibile a schermo**, non solo in `debugPrint` — `ToastUtils.showError`, con un `testWidgets` che dimostra che un toast alzato dal contesto del dialogo compare davvero. Nessun `catch` inghiotte: la guardia sul sorgente pretende che il corpo faccia qualcosa dell'errore, e il dettaglio tecnico resta nel log **insieme** al messaggio comprensibile
+- [x] Il dialogo non si chiude quando il salvataggio fallisce
+- [x] Il nome vuoto è rifiutato con un messaggio, non con un `return` muto — vuoto e soli spazi, con l'errore dentro il campo che si pulisce quando si ricomincia a scrivere
+- [ ] ⚠️ **Parzialmente, e dichiarato:** il test dimostra che *la funzione* restituisce «errore da mostrare» e «non chiudere» quando il servizio solleva, e che il meccanismo del toast funziona da dentro un dialogo. Non monta **la schermata**, che istanzia `FirestoreService` nel proprio `State` — debito di **US-008**. La catena completa è letta, non eseguita
 
 **Note**
 ⚠️ **Non delegabile a un esecutore.** Il criterio centrale richiede di decidere le regole Firestore o la disposizione delle collezioni, e `docs/DELEGA.md` mette entrambe fra ciò che non si affida: US-045 è morta esattamente lì. Dipende da **US-018**, che porta le regole nel repository — oggi non sono versionate, quindi non si può nemmeno leggere cosa permettono.
@@ -2512,4 +2512,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[81 storie in 15 epiche — 252 story points totali · 3 storie accantonate in EP-008 · 34 completate]_
+_[81 storie in 15 epiche — 252 story points totali · 3 storie accantonate in EP-008 · 36 completate]_

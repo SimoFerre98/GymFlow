@@ -104,8 +104,10 @@ Lavori su un branch, lo pushi, e ti fermi. Il merge è una decisione umana, pres
   funzioni, emette un typedef deprecato e ti fa salire il baseline di due avvisi.
 - Le query Firestore con `whereIn` reggono dieci elementi: si suddivide, non si tronca.
 - Il database è `gymflow`, non quello predefinito.
-- **Le regole Firestore negano al client la scrittura sulla collezione `exercises`.** Non provare a
-  scriverci: la libreria curata viaggia come asset.
+- **Sulla collezione `exercises` il client scrive solo i propri esercizi.** Dopo US-018
+  (`firestore.rules:107-112`) un utente può creare un documento che dichiara lui stesso come
+  proprietario, e US-079 lo usa. Quello che resta negato è scriverci la **libreria curata**, che
+  non appartiene a nessun utente: quella viaggia come asset e si fonde in lettura.
 
 **Git**
 - Un branch per storia, sempre da `main` aggiornato: `feature/US-XXX-slug-in-inglese`.
