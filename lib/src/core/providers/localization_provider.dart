@@ -268,6 +268,26 @@ class Localization {
     'exercise_set_label': 'Set',
     'exercise_completed_label': 'Completed',
     'exercise_not_completed_label': 'Not completed',
+    // Body measurements (US-066)
+    'current_weight': 'Current weight',
+    'weight_history': 'Weight history',
+    'body_measures_section': 'Body measures',
+    'bm_waist': 'Waist',
+    'bm_hips': 'Hips',
+    'bm_arms': 'Arms',
+    'bm_height': 'Height',
+    'bm_chest': 'Chest',
+    'bm_thighs': 'Thighs',
+    'bm_calves': 'Calves',
+    'bm_shoulders': 'Shoulders',
+    'bm_neck': 'Neck',
+    'bm_body_fat': 'Body fat',
+    'bm_percent': '%',
+    'bm_kg': 'kg',
+    'bm_cm': 'cm',
+    'enter_weight': 'Enter weight',
+    'measurements_saved': 'Measurements saved',
+    'no_measurements': 'No measurements yet',
   };
 
   static final Map<String, String> _it = {
@@ -521,6 +541,26 @@ class Localization {
     'exercise_set_label': 'Serie',
     'exercise_completed_label': 'Completata',
     'exercise_not_completed_label': 'Non completata',
+    // Peso e misure (US-066)
+    'current_weight': 'Peso attuale',
+    'weight_history': 'Storico pesi',
+    'body_measures_section': 'Misure corporee',
+    'bm_waist': 'Vita',
+    'bm_hips': 'Fianchi',
+    'bm_arms': 'Braccia',
+    'bm_height': 'Altezza',
+    'bm_chest': 'Petto',
+    'bm_thighs': 'Cosce',
+    'bm_calves': 'Polpacci',
+    'bm_shoulders': 'Spalle',
+    'bm_neck': 'Collo',
+    'bm_body_fat': 'Massa grassa',
+    'bm_percent': '%',
+    'bm_kg': 'kg',
+    'bm_cm': 'cm',
+    'enter_weight': 'Inserisci peso',
+    'measurements_saved': 'Misurazioni salvate',
+    'no_measurements': 'Nessuna misurazione',
   };
 }
 
