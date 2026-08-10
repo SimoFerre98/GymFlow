@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `bc03eef` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `919658d` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**34 storie completate su 80** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**36 storie completate su 81** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -64,8 +64,34 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-047 | Pannello delle metriche dal vivo nella sessione, con sparkline |
 | US-049 | Riepilogo di fine allenamento, con lo scontrino |
 | US-050 | Record personali riconosciuti mentre succedono |
+| US-025 | **Il lavoro di US-022 si vede**: la barra in basso non punta piu al duplicato mai convertito, e le 230 righe del duplicato sono via |
+| US-079 | «Nuovo esercizio» dice quando fallisce, invece di non fare niente |
 
-**Stato di salute:** **56 avvisi**, **zero errori**, **431 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **56 avvisi**, **zero errori**, **440 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+
+### Le due storie consegnate da Agy, e cosa ha trovato la review
+
+Sono le prime due arrivate dall'esecutore esterno con l'umano come tramite (vedi
+[`DELEGA.md`](DELEGA.md)). **Entrambe con i numeri dichiarati corretti** — verificati rifacendo
+`analyze` e `test` nei worktree, elenco degli avvisi confrontato riga per riga con `main`, non
+solo il totale. E in entrambe la review ha trovato qualcosa che i test non prendevano:
+
+- **US-025**: il test si chiamava «usa `ProgramListScreen` per la terza voce» e cercava la
+  stringa nel file intero. Con `_screens = [ProgramListScreen, Calendar, Dashboard]` — cioè la
+  voce «Workouts» che apre il Dashboard, storia annullata — restava **verde**.
+- **US-079**: il `catch` scartava l'eccezione. Dopo il diff nel file non restava **un solo**
+  `debugPrint`, dove prima ce n'era uno. Il piano chiedeva «un messaggio comprensibile, con il
+  dettaglio tecnico nel log»: metà fatta, metà nella direzione opposta. In una storia nata da un
+  `permission-denied` invisibile per sei mesi.
+- **US-079**: la guardia sul sorgente vietava i `catch` col solo `debugPrint` e lasciava passare
+  il `catch` vuoto, che inghiotte di più. Provato con tre mutazioni.
+- **US-079**: «un fallimento è visibile a schermo» era spuntato con un test su una funzione che
+  restituisce una chiave. Prova la **decisione**, non la comparsa.
+
+Corretto tutto in review, dentro i due branch, prima del merge. **La lezione per i mandati
+futuri**: chiedere all'esecutore la riga «Test rotto» funziona — l'ha compilata in entrambi i
+casi — ma la mutazione che scegli tu è quella che il tuo test già prende. Le mutazioni che
+trovano i buchi le sceglie chi rivede.
 
 I 56 avvisi sono debito preesistente tracciato in **US-030**. Erano 63 fino a US-066, che ne ha tolti sette riscrivendo la schermata delle misure. **Un calo va spiegato quanto un aumento**, e si spiega solo confrontando l'elenco con quello di `main`: in US-047 veniva da un rifacimento fuori mandato, in US-066 dal codice che la storia riscriveva davvero. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
 
@@ -325,7 +351,11 @@ Nessuna di queste si può decidere da soli.
 | **US-065** Libreria esercizi ridisegnata · 3pt | Prima schermata di EP-014 eseguibile: segmentato Tutti / Miei / Recenti e chip per gruppo muscolare, tutto disegnato nel mockup 02 |
 | **US-030** Azzerare gli avvisi · 3pt | 63 avvisi sono rumore che nasconde i problemi nuovi, e rendono il baseline l'unica difesa. **Sei** sono typedef deprecati nei provider generati da funzione: si tolgono riscrivendoli come notifier di classe |
 
-Le altre eseguibili: US-008, US-013, US-018, US-025, US-026, US-028, US-031, US-035, US-036, US-052, US-055, US-059, US-066, US-068, US-074.
+Le altre eseguibili: US-008, US-013, US-026, US-028, US-031, US-035, US-036, US-052, US-055, US-059, US-068, US-074.
+
+⚠️ **La tabella qui sopra è ferma al 2026-08-09 e va rifatta**: US-022, US-065, US-018, US-025,
+US-079 sono chiuse, e US-066 è in `🔍 IN REVIEW` con tre criteri aperti. Prima di scegliere la
+prossima storia, l'elenco vero si ricava dal backlog cercando `**Status:**`.
 
 ### Prove sul dispositivo ancora in sospeso
 
@@ -341,6 +371,9 @@ Nessuna di queste blocca il lavoro, ma ognuna è un criterio non spuntato in una
 | L'overlay flottante del timer si trascina e si controlla | timer | US-007 |
 | La build **release** si installa e si avvia | serve un APK release, non il debug | US-040 |
 | 55 fps su 100 esercizi | menu → Design system → «100 esercizi» in build **profile**, poi `adb shell dumpsys gfxinfo com.example.gymflow` | US-043 |
+| **Un esercizio creato compare in «Miei» e sopravvive alla chiusura dell'app** | Menu → Esercizi → «+», nome, Salva. **È il criterio che chiude US-079**, e il rapporto lo dichiarava funzionante per deduzione dalle regole: è il passaggio che ha ucciso US-045 | US-079 |
+| La terza voce della barra apre la scheda curata, e il ritorno da «Nuova scheda» non lascia il vuoto | barra in basso → Allenamenti, aprire una scheda, tornare, cambiare voce e tornare | US-025 |
+| L'eliminazione di una scheda funziona ancora, e in errore mostra **un** solo toast | barra in basso → Allenamenti → ⋮ → Elimina | US-025 |
 
 ### Decisioni di prodotto lasciate aperte dalle storie chiuse
 
