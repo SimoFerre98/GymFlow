@@ -160,6 +160,24 @@ graph LR
 
 ### Ordine di esecuzione consigliato
 
+> ⚠️ **Questa tabella è del 2026-08-06 e NON è più valida.** Elenca come «da fare» storie chiuse da
+> settimane — US-001, US-014, US-018, US-025, US-026, US-030, US-031, US-033 e altre — e non conosce
+> le storie da US-081 in avanti. **Non pianificare su di lei.**
+>
+> L'elenco vero si ricava così, e in un comando:
+>
+> ```bash
+> grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md
+> ```
+>
+> Una storia è eseguibile quando **tutte** quelle nel suo campo `Depends on` sono `✅ DONE`. Le
+> priorità decise con l'utente stanno in [`HANDOFF.md`](HANDOFF.md), sezione 7 — e anche quelle
+> vanno riletto, non ereditate.
+>
+> Resta utile per una cosa sola: capire **come** il backlog era stato ordinato all'origine, cioè per
+> dipendenza e non per capriccio.
+
+
 | Fase | Storie eseguibili | Punti | Razionale |
 |---|---|---|---|
 | **1 — Sblocco** | US-001, US-014, US-018 | 6 | US-001 sblocca quasi tutto. US-014 e US-018 sono indipendenti: si possono affrontare in parallelo da subito |
