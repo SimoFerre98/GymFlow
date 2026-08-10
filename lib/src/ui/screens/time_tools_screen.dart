@@ -150,7 +150,14 @@ class StopwatchView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Consume TimerService
+    // `watch` sullo **stato** e `read` sul notifier, e la distinzione non e
+    // stilistica: con il solo `read` questa vista non si iscrive a niente, il
+    // ticker gira, lo stato cambia e lo schermo resta fermo sul primo frame.
+    // Da qui il «tocco un tasto e non succede niente»: i tasti funzionavano,
+    // era il disegno che non tornava.
+    //
+    // Quindi i valori si leggono da `stato`, e `service` serve solo alle azioni.
+    final stato = ref.watch(timerNotifierProvider);
     final service = ref.read(timerNotifierProvider.notifier);
     final loc = ref.watch(localizationNotifierProvider);
 
@@ -162,14 +169,14 @@ class StopwatchView extends ConsumerWidget {
     // - If Running: "Pausa" (Yellow/Orange)
     // - If Paused/Stopped: "Avvia" (Green)
 
-    final isRunning = service.isStopwatchRunning;
-    final hasTime = service.stopwatchElapsed > Duration.zero;
+    final isRunning = stato.isStopwatchRunning;
+    final hasTime = stato.stopwatchElapsed > Duration.zero;
 
     return Column(
       children: [
         const Spacer(flex: 2),
         Text(
-          _formatDuration(service.stopwatchElapsed),
+          _formatDuration(stato.stopwatchElapsed),
           style: const TextStyle(
             fontSize: 80,
             fontWeight: FontWeight.bold,
@@ -182,9 +189,9 @@ class StopwatchView extends ConsumerWidget {
           flex: 4,
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 40),
-            itemCount: service.stopwatchLaps.length,
+            itemCount: stato.stopwatchLaps.length,
             itemBuilder: (context, index) {
-              final lapTime = service.stopwatchLaps[index];
+              final lapTime = stato.stopwatchLaps[index];
               return Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 8,
@@ -199,7 +206,7 @@ class StopwatchView extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${loc.t('lap')} ${service.stopwatchLaps.length - index}',
+                      '${loc.t('lap')} ${stato.stopwatchLaps.length - index}',
                       style: const TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                     Text(
@@ -319,9 +326,12 @@ class TimerView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Vedi la nota in `StopwatchView.build`: senza `watch` sullo stato questa
+    // vista non si ricostruisce, e il conto alla rovescia resta fermo.
+    final stato = ref.watch(timerNotifierProvider);
     final service = ref.read(timerNotifierProvider.notifier);
     final loc = ref.watch(localizationNotifierProvider);
-    final isRunning = service.isTimerRunning;
+    final isRunning = stato.isTimerRunning;
 
     // Logic for Buttons (requested):
     // "Quando avvio un timer, vorrei poterlo prima stoppare con lo stesso pulsante" -> Pause
@@ -346,9 +356,9 @@ class TimerView extends ConsumerWidget {
               width: 300,
               height: 300,
               child: CircularProgressIndicator(
-                value: service.timerDuration.inMilliseconds > 0
-                    ? service.timerRemaining.inMilliseconds /
-                          service.timerDuration.inMilliseconds
+                value: stato.timerDuration.inMilliseconds > 0
+                    ? stato.timerRemaining.inMilliseconds /
+                          stato.timerDuration.inMilliseconds
                     : 0.0,
                 strokeWidth: 12,
                 backgroundColor: Theme.of(
@@ -362,11 +372,11 @@ class TimerView extends ConsumerWidget {
             GestureDetector(
               onTap: isRunning ? null : () => _showTimePicker(context, service),
               child: Text(
-                _formatDuration(service.timerRemaining),
+                _formatDuration(stato.timerRemaining),
                 style: TextStyle(
                   fontSize: 56, // Smaller to fit
                   fontWeight: FontWeight.bold,
-                  color: service.timerRemaining == Duration.zero && !isRunning
+                  color: stato.timerRemaining == Duration.zero && !isRunning
                       ? Colors.red
                       : null,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -388,11 +398,11 @@ class TimerView extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildPresetButton(service, 3, isRunning),
+            _buildPresetButton(service, stato.timerDuration, 3, isRunning),
             const SizedBox(width: 16),
-            _buildPresetButton(service, 5, isRunning),
+            _buildPresetButton(service, stato.timerDuration, 5, isRunning),
             const SizedBox(width: 16),
-            _buildPresetButton(service, 10, isRunning),
+            _buildPresetButton(service, stato.timerDuration, 10, isRunning),
           ],
         ),
         const SizedBox(height: 48),
@@ -405,7 +415,7 @@ class TimerView extends ConsumerWidget {
               // Logic: Show split if we are NOT in the initial state (Timer not running AND at full duration)
               // i.e. Show split if Running OR (Paused/Finished and not at full duration)
               final bool isInitial =
-                  !isRunning && service.timerRemaining == service.timerDuration;
+                  !isRunning && stato.timerRemaining == stato.timerDuration;
               final bool showSplit = !isInitial;
 
               final double totalWidth = constraints.maxWidth;
@@ -506,8 +516,15 @@ class TimerView extends ConsumerWidget {
     );
   }
 
-  Widget _buildPresetButton(TimerNotifier service, int minutes, bool isRunning) {
-    final isSelected = !isRunning && service.timerDuration.inMinutes == minutes;
+  /// La durata arriva come parametro invece di essere riletta dal notifier: qui
+  /// si sta disegnando, e cio che si disegna deve venire dallo stato osservato.
+  Widget _buildPresetButton(
+    TimerNotifier service,
+    Duration durataCorrente,
+    int minutes,
+    bool isRunning,
+  ) {
+    final isSelected = !isRunning && durataCorrente.inMinutes == minutes;
     return ElevatedButton(
       onPressed: isRunning
           ? null

@@ -112,6 +112,61 @@ void main() {
       // scorre il ticker non parte e questo giro non servirebbe.
       container.dispose();
     });
+
+    testWidgets('toccando Avvia la schermata si ridisegna sullo stato nuovo',
+        (tester) async {
+      // E il test che mancava a US-075. Quelli che c'erano provavano il
+      // notifier — che era corretto — e che la schermata si aprisse senza
+      // eccezioni. Nessuno guardava cosa viene **disegnato**, e con `ref.read`
+      // al posto di `ref.watch` le viste non si iscrivevano a niente: i tasti
+      // funzionavano, lo stato cambiava, lo schermo restava fermo sul primo
+      // frame. Da qui il «tocco un tasto e non succede nulla».
+      //
+      // ⚠️ Quello che questo test **non** puo verificare e che le cifre
+      // avanzino: il cronometro misura con `DateTime.now()`, che l'orologio
+      // finto dei test non muove, quindi `stopwatchElapsed` resta a zero anche
+      // battendo il ticker. Lo dice gia il test qui sopra. Le etichette dei
+      // tasti invece vengono da `isStopwatchRunning`, che cambia al tocco e non
+      // dipende dall'orologio: se la vista non si iscrive, restano quelle di
+      // prima. E la stessa iscrizione che muove le cifre sul telefono.
+      final container = ProviderContainer();
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const _AppUnderTest(),
+        ),
+      );
+      await tester.pump();
+
+      // La lingua predefinita del progetto e l'italiano.
+      expect(find.text('Avvia'), findsOneWidget);
+      expect(find.text('Azzera'), findsOneWidget);
+
+      await tester.tap(find.text('Avvia'));
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(
+        find.text('Pausa'),
+        findsOneWidget,
+        reason: 'partito il cronometro, il tasto destro diventa Pausa',
+      );
+      expect(
+        find.text('Avvia'),
+        findsNothing,
+        reason: 'e non resta anche quello di prima',
+      );
+      expect(
+        find.text('Parziale'),
+        findsOneWidget,
+        reason: 'e il tasto sinistro passa da Azzera a Parziale',
+      );
+
+      // Si ferma il ticker, o `testWidgets` protesta per un timer pendente.
+      container.read(timerNotifierProvider.notifier).toggleStopwatch();
+      await tester.pump();
+      container.dispose();
+    });
   });
 }
 
