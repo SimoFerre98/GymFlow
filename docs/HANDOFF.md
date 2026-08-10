@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-07 · **Commit:** `cfb46cd` su `main` e `dev`, allineati anche con `origin`
+**Aggiornato:** 2026-08-10 · **Commit:** `bc03eef` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -11,14 +11,38 @@ Da leggere in quest'ordine:
 3. [`WORKFLOW.md`](WORKFLOW.md) — il processo per ogni storia
 4. [`DELEGA.md`](DELEGA.md) — come si lavora in parallelo, e cosa non si delega
 5. [`DESIGN-SPEC.md`](DESIGN-SPEC.md) — le specifiche visive estratte dai mockup, con la conversione px → dp
-6. [`BACKLOG.md`](BACKLOG.md) — le 74 storie con dipendenze e stati
+6. [`BACKLOG.md`](BACKLOG.md) — le 80 storie con dipendenze e stati
 7. [`adr/001-material-3-expressive.md`](adr/001-material-3-expressive.md) — la decisione sul design system
 
 ---
 
 ## 1. Dove siamo
 
-**25 storie completate su 74** · 70 punti su 233 · tag `v0.1.0` marca la fine del risanamento tecnico.
+**34 storie completate su 80** · tag `v0.1.0` marca la fine del risanamento tecnico.
+
+### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
+
+Scoperto il **2026-08-10** aprendo US-018. Le regole in produzione erano quelle di prova
+generate alla creazione del database, con la loro scadenza:
+
+```
+allow read, write: if request.time < timestamp.date(2026, 2, 24);
+```
+
+**Falsa dal 24 febbraio 2026.** Ogni lettura e ogni scrittura negate, a tutti, per quasi sei
+mesi. Verificato sul dispositivo: sei `PERMISSION_DENIED` in dodici secondi di avvio.
+
+Spiegava insieme cose che avevano spiegazioni separate: lo storico allenamenti vuoto sulla
+dashboard, «Nuovo esercizio» che non salvava, **US-045 morta** con `permission-denied` e
+**US-072 nata per aggirarla**, l'errore su `ensureFriendCode`, e il commento in `getExercises`
+sulla query che «restituiva sempre zero documenti».
+
+Ora `firestore.rules` è nel repository e le regole pubblicate danno a ogni utente **solo i
+propri dati**. Dopo: **una** negazione, la query della condivisione fra amici, chiusa
+deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sulla dashboard.
+
+**La lezione, per la prossima volta**: quando un dato non arriva, il primo controllo è
+`adb logcat | grep PERMISSION_DENIED`, non il codice che lo legge.
 
 **EP-009 «Contenuti degli esercizi» è chiusa** per intero. **EP-010 «Sessione di allenamento» è a 4 storie su 6**, ed è dove è concentrato tutto il lavoro recente.
 
@@ -41,15 +65,23 @@ Da leggere in quest'ordine:
 | US-049 | Riepilogo di fine allenamento, con lo scontrino |
 | US-050 | Record personali riconosciuti mentre succedono |
 
-**Stato di salute:** **63 avvisi**, **zero errori**, **345 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **56 avvisi**, **zero errori**, **431 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
-I 63 avvisi sono debito preesistente tracciato in **US-030**. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
+I 56 avvisi sono debito preesistente tracciato in **US-030**. Erano 63 fino a US-066, che ne ha tolti sette riscrivendo la schermata delle misure. **Un calo va spiegato quanto un aumento**, e si spiega solo confrontando l'elenco con quello di `main`: in US-047 veniva da un rifacimento fuori mandato, in US-066 dal codice che la storia riscriveva davvero. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
 
-### ⚠️ Perché l'app «sembra sempre uguale»
+### Dove è arrivata la grafica
 
-È la domanda che l'utente ha posto il 2026-08-07, ed è legittima. Della grafica sono state fatte le **fondamenta** (token, palette, componenti condivisi, allineamento dei componenti ai mockup) e **tre schermate nuove dentro il flusso di allenamento** (foglio della serie, pannello delle metriche, riepilogo). Le **schermate esistenti non sono state ridisegnate**: lo fanno US-022, US-023 e tutta EP-014, e nessuna delle otto è stata iniziata.
+Dopo **US-022** (dashboard, calendario, lista allenamenti), **US-026** (le stesse in italiano)
+e **US-065** (libreria ridisegnata come nel mockup), le schermate principali hanno il design
+system: nessun colore letterale, nessuna misura scritta a mano, e un **test sul sorgente** che
+impedisce che tornino.
 
-Quindi: chi apre l'app e guarda home, calendario, impostazioni o statistiche **vede ancora l'app di prima con i colori nuovi**. Non è un difetto ed è nell'ordine previsto — le fondamenta prima delle schermate — ma va detto invece di lasciarlo scoprire.
+Restano fuori: le schermate secondarie (**US-023**, bloccata da US-037 e US-038) e cinque
+schermate di **EP-014**.
+
+⚠️ **La sessione attiva è rimasta in mezzo**: ha 21 valori scritti a mano e **non è coperta
+da nessuna storia** — US-022 faceva le principali, US-023 le secondarie. È la schermata più
+usata dell'app. Aspetta una decisione: storia nuova o allargamento di US-023.
 
 ---
 
