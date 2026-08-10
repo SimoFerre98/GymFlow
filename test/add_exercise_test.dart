@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/ui/widgets/add_exercise_dialog.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
@@ -140,6 +143,117 @@ void main() {
       // L'OverlayEntry si rimuove da sola dopo tre secondi: senza aspettarla il
       // test si chiude con un timer pendente.
       await tester.pump(const Duration(seconds: 4));
+    });
+  });
+
+  group('AddExerciseDialog — il widget vero, montato', () {
+    // Questo gruppo esiste perche la review di US-079 aveva dovuto dichiarare
+    // come limite che la catena «errore → il dialogo resta aperto» era **letta e
+    // non eseguita**: la schermata non si monta, e i test provavano la funzione
+    // e un dialogo costruito nel file di test. Estraendo il dialogo in un widget
+    // proprio — cosa fatta per correggere il ciclo di vita del controller — quel
+    // limite si chiude.
+
+    Future<void> apri(
+      WidgetTester tester, {
+      required Future<void> Function(Exercise) saveExercise,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: const [ExpressiveTokens()]),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => AddExerciseDialog(
+                    loc: const Localization(Locale('it')),
+                    userId: 'utente-di-prova',
+                    saveExercise: saveExercise,
+                  ),
+                ),
+                child: const Text('apri'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('apri'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+        '⭐ salvando, il dialogo si chiude senza usare il controller dopo il rilascio',
+        (tester) async {
+      // E la riproduzione del difetto. Prima della correzione questo test era
+      // rosso con «A TextEditingController was used after being disposed»,
+      // seguita da altre due eccezioni a cascata: in debug, schermata rossa.
+      // Il controller veniva rilasciato subito dopo `await showDialog`, che si
+      // completa alla chiusura della rotta e **non** a fine animazione.
+      Exercise? salvato;
+      await apri(tester, saveExercise: (e) async => salvato = e);
+
+      await tester.enterText(find.byType(TextField), 'Panca piana');
+      await tester.pump();
+      await tester.tap(find.text('Salva'));
+
+      // Senza `pumpAndSettle` per fermarsi **dentro** l'animazione di uscita,
+      // che e la finestra in cui il difetto si manifestava.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(tester.takeException(), isNull,
+          reason: 'nessuna eccezione mentre il dialogo sfuma');
+
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull,
+          reason: 'ne a transizione finita');
+
+      expect(salvato?.name, 'Panca piana');
+      expect(find.byType(AddExerciseDialog), findsNothing,
+          reason: 'salvato, il dialogo si chiude');
+    });
+
+    testWidgets('con il servizio che solleva, il dialogo RESTA aperto e mostra l errore',
+        (tester) async {
+      await apri(tester,
+          saveExercise: (_) async => throw Exception('permission-denied'));
+
+      await tester.enterText(find.byType(TextField), 'Stacco');
+      await tester.pump();
+      await tester.tap(find.text('Salva'));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(
+        find.byType(AddExerciseDialog),
+        findsOneWidget,
+        reason: 'il dialogo non deve chiudersi buttando il nome appena scritto',
+      );
+      expect(
+        find.text("Errore durante il salvataggio dell'esercizio"),
+        findsOneWidget,
+        reason: 'e il fallimento deve essere visibile a schermo',
+      );
+
+      // Si lascia scadere l'OverlayEntry del toast, o resta un timer pendente.
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('il nome vuoto mostra l errore sotto il campo, e non salva',
+        (tester) async {
+      var chiamato = false;
+      await apri(tester, saveExercise: (_) async => chiamato = true);
+
+      await tester.tap(find.text('Salva'));
+      await tester.pump();
+
+      expect(chiamato, isFalse);
+      expect(find.byType(AddExerciseDialog), findsOneWidget);
+      expect(find.text("Inserisci un nome per l'esercizio"), findsOneWidget);
+
+      // E scrivendo, l'errore se ne va.
+      await tester.enterText(find.byType(TextField), 'P');
+      await tester.pump();
+      expect(find.text("Inserisci un nome per l'esercizio"), findsNothing);
     });
   });
 

@@ -9,7 +9,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
-import 'package:gymflow/src/ui/widgets/toast_utils.dart';
+import 'package:gymflow/src/ui/widgets/add_exercise_dialog.dart';
 
 /// Cosa mostrare al posto della lista, se qualcosa.
 enum ExerciseLibraryView { loading, empty, list }
@@ -529,86 +529,17 @@ class _ExerciseLibraryScreenState
   }
 
   Future<void> _showAddExerciseDialog() async {
-    final nameController = TextEditingController();
-    ExerciseType selectedType = ExerciseType.strength;
-    String? nameError;
-
-    final loc = ref.read(localizationNotifierProvider);
-
+    // Il controller del nome vive dentro `AddExerciseDialog`, che lo rilascia
+    // nel proprio `dispose`. Tenerlo qui e rilasciarlo dopo `await showDialog`
+    // lo liberava mentre il dialogo stava ancora sfumando, e il `TextField` lo
+    // stava ancora usando: schermata rossa in debug.
     await showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Text(loc.t('add_exercise_title')),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: loc.t('add_exercise_name_label'),
-                    errorText: nameError,
-                  ),
-                  onChanged: (_) {
-                    if (nameError != null) {
-                      setState(() => nameError = null);
-                    }
-                  },
-                ),
-                SizedBox(height: context.expressive.spacing.md),
-                DropdownButton<ExerciseType>(
-                  value: selectedType,
-                  isExpanded: true,
-                  onChanged: (val) => setState(() => selectedType = val!),
-                  items: ExerciseType.values.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type.name.toUpperCase()),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text(loc.t('cancel')),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final result = await handleAddExerciseSubmit(
-                    rawName: nameController.text,
-                    type: selectedType,
-                    userId: _auth.currentUser?.uid,
-                    saveExercise: _firestore.addExercise,
-                  );
-
-                  if (!dialogContext.mounted) return;
-
-                  if (result.shouldCloseDialog) {
-                    Navigator.of(dialogContext).pop();
-                  } else {
-                    if (result.outcome == AddExerciseOutcome.validationError) {
-                      setState(() {
-                        nameError = loc.t(result.errorKey!);
-                      });
-                    } else if (result.outcome == AddExerciseOutcome.saveError) {
-                      ToastUtils.showError(
-                        dialogContext,
-                        loc.t(result.errorKey!),
-                      );
-                    }
-                  }
-                },
-                child: Text(loc.t('save')),
-              ),
-            ],
-          );
-        },
+      builder: (_) => AddExerciseDialog(
+        loc: ref.read(localizationNotifierProvider),
+        userId: _auth.currentUser?.uid,
+        saveExercise: _firestore.addExercise,
       ),
     );
-
-    nameController.dispose();
   }
 }
