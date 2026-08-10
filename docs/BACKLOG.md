@@ -2251,7 +2251,7 @@ Dopo questa storia: si aggiunge un amico e si vedono le sue sessioni condivise, 
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — ⚠️ **non riprodotta**
+**Status:** ⬜ TODO — ⚠️ **riprodotta dall'utente il 2026-08-10 creando un esercizio, ma lo stack è andato perso** (buffer del `logcat` ruotato). Cercandola è stata trovata e corretta **US-097**, che è un difetto diverso nello stesso percorso: non chiudere questa senza vedere lo stack di `_dependents.isEmpty`
 
 > ⚠️ **Segnalata dall'utente il 2026-08-10** con uno screenshot:
 >
@@ -2765,6 +2765,106 @@ Dopo questa storia: il volume di uno storico con mezzi chili è esatto, e un tes
 
 ---
 
+#### US-097: Il controller del dialogo «Nuovo esercizio» vive quanto il dialogo
+
+**Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ✅ DONE — diagnosticata, riprodotta e corretta il 2026-08-10, senza delega
+
+> ⚠️ **Trovata cercando US-081**, e non è US-081. Il `TextEditingController` del nome stava nella funzione che apriva il dialogo e veniva rilasciato subito dopo `await showDialog`. Quella `Future` si completa quando la rotta viene **chiusa**, non quando ha finito di sfumare: per la durata dell'animazione il `TextField` è ancora nell'albero e usa il controller.
+>
+> **Riprodotto in un test prima di correggere**: «A TextEditingController was used after being disposed», seguita da altre due eccezioni a cascata — in debug, schermata rossa.
+>
+> Il dialogo è ora un widget con un `State` proprio, e questo **chiude anche il limite dichiarato dalla review di US-079**: la schermata della libreria non si monta (debito di US-008), quindi i criteri «con il servizio che solleva il dialogo resta aperto» e «il nome vuoto è rifiutato» erano **letti e non eseguiti**. Ora sono provati sul widget vero.
+
+**Acceptance Criteria**
+- [x] Il controller è rilasciato quando il sottoalbero del dialogo sparisce, non prima
+- [x] Un test riproduce il difetto: fermandosi **dentro** l'animazione di uscita, nessuna eccezione. **Provato** rimettendo il rilascio dopo il `pop`: torna rosso
+- [x] Il dialogo si monta in un test, e i due criteri di US-079 che erano dichiarati non dimostrabili ora sono provati sul widget vero
+- [x] Nessuna stringa e nessun comportamento cambiati: solo il ciclo di vita
+
+---
+
+#### US-098: Un errore sugli stream condivisi non spegne il calendario
+
+**Epic:** EP-004 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ✅ DONE — corretta il 2026-08-10 · ⚠️ **la conferma sul dispositivo è ancora aperta**
+
+> ⚠️ **Segnalato dall'utente**: il calendario si legge bene, ma aggiungere un evento non fa comparire niente — né dal «+» né da «programma allenamento».
+>
+> Dal `logcat`, l'unico `PERMISSION_DENIED` è la query dei condivisi — `users where calendarSharedWith arrayContains` — negata **per scelta** da US-018 e che US-080 rifarà. Il difetto non era la negazione: era cosa ne faceva il calendario.
+>
+> La vista unisce quattro stream con `Rx.combineLatest4`, e **`combineLatest` non emette finché ogni ingresso non ha emesso almeno una volta**. I due stream condivisi non avevano nessuna difesa: quello negato solleva senza mai emettere e porta con sé la vista intera, allenamenti propri compresi.
+>
+> È la stessa lezione di US-018 applicata a un altro strato: **il primo controllo quando un dato non arriva è `adb logcat`**, non il codice che lo legge.
+
+**Acceptance Criteria**
+- [x] Un errore su uno stream condiviso viene registrato e trasformato in lista vuota, non propagato
+- [x] Un test documenta il meccanismo: con un ingresso in errore `combineLatest` non emette **niente**; con la difesa emette il resto
+- [x] Una guardia sul sorgente pretende la difesa su entrambi i metodi — **provata** togliendola
+- [ ] ⚠️ **Da confermare sul dispositivo, e la conferma è doppia:** che l'evento programmato compaia subito. E se **non** comparisse ancora, allora il difetto è nella **scrittura** e non nella lettura: il `PERMISSION_DENIED` osservato riguarda la lettura, mentre le regole consentono la scrittura su `scheduled_workouts`
+
+---
+
+#### US-099: Il timer avvisa quando scade — vibrazione e suono
+
+**Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 3
+**Depends on:** US-093 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — 🚧 **verificare se serve una dipendenza**: da approvare prima di iniziare
+
+> Chiesto dall'utente il 2026-08-10, provando il cronometro: «potremmo aggiungere quando il timer scade la vibrazione e un suono».
+>
+> Sensato e piccolo: chi mette un recupero di 90 secondi non guarda lo schermo, guarda il bilanciere. Oggi il conto alla rovescia arriva a zero e non succede niente.
+
+**Story**
+Come atleta che ha messo 90 secondi di recupero e non guarda il telefono,
+voglio sentire quando il tempo è finito,
+così da tornare sotto il bilanciere senza contare a mente.
+
+**Acceptance Criteria**
+- [ ] A zero il telefono vibra
+- [ ] A zero suona, e il suono si sente in palestra ma non spaventa
+- [ ] Si può disattivare l'uno, l'altro, o entrambi
+- [ ] Rispetta il silenzioso di sistema, e la scelta è dichiarata: se in silenzioso vibra soltanto, va scritto
+- [ ] Niente vibrazione o suono se il timer viene azzerato a mano prima della scadenza
+- [ ] **Da confermare sul dispositivo**: nessun test può dimostrare che si sente
+
+**Note**
+⚠️ La vibrazione può passare da `HapticFeedback` di Flutter, che non richiede pacchetti. Il **suono** probabilmente sì: va verificato e **chiesto prima**.
+
+---
+
+#### US-100: Il permesso di Health Connect per i passi viene chiesto
+
+**Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — 📋 **delegabile**
+
+> ⚠️ **Trovata nel `logcat` il 2026-08-10**, mentre si cercava il difetto del calendario. Non era stata segnalata da nessuno:
+>
+> ```
+> FLUTTER_HEALTH::ERROR: Caused by: HealthConnectException:
+> SecurityException: Caller requires android.permission.health.READ_STEPS
+> to read record type StepsRecord
+> ```
+>
+> La sezione salute della dashboard sta **fallendo in silenzio**: il permesso dei passi non è concesso, e l'app non lo chiede. `_initAndFetchHealth` fa `configure()` e poi `fetchDailySummary()`, e l'errore finisce in un `debugPrint`.
+
+**Story**
+Come atleta che ha l'anello e il telefono pieni di dati,
+voglio che l'app mi chieda il permesso di leggerli,
+così da vedere i passi invece di una sezione vuota che non spiega perché.
+
+**Acceptance Criteria**
+- [ ] Il permesso di leggere i passi viene chiesto, al momento giusto e non all'avvio
+- [ ] Se l'utente rifiuta, la sezione **lo dice** invece di restare vuota o mostrare zero
+- [ ] Se il permesso manca, si offre di aprire le impostazioni di Health Connect
+- [ ] L'errore non muore in un `debugPrint`: chi guarda lo schermo capisce cosa manca
+- [ ] Verificato quali altri tipi di dato sono negati, e dichiarato: i passi sono quello che è comparso nel log, non necessariamente il solo
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -3019,4 +3119,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[96 storie in 17 epiche — 310 story points totali · 3 storie accantonate in EP-008 · 41 completate]_
+_[100 storie in 17 epiche — 319 story points totali · 3 storie accantonate in EP-008 · 43 completate]_

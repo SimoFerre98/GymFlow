@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `d717b93` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `bb02bfc` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**41 storie completate su 96** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**43 storie completate su 100** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -71,7 +71,7 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-008 | I servizi arrivano dai provider nelle tre schermate principali, e per la prima volta **un test monta una schermata vera** con un servizio finto |
 | US-036 | Il movimento a molla nei token, e sul cambio di voce della barra. `motor` installato |
 
-**Stato di salute:** **55 avvisi**, **zero errori**, **466 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **55 avvisi**, **zero errori**, **473 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
 ### Le due storie consegnate da Agy, e cosa ha trovato la review
 
@@ -384,6 +384,8 @@ Nessuna di queste blocca il lavoro, ma ognuna è un criterio non spuntato in una
 | Il calendario funziona ancora: eventi visibili, allenamento programmato, cancellazione con lo scorrimento | e la schermata col diff piu grosso di US-008 e **nessun test la monta** | US-008 |
 | Il saluto della dashboard mostra il nome dal primo istante, non «Atleta» | apri l'app | US-008 |
 | L'assestamento a molla sul cambio voce si vede, non risulta lento, e non costa piu di 16 ms | tocca le tre voci della barra, avanti e indietro | US-036 |
+| ⭐ **L'evento programmato compare nel calendario.** Se ancora non compare, il difetto e nella **scrittura** e non nella lettura, e va cercato altrove | Calendario → «+», oppure «programma allenamento» | US-098 |
+| Creare un esercizio non fa piu schermata rossa. **E se ne fa una che dice `_dependents.isEmpty`, serve lo stack**: `adb logcat -c`, riprodurre, `adb logcat -d \| grep -A40 dependents` | Menu → Esercizi → «+» | US-097, US-081 |
 
 ### Decisioni di prodotto lasciate aperte dalle storie chiuse
 
