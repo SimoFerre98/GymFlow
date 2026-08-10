@@ -4,6 +4,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
+import 'package:gymflow/src/ui/screens/statistics_screen.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
@@ -103,6 +104,20 @@ class AppDrawer extends ConsumerWidget {
                     Navigator.of(
                       context,
                     ).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.bar_chart,
+                  title: loc.t('statistics_title'),
+                  color: Colors.deepPurple,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+                    );
                   },
                 ),
                 const SizedBox(height: 8),

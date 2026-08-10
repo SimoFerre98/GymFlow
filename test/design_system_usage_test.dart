@@ -15,6 +15,7 @@ import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 void main() {
   const schermate = <String>[
     'lib/src/ui/screens/dashboard_screen.dart',
+    'lib/src/ui/screens/statistics_screen.dart',
     'lib/src/ui/screens/calendar_screen.dart',
     'lib/src/ui/screens/program_list_screen.dart',
     'lib/src/ui/screens/active_session_screen.dart',
@@ -137,17 +138,42 @@ void main() {
     });
   }
 
-  test('le tre schermate usano la card condivisa o dichiarano perché no', () {
+  test('le schermate usano la card condivisa, o la ricevono da un widget che la usa', () {
     // Il calendario non la usa: le sue righe sono vetro sfocato con un bordo
     // luminoso, e `ExpressiveCard` porta un fondo opaco. La review lo dichiara.
+    //
+    // La dashboard non la nomina più direttamente da US-095, che le ha portato
+    // via le statistiche: la sua unica card ora è `HomeHeroCard`, che
+    // `ExpressiveCard` la usa due volte. **Vale, e resta nella lista**: toglierla
+    // di qui avrebbe fatto sparire la guardia insieme al problema, e il criterio
+    // e «usa la card condivisa», non «scrive quella parola».
+    const viaDiretta = 'ExpressiveCard';
+    const perDelega = <String, String>{
+      'lib/src/ui/screens/dashboard_screen.dart': 'HomeHeroCard',
+    };
+
     for (final percorso in const [
       'lib/src/ui/screens/dashboard_screen.dart',
+      'lib/src/ui/screens/statistics_screen.dart',
       'lib/src/ui/screens/program_list_screen.dart',
     ]) {
+      final sorgente = File(percorso).readAsStringSync();
+      final delegato = perDelega[percorso];
+
+      final vaBene = sorgente.contains(viaDiretta) ||
+          (delegato != null &&
+              sorgente.contains(delegato) &&
+              File('lib/src/ui/widgets/${_fileDi(delegato)}')
+                  .readAsStringSync()
+                  .contains(viaDiretta));
+
       expect(
-        File(percorso).readAsStringSync(),
-        contains('ExpressiveCard'),
-        reason: '$percorso deve usare la card condivisa',
+        vaBene,
+        isTrue,
+        reason: delegato == null
+            ? '$percorso deve usare la card condivisa'
+            : '$percorso deve usare la card condivisa, direttamente o '
+                'attraverso $delegato — che a sua volta deve usarla',
       );
     }
   });
@@ -172,3 +198,11 @@ void main() {
   });
 }
 
+/// Da `HomeHeroCard` a `home_hero_card.dart`.
+String _fileDi(String classe) {
+  final conTrattini = classe.replaceAllMapped(
+    RegExp(r'(?<!^)([A-Z])'),
+    (m) => '_${m[1]}',
+  );
+  return '${conTrattini.toLowerCase()}.dart';
+}

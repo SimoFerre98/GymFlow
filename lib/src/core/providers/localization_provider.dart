@@ -301,6 +301,8 @@ class Localization {
     'home_today_in_workout': 'Today in workout',
     'home_min': 'min',
     'home_exercises': 'exercises',
+    'statistics_title': 'Statistics',
+    'statistics_tab': 'Statistics',
   };
 
   static final Map<String, String> _it = {
@@ -587,6 +589,8 @@ class Localization {
     'home_today_in_workout': 'Oggi in scheda',
     'home_min': 'min',
     'home_exercises': 'esercizi',
+    'statistics_title': 'Statistiche',
+    'statistics_tab': 'Statistiche',
   };
 }
 
