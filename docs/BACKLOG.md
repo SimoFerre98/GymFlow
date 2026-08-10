@@ -2880,7 +2880,7 @@ Su Android il silenzioso zittisce i flussi di **suoneria e notifica**, non quell
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — 📋 **delegabile**
+**Status:** 📋 PLANNED — piano in [`planning/US-100.md`](planning/US-100.md) · ⚠️ **delegabile in parte**: la causa del permesso mancante si decide sul dispositivo
 
 > ⚠️ **Trovata nel `logcat` il 2026-08-10**, mentre si cercava il difetto del calendario. Non era stata segnalata da nessuno:
 >
@@ -2910,7 +2910,7 @@ così da vedere i passi invece di una sezione vuota che non spiega perché.
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — 📋 **delegabile**
+**Status:** 📋 PLANNED — piano in [`planning/US-101.md`](planning/US-101.md) · 📋 **delegabile**
 
 > ⚠️ **Segnalato dall'utente il 2026-08-10** provando l'APK: «c'è il saluto correttamente, unica cosa che quando scorro verso il basso poi si sovrappone con l'icona dell'hamburger».
 >
