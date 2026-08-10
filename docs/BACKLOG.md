@@ -351,7 +351,7 @@ Dopo questa storia: `app.dart` contiene solo `MaterialApp`, senza alcun `MultiPr
 
 **Epic:** EP-002 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-001 | **Blocks:** US-009, US-011, US-017
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-008.md`](planning/US-008.md) · **delegabile**: il piano ha verificato che i tre provider esistono già, e con essi è sparito l'unico pezzo rischioso
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -2286,6 +2286,52 @@ adb -s RFGL10YZ5RX logcat -c
 adb -s RFGL10YZ5RX logcat -d | grep -A 40 "_dependents"
 ```
 
+L'assertion è `InheritedElement.debugDeactivated()`, `framework.dart:6271` nell'SDK installato:
+un `InheritedWidget` viene deattivato mentre un elemento dipende ancora da lui. Vale **solo in
+debug**, quindi in release il difetto resta ma non fa schermata rossa. Restringe il sospetto a
+chi tiene in vita un dipendente attraverso lo smontaggio di una rotta: overlay, fogli modali,
+dialoghi.
+
+---
+
+#### US-082: La sessione attiva prende il design system
+
+**Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-033 (✅), US-034 (✅), US-073 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** 📋 PLANNED — mandato in [`planning/US-082.md`](planning/US-082.md) · **delegabile**
+
+> ⚠️ **Aperta il 2026-08-10.** È la schermata più usata dell'app, e l'unica delle quattro
+> principali che non è passata dal design system: **US-022 faceva le principali, US-023 le
+> secondarie, e la sessione attiva è rimasta in mezzo** senza che nessuna storia la coprisse.
+>
+> Misurate su `active_session_screen.dart` a `30900e3`: **ventiquattro righe con un valore
+> scritto a mano, dodici delle quali un colore letterale.** Fra questi, `Colors.grey` sulle
+> intestazioni delle colonne `#` / `Kg` / ripetizioni in tutti e tre i blocchi (forza, cardio,
+> corpo libero) — **sono i «testi sbiaditi» che si vedono sul telefono**, ereditati dal fondo
+> chiaro di prima di US-034 — e un `Colors.blue` alla riga 684 che **non corrisponde a nessuno
+> dei cinque colori del prodotto**.
+>
+> È una sostituzione, non un ridisegno: il ridisegno secondo il mockup 01 è un'altra storia.
+
+**Story**
+Come atleta che passa in questa schermata tutto il tempo dell'allenamento,
+voglio leggere le intestazioni e i numeri senza sforzo,
+così da registrare una serie senza fermarmi a mettere a fuoco.
+
+**Demonstrates**
+Dopo questa storia: la sessione attiva ha gli stessi colori e le stesse misure delle altre tre schermate principali, e una guardia sul sorgente impedisce che i valori a mano tornino.
+
+**Acceptance Criteria**
+- [ ] Nessun colore letterale nella schermata, a parte `Colors.transparent`
+- [ ] Nessuna spaziatura, raggio o dimensione di carattere scritta a mano
+- [ ] `active_session_screen.dart` è nella lista sorvegliata da `design_system_usage_test.dart`, e i suoi cinque test passano
+- [ ] I token `sizing.iconSm`, `iconMd`, `iconLg` esistono e sono coperti da un test — chiudono la decisione lasciata aperta dalla review di US-047
+- [ ] Il comportamento non è cambiato: i test esistenti passano **senza essere modificati**
+- [ ] Le intestazioni delle colonne si leggono, e nessun testo appare sbiadito — **da confermare sull'APK**
+
+**Note**
+Fuori scope: il ridisegno secondo il mockup (storia sua), le stringhe non localizzate (**US-027**, in parallelo: non aprire `localization_provider.dart`), gli stream dentro `build` (US-011, US-012) e i servizi istanziati nello `State` (**US-008**, in parallelo).
+
 ---
 
 ### EP-008: Recupero del target Web
@@ -2512,4 +2558,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[81 storie in 15 epiche — 252 story points totali · 3 storie accantonate in EP-008 · 36 completate]_
+_[82 storie in 15 epiche — 255 story points totali · 3 storie accantonate in EP-008 · 36 completate]_
