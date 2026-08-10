@@ -1800,7 +1800,7 @@ Dopo questa storia: la libreria filtra per gruppo muscolare e tipo, con miniatur
 
 **Epic:** EP-014 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-021, US-046 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-066.md`](planning/US-066.md) · **delegabile**
+**Status:** 🔍 IN REVIEW — cursore e misure mergiati, **tre criteri su sei restano aperti**. Mandato in [`planning/US-066.md`](planning/US-066.md), review in [`planning/US-066-review.md`](planning/US-066-review.md) · implementata da Agy
 
 **Story**
 Come atleta che si pesa la mattina,
@@ -1811,12 +1811,12 @@ così da tenere traccia del peso senza che diventi una scocciatura quotidiana.
 Dopo questa storia: peso e circonferenze stanno nella stessa schermata, con il peso impostabile a cursore.
 
 **Acceptance Criteria**
-- [ ] Il peso si imposta con un cursore che parte dall'ultimo valore registrato
-- [ ] L'andamento è mostrato con un grafico ad area sul periodo scelto
-- [ ] La differenza rispetto all'ultima misurazione è indicata
-- [ ] Le circonferenze sono nella stessa schermata, non in una separata
-- [ ] Il peso arriva da Salute quando disponibile, restando modificabile
-- [ ] L'unità di misura segue l'impostazione dell'utente
+- [ ] Il peso si imposta con un cursore che parte dall'ultimo valore registrato — il cursore c'è (`SetValueSlider`, 30–250 kg, passo 0,1, con la via d'uscita da tastiera) ma **parte da 70 kg fissi**
+- [ ] L'andamento è mostrato con un grafico ad area sul periodo scelto — **da verificare sull'APK**: lo storico c'è, il periodo selezionabile non è stato trovato nel codice
+- [ ] La differenza rispetto all'ultima misurazione è indicata — **da verificare sull'APK**
+- [x] Le circonferenze sono nella stessa schermata, non in una separata — **la consegna le aveva ridotte da undici a quattro**, rendendo invisibili i dati già salvati: ripristinate in review, con un test che lega la schermata al modello
+- [ ] Il peso arriva da Salute quando disponibile, restando modificabile — **non soddisfatto**: nel file non c'è un riferimento a `HealthService`. Il rapporto lo dichiarava soddisfatto capovolgendo il criterio in «nessuna importazione da Health»
+- [ ] L'unità di misura segue l'impostazione dell'utente — **non soddisfatto**, e dichiarato bene: l'impostazione non esiste e **non è stata inventata**
 
 ---
 
