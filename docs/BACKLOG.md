@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 78
-**Total story points:** 241
+**Total stories:** 79
+**Total story points:** 244
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -2161,6 +2161,44 @@ Non è delegabile: `docs/DELEGA.md` mette modello dati e migrazioni fra ciò che
 
 ---
 
+#### US-079: Creare un esercizio proprio funziona, e se fallisce lo dice
+
+**Epic:** EP-009 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** US-018 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-07, segnalata dall'utente**: «se faccio save quando tento di aggiungere un nuovo esercizio non succede nulla».
+>
+> **Riprodotto leggendo il codice, e sono due difetti sovrapposti.**
+>
+> **1. La scrittura è negata dalle regole.** `FirestoreService.addExercise` scrive su `_db.collection('exercises')`, e le regole Firestore **negano al client la scrittura su quella collezione** — è il fatto documentato in `AGENTS.md` e la ragione per cui US-072 esiste. Il commento di `getExercises`, scritto durante US-072, lo dice già: *«una query che restituiva sempre zero documenti, perché nessuno era mai riuscito a scriverceli»*. Nessuno però ha collegato quella frase al fatto che **anche l'aggiunta di un esercizio proprio passa da lì**.
+>
+> **2. Il fallimento è silenzioso.** Il gestore del pulsante è `catch (e) { debugPrint('Error saving exercise: $e'); }`: l'errore finisce nel log di sviluppo, il dialogo resta aperto, e a schermo non compare niente. Da qui il «non succede nulla».
+>
+> **Non è una regressione recente**: il dialogo esiste da `604bb05` e US-065 non l'ha toccato. Gli esercizi propri **non sono mai stati salvabili**, e il segmentato «Miei» introdotto da US-065 non ha quindi mai potuto mostrare niente.
+
+**Story**
+Come atleta che fa un esercizio che nella libreria non c'è,
+voglio poterlo aggiungere,
+così da registrare i miei allenamenti veri invece di adattarli all'elenco.
+
+**Demonstrates**
+Dopo questa storia: «Nuovo esercizio» salva davvero, l'esercizio compare in «Miei», e se qualcosa non funziona lo schermo lo dice.
+
+**Acceptance Criteria**
+- [ ] Un esercizio creato dall'utente viene salvato e compare nella libreria, anche dopo aver chiuso e riaperto l'app
+- [ ] La destinazione della scrittura è **decisa e dichiarata**: le regole Firestore aprono la scrittura sui documenti dell'utente sulla collezione `exercises`, oppure gli esercizi propri vanno in una sotto-collezione dell'utente. La scelta va scritta nella review con l'alternativa scartata
+- [ ] `getExercises` e `deleteExercise` leggono e cancellano da dove `addExercise` scrive: oggi puntano tutti a `exercises`, e se la destinazione cambia devono cambiare insieme
+- [ ] **Un fallimento del salvataggio è visibile a schermo**, non solo in `debugPrint`. Nessun `catch` che inghiotte un errore di scrittura in questa schermata
+- [ ] Il dialogo non si chiude quando il salvataggio fallisce
+- [ ] Il nome vuoto è rifiutato con un messaggio, non con un `return` muto
+- [ ] Un test dimostra che, con il servizio che solleva, la schermata mostra l'errore e non chiude il dialogo
+
+**Note**
+⚠️ **Non delegabile a un esecutore.** Il criterio centrale richiede di decidere le regole Firestore o la disposizione delle collezioni, e `docs/DELEGA.md` mette entrambe fra ciò che non si affida: US-045 è morta esattamente lì. Dipende da **US-018**, che porta le regole nel repository — oggi non sono versionate, quindi non si può nemmeno leggere cosa permettono.
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2385,4 +2423,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[78 storie in 15 epiche — 241 story points totali · 3 storie accantonate in EP-008 · 33 completate]_
+_[79 storie in 15 epiche — 244 story points totali · 3 storie accantonate in EP-008 · 33 completate]_
