@@ -168,6 +168,15 @@ class ExpressiveSizing {
   /// chiede esplicitamente: un cursore da usare con le mani sudate fra due
   /// serie non puo avere l'area di tocco alta quanto il tratto disegnato.
   double get minTouchTarget => 48;
+
+  /// 16 — icona dentro una riga di testo, alta come una lettera maiuscola.
+  double get iconSm => 16;
+
+  /// 20 — icona predefinita accanto a un'etichetta.
+  double get iconMd => 20;
+
+  /// 24 — icona di un pulsante, o di una voce di elenco.
+  double get iconLg => 24;
 }
 
 /// Ombre dei contenitori.

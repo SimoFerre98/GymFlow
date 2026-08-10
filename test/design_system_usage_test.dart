@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 
-/// Le tre schermate che si usano ogni giorno non tornano ai valori scritti a
-/// mano.
+/// Le quattro schermate principali non tornano ai valori scritti a mano.
 ///
 /// È un test **sul sorgente** e non sui widget, per la stessa ragione del test
 /// di localizzazione: queste schermate non si montano — istanziano Firebase e
@@ -17,6 +17,7 @@ void main() {
     'lib/src/ui/screens/dashboard_screen.dart',
     'lib/src/ui/screens/calendar_screen.dart',
     'lib/src/ui/screens/program_list_screen.dart',
+    'lib/src/ui/screens/active_session_screen.dart',
   ];
 
   /// Righe di codice, senza i commenti: un valore citato in un commento che
@@ -148,4 +149,12 @@ void main() {
       );
     }
   });
+
+  test('i token nuovi delle icone in ExpressiveSizing hanno i valori dichiarati', () {
+    const sizing = ExpressiveSizing();
+    expect(sizing.iconSm, 16);
+    expect(sizing.iconMd, 20);
+    expect(sizing.iconLg, 24);
+  });
 }
+

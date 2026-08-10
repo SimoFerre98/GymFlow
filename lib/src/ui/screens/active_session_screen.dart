@@ -167,7 +167,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(loc.t('finish_workout_body')),
-            const SizedBox(height: 16),
+            SizedBox(height: context.expressive.spacing.md),
             ListTile(
               title: Text(loc.t('date_label')),
               subtitle: Text(selectedDate!.toString().split(' ')[0]),
@@ -291,21 +291,19 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       appBar: AppBar(
         title: Text(
           widget.workout.name,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: expressive.typography.titleEmphasized,
         ),
         centerTitle: true,
         actions: [
           _isSaving
-              ? const Padding(
-                  padding: EdgeInsets.only(right: 16.0),
+              ? Padding(
+                  padding: EdgeInsets.only(right: expressive.spacing.md),
                   child: Center(
                     child: SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: expressive.sizing.iconMd,
+                      height: expressive.sizing.iconMd,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         strokeWidth: 2,
                       ),
                     ),
@@ -347,12 +345,16 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         itemBuilder: (context, index) {
           final exercise = _sessionExercises[index];
           return Card(
-            margin: const EdgeInsets.all(8),
+            margin: EdgeInsets.all(expressive.spacing.sm),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  // I 12 di prima erano i pixel del mockup, e il padding di una
+                  // card convertito in dp e 16: `spacing.md`. Sommare due token
+                  // per riottenere 12 avrebbe conservato il valore sbagliato
+                  // passando la guardia — vedi DESIGN-SPEC, riga «Padding card».
+                  padding: EdgeInsets.all(expressive.spacing.md),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -372,9 +374,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.delete_outline,
-                          color: Colors.redAccent,
+                          color: Theme.of(context).colorScheme.error,
                         ),
                         onPressed: () {
                           // Confirm deletion
@@ -399,7 +401,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                                   },
                                   child: Text(
                                     loc.t('remove_btn'),
-                                    style: const TextStyle(color: Colors.red),
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -412,11 +416,11 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                 ),
                 // Dynamic Table Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  padding: EdgeInsets.zero,
                   child: _buildExerciseTable(exercise, context, loc),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(expressive.spacing.sm),
                   child: TextButton.icon(
                     icon: const Icon(Icons.add),
                     label: Text(loc.t('add_set')),
@@ -472,15 +476,15 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       children: [
         TableRow(
           children: [
-            const Center(
-              child: Text('#', style: TextStyle(color: Colors.grey)),
+            Center(
+              child: Text('#', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
             if (showWeight)
-              const Center(
-                child: Text('Kg', style: TextStyle(color: Colors.grey)),
+              Center(
+                child: Text('Kg', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ),
             Center(
-              child: Text(loc.t('reps_label'), style: const TextStyle(color: Colors.grey)),
+              child: Text(loc.t('reps_label'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
             const SizedBox(),
           ],
@@ -567,14 +571,14 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       children: [
         TableRow(
           children: [
-            const Center(
-              child: Text('#', style: TextStyle(color: Colors.grey)),
-            ),
-            const Center(
-              child: Text('Km', style: TextStyle(color: Colors.grey)),
+            Center(
+              child: Text('#', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
             Center(
-              child: Text(loc.t('time_min_label'), style: const TextStyle(color: Colors.grey)),
+              child: Text('Km', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            ),
+            Center(
+              child: Text(loc.t('time_min_label'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
             const SizedBox(),
           ],
@@ -586,7 +590,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
             children: [
               Center(child: Text('${setIndex + 1}')),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(context.expressive.spacing.sm),
                 child: TextFormField(
                   initialValue: (set.distance ?? 0).toString(),
                   textAlign: TextAlign.center,
@@ -600,7 +604,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(context.expressive.spacing.sm),
                 child: TextFormField(
                   // We might store seconds but show minutes for edit
                   initialValue: ((set.durationSeconds ?? 0) / 60)
@@ -640,13 +644,13 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       children: [
         TableRow(
           children: [
-            const Center(
-              child: Text('#', style: TextStyle(color: Colors.grey)),
+            Center(
+              child: Text('#', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
             Center(
               child: Text(
                 loc.t('duration_sec_label'),
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(),
@@ -659,12 +663,17 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
             children: [
               Center(child: Text('${setIndex + 1}')),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(context.expressive.spacing.sm),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: 60,
+                      // Larghezza prestata: e la misura piu vicina fra i token
+                      // ai 60 che c'erano qui, e non esiste un token per la
+                      // larghezza di un campo numerico. Se un giorno le
+                      // miniature cambiano misura, questo campo va slegato
+                      // invece di seguirle.
+                      width: context.expressive.sizing.thumbnailMd,
                       child: TextFormField(
                         initialValue: (set.durationSeconds ?? 0).toString(),
                         textAlign: TextAlign.center,
@@ -677,11 +686,16 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                             set.durationSeconds = int.tryParse(val) ?? 0,
                       ),
                     ),
-                    // Optional Timer Button?
+                    // Questo pulsante non avvia nessun timer: mostra un toast
+                    // che dichiara «solo visuale». Quindi **non** porta l'ambra,
+                    // che nella palette significa «cosa fare adesso» ed e gia
+                    // sul pulsante «Termina»: un secondo ambra su un abbozzo
+                    // insegna all'occhio a ignorarla. Torna ambra quando il
+                    // timer esiste davvero.
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.timer_outlined,
-                        color: Colors.blue,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       onPressed: () {
                         // Start a mini timer? For now just visual.
