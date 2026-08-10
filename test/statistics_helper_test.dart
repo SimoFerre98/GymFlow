@@ -82,6 +82,38 @@ void main() {
       ];
       expect(StatisticsHelper.calculateTotalVolume(sessions), 500);
     });
+
+    test('i mezzi chili non si perdono a ogni serie', () {
+      // E il test che mancava, e la ragione per cui il difetto e vissuto a lungo:
+      // tutti gli altri usano pesi interi, dove il troncamento non si vede.
+      //
+      // Il passo dei cursori di US-046 e 2,5 kg, quindi i mezzi chili sono la
+      // norma. Tre serie da 62,5 x 3 fanno 562,5 esatti: troncando **a ogni
+      // serie** si otteneva 187 x 3 = 561, sempre verso il basso e sempre di
+      // piu al crescere dello storico.
+      final sessions = [
+        _session(today, sets: [
+          WorkoutSet(weight: 62.5, reps: 3, isCompleted: true),
+          WorkoutSet(weight: 62.5, reps: 3, isCompleted: true),
+          WorkoutSet(weight: 62.5, reps: 3, isCompleted: true),
+        ]),
+      ];
+      expect(
+        StatisticsHelper.calculateTotalVolume(sessions),
+        563,
+        reason: '562,5 arrotondato una volta sola, non 561 troncato tre volte',
+      );
+    });
+
+    test('un solo mezzo chilo si arrotonda alla fine, non si butta', () {
+      final sessions = [
+        _session(today, sets: [
+          WorkoutSet(weight: 2.5, reps: 3, isCompleted: true),
+        ]),
+      ];
+      // 7,5 -> 8. Troncando faceva 7.
+      expect(StatisticsHelper.calculateTotalVolume(sessions), 8);
+    });
   });
 
   group('calculateAverageRPE', () {

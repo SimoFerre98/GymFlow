@@ -94,17 +94,27 @@ class StatisticsHelper {
   }
 
   static int calculateTotalVolume(List<WorkoutSession> sessions) {
-    int totalVolume = 0;
+    // Si somma in `double` e si arrotonda **una volta sola**, alla fine.
+    //
+    // Prima il `toInt()` stava dentro il ciclo, quindi troncava a ogni serie: con
+    // il passo da 2,5 kg dei cursori di US-046 i mezzi chili sono la norma, non
+    // l'eccezione, e 62,5 x 3 contava 187 invece di 187,5. L'errore si accumulava
+    // su tutto lo storico, sempre verso il basso.
+    //
+    // E il troncamento per serie che la review di US-049 aveva corretto nel
+    // riepilogo di fine allenamento: qui era sopravvissuto perche sono due
+    // calcoli diversi, e nessun test lo prendeva perche usano tutti pesi interi.
+    double volume = 0;
     for (var session in sessions) {
       for (var exercise in session.exercises) {
         for (var set in exercise.sets) {
           if (set.isCompleted && set.weight != null && set.reps != null) {
-            totalVolume += (set.weight! * set.reps!).toInt();
+            volume += set.weight! * set.reps!;
           }
         }
       }
     }
-    return totalVolume;
+    return volume.round();
   }
 
   static double calculateAverageRPE(List<WorkoutSession> sessions) {
