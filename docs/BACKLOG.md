@@ -18,7 +18,7 @@
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
 | EP-002 | Unificazione dello state management | 5 | 15 | MVP |
 | EP-003 | Performance runtime e consumo risorse | 11 | 25 | MVP |
-| EP-004 | Integrità dei dati e sicurezza Firestore | 4 | 12 | MVP |
+| EP-004 | Integrità dei dati e sicurezza Firestore | 5 | 17 | MVP |
 | EP-005 | Design system Material 3 Expressive | 10 | 36 | Growth |
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
 | EP-007 | Qualità del codice e test automatizzati | 4 | 11 | Growth |
@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 79
-**Total story points:** 244
+**Total stories:** 80
+**Total story points:** 249
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -591,7 +591,7 @@ Dopo questa storia: con 500 sessioni caricate, scorrere la dashboard non provoca
 
 **Epic:** EP-004 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-020
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — regole versionate e pubblicate il 2026-08-10. Erano scadute dal 24 febbraio e negavano tutto: vedi [`firestore.rules`](../firestore.rules)
 
 **Story**
 Come atleta che affida a GymFlow i propri dati di allenamento,
@@ -2199,6 +2199,41 @@ Dopo questa storia: «Nuovo esercizio» salva davvero, l'esercizio compare in «
 
 ---
 
+#### US-080: Condividere con un amico senza scrivere sui suoi dati
+
+**Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 5
+**Depends on:** US-018 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-10**, come conseguenza dichiarata di US-018. La condivisione con gli amici **oggi non funziona**, e le regole pubblicate la lasciano chiusa deliberatamente.
+>
+> Il modello attuale chiede due cose che nessuna regola può concedere senza aprire i dati di tutti:
+>
+> 1. **Scrivere sul documento di un altro utente.** `addFriend` fa un `batch.update` su `users/{amico}` per aggiungersi al suo array `friends`. Permetterlo significa permettere a qualunque utente autenticato di modificare il documento di qualunque altro.
+> 2. **Leggere i documenti utente di tutti.** Trovare un amico dal suo codice è `where('friendCode', isEqualTo: ...)` su `users`, e Firestore **non sa limitare i campi restituiti da una query**: concedere quella lettura concede il documento intero, a chiunque, per ogni utente.
+>
+> Non è un difetto di implementazione: è il modello che chiede troppo. Va ripensato, non aggiustato.
+
+**Story**
+Come atleta che vuole vedere il calendario di un amico,
+voglio poterglielo chiedere,
+così da allenarmi con lui senza che nessuno possa leggere o modificare i dati di chi non conosce.
+
+**Demonstrates**
+Dopo questa storia: si aggiunge un amico e si vedono le sue sessioni condivise, e nessun utente può leggere o scrivere il documento di un altro.
+
+**Acceptance Criteria**
+- [ ] Aggiungere un amico non richiede di scrivere sul suo documento: l'invito vive in una collezione propria, dove chi invita crea e chi è invitato accetta, oppure passa da una Cloud Function
+- [ ] Trovare un utente dal codice amico non richiede di poter leggere i documenti utente: il codice sta in una collezione con i soli campi necessari, oppure la ricerca la fa una Cloud Function
+- [ ] Le regole non contengono nessuna concessione di lettura o scrittura fra utenti diversi che non passi da un invito accettato
+- [ ] La condivisione del calendario e delle schede funziona di nuovo, con un test che dimostra che un utente non invitato **non** vede i dati
+- [ ] `firestore.rules` è aggiornato nello stesso commit del codice, e il deploy è verificato leggendo il ruleset attivo
+
+**Note**
+⚠️ **Non delegabile**: tocca le regole Firestore e la disposizione delle collezioni. Se la strada scelta è una Cloud Function, apre un pezzo di progetto che oggi non esiste — e va deciso prima, non durante.
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2423,4 +2458,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[79 storie in 15 epiche — 244 story points totali · 3 storie accantonate in EP-008 · 33 completate]_
+_[80 storie in 15 epiche — 249 story points totali · 3 storie accantonate in EP-008 · 34 completate]_
