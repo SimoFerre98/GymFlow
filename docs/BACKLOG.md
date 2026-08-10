@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
 | EP-002 | Unificazione dello state management | 5 | 15 | MVP |
-| EP-003 | Performance runtime e consumo risorse | 11 | 25 | MVP |
+| EP-003 | Performance runtime e consumo risorse | 12 | 28 | MVP |
 | EP-004 | Integrità dei dati e sicurezza Firestore | 5 | 17 | MVP |
 | EP-005 | Design system Material 3 Expressive | 10 | 36 | Growth |
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
@@ -31,8 +31,8 @@
 | EP-015 | Progressione e primo avvio | 2 | 10 | Growth |
 | EP-008 | Recupero del target Web | 3 | 10 | Later 🕓 |
 
-**Total stories:** 80
-**Total story points:** 249
+**Total stories:** 81
+**Total story points:** 252
 **MVP stories:** 33 (98pt)
 **Accantonate (Later):** 3 (10pt)
 
@@ -940,7 +940,18 @@ Dopo questa storia: nessuna schermata dell'app definisce decorazioni o costanti 
 
 **Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-006 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — ⚠️ **priorità alzata il 2026-08-10**
+
+> ⚠️ **Le due schermate non sono un doppione estetico: una delle due è quella che l'utente vede, e non è quella su cui si è lavorato.**
+>
+> La terza voce della barra in basso è `HomeScreen`, non `ProgramListScreen`. Verificato in `main_screen.dart:19-23`.
+>
+> `home_screen.dart` ha `AppBar(title: const Text('My Workouts'))` scritto a mano in inglese e la pillola «ACTIVE» in `Colors.green` (righe 18 e 154-161). `program_list_screen.dart` — quella che **US-022 ha convertito al design system** e che US-026 non ha localizzato perché non era nel suo scope — ha `scheme.primary` e `loc.t('active_caps')`.
+>
+> Conseguenza: **il lavoro di US-022 su quella schermata è invisibile**, perché dalla barra in basso si arriva all'altra. Confermato guardando l'APK il 2026-08-10: pillola verde, titolo inglese, date in inglese.
+>
+> Quale sopravvive è già deciso dai fatti: **`ProgramListScreen`**, che ha il design system e le stringhe localizzate. `HomeScreen` va rimossa e la barra va puntata su quella giusta.
+
 
 **Story**
 Come atleta che ha impostato l'app in italiano,
@@ -2234,6 +2245,49 @@ Dopo questa storia: si aggiunge un amico e si vedono le sue sessioni condivise, 
 
 ---
 
+#### US-081: L'assertion «_dependents.isEmpty» non fa più schermata rossa
+
+**Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — ⚠️ **non riprodotta**
+
+> ⚠️ **Segnalata dall'utente il 2026-08-10** con uno screenshot:
+>
+> ```
+> 'package:flutter/src/widgets/framework.dart': Failed assertion:
+> line 6271 pos 12: '_dependents.isEmpty': is not true.
+> ```
+>
+> È l'assertion che scatta quando l'elemento di un `InheritedWidget` viene smontato mentre qualcosa dipende ancora da lui. Le cause tipiche sono un `ProviderScope` o un `ProviderContainer` rimosso mentre dei widget lo osservano ancora, un `GlobalKey` riusato in due posti, o un `dispose` che avviene fuori ordine.
+>
+> **NON RIPRODOTTA**, e va detto invece di indovinare. Percorsi provati sul dispositivo il 2026-08-10, tutti senza errori: menu → Esercizi (libreria di US-065), tocco su un esercizio (scheda di US-068, andata e ritorno), scheda «Workouts» della barra in basso, menu → Impostazioni. Il buffer di `logcat` si era già ruotato quando l'ho cercato, quindi **lo stack trace non è stato letto**.
+>
+> **La prima cosa da fare è riprodurla**, non correggerla: senza lo stack non si sa nemmeno quale albero di widget la solleva.
+
+**Story**
+Come utente che sta usando l'app,
+voglio che non compaia una schermata rossa,
+così da non perdere quello che stavo facendo.
+
+**Demonstrates**
+Dopo questa storia: il percorso che sollevava l'assertion si percorre senza errori, e un test lo copre.
+
+**Acceptance Criteria**
+- [ ] Il percorso che solleva l'assertion è **identificato e scritto**, con lo stack trace nella review
+- [ ] Un test riproduce l'errore prima della correzione: senza, non si sa di aver corretto la causa invece di un sintomo
+- [ ] La causa è dichiarata: quale elemento veniva smontato e chi ne dipendeva ancora
+- [ ] Il percorso si ripercorre sull'APK senza schermata rossa
+
+**Note**
+Se l'utente ricorda dove si trovava, quella riga vale mezza storia. Come riprodurre con lo stack sotto mano:
+```bash
+adb -s RFGL10YZ5RX logcat -c
+# percorrere il percorso sospetto
+adb -s RFGL10YZ5RX logcat -d | grep -A 40 "_dependents"
+```
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2458,4 +2512,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[80 storie in 15 epiche — 249 story points totali · 3 storie accantonate in EP-008 · 34 completate]_
+_[81 storie in 15 epiche — 252 story points totali · 3 storie accantonate in EP-008 · 34 completate]_
