@@ -1717,7 +1717,7 @@ Dopo questa storia: mobilità e sport si registrano con durata, lato e intensit�
 
 **Epic:** EP-014 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-021, US-022, US-042 | **Blocks:** US-069
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-062.md`](planning/US-062.md) · **delegabile**, con la decisione chiave già presa nel piano: **aggiunge in cima, non riscrive**
 
 **Story**
 Come atleta che apre l'app,
@@ -2702,6 +2702,35 @@ Dopo questa storia: il pulsante avvia il conto alla rovescia sui secondi della s
 
 ---
 
+#### US-095: Schermata Statistiche, dove va ciò che la home non tiene
+
+**Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 5
+**Depends on:** US-062 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Aperta il 2026-08-10, pianificando US-062.** Il mockup 01 disegna la home **senza** le quattro tessere di statistiche, la sezione salute, lo storico e i grafici che `dashboard_screen.dart` mostra oggi: li mette su un riquadro **«Statistiche»** che nel backlog non aveva una storia.
+>
+> Finché non esiste, quel contenuto **non ha un posto dove andare**, e US-062 lo lascia dov'è aggiungendo il blocco nuovo sopra. La home resta quindi più lunga di come è disegnata, e questa storia la accorcia spostando invece di cancellare.
+>
+> **Non è un dettaglio di ordine**: cancellare contenuto perché un mockup non lo disegna è l'errore di US-066, dove la schermata delle misure è passata da undici campi a quattro e i dati salvati sono diventati invisibili senza che un test fallisse.
+
+**Story**
+Come atleta che vuole capire come sta andando,
+voglio una schermata dedicata ai numeri e ai grafici,
+così da consultarli quando mi interessano invece di attraversarli ogni volta che apro l'app.
+
+**Demonstrates**
+Dopo questa storia: la home mostra solo l'allenamento di oggi, e statistiche, salute e grafici hanno una schermata loro.
+
+**Acceptance Criteria**
+- [ ] Esiste una schermata Statistiche raggiungibile, e si vede da dove si raggiunge
+- [ ] Le quattro tessere, la sezione salute, lo storico e i grafici sono **spostati**, non riscritti da zero: l'elenco di cosa c'era e cosa c'è va dichiarato voce per voce
+- [ ] La home resta con il solo blocco di US-062
+- [ ] Nessun dato che l'utente vedeva prima diventa irraggiungibile
+- [ ] La schermata segue il design system, e entra nella lista sorvegliata da `design_system_usage_test.dart`
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2956,4 +2985,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[94 storie in 17 epiche — 304 story points totali · 3 storie accantonate in EP-008 · 40 completate]_
+_[95 storie in 17 epiche — 309 story points totali · 3 storie accantonate in EP-008 · 40 completate]_
