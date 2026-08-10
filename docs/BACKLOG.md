@@ -1077,7 +1077,7 @@ Dopo questa storia: un push che introduce un errore di compilazione viene segnal
 
 **Epic:** EP-007 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-029 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — la pulizia di massa fatta il 2026-08-10, senza delega: **da 55 a 17 avvisi**. I 17 che restano **non sono rumore** e sono **US-102**
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -2889,6 +2889,46 @@ così da leggerlo invece di indovinarlo.
 
 ---
 
+#### US-102: I diciassette avvisi che restano, uno per uno
+
+**Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 3
+**Depends on:** US-030 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — ⚠️ **non delegabile per intero**: tre voci sono difetti veri, non lint
+
+> **Nata da US-030 il 2026-08-10.** La pulizia di massa ha portato gli avvisi da 55 a 17 con `dart fix` limitato alle regole che non possono cambiare comportamento, più i `print` e i doppi trattini bassi. **I 17 rimasti sono stati lasciati di proposito**: ognuno chiede una decisione, e metterli a tacere sarebbe peggio che averli.
+>
+> | Quanti | Regola | Cosa nasconde |
+> |---|---|---|
+> | 6 | `deprecated_member_use` | I typedef dei provider scritti **come funzione**. `AGENTS.md` dice già come si toglieranno: riscrivendoli come notifier di classe. Tocca `auth_provider`, `firestore_provider`, `database_provider`, `sync_provider` e il codice generato |
+> | 3 | `use_build_context_synchronously` | Un `BuildContext` usato dopo un `await`. **Sono difetti potenziali veri**, non stile: vanno guardati uno per uno |
+> | 2 | `unnecessary_null_comparison` | Un confronto con `null` che l'analyzer sa già impossibile: o è codice inutile, o il tipo mente |
+> | 2 | `dead_code` | Codice irraggiungibile in `workout_type_pie_chart.dart`. Del codice morto è o un residuo o un ramo che qualcuno credeva raggiungibile |
+> | 1 | `unreachable_switch_default` | Un `default` coperto dai casi precedenti in `active_session_screen.dart` |
+> | **3** | `unused_local_variable` / `unused_field` | ⚠️ **La parte più interessante: sono intenzioni non implementate.** `selectedTime` sta sotto un commento «Ask user for date/time» e l'ora viene **buttata**; `hasTime` doveva impedire che «Azzera» comparisse a cronometro fermo su zero; `_isLoading` è **scritto e mai letto**, quindi il controllo che il suo commento descrive non avviene |
+>
+> **Le ultime tre non si cancellano.** Cancellare la variabile fa sparire l'avviso e con esso la traccia di una cosa che qualcuno voleva fare e non ha finito. Vanno **implementate o dichiarate**, non zittite.
+
+**Story**
+Come chi legge `flutter analyze` per accorgersi di un problema nuovo,
+voglio che ogni avviso rimasto significhi qualcosa,
+così da non dover distinguere il rumore dal segnale ogni volta.
+
+**Demonstrates**
+Dopo questa storia: `flutter analyze` è pulito, e ogni cosa che è stata trovata dietro un avviso è corretta o dichiarata.
+
+**Acceptance Criteria**
+- [ ] I sei typedef deprecati sono via, con i provider riscritti come notifier di classe e il codice rigenerato
+- [ ] I tre `BuildContext` dopo `await` sono guardati **uno per uno**, e per ciascuno è scritto se era un difetto o no
+- [ ] I due `dead_code` sono spiegati: residuo da togliere, o ramo che si credeva raggiungibile
+- [ ] Le tre «variabili non usate» sono **implementate o dichiarate**, non cancellate in silenzio: cosa doveva fare ciascuna, e cosa si è deciso
+- [ ] `flutter test` resta verde senza che nessun test esistente venga modificato
+- [ ] Il baseline scritto in `AGENTS.md`, `CLAUDE.md`, `DELEGA.md` e `HANDOFF.md` è aggiornato **in tutti e quattro**
+
+**Note**
+⚠️ Le tre variabili e i tre `BuildContext` non sono delegabili: chiedono di decidere cosa l'app deve fare. I sei typedef e i `dead_code` sì, con un mandato che dica di non cancellare niente senza spiegarlo.
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -3143,4 +3183,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[101 storie in 17 epiche — 321 story points totali · 3 storie accantonate in EP-008 · 45 completate]_
+_[102 storie in 17 epiche — 324 story points totali · 3 storie accantonate in EP-008 · 46 completate]_

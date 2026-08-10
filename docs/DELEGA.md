@@ -120,7 +120,7 @@ perché non dipende dalla buona volontà di nessuno.
 | Nessuna chiave di localizzazione senza traduzione EN e IT | `test/localization_test.dart` — legge il sorgente | ✅ attivo |
 | La palette non regredisce sotto WCAG | `test/contrast_test.dart` — 60 test | ✅ attivo |
 | La libreria curata resta leggibile e coerente | `test/exercise_seed_test.dart` — legge l'asset vero | ✅ attivo |
-| Gli avvisi dell'analyzer non superano 55 | **nessuno**: si controlla a mano | ⬜ da fare, richiede una modifica alla CI |
+| Gli avvisi dell'analyzer non superano 17 | **nessuno**: si controlla a mano | ⬜ da fare, richiede una modifica alla CI |
 | Nessun colore letterale o valore numerico nei widget | **nessuno** | ⬜ previsto da US-022 |
 
 Le due righe vuote sono il prossimo investimento sensato: rendono le regole eseguibili invece che
@@ -136,7 +136,7 @@ voleva scrivere, chi non l'ha scritto legge ciò che c'è.
 
 ```bash
 git fetch origin && git diff main...origin/feature/US-XXX-slug
-flutter analyze     # deve dare ≤ 55
+flutter analyze     # deve dare ≤ 17
 flutter test        # deve essere verde
 ```
 
@@ -194,7 +194,7 @@ Fai le fasi 2, 3 e 4 del ciclo in docs/WORKFLOW.md:
 - verifica con:
     C:/Users/s.ferrero/Flutter/bin/flutter.bat analyze
     C:/Users/s.ferrero/Flutter/bin/flutter.bat test
-  analyze deve dare 55 o meno. Se sale, hai introdotto qualcosa: sistemalo.
+  analyze deve dare 17 o meno. Se sale, hai introdotto qualcosa: sistemalo.
 
 NON fare: merge in main, push, dipendenze nuove in pubspec.yaml, file fuori
 dal piano, modifiche alle regole Firestore o ai workflow CI.
@@ -206,8 +206,8 @@ Branch:      <nome del branch>
 Commit:      <lista dei messaggi di commit, uno per riga>
 File:        <file toccati, uno per riga>
 Fuori piano: <file toccati che il piano non prevedeva, con il motivo; oppure "nessuno">
-analyze:     <numero> avvisi   (baseline 55)
-test:        <numero> verdi    (erano 458)
+analyze:     <numero> avvisi   (baseline 17)
+test:        <numero> verdi    (erano 492)
 Test rotto:  <hai provato a rompere il codice per vedere il test fallire? cosa
              hai rotto e cosa e diventato rosso; oppure "non provato">
 Criteri:     <per ogni criterio del piano: soddisfatto, oppure non soddisfatto

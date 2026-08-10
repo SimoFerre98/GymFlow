@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `05b1f81` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `4ee52a4` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**45 storie completate su 101** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**46 storie completate su 102** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -72,7 +72,7 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-036 | Il movimento a molla nei token, e sul cambio di voce della barra. `motor` installato |
 | US-062 | **La home apre con l'allenamento di oggi e una sola azione**: e la prima schermata del mockup 01 a schermo |
 
-**Stato di salute:** **55 avvisi**, **zero errori**, **492 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **17 avvisi**, **zero errori**, **492 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
 ### Le due storie consegnate da Agy, e cosa ha trovato la review
 
@@ -98,7 +98,9 @@ futuri**: chiedere all'esecutore la riga «Test rotto» funziona — l'ha compil
 casi — ma la mutazione che scegli tu è quella che il tuo test già prende. Le mutazioni che
 trovano i buchi le sceglie chi rivede.
 
-I 55 avvisi sono debito preesistente tracciato in **US-030**. Erano 63 fino a US-066 — che ne ha tolti sette riscrivendo la schermata delle misure — e 56 fino a US-008, che ha reso usato un import lasciato inutilizzato in `dashboard_screen.dart`. **Un calo va spiegato quanto un aumento**, e si spiega solo confrontando l'elenco con quello di `main`: in US-047 veniva da un rifacimento fuori mandato, in US-066 dal codice che la storia riscriveva davvero. Il baseline va rispettato: una storia che lo alza ha introdotto qualcosa, e va sistemato prima del merge.
+**I 17 avvisi rimasti non sono rumore.** US-030 ha fatto la pulizia di massa il 2026-08-10 — da 55 a 17 — con `dart fix` limitato alle regole che non possono cambiare comportamento, piu gli undici `print` e i doppi trattini bassi. **Cio che resta e stato lasciato di proposito**: sei typedef dai provider scritti come funzione, tre `BuildContext` usati dopo un `await` che sono difetti potenziali veri, due confronti con null, due blocchi di codice morto, e **tre variabili «non usate» che sono intenzioni non implementate** — l'ora che il dialogo di fine allenamento butta, «Azzera» che compare a cronometro su zero, un `_isLoading` scritto e mai letto. E **US-102**, e quelle tre non si cancellano: si implementano o si dichiarano.
+
+**Un calo va spiegato quanto un aumento**, e si spiega solo confrontando l'elenco con quello di `main`: in US-047 veniva da un rifacimento fuori mandato, in US-066 e US-008 dal codice che la storia riscriveva davvero.
 
 ### Dove è arrivata la grafica
 
