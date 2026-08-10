@@ -22,7 +22,7 @@
 | EP-005 | Design system Material 3 Expressive | 10 | 36 | Growth |
 | EP-006 | Localizzazione e accessibilità | 4 | 12 | Growth |
 | EP-007 | Qualità del codice e test automatizzati | 4 | 11 | Growth |
-| EP-009 | Contenuti degli esercizi | 5 | 15 | MVP |
+| EP-009 | Contenuti degli esercizi | 8 | 23 | MVP |
 | EP-010 | Sessione di allenamento | 6 | 22 | MVP |
 | EP-011 | Timer e gestione del tempo | 4 | 16 | MVP |
 | EP-012 | Obiettivi e traguardi | 4 | 12 | Growth |
