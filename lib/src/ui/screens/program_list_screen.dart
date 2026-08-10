@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/workout_program.dart';
-import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/core/providers/firestore_provider.dart';
+import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:intl/intl.dart';
@@ -16,10 +16,10 @@ class ProgramListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = AuthService().currentUser;
+    final userId = ref.watch(currentUserIdProvider);
     final loc = ref.watch(localizationNotifierProvider);
 
-    if (user == null) {
+    if (userId == null) {
       return const Scaffold(body: Center(child: Text('Login required')));
     }
 
@@ -36,7 +36,7 @@ class ProgramListScreen extends ConsumerWidget {
       ),
       drawer: const AppDrawer(),
       body: StreamBuilder<List<WorkoutProgram>>(
-        stream: FirestoreService().getUserPrograms(user.uid),
+        stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -66,7 +66,7 @@ class ProgramListScreen extends ConsumerWidget {
             itemCount: programs.length,
             itemBuilder: (context, index) {
               final program = programs[index];
-              return _buildProgramCard(context, program, loc);
+              return _buildProgramCard(context, ref, program, loc);
             },
           );
         },
@@ -112,6 +112,7 @@ class ProgramListScreen extends ConsumerWidget {
 
   Future<void> _confirmDelete(
     BuildContext context,
+    WidgetRef ref,
     WorkoutProgram program,
     Localization loc,
   ) async {
@@ -141,7 +142,7 @@ class ProgramListScreen extends ConsumerWidget {
     if (confirmed == true) {
       // ignore: use_build_context_synchronously
       try {
-        await FirestoreService().deleteProgram(program.id);
+        await ref.read(firestoreServiceProvider).deleteProgram(program.id);
         if (context.mounted) {
           ToastUtils.showInfo(context, loc.t('program_deleted'));
         }
@@ -155,6 +156,7 @@ class ProgramListScreen extends ConsumerWidget {
 
   Widget _buildProgramCard(
     BuildContext context,
+    WidgetRef ref,
     WorkoutProgram program,
     Localization loc,
   ) {
@@ -224,7 +226,7 @@ class ProgramListScreen extends ConsumerWidget {
                         icon: const Icon(Icons.more_vert),
                         onSelected: (value) {
                           if (value == 'delete') {
-                            _confirmDelete(context, program, loc);
+                            _confirmDelete(context, ref, program, loc);
                           }
                         },
                         itemBuilder: (context) => [

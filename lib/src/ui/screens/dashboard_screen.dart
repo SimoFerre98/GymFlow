@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:intl/intl.dart';
-import '../../services/auth_service.dart';
+import '../../core/providers/firestore_provider.dart';
+import '../../core/providers/live_metrics_provider.dart';
 import '../../models/session.dart';
 import '../../core/utils/statistics_helper.dart';
 import '../widgets/charts/activity_chart.dart';
@@ -10,13 +11,11 @@ import '../widgets/charts/body_measurements_chart.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/expressive_card.dart';
 import '../../core/theme/expressive_tokens.dart';
-import '../../services/health_service.dart';
 import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import 'health_detail_screen.dart';
-import '../../services/firestore_service.dart';
 import '../../models/workout_program.dart';
 import '../../models/workout.dart'; // WorkoutTemplate
 import 'active_session_screen.dart';
@@ -43,8 +42,9 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
   Future<Map<String, dynamic>> _initAndFetchHealth() async {
     if (kIsWeb) return {};
     try {
-      await HealthService().configure();
-      return await HealthService().fetchDailySummary();
+      final health = ref.read(healthServiceProvider);
+      await health.configure();
+      return await health.fetchDailySummary();
     } catch (e) {
       debugPrint('Health Load Error: $e');
       rethrow;
@@ -53,7 +53,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
 
   Future<void> _refreshHealthData() async {
     setState(() {
-      _healthDataFuture = HealthService().fetchDailySummary();
+      _healthDataFuture = ref.read(healthServiceProvider).fetchDailySummary();
     });
     try {
       await _healthDataFuture;
@@ -68,11 +68,10 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     // Legacy provider
     final loc = ref.watch(localizationNotifierProvider);
-    // Use AuthService directly to avoid provider generation issues
-    final user = AuthService().currentUser;
+    final user = ref.watch(currentUserProvider);
     final userName =
         user?.displayName ?? user?.email?.split('@')[0] ?? loc.t('athlete');
-    final userId = user?.uid ?? '';
+    final userId = ref.watch(currentUserIdProvider) ?? '';
     final sessionsAsync = ref.watch(dashboardSessionsProvider);
     final t = context.expressive;
     final scheme = Theme.of(context).colorScheme;
@@ -742,7 +741,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
             ),
             Expanded(
               child: StreamBuilder<List<WorkoutProgram>>(
-                stream: FirestoreService().getUserPrograms(userId),
+                stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -785,7 +784,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                           ),
                           ...program.workoutIds.asMap().entries.map((entry) {
                             return StreamBuilder<List<WorkoutTemplate>>(
-                              stream: FirestoreService().getUserWorkouts(
+                              stream: ref.watch(firestoreServiceProvider).getUserWorkouts(
                                 userId,
                               ),
                               builder: (context, wSnapshot) {

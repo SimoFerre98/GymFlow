@@ -7,8 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout.dart';
-import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
@@ -30,8 +29,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  final FirestoreService _firestore = FirestoreService();
-  final AuthService _auth = AuthService();
 
   @override
   void initState() {
@@ -41,11 +38,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   // Combine sessions and schedules into one stream
   Stream<Map<DateTime, List<dynamic>>> _getCalendarEvents(String userId) {
+    final firestore = ref.watch(firestoreServiceProvider);
     return Rx.combineLatest4(
-      _firestore.getUserSessions(userId),
-      _firestore.getUserScheduledWorkouts(userId),
-      _firestore.getSharedSessions(userId),
-      _firestore.getSharedScheduledWorkouts(userId),
+      firestore.getUserSessions(userId),
+      firestore.getUserScheduledWorkouts(userId),
+      firestore.getSharedSessions(userId),
+      firestore.getSharedScheduledWorkouts(userId),
       (
         List<WorkoutSession> mySessions,
         List<ScheduledWorkout> mySchedules,
@@ -95,10 +93,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = _auth.currentUser;
+    final userId = ref.watch(currentUserIdProvider);
     final loc = ref.watch(localizationNotifierProvider);
 
-    if (user == null) {
+    if (userId == null) {
       return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
 
@@ -117,7 +115,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showScheduleDialog(context, user.uid, loc),
+            onPressed: () => _showScheduleDialog(context, userId, loc),
           ),
         ],
       ),
@@ -135,7 +133,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
         child: SafeArea(
           child: StreamBuilder<Map<DateTime, List<dynamic>>>(
-            stream: _getCalendarEvents(user.uid),
+            stream: _getCalendarEvents(userId),
             builder: (context, snapshot) {
               final eventsMap = snapshot.data ?? {};
 
@@ -293,7 +291,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ElevatedButton.icon(
                 onPressed: () => _showScheduleDialog(
                   context,
-                  _auth.currentUser!.uid,
+                  ref.read(currentUserIdProvider)!,
                   loc,
                   initialDate: _selectedDay,
                 ),
@@ -349,7 +347,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ? '${loc.t('completed_at')} ${DateFormat('HH:mm').format((event as WorkoutSession).startTime)}'
         : '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}';
 
-    bool isMine = ownerId == _auth.currentUser?.uid;
+    bool isMine = ownerId == ref.read(currentUserIdProvider);
 
     final t = context.expressive;
     final scheme = Theme.of(context).colorScheme;
@@ -478,10 +476,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         );
       },
       onDismissed: (_) {
+        final firestore = ref.read(firestoreServiceProvider);
         if (isCompleted) {
-          _firestore.deleteSession(id);
+          firestore.deleteSession(id);
         } else {
-          _firestore.deleteScheduledWorkout(id);
+          firestore.deleteScheduledWorkout(id);
         }
         ToastUtils.showInfo(context, loc.t('event_deleted'));
       },
@@ -562,14 +561,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
               Expanded(
                 child: StreamBuilder<List<WorkoutTemplate>>(
-                  stream: _firestore.getUserWorkouts(userId),
+                  stream: ref.read(firestoreServiceProvider).getUserWorkouts(userId),
                   builder: (context, workoutsSnapshot) {
                     if (!workoutsSnapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
                     return StreamBuilder<List<WorkoutProgram>>(
-                      stream: _firestore.getUserPrograms(userId),
+                      stream: ref.read(firestoreServiceProvider).getUserPrograms(userId),
                       builder: (context, programsSnapshot) {
                         // We don't block on loading programs, just show default if not ready
                         final programs = programsSnapshot.data ?? [];
@@ -622,7 +621,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   workoutName: workout.name,
                                   scheduledDate: date,
                                 );
-                                await _firestore.scheduleWorkout(schedule);
+                                await ref.read(firestoreServiceProvider).scheduleWorkout(schedule);
                                 if (mounted) Navigator.of(context).pop();
                               },
                               child: Container(
