@@ -1,0 +1,37 @@
+// Regole di sicurezza Firestore — database `gymflow`
+//
+// ⚠️ QUESTO FILE È LO STATO TROVATO IN PRODUZIONE IL 2026-08-10, NON UNA
+// PROPOSTA. È versionato così com'è perché US-018 esiste per rendere visibile
+// ciò che nessuno poteva leggere, e perché la storia deve mostrare da dove si
+// parte.
+//
+// SONO LE REGOLE DI PROVA GENERATE ALLA CREAZIONE DEL DATABASE, CON LA LORO
+// SCADENZA: `request.time < timestamp.date(2026, 2, 24)`.
+//
+// Quella condizione è **falsa dal 24 febbraio 2026**. Da quel giorno Firestore
+// nega ogni lettura e ogni scrittura a chiunque, e l'app funziona solo con ciò
+// che non passa da Firestore.
+//
+// Verificato sul dispositivo il 2026-08-10, non dedotto: sei `PERMISSION_DENIED`
+// in dodici secondi di avvio, su `sessions`, `programs` e `users`.
+//
+// Spiega, tutti insieme:
+//   - lo storico degli allenamenti vuoto sulla dashboard;
+//   - «Nuovo esercizio» che non salva niente (US-079);
+//   - US-045 morta con `permission-denied`, e US-072 nata per aggirarla;
+//   - l'errore su `ensureFriendCode` all'avvio;
+//   - la query sugli esercizi che «restituiva sempre zero documenti».
+//
+// La sostituzione non è in questo commit: richiede una decisione di prodotto
+// sulla condivisione fra amici, che nel codice attuale ha bisogno di leggere e
+// scrivere documenti di altri utenti. Vedi US-018 nel backlog.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if
+        request.time < timestamp.date(2026, 2, 24);
+    }
+  }
+}
