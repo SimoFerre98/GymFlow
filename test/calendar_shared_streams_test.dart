@@ -53,7 +53,7 @@ void main() {
       // lista vuota — che e la verita, di condivisi non ce ne sono.
       final negatoMaGentile = Stream<int>.error(
         Exception('PERMISSION_DENIED'),
-      ).onErrorReturnWith((_, __) => 0);
+      ).onErrorReturnWith((_, _) => 0);
 
       final unite = Rx.combineLatest4<int, int, int, int, int>(
         funzionante(1),
