@@ -351,7 +351,7 @@ Dopo questa storia: `app.dart` contiene solo `MaterialApp`, senza alcun `MultiPr
 
 **Epic:** EP-002 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-001 | **Blocks:** US-009, US-011, US-017
-**Status:** 📋 PLANNED — mandato in [`planning/US-008.md`](planning/US-008.md) · **delegabile**: il piano ha verificato che i tre provider esistono già, e con essi è sparito l'unico pezzo rischioso
+**Status:** ✅ DONE — piano in [`planning/US-008.md`](planning/US-008.md), review in [`planning/US-008-review.md`](planning/US-008-review.md) · implementata da Gemini, review indipendente · **ha abbassato il baseline degli avvisi da 56 a 55**
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -362,10 +362,12 @@ così da poterli sostituire con dei doppi nei test e da non ricreare oggetti a o
 Dopo questa storia: le tre schermate più usate dell'app non contengono più alcuna chiamata a `FirestoreService()` o `AuthService()`.
 
 **Acceptance Criteria**
-- [ ] `dashboard_screen.dart`, `calendar_screen.dart` e `home_screen.dart` ottengono i servizi da provider Riverpod
-- [ ] Nessuna di queste tre schermate contiene l'istanziazione diretta `FirestoreService()` o `AuthService()`
-- [ ] Esiste un provider per `AuthService` analogo a `firestoreServiceProvider`
-- [ ] Il comportamento funzionale delle tre schermate è invariato
+- [x] `dashboard_screen.dart`, `calendar_screen.dart` e **`program_list_screen.dart`** ottengono i servizi da provider Riverpod — il criterio diceva `home_screen.dart`, che **US-025 ha cancellato**: era il duplicato non convertito
+- [x] Nessuna di queste tre schermate contiene l'istanziazione diretta `FirestoreService()`, `AuthService()` o `HealthService()` — nove test sul sorgente, tre per file
+- [ ] ⚠️ **Non soddisfatto per scelta, e dichiarato:** non esiste un `authServiceProvider` analogo a `firestoreServiceProvider`, **e non deve esistere**. Tutti gli usi di `AuthService` in queste schermate erano `currentUser`, per cui `currentUserProvider` e `currentUserIdProvider` esistevano già. Un provider in più scritto come funzione avrebbe aggiunto un typedef deprecato e **alzato il baseline**. Il criterio è scritto male: chiede un mezzo invece di un fine
+- [x] Il comportamento funzionale delle tre schermate è invariato — con un'eccezione trovata e corretta in review: il saluto della dashboard mostrava «Atleta» per un frame, perché `currentUserProvider` deriva da uno stream e non aveva il ripiego sincrono che `currentUserIdProvider` ha sempre avuto
+- [x] ⭐ **Un servizio finto sostituisce quello vero, e la schermata lo usa** — `ProgramListScreen` montata con `firestoreServiceProvider.overrideWithValue`. **Provato**: togliendo alla schermata la chiamata al servizio, i nove test sul sorgente restano verdi e solo il montaggio diventa rosso
+- [ ] ⚠️ **Limite dichiarato:** `DashboardScreen` e `CalendarScreen` **non si montano** in un test, perché dipendono da `isarDatabaseProvider` e `sessionSyncProvider`. La loro iniezione è verificata come *scrittura*, non come *funzionamento*. Renderle montabili è lavoro di **US-009** o di una storia sua
 
 ---
 
@@ -2954,4 +2956,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[94 storie in 17 epiche — 304 story points totali · 3 storie accantonate in EP-008 · 39 completate]_
+_[94 storie in 17 epiche — 304 story points totali · 3 storie accantonate in EP-008 · 40 completate]_
