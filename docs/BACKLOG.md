@@ -2678,7 +2678,7 @@ Fuori scope: la grafica della schermata (**US-051**, che la ridisegna sul mockup
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-093 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — 📋 **delegabile**, ma va prima deciso se serve
+**Status:** 📋 PLANNED — mandato in [`planning/US-094.md`](planning/US-094.md) · **delegabile** · ✅ **deciso dall'utente il 2026-08-10: il pulsante si collega**, non si rimuove
 
 > Trovato durante la review di **US-082**. In `active_session_screen.dart`, accanto al campo dei secondi delle serie isometriche, c'è un `IconButton` con l'icona del timer il cui gestore mostra un toast e nient'altro: la chiave dice `'Timer avviato (solo visuale)'`. **Non mente** — dichiara di non fare niente — ma è un controllo che occupa spazio sulla schermata più usata dell'app.
 >
@@ -2695,7 +2695,7 @@ così da non aprire un'altra schermata mentre sono in posizione.
 Dopo questa storia: il pulsante avvia il conto alla rovescia sui secondi della serie, oppure non esiste più.
 
 **Acceptance Criteria**
-- [ ] **Decisione presa e scritta**: il pulsante avvia il timer, oppure viene rimosso. Non resta un abbozzo
+- [x] **Decisione presa**: il pulsante **avvia il timer**. Deciso dall'utente il 2026-08-10, con la ragione: un plank di 45 secondi si fa col telefono appoggiato, e un timer accanto al campo vale più di uno in un'altra schermata
 - [ ] Se avvia: la durata è quella scritta nel campo dei secondi di quella serie
 - [ ] Se avvia: si vede che sta scorrendo senza uscire dalla sessione
 - [ ] Se avvia: la stringa `timer_started_msg` smette di dire «solo visuale», in EN e IT
@@ -2813,7 +2813,7 @@ Dopo questa storia: il volume di uno storico con mezzi chili è esatto, e un tes
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-093 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — 🚧 **verificare se serve una dipendenza**: da approvare prima di iniziare
+**Status:** ⬜ TODO — ✅ **deciso dall'utente il 2026-08-10**: **vibrazione adesso**, suono rimandato a US-053/US-054 dove lo farà Android con la notifica. Con **controlli in Impostazioni**. 🚧 Resta un cancello, ed è cambiato: vedi la nota sull'haptic
 
 > Chiesto dall'utente il 2026-08-10, provando il cronometro: «potremmo aggiungere quando il timer scade la vibrazione e un suono».
 >
@@ -2825,15 +2825,36 @@ voglio sentire quando il tempo è finito,
 così da tornare sotto il bilanciere senza contare a mente.
 
 **Acceptance Criteria**
-- [ ] A zero il telefono vibra
-- [ ] A zero suona, e il suono si sente in palestra ma non spaventa
-- [ ] Si può disattivare l'uno, l'altro, o entrambi
-- [ ] Rispetta il silenzioso di sistema, e la scelta è dichiarata: se in silenzioso vibra soltanto, va scritto
-- [ ] Niente vibrazione o suono se il timer viene azzerato a mano prima della scadenza
-- [ ] **Da confermare sul dispositivo**: nessun test può dimostrare che si sente
+- [ ] A zero il telefono vibra, e la vibrazione è **decisa**: non un tocco breve
+- [ ] Provata `HapticFeedback.heavyImpact()` (anche ripetuta) **prima** di chiedere una dipendenza, e **dichiarato sul dispositivo** se basta o no
+- [ ] In Impostazioni si scelgono vibrazione e — quando ci sarà — suono, e se ignorare il silenzioso
+- [ ] La scelta è ricordata fra un avvio e l'altro
+- [ ] Niente vibrazione se il timer viene azzerato a mano prima della scadenza
+- [ ] Il suono **non** è in questa storia: arriva con US-053/US-054
+- [ ] **Da confermare sul dispositivo**: nessun test può dimostrare che una vibrazione si sente decisa
 
 **Note**
-⚠️ La vibrazione può passare da `HapticFeedback` di Flutter, che non richiede pacchetti. Il **suono** probabilmente sì: va verificato e **chiesto prima**.
+
+### Le decisioni prese il 2026-08-10
+
+1. **Vibrazione adesso, suono no.** Il suono arriva con **US-053/US-054**, che portano il timer fuori dall'app con codice nativo: lì lo fa Android da sé con la notifica, e aggiungere un pacchetto adesso sarebbe lavoro buttato.
+2. **I controlli stanno in Impostazioni**, e l'utente decide: vibrazione sì/no, suono sì/no quando ci sarà, e **se ignorare il silenzioso**.
+3. **La vibrazione deve essere un feedback deciso, non «moscio».** Richiesta esplicita dell'utente: «in stile iPhone».
+
+### ⚠️ Il nodo tecnico, verificato nel sorgente dell'SDK e non supposto
+
+L'intestazione di `packages/flutter/lib/src/services/haptic_feedback.dart` dichiara che quella API **«is not suitable for precise control of the system's haptic feedback module»**. E su Android le sue chiamate diventano costanti di sistema: `vibrate()` → `HapticFeedbackConstants.LONG_PRESS`, `lightImpact()` → `VIRTUAL_KEY`. Sono **tocchi brevi tarati dal produttore**, non pattern con ampiezza e durata.
+
+Un timer che scade vuole una vibrazione **sostenuta**, non un tocco. Quindi:
+
+- **`HapticFeedback.heavyImpact()`, eventualmente ripetuto**, è la strada senza dipendenze. Va provata sul telefono per prima: potrebbe bastare, e costa zero.
+- **Se risulta «moscia», la richiesta dell'utente non è soddisfacibile con Flutter puro**, e serve il controllo su ampiezza e pattern: un pacchetto tipo `vibration`, oppure un canale di piattaforma verso `VibrationEffect` di Android. **Questo è il cancello**, ed è una decisione dell'utente.
+
+**La prova è sul dispositivo e non delegabile a un test**: nessuna asserzione può dire se una vibrazione si sente decisa.
+
+### Sul silenzioso, un fatto che cambia il criterio
+
+Su Android il silenzioso zittisce i flussi di **suoneria e notifica**, non quello **multimediale**. Un suono di timer riprodotto sul flusso media **si sente anche in silenzioso** — quindi «ignora il silenzioso» non è una forzatura del sistema, è la scelta del flusso su cui suonare. Va scritto nella storia del suono, non inventato allora.
 
 ---
 
