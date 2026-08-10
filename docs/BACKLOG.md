@@ -2707,7 +2707,7 @@ Dopo questa storia: il pulsante avvia il conto alla rovescia sui secondi della s
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-062 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-095.md`](planning/US-095.md) · **delegabile**, con l'avvertimento che conta scritto al punto 1 del piano: **e uno spostamento, non una riscrittura**
+**Status:** ✅ DONE — piano in [`planning/US-095.md`](planning/US-095.md), review in [`planning/US-095-review.md`](planning/US-095-review.md) · implementata da Gemini · **la consegna migliore ricevuta**: numeri veri al primo colpo, e il rilievo l'ha trovato l'autore stesso nei dubbi
 
 > ⚠️ **Aperta il 2026-08-10, pianificando US-062.** Il mockup 01 disegna la home **senza** le quattro tessere di statistiche, la sezione salute, lo storico e i grafici che `dashboard_screen.dart` mostra oggi: li mette su un riquadro **«Statistiche»** che nel backlog non aveva una storia.
 >
@@ -2724,11 +2724,12 @@ così da consultarli quando mi interessano invece di attraversarli ogni volta ch
 Dopo questa storia: la home mostra solo l'allenamento di oggi, e statistiche, salute e grafici hanno una schermata loro.
 
 **Acceptance Criteria**
-- [ ] Esiste una schermata Statistiche raggiungibile, e si vede da dove si raggiunge
-- [ ] Le quattro tessere, la sezione salute, lo storico e i grafici sono **spostati**, non riscritti da zero: l'elenco di cosa c'era e cosa c'è va dichiarato voce per voce
-- [ ] La home resta con il solo blocco di US-062
-- [ ] Nessun dato che l'utente vedeva prima diventa irraggiungibile
-- [ ] La schermata segue il design system, e entra nella lista sorvegliata da `design_system_usage_test.dart`
+- [x] Esiste una schermata Statistiche raggiungibile — dal menu **e** da un'icona nella barra in alto della home: una schermata raggiungibile solo dal menu è una schermata che nessuno apre, ed è la lezione di US-070
+- [x] Le quattro tessere, la sezione salute, lo storico e i grafici sono **spostati**, non riscritti — verificato confrontando le righe uscite dalla dashboard con quelle entrate: le sole genuinamente nuove sono l'intelaiatura. `_buildHealthSection` è identica riga per riga, e **spostata rotta** perché Health Connect nega i passi (US-100)
+- [x] La home resta con il solo blocco di US-062
+- [x] Nessun dato è diventato irraggiungibile — le quattro tessere sono le stesse quattro, con le stesse chiamate a `StatisticsHelper`
+- [x] La schermata è nella lista sorvegliata da `design_system_usage_test.dart`, **nello stesso commit in cui nasce**
+- [ ] Nel trasloco non si è rotto niente: quattro tessere coi numeri giusti, due grafici che disegnano, storico che elenca — **da confermare sull'APK**, perché la verifica dello spostamento è tutta sul sorgente
 
 ---
 
@@ -3183,4 +3184,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[102 storie in 17 epiche — 324 story points totali · 3 storie accantonate in EP-008 · 46 completate]_
+_[102 storie in 17 epiche — 324 story points totali · 3 storie accantonate in EP-008 · 47 completate]_

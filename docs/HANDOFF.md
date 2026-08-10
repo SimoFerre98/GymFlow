@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `4ee52a4` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `d97cb53` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**46 storie completate su 102** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**47 storie completate su 102** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -71,8 +71,9 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-008 | I servizi arrivano dai provider nelle tre schermate principali, e per la prima volta **un test monta una schermata vera** con un servizio finto |
 | US-036 | Il movimento a molla nei token, e sul cambio di voce della barra. `motor` installato |
 | US-062 | **La home apre con l'allenamento di oggi e una sola azione**: e la prima schermata del mockup 01 a schermo |
+| US-095 | Le statistiche hanno una schermata loro, e la home resta corta com'e disegnata |
 
-**Stato di salute:** **17 avvisi**, **zero errori**, **492 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **17 avvisi**, **zero errori**, **501 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
 ### Le due storie consegnate da Agy, e cosa ha trovato la review
 
@@ -387,6 +388,7 @@ Nessuna di queste blocca il lavoro, ma ognuna è un criterio non spuntato in una
 | Il calendario funziona ancora: eventi visibili, allenamento programmato, cancellazione con lo scorrimento | e la schermata col diff piu grosso di US-008 e **nessun test la monta** | US-008 |
 | Il saluto della dashboard mostra il nome dal primo istante, non «Atleta» | apri l'app | US-008 |
 | L'assestamento a molla sul cambio voce si vede, non risulta lento, e non costa piu di 16 ms | tocca le tre voci della barra, avanti e indietro | US-036 |
+| Nel trasloco di US-095 non si e rotto niente: quattro tessere coi numeri giusti, due grafici che disegnano, storico che elenca | menu → Statistiche, o l'icona in alto sulla home | US-095 |
 | ⭐ **La home nuova si legge, e senza l'anello non risulta povera.** Se lo fosse, la risposta non e rimettere i numeri finti: e sbloccare US-059 e fare US-063 | apri l'app | US-062 |
 | ⭐ **L'evento programmato compare nel calendario.** Se ancora non compare, il difetto e nella **scrittura** e non nella lettura, e va cercato altrove | Calendario → «+», oppure «programma allenamento» | US-098 |
 | Creare un esercizio non fa piu schermata rossa. **E se ne fa una che dice `_dependents.isEmpty`, serve lo stack**: `adb logcat -c`, riprodurre, `adb logcat -d \| grep -A40 dependents` | Menu → Esercizi → «+» | US-097, US-081 |
