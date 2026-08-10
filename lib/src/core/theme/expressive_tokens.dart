@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motor/motor.dart';
 
 /// Token del design system Material 3 Expressive.
 ///
@@ -258,6 +259,25 @@ class ExpressiveMotion {
 
   /// Movimento marcato, per le transizioni che devono farsi notare.
   Curve get emphasizedCurve => Easing.emphasizedDecelerate;
+
+  /// La molla del mockup 03: `cubic-bezier(.34,1.56,.64,1)`.
+  ///
+  /// Supera l'unita e torna, quindi «rimbalza». Non e in `Easing`, che copre solo
+  /// le curve di Material 3, e non e `Curves.easeOutBack`, che rimbalza meno
+  /// (`Cubic(0.175, 0.885, 0.32, 1.275)`). Si scrive, non si approssima.
+  Curve get spring => const Cubic(0.34, 1.56, 0.64, 1);
+
+  /// Molla fisica veloce a rimbalzo minimo, per controlli reattivi.
+  SpringMotion get springSnappy =>
+      const MaterialSpringMotion.standardSpatialFast();
+
+  /// Molla fisica media e bilanciata, per pannelli e transizioni fluide.
+  SpringMotion get springSmooth =>
+      const MaterialSpringMotion.standardSpatialDefault();
+
+  /// Molla fisica marcata con rimbalzo evidente, per gesti espressivi.
+  SpringMotion get springExpressive =>
+      const MaterialSpringMotion.expressiveSpatialDefault();
 }
 
 /// Stili tipografici che Material 3 Expressive aggiunge e Flutter non ha.
