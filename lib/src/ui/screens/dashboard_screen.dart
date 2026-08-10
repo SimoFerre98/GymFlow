@@ -44,32 +44,58 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar.large(
-              title: null,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: EdgeInsets.only(
-                  left: t.spacing.lg,
-                  bottom: t.spacing.lg,
+              // Il titolo della SliverAppBar viene mostrato automaticamente da 
+              // Material quando la barra è compressa, ed è già impaginato
+              // correttamente fra il cassetto e le azioni.
+              title: Text(
+                userName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                // Utilizziamo lo stesso stile previsto per il nome, adattato
+                style: t.typography.titleEmphasized?.copyWith(
+                  color: scheme.onSurface,
                 ),
-                title: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      loc.t('welcome_back'),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
+              ),
+              // flexibleSpace ospita il layout espanso (che dissolve in uscita).
+              // Usiamo LayoutBuilder come suggerito per nascondere il titolo espanso 
+              // quando compresso, per evitare sovrapposizioni o scaling errati.
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompressed = constraints.maxHeight <= kToolbarHeight + MediaQuery.paddingOf(context).top + 1.0;
+                  
+                  return FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.only(
+                      left: t.spacing.lg,
+                      bottom: t.spacing.lg,
                     ),
-                    Text(
-                      userName,
-                      style: t.typography.titleEmphasized?.copyWith(
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
+                    // Nascondiamo il blocco a due righe quando la barra è compressa.
+                    // Material gestirà la comparsa del `title` della SliverAppBar.
+                    title: isCompressed 
+                        ? const SizedBox.shrink()
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                loc.t('welcome_back'),
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.typography.titleEmphasized?.copyWith(
+                                  color: scheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                  );
+                },
               ),
               actions: [
                 // Navigazione verso Statistiche (richiesta da US-095)
