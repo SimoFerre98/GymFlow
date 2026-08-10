@@ -809,7 +809,7 @@ Dopo questa storia: i badge della sezione obiettivi usano forme della libreria E
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-033 | **Blocks:** US-037, US-038, US-051
-**Status:** 📋 PLANNED — mandato in [`planning/US-036.md`](planning/US-036.md) · **delegabile**: `motor 1.1.0` è già installato e verificato, quindi l'esecutore non tocca `pubspec.yaml`
+**Status:** ✅ DONE — piano in [`planning/US-036.md`](planning/US-036.md), review in [`planning/US-036-review.md`](planning/US-036-review.md) · implementata da Gemini, review indipendente · **due criteri restano aperti e dichiarati**
 
 **Story**
 Come atleta che interagisce con l'app,
@@ -820,13 +820,13 @@ così da percepire l'interfaccia come reattiva e viva.
 Dopo questa storia: aprire l'avvio rapido e cambiare scheda produce transizioni a molla interrompibili a metà.
 
 **Acceptance Criteria**
-- [ ] È disponibile un insieme di token di movimento a molla distinti per espressività e velocità
-- [ ] I token sono esposti dalla stessa `ThemeExtension` degli altri token Expressive
-- [ ] Il cambio di scheda nella navigazione principale usa il movimento a molla
-- [ ] L'apertura del pannello di avvio rapido usa il movimento a molla
-- [ ] Un'animazione interrotta a metà da un nuovo gesto riparte dalla posizione e dalla velocità correnti, senza scatti
-- [ ] Con le animazioni di sistema disattivate, le transizioni degradano a cambi immediati senza errori
-- [ ] Le durate esistenti sono espresse tramite i token `Durations` invece che con valori numerici
+- [x] È disponibile un insieme di token di movimento a molla distinti per espressività e velocità — `springSnappy`, `springSmooth`, `springExpressive`, più la curva `spring` del mockup
+- [x] I token sono esposti dalla stessa `ThemeExtension` degli altri token Expressive — in `ExpressiveMotion`, letti da `context.expressive.motion`
+- [x] ⚠️ **Parzialmente, e dichiarato:** il cambio di voce anima il **contenuto** con la molla, via `SpringPageTransition`. La pillola interna di `GNav` no: il pacchetto accetta solo un `Duration` e anima da sé. Il carattere a molla dei bottoni arriva con **US-038**, che sostituisce `GNav`
+- [ ] ❌ **Non soddisfatto, e il criterio è scritto male:** «il pannello di avvio rapido» **non esiste in `lib/`**. Verificato durante la storia e correttamente non spuntato per assonanza. Il criterio va riscritto quando quel pannello esisterà, o rimosso
+- [x] ⭐ Un'animazione interrotta a metà riparte da posizione e velocità correnti — **è l'unico criterio che una curva non può soddisfare, e quello che giustifica `motor`**: a 100 ms valore ~19,6 con velocità positiva, cambiato obiettivo prosegue a ~36,8 senza azzerarsi
+- [x] Con le animazioni di sistema disattivate le transizioni degradano a cambi immediati — corretto in review: prima era provato su un widget scritto nel file di test, ora su `SpringPageTransition`
+- [x] Le durate esistenti sono espresse tramite i token — nei file in ambito. Le cinque trovate altrove sono **elencate nella review e non corrette**: andarle a caccia in tutta l'app sarebbe un rifacimento fuori mandato
 
 ---
 
@@ -3019,4 +3019,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[96 storie in 17 epiche — 310 story points totali · 3 storie accantonate in EP-008 · 40 completate]_
+_[96 storie in 17 epiche — 310 story points totali · 3 storie accantonate in EP-008 · 41 completate]_

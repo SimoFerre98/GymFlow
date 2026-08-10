@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `dfa5a50` su `main` e `dev`
+**Aggiornato:** 2026-08-10 · **Commit:** `d717b93` su `main` e `dev`
 
 Questo documento serve a chi riprende il lavoro in una sessione nuova, con un altro modello o senza la cronologia della conversazione. Contiene **ciò che non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente, e il livello di rigore atteso.
 
@@ -18,7 +18,7 @@ Da leggere in quest'ordine:
 
 ## 1. Dove siamo
 
-**40 storie completate su 94** · tag `v0.1.0` marca la fine del risanamento tecnico.
+**41 storie completate su 96** · tag `v0.1.0` marca la fine del risanamento tecnico.
 
 ### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
 
@@ -69,8 +69,9 @@ deliberatamente — vedi **US-080**. Lo storico è tornato: tredici sessioni sul
 | US-082 | La sessione attiva, la schermata piu usata, prende i colori e le misure del design system |
 | US-093 | **Il cronometro e il timer rispondono di nuovo ai tasti**: due viste non si iscrivevano allo stato, e lo schermo restava fermo sul primo frame |
 | US-008 | I servizi arrivano dai provider nelle tre schermate principali, e per la prima volta **un test monta una schermata vera** con un servizio finto |
+| US-036 | Il movimento a molla nei token, e sul cambio di voce della barra. `motor` installato |
 
-**Stato di salute:** **55 avvisi**, **zero errori**, **458 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
+**Stato di salute:** **55 avvisi**, **zero errori**, **466 test verdi** (erano 102 a inizio progetto), CI verde su entrambi i branch.
 
 ### Le due storie consegnate da Agy, e cosa ha trovato la review
 
@@ -382,6 +383,7 @@ Nessuna di queste blocca il lavoro, ma ognuna è un criterio non spuntato in una
 | **Il cronometro scorre e il conto alla rovescia scende** | Menu → Cronometro, tocca Avvia | US-093 |
 | Il calendario funziona ancora: eventi visibili, allenamento programmato, cancellazione con lo scorrimento | e la schermata col diff piu grosso di US-008 e **nessun test la monta** | US-008 |
 | Il saluto della dashboard mostra il nome dal primo istante, non «Atleta» | apri l'app | US-008 |
+| L'assestamento a molla sul cambio voce si vede, non risulta lento, e non costa piu di 16 ms | tocca le tre voci della barra, avanti e indietro | US-036 |
 
 ### Decisioni di prodotto lasciate aperte dalle storie chiuse
 
