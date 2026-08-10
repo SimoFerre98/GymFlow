@@ -292,6 +292,15 @@ class Localization {
     'enter_weight': 'Enter weight',
     'measurements_saved': 'Measurements saved',
     'no_measurements': 'No measurements yet',
+    'home_in_progress': 'In progress',
+    'home_day_of': 'Day %s / %s',
+    'home_resume_workout': 'Resume workout',
+    'home_no_active_program': 'No active program',
+    'home_create_program_prompt': 'Create a workout program to get started.',
+    'home_create_program_action': 'Create program',
+    'home_today_in_workout': 'Today in workout',
+    'home_min': 'min',
+    'home_exercises': 'exercises',
   };
 
   static final Map<String, String> _it = {
@@ -569,6 +578,15 @@ class Localization {
     'enter_weight': 'Inserisci peso',
     'measurements_saved': 'Misurazioni salvate',
     'no_measurements': 'Nessuna misurazione',
+    'home_in_progress': 'In corso',
+    'home_day_of': 'Giorno %s / %s',
+    'home_resume_workout': 'Riprendi l\'allenamento',
+    'home_no_active_program': 'Nessuna scheda attiva',
+    'home_create_program_prompt': 'Crea una scheda di allenamento per iniziare.',
+    'home_create_program_action': 'Crea scheda',
+    'home_today_in_workout': 'Oggi in scheda',
+    'home_min': 'min',
+    'home_exercises': 'esercizi',
   };
 }
 

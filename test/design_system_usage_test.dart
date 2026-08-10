@@ -20,6 +20,20 @@ void main() {
     'lib/src/ui/screens/active_session_screen.dart',
   ];
 
+  /// I widget nati per i mockup, sorvegliati con le stesse regole delle
+  /// schermate ma **non** con le ultime due voci del file, che parlano di
+  /// `ExpressiveCard` e del titolo di una schermata.
+  ///
+  /// Il piano di US-062 li voleva in questa lista, e non c'erano: e cosi che
+  /// cinque `fontSize: 8.5` — i pixel del mockup — sono arrivati fino alla
+  /// review senza che niente si accorgesse.
+  const widgetDeiMockup = <String>[
+    'lib/src/ui/widgets/home_hero_card.dart',
+    'lib/src/ui/widgets/progress_ring.dart',
+  ];
+
+  const sorvegliati = <String>[...schermate, ...widgetDeiMockup];
+
   /// Righe di codice, senza i commenti: un valore citato in un commento che
   /// spiega **perché** non c'è più non è una violazione.
   List<String> righeDiCodice(String percorso) {
@@ -31,7 +45,7 @@ void main() {
         .toList();
   }
 
-  for (final percorso in schermate) {
+  for (final percorso in sorvegliati) {
     final nome = percorso.split('/').last;
 
     group(nome, () {

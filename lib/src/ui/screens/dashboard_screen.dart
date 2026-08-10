@@ -20,6 +20,10 @@ import '../../models/workout_program.dart';
 import '../../models/workout.dart'; // WorkoutTemplate
 import 'active_session_screen.dart';
 import 'workout_summary_screen.dart';
+import '../widgets/home_hero_card.dart';
+import '../widgets/exercise_row.dart';
+import '../../models/exercise.dart';
+import '../../core/providers/exercise_provider.dart';
 
 class DashboardScreen extends riverpod.ConsumerStatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -162,6 +166,11 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
           onRefresh: _refreshHealthData,
           child: CustomScrollView(
             slivers: [
+              // HERO BLOCK (Nuovo)
+              SliverToBoxAdapter(
+                child: _buildHomeHeroBlock(context, userId, loc),
+              ),
+
               // TOGGLE (Pill)
               SliverToBoxAdapter(
                 child: Center(
@@ -706,6 +715,152 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildHomeHeroBlock(BuildContext context, String userId, Localization loc) {
+    return StreamBuilder<List<WorkoutProgram>>(
+      stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
+      builder: (context, programSnap) {
+        final programs = programSnap.data ?? [];
+        final activeProgram = programs.where((p) => p.isActive).firstOrNull;
+
+        if (activeProgram == null) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: context.expressive.spacing.lg,
+              right: context.expressive.spacing.lg,
+              top: context.expressive.spacing.lg,
+            ),
+            child: HomeHeroCard(
+              hasActiveProgram: false,
+              onAction: () {},
+              locInProgress: loc.t('home_in_progress'),
+              formattedDay: '',
+              locResume: loc.t('home_resume_workout'),
+              locNoActive: loc.t('home_no_active_program'),
+              locCreatePrompt: loc.t('home_create_program_prompt'),
+              locCreateAction: loc.t('home_create_program_action'),
+              locMin: loc.t('home_min'),
+              locExercises: loc.t('home_exercises'),
+            ),
+          );
+        }
+
+        return StreamBuilder<List<WorkoutTemplate>>(
+          stream: ref.watch(firestoreServiceProvider).getUserWorkouts(userId),
+          builder: (context, workoutSnap) {
+            final workouts = workoutSnap.data ?? [];
+            final currentWorkoutId = activeProgram.workoutIds.firstOrNull;
+            final currentWorkout = workouts.where((w) => w.id == currentWorkoutId).firstOrNull;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: context.expressive.spacing.lg,
+                right: context.expressive.spacing.lg,
+                top: context.expressive.spacing.lg,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HomeHeroCard(
+                    hasActiveProgram: true,
+                    programName: activeProgram.name,
+                    workoutName: currentWorkout?.name ?? '',
+                    // ⚠️ Giorno, avanzamento e durata **non si passano**, perche
+                    // non sappiamo calcolarli: il «3 / 5», il «72%» e i «45 min»
+                    // erano i numeri d'esempio del mockup scritti a mano, cioe un
+                    // avanzamento finto mostrato a ogni utente, sempre lo stesso.
+                    //
+                    // «A che punto sono dentro la scheda» e US-063, che dipende
+                    // da US-059: finche non c'e, la card mostra cio che sappiamo
+                    // — quale allenamento e di oggi, quanti esercizi, e l'azione
+                    // per iniziarlo — e tace sul resto. Un numero inventato e
+                    // peggio di un numero assente.
+                    totalDays: activeProgram.workoutIds.length,
+                    exerciseCount: currentWorkout?.exercises.length ?? 0,
+                    onAction: () {
+                      if (currentWorkout != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ActiveSessionScreen(
+                              workout: currentWorkout,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    locInProgress: loc.t('home_in_progress'),
+                    // Vuoto, e la card lo omette: il «3» era scritto a mano.
+                    formattedDay: '',
+                    locResume: loc.t('home_resume_workout'),
+                    locNoActive: loc.t('home_no_active_program'),
+                    locCreatePrompt: loc.t('home_create_program_prompt'),
+                    locCreateAction: loc.t('home_create_program_action'),
+                    locMin: loc.t('home_min'),
+                    locExercises: loc.t('home_exercises'),
+                  ),
+                  SizedBox(height: context.expressive.spacing.xl),
+                  Text(
+                    loc.t('home_today_in_workout'),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: context.expressive.spacing.md),
+                  if (currentWorkout != null) ..._buildExercisesList(context, currentWorkout),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildExercisesList(BuildContext context, WorkoutTemplate workout) {
+    final exercisesAsync = ref.watch(exercisesProvider);
+    final allExercises = exercisesAsync.valueOrNull ?? [];
+    
+    return workout.exercises.map((we) {
+      final ex = allExercises.firstWhere(
+        (e) => e.id == we.exerciseId,
+        orElse: () => Exercise(
+          id: we.exerciseId,
+          name: we.exerciseName,
+          description: '',
+          type: ExerciseType.strength,
+          musclesTargeted: [],
+        ),
+      );
+
+      final metaText = '${we.targetSets} × ${we.targetReps} · ${we.targetWeight} kg';
+      final gruppo = ex.musclesTargeted.isNotEmpty
+          ? ex.musclesTargeted.first
+          : null;
+
+      return Padding(
+        padding: EdgeInsets.only(bottom: context.expressive.spacing.sm),
+        child: ExerciseRow(
+          exercise: ex,
+          // `labelSmall` e non `fontSize: 8.5`: quel numero erano i pixel del
+          // mockup, che in dp sono 11,6. Il ruolo segue anche la dimensione di
+          // testo scelta nelle impostazioni di sistema.
+          subtitle: Text(
+            metaText,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.55),
+            ),
+          ),
+          // Se il gruppo muscolare non c'e, la pillola **non si mostra**. Prima
+          // il ripiego era la stringa `'Forza'` scritta a mano: inventava un
+          // dato che non abbiamo, e in inglese non sarebbe stata tradotta.
+          trailing: gruppo == null ? null : HomeMetaPill(testo: gruppo),
+        ),
+      );
+    }).toList();
   }
 
   void _showQuickStartMenu(
