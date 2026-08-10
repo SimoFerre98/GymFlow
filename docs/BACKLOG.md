@@ -999,7 +999,7 @@ Dopo questa storia: le tre schermate più usate non contengono testo non tradott
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-026 | **Blocks:** US-067
-**Status:** 📋 PLANNED — mandato in [`planning/US-027.md`](planning/US-027.md) · **delegabile** · il rischio non sono le stringhe dimenticate, sono quelle **tradotte per errore**: chiavi Firestore e valori salvati
+**Status:** 🔍 IN REVIEW — **RESPINTA** il 2026-08-10, review in [`planning/US-027-review.md`](planning/US-027-review.md) · il branch resta aperto in `GF027`. Il criterio «tutte le stringhe» era spuntato e **diciassette restano**, in sei file su otto; il test del piano non era stato scritto ed è stato scritto in review, **rosso di proposito**: enumera con file e riga cosa manca. Il rischio peggiore — tradurre una chiave Firestore o un valore salvato — è stato **evitato**
 
 **Story**
 Come atleta italiano,
