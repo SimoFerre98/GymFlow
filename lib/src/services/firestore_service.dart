@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -443,7 +444,7 @@ class FirestoreService {
         .snapshots()
         .switchMap((snapshot) {
           final friendIds = snapshot.docs.map((d) => d.id).toList();
-          if (friendIds.isEmpty) return Stream.value([]);
+          if (friendIds.isEmpty) return Stream.value(<WorkoutSession>[]);
 
           // Firestore 'whereIn' limitation: max 10.
           // For MVP, we'll take top 10.
@@ -462,6 +463,21 @@ class FirestoreService {
                     .map((d) => WorkoutSession.fromMap(d.data(), d.id))
                     .toList(),
               );
+        })
+        // La query sui documenti utente e **negata dalle regole**, e lo e per
+        // scelta: US-018 ha chiuso la condivisione fra amici e US-080 la
+        // rifara. Il punto e cosa succede al calendario nel frattempo.
+        //
+        // Il calendario unisce quattro stream con `Rx.combineLatest4`, e
+        // `combineLatest` non emette finche **ogni** ingresso non ha emesso
+        // almeno una volta: un ingresso che va in errore senza mai emettere
+        // spegne la vista intera. Da qui gli eventi che non compaiono.
+        //
+        // Quindi l'errore non si propaga: si registra e si emette una lista
+        // vuota, che e la verita — di sessioni condivise non ce ne sono.
+        .onErrorReturnWith((errore, _) {
+          debugPrint('Sessioni condivise non leggibili: $errore');
+          return <WorkoutSession>[];
         });
   }
 
@@ -472,7 +488,7 @@ class FirestoreService {
         .snapshots()
         .switchMap((snapshot) {
           final friendIds = snapshot.docs.map((d) => d.id).toList();
-          if (friendIds.isEmpty) return Stream.value([]);
+          if (friendIds.isEmpty) return Stream.value(<ScheduledWorkout>[]);
           final limitedIds = friendIds.take(10).toList();
 
           return _db
@@ -484,6 +500,12 @@ class FirestoreService {
                     .map((d) => ScheduledWorkout.fromMap(d.data(), d.id))
                     .toList(),
               );
+        })
+        // Vedi la nota in `getSharedSessions`: un errore qui spegneva il
+        // calendario intero, allenamenti propri compresi.
+        .onErrorReturnWith((errore, _) {
+          debugPrint('Allenamenti programmati condivisi non leggibili: $errore');
+          return <ScheduledWorkout>[];
         });
   }
 }
