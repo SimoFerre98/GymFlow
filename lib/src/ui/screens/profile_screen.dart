@@ -107,11 +107,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .child('${_profile!.id}_$timestamp.jpg');
 
       try {
-        print('Starting upload to ${ref.fullPath}');
+        debugPrint('Starting upload to ${ref.fullPath}');
         await ref.putFile(_imageFile!);
-        print('Upload completed');
+        debugPrint('Upload completed');
       } catch (e) {
-        print('Error in putFile: $e');
+        debugPrint('Error in putFile: $e');
         if (mounted) {
           ToastUtils.showError(context, 'Upload failed: $e');
         }
@@ -120,11 +120,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       try {
-        print('Getting download URL');
+        debugPrint('Getting download URL');
         photoUrl = await ref.getDownloadURL();
-        print('Got URL: $photoUrl');
+        debugPrint('Got URL: $photoUrl');
       } catch (e) {
-        print('Error in getDownloadURL: $e');
+        debugPrint('Error in getDownloadURL: $e');
         if (mounted) {
           ToastUtils.showError(context, 'Failed to get image URL: $e');
         }
@@ -231,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               backgroundImage: imageProvider,
                               onBackgroundImageError: imageProvider != null
                                   ? (exception, stackTrace) {
-                                      print('Image load error: $exception');
+                                      debugPrint('Image load error: $exception');
                                     }
                                   : null,
                               child: (imageProvider == null)

@@ -515,7 +515,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -628,7 +628,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -715,7 +715,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }

@@ -26,7 +26,7 @@ import '../../models/exercise.dart';
 import '../../core/providers/exercise_provider.dart';
 
 class DashboardScreen extends riverpod.ConsumerStatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   riverpod.ConsumerState<DashboardScreen> createState() =>
@@ -405,7 +405,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                   loading: () => const SliverToBoxAdapter(
                     child: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (_, __) =>
+                  error: (_, _) =>
                       const SliverToBoxAdapter(child: SizedBox.shrink()),
                 ),
               ],
@@ -616,8 +616,9 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _healthDataFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const LinearProgressIndicator();
+        }
         final data = snapshot.data ?? {};
         final steps = data['steps'] ?? 0;
         final calories = data['calories'] ?? 0;
@@ -943,8 +944,9 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                 userId,
                               ),
                               builder: (context, wSnapshot) {
-                                if (!wSnapshot.hasData)
+                                if (!wSnapshot.hasData) {
                                   return const SizedBox.shrink();
+                                }
                                 final templates = wSnapshot.data!
                                     .where(
                                       (w) => program.workoutIds.contains(w.id),
@@ -999,7 +1001,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                                 );
                               },
                             );
-                          }).toList(),
+                          }),
                         ],
                       );
                     },

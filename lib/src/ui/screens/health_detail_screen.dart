@@ -11,12 +11,12 @@ class HealthDetailScreen extends StatefulWidget {
   final String unit;
 
   const HealthDetailScreen({
-    Key? key,
+    super.key,
     required this.dataType,
     required this.title,
     required this.baseColor,
     required this.unit,
-  }) : super(key: key);
+  });
 
   @override
   State<HealthDetailScreen> createState() => _HealthDetailScreenState();
@@ -297,7 +297,9 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
   String _calculateSummary() {
     if (_data.isEmpty) return '0';
     double total = 0;
-    _data.values.forEach((v) => total += v);
+    for (var v in _data.values) {
+      total += v;
+    }
 
     // For heart rate or weight, we likely want Average
     if (widget.dataType == HealthDataType.HEART_RATE ||
@@ -312,7 +314,7 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
 
     if (widget.dataType == HealthDataType.SLEEP_SESSION) {
       // Total minutes -> Hours
-      return (total / 60).toStringAsFixed(1) + " h (Total)";
+      return "${(total / 60).toStringAsFixed(1)} h (Total)";
     }
 
     // Default sum
@@ -350,10 +352,11 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
                 String date = DateFormat(
                   'EEE',
                 ).format(_data.keys.elementAt(group.x.toInt()));
-                if (!_isWeekly)
+                if (!_isWeekly) {
                   date = DateFormat(
                     'd',
                   ).format(_data.keys.elementAt(group.x.toInt()));
+                }
                 return BarTooltipItem(
                   '$date\n',
                   const TextStyle(
@@ -378,8 +381,9 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
-                  if (index < 0 || index >= _data.length)
+                  if (index < 0 || index >= _data.length) {
                     return const SizedBox.shrink();
+                  }
                   final date = _data.keys.elementAt(index);
 
                   if (_isWeekly) {
@@ -448,8 +452,9 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
                 interval: 1,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
-                  if (index < 0 || index >= _data.length)
+                  if (index < 0 || index >= _data.length) {
                     return const SizedBox.shrink();
+                  }
                   final date = _data.keys.elementAt(index);
 
                   if (_isWeekly) {

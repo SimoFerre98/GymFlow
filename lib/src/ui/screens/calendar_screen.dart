@@ -331,20 +331,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget _buildEventCard(dynamic event, Localization loc) {
     bool isCompleted = event is WorkoutSession;
     String id = isCompleted
-        ? (event as WorkoutSession).id
+        ? (event).id
         : (event as ScheduledWorkout).id;
     String ownerId = isCompleted
-        ? (event as WorkoutSession).userId
+        ? (event).userId
         : (event as ScheduledWorkout).userId;
     String title = isCompleted
-        ? (event as WorkoutSession).workoutName
+        ? (event).workoutName
         : (event as ScheduledWorkout).workoutName;
 
     // Use locale for time format? Usually HH:mm is standard but maybe?
     // loc.locale.languageCode could be used but DateFormat('HH:mm') is fine.
 
     String subtitle = isCompleted
-        ? '${loc.t('completed_at')} ${DateFormat('HH:mm').format((event as WorkoutSession).startTime)}'
+        ? '${loc.t('completed_at')} ${DateFormat('HH:mm').format((event).startTime)}'
         : '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}';
 
     bool isMine = ownerId == ref.read(currentUserIdProvider);
@@ -586,7 +586,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         return ListView.separated(
                           padding: EdgeInsets.all(t.spacing.md),
                           itemCount: workouts.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                               SizedBox(height: t.spacing.sm),
                           itemBuilder: (context, index) {
                             final workout = workouts[index];

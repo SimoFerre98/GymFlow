@@ -77,7 +77,7 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching monthly challenges: $e');
+      debugPrint('Error fetching monthly challenges: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }

@@ -1,5 +1,4 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar/isar.dart';
 import 'auth_provider.dart';
 import 'firestore_provider.dart';
 import 'database_provider.dart';

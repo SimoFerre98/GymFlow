@@ -1,7 +1,8 @@
 import '../../models/session.dart';
 
 class StatisticsHelper {
-  /// Returns a map of <Weekday Index (1-7), count> for the current week (Mon-Sun).
+  /// Restituisce una mappa `{indice del giorno (1-7): conteggio}` per la
+  /// settimana corrente, da lunedi a domenica.
   static Map<int, int> getWeeklyWorkoutCounts(List<WorkoutSession> sessions) {
     // Get the start of the current week (Monday)
     final now = DateTime.now();
@@ -109,7 +110,7 @@ class StatisticsHelper {
       for (var exercise in session.exercises) {
         for (var set in exercise.sets) {
           if (set.isCompleted && set.weight != null && set.reps != null) {
-            volume += set.weight! * set.reps!;
+            volume += set.weight * set.reps;
           }
         }
       }

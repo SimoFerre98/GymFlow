@@ -681,7 +681,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subscriptionExpiry: _subscriptionExpiry,
       );
 
-      print('Saving profile: ${updatedProfile.toMap()}'); // Debug log
+      debugPrint('Saving profile: ${updatedProfile.toMap()}'); // Debug log
 
       await AuthService().updateUserProfile(updatedProfile);
 
@@ -689,13 +689,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ToastUtils.showSuccess(context, 'Gym Info Saved!');
       }
     } catch (e) {
-      print('Error saving gym info: $e');
+      debugPrint('Error saving gym info: $e');
       if (mounted) {
         ToastUtils.showError(context, 'Error saving info: $e');
       }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() => _isLoading = false); // Or separate saving flag
+      }
     }
   }
 }
