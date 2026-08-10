@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -7,16 +9,16 @@ import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
-class WorkoutCreatorScreen extends StatefulWidget {
+class WorkoutCreatorScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate? workout; // If provided, we are editing
   final String? parentProgramId;
   const WorkoutCreatorScreen({super.key, this.workout, this.parentProgramId});
 
   @override
-  State<WorkoutCreatorScreen> createState() => _WorkoutCreatorScreenState();
+  ConsumerState<WorkoutCreatorScreen> createState() => _WorkoutCreatorScreenState();
 }
 
-class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
+class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -46,7 +48,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_exercises.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one exercise')),
+        SnackBar(content: Text(ref.read(localizationNotifierProvider).t('add_at_least_one_exercise'))),
       );
       return;
     }
@@ -411,7 +413,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       ),
     );
 
-    // Il bottom sheet è chiuso: nessun widget usa più questi controller.
+    // Il bottom sheet Ã¨ chiuso: nessun widget usa piÃ¹ questi controller.
     setsController.dispose();
     repsController.dispose();
     weightController.dispose();
@@ -478,6 +480,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.workout == null ? 'New Day' : 'Edit Day'),
@@ -520,7 +523,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (v) => v!.isEmpty ? 'Name required' : null,
+                    validator: (v) => v!.isEmpty ? loc.t('name_required') : null,
                   ),
                   const SizedBox(height: 16),
                   _buildCategorySelector(),
@@ -542,7 +545,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                   ElevatedButton.icon(
                     onPressed: _addExercise,
                     icon: const Icon(Icons.add),
-                    label: const Text('Add'),
+                    label: Text(loc.t('add_btn')),
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -700,3 +703,5 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     );
   }
 }
+
+

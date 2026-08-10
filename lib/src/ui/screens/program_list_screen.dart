@@ -20,7 +20,7 @@ class ProgramListScreen extends ConsumerWidget {
     final loc = ref.watch(localizationNotifierProvider);
 
     if (userId == null) {
-      return const Scaffold(body: Center(child: Text('Login required')));
+      return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
 
     return Scaffold(

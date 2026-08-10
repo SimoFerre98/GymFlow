@@ -1,15 +1,17 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/register_screen.dart'; // Will create next
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -51,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Password'),
+        title: Text(ref.read(localizationNotifierProvider).t('reset_password')),
         content: Form(
           key: formKey,
           child: Column(
@@ -63,14 +65,14 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                labelText: ref.read(localizationNotifierProvider).t('email_label'),
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) => value != null && value.contains('@')
                     ? null
-                    : 'Enter a valid email',
+                    : ref.read(localizationNotifierProvider).t('invalid_email'),
               ),
             ],
           ),
@@ -78,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(ref.read(localizationNotifierProvider).t('cancel')),
           ),
           TextButton(
             onPressed: () async {
@@ -90,8 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Password reset email sent'),
+                      SnackBar(
+                        content: Text(ref.read(localizationNotifierProvider).t('password_reset_sent')),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -108,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 }
               }
             },
-            child: const Text('Send'),
+            child: Text(ref.read(localizationNotifierProvider).t('send_btn')),
           ),
         ],
       ),
@@ -119,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -140,14 +143,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
+                  decoration: InputDecoration(
+                labelText: ref.read(localizationNotifierProvider).t('email_label'),
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) => value != null && value.contains('@')
                       ? null
-                      : 'Enter a valid email',
+                      : ref.read(localizationNotifierProvider).t('invalid_email'),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -171,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   validator: (value) => value != null && value.length >= 6
                       ? null
-                      : 'Password too short',
+                      : ref.read(localizationNotifierProvider).t('password_too_short'),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
@@ -182,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('Forgot Password?'),
+                    child: Text(ref.read(localizationNotifierProvider).t('forgot_password')),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -210,3 +213,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+

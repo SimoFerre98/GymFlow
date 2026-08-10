@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
@@ -218,16 +218,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       TextField(
                         controller: _gymNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Gym Name',
+                        decoration: InputDecoration(
+                          labelText: loc.t('gym_name_label'),
                           prefixIcon: Icon(Icons.business),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _gymAddressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Address',
+                        decoration: InputDecoration(
+                          labelText: loc.t('address_label'),
                           prefixIcon: Icon(Icons.place),
                         ),
                       ),
@@ -236,7 +236,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _saveGymInfo,
-                          child: const Text('Update Info'),
+                          child: Text(loc.t('update_info_btn')),
                         ),
                       ),
                     ],
@@ -314,11 +314,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       items: const [
                         DropdownMenuItem(
                           value: 'it',
-                          child: Text('🇮🇹 Italiano'),
+                          child: Text('ðŸ‡®ðŸ‡¹ Italiano'),
                         ),
                         DropdownMenuItem(
                           value: 'en',
-                          child: Text('🇬🇧 English'),
+                          child: Text('ðŸ‡¬ðŸ‡§ English'),
                         ),
                       ],
                       onChanged: (val) {
@@ -638,7 +638,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: const Text('Tap to select location'),
+                child: Text(ref.read(localizationNotifierProvider).t('tap_to_select_location')),
               ),
             ],
           ),
@@ -668,7 +668,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             createdAt: DateTime.now(),
           );
         } else {
-          if (mounted) ToastUtils.showError(context, 'User not authenticated');
+          if (mounted) ToastUtils.showError(context, ref.read(localizationNotifierProvider).t('user_not_authenticated'));
           return;
         }
       }
@@ -700,3 +700,4 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 }
+

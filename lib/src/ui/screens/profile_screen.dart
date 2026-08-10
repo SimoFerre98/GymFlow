@@ -1,5 +1,7 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 
@@ -8,14 +10,14 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final AuthService _auth = AuthService();
 
   // Or better, let's keep profile logic in AuthService for now or pure FirestoreService
@@ -172,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
 
       if (mounted) {
-        ToastUtils.showSuccess(context, 'Profile updated successfully!');
+        ToastUtils.showSuccess(context, ref.read(localizationNotifierProvider).t('profile_updated'));
       }
     } catch (e) {
       if (mounted) {
@@ -184,10 +186,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: Text(loc.t('my_profile')),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
@@ -268,8 +271,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   TextField(
                     controller: _nameController,
                     enabled: _isEditing,
-                    decoration: const InputDecoration(
-                      labelText: 'Username', // Renamed from "Display Name"
+                    decoration: InputDecoration(
+                      labelText: loc.t('username_label'), // Renamed from "Display Name"
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -282,8 +285,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: TextField(
                           controller: _firstNameController,
                           enabled: _isEditing,
-                          decoration: const InputDecoration(
-                            labelText: 'First Name',
+                          decoration: InputDecoration(
+                            labelText: loc.t('first_name'),
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -293,8 +296,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: TextField(
                           controller: _lastNameController,
                           enabled: _isEditing,
-                          decoration: const InputDecoration(
-                            labelText: 'Last Name',
+                          decoration: InputDecoration(
+                            labelText: loc.t('last_name'),
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -311,8 +314,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Expanded(
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Gender',
+                          decoration: InputDecoration(
+                            labelText: loc.t('gender_label'),
                             border: OutlineInputBorder(),
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 10,
@@ -323,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: DropdownButton<String>(
                               value: _gender,
                               isDense: true,
-                              hint: const Text('Select'),
+                              hint: Text(loc.t('select_date_label')),
                               onChanged: _isEditing
                                   ? (String? newValue) {
                                       setState(() {
@@ -331,18 +334,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       });
                                     }
                                   : null,
-                              items: const [
+                              items: [
                                 DropdownMenuItem(
                                   value: 'male',
                                   child: Text('Male'),
                                 ),
                                 DropdownMenuItem(
                                   value: 'female',
-                                  child: Text('Female'),
+                                  child: Text(loc.t('gender_female')),
                                 ),
                                 DropdownMenuItem(
                                   value: 'other',
-                                  child: Text('Other'),
+                                  child: Text(loc.t('gender_other')),
                                 ),
                               ],
                             ),
@@ -354,14 +357,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: InkWell(
                           onTap: _isEditing ? () => _selectDate(context) : null,
                           child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Birth Date',
+                            decoration: InputDecoration(
+                              labelText: loc.t('birth_date_label'),
                               border: OutlineInputBorder(),
                             ),
                             child: Text(
                               _birthDate != null
                                   ? "${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}"
-                                  : 'Select Date',
+                                  : loc.t('select_date_label'),
                               style: TextStyle(
                                 color: _birthDate == null ? Colors.grey : null,
                               ),
@@ -374,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 16),
                   ListTile(
-                    title: const Text('Email'),
+                    title: Text(loc.t('email_label')),
                     subtitle: Text(_profile?.email ?? ''),
                     leading: const Icon(Icons.email),
                     contentPadding: EdgeInsets.zero,
@@ -385,3 +388,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+
+
+
+
