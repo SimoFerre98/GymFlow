@@ -2298,7 +2298,7 @@ dialoghi.
 
 **Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-033 (✅), US-034 (✅), US-073 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-082.md`](planning/US-082.md) · **delegabile**
+**Status:** ✅ DONE — piano in [`planning/US-082.md`](planning/US-082.md), review in [`planning/US-082-review.md`](planning/US-082-review.md) · implementata da Gemini, review indipendente · **un criterio da confermare sull'APK**
 
 > ⚠️ **Aperta il 2026-08-10.** È la schermata più usata dell'app, e l'unica delle quattro
 > principali che non è passata dal design system: **US-022 faceva le principali, US-023 le
@@ -2322,11 +2322,11 @@ così da registrare una serie senza fermarmi a mettere a fuoco.
 Dopo questa storia: la sessione attiva ha gli stessi colori e le stesse misure delle altre tre schermate principali, e una guardia sul sorgente impedisce che i valori a mano tornino.
 
 **Acceptance Criteria**
-- [ ] Nessun colore letterale nella schermata, a parte `Colors.transparent`
-- [ ] Nessuna spaziatura, raggio o dimensione di carattere scritta a mano
-- [ ] `active_session_screen.dart` è nella lista sorvegliata da `design_system_usage_test.dart`, e i suoi cinque test passano
-- [ ] I token `sizing.iconSm`, `iconMd`, `iconLg` esistono e sono coperti da un test — chiudono la decisione lasciata aperta dalla review di US-047
-- [ ] Il comportamento non è cambiato: i test esistenti passano **senza essere modificati**
+- [x] Nessun colore letterale nella schermata, a parte `Colors.transparent`
+- [x] Nessuna spaziatura, raggio o dimensione di carattere scritta a mano — con una riserva corretta in review: il padding della card era `spacing.sm + spacing.xs`, cioè i 12 px del mockup ricomposti sommando due token invece dei 16 dp in cui si convertono. Nessun letterale, quindi la guardia passava
+- [x] `active_session_screen.dart` è nella lista sorvegliata da `design_system_usage_test.dart`, e i suoi cinque test passano — **provato** rimettendo `titleMedium` al posto di `titleEmphasized`: rosso
+- [x] I token `sizing.iconSm`, `iconMd`, `iconLg` esistono e sono coperti da un test — **provato** portando `iconMd` a 21: rosso. Chiudono la decisione lasciata aperta dalla review di US-047
+- [x] Il comportamento non è cambiato: nessun test esistente modificato. ⚠️ Con un'eccezione dichiarata: il titolo dell'`AppBar` passa da `titleMedium` + bold a `titleEmphasized`, che **è un cambio d'aspetto** e non una traduzione di letterali
 - [ ] Le intestazioni delle colonne si leggono, e nessun testo appare sbiadito — **da confermare sull'APK**
 
 **Note**
@@ -2635,6 +2635,71 @@ Dopo questa storia: il cliente vede cosa condivide, cambia idea quando vuole, e 
 
 ---
 
+#### US-093: I tasti del cronometro e del timer tornano a rispondere
+
+**Epic:** EP-011 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ✅ DONE — diagnosticata e corretta il 2026-08-10, senza delega
+
+> ⚠️ **Segnalato dall'utente sul telefono**: «il timer non funziona, cliccando nessun tasto».
+>
+> **I tasti funzionavano tutti.** `StopwatchView.build` e `TimerView.build` prendevano il notifier con `ref.read(timerNotifierProvider.notifier)` e leggevano lo stato dai suoi getter di comodo. `read` **non crea nessuna iscrizione**: il ticker batteva, lo stato cambiava, e le due viste non venivano mai ricostruite. Le cifre restavano sul primo frame — «00:00:0» — e le etichette dei pulsanti non passavano mai da «Avvia» a «Pausa». Era il disegno che non tornava, non l'azione che non partiva.
+>
+> Il notifier non aveva niente da correggere: `TimerState` è immutabile e ogni transizione passa da `state = state.copyWith(...)`.
+>
+> **Perché nessuno se n'è accorto per un giorno.** `ref.read` è arrivato con **US-075**, e i due test di allora provavano il **notifier** — corretto — e che la schermata **si aprisse senza eccezioni**, asserendo sullo stato e mai su ciò che compare a schermo. È la classe di difetto n. 2 del progetto in forma pura: i test certificano i pezzi e non il cablaggio fra loro.
+>
+> E il **«tempo troncato a 00:00:0»** annotato come difetto aperto nella review di US-075 era questo, non un problema di formato: il display era fermo a zero, non tagliato.
+
+**Story**
+Come atleta che usa il cronometro fra le serie,
+voglio che toccando «Avvia» il tempo parta,
+così da misurare il recupero invece di guardare cifre ferme.
+
+**Demonstrates**
+Dopo questa storia: il cronometro scorre, il conto alla rovescia scende, e i pulsanti cambiano etichetta quando cambiano funzione.
+
+**Acceptance Criteria**
+- [x] Le due viste si iscrivono allo stato: i valori vengono da `watch`, il notifier serve solo alle azioni
+- [x] I pulsanti dei preset ricevono la durata come parametro invece di rileggerla dal notifier durante il disegno
+- [x] Un test tocca «Avvia» e verifica che le etichette dei due pulsanti cambino — **provato** rimettendo `ref.read`: diventa rosso perché «Pausa» non compare
+- [x] Il limite del test è dichiarato: che le **cifre** avanzino non è verificabile, perché il cronometro misura con `DateTime.now()` e l'orologio finto dei test non lo muove
+- [ ] Il cronometro scorre davvero e il conto alla rovescia scende — **da confermare sull'APK**
+
+**Note**
+Fuori scope: la grafica della schermata (**US-051**, che la ridisegna sul mockup 03) e il pulsante-abbozzo del timer nella sessione attiva (**US-094**).
+
+---
+
+#### US-094: Il pulsante del timer nella sessione attiva fa qualcosa
+
+**Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 2
+**Depends on:** US-093 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — 📋 **delegabile**, ma va prima deciso se serve
+
+> Trovato durante la review di **US-082**. In `active_session_screen.dart`, accanto al campo dei secondi delle serie isometriche, c'è un `IconButton` con l'icona del timer il cui gestore mostra un toast e nient'altro: la chiave dice `'Timer avviato (solo visuale)'`. **Non mente** — dichiara di non fare niente — ma è un controllo che occupa spazio sulla schermata più usata dell'app.
+>
+> La review di US-082 gli ha togliato l'ambra, che significa «cosa fare adesso» ed era già sul pulsante «Termina» nella stessa schermata: ora è neutro.
+>
+> **Ora che US-093 ha reso il timer funzionante**, collegarlo è poco lavoro: il notifier è `keepAlive`, quindi basta impostare la durata dai secondi del campo e chiamare `toggleTimer`.
+
+**Story**
+Come atleta che sta facendo un plank di 45 secondi,
+voglio toccare il timer accanto al campo e vederlo partire,
+così da non aprire un'altra schermata mentre sono in posizione.
+
+**Demonstrates**
+Dopo questa storia: il pulsante avvia il conto alla rovescia sui secondi della serie, oppure non esiste più.
+
+**Acceptance Criteria**
+- [ ] **Decisione presa e scritta**: il pulsante avvia il timer, oppure viene rimosso. Non resta un abbozzo
+- [ ] Se avvia: la durata è quella scritta nel campo dei secondi di quella serie
+- [ ] Se avvia: si vede che sta scorrendo senza uscire dalla sessione
+- [ ] Se avvia: la stringa `timer_started_msg` smette di dire «solo visuale», in EN e IT
+- [ ] Un test dimostra che il tocco cambia lo stato del timer, non solo che mostra un toast
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -2889,4 +2954,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[92 storie in 17 epiche — 300 story points totali · 3 storie accantonate in EP-008 · 36 completate]_
+_[94 storie in 17 epiche — 304 story points totali · 3 storie accantonate in EP-008 · 39 completate]_
