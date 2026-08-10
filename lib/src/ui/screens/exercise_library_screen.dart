@@ -6,6 +6,7 @@ import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/screens/exercise_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
@@ -450,7 +451,12 @@ class _ExerciseLibraryScreenState
           if (widget.isSelecting) {
             Navigator.pop(context, exercise);
           } else {
-            ExerciseVideoSheet.show(context, exercise);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExerciseDetailScreen(exercise: exercise),
+              ),
+            );
           }
         },
       ),

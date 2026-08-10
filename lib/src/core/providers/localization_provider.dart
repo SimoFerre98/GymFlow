@@ -254,6 +254,20 @@ class Localization {
     'time_min_label': 'Time (min)',
     'duration_sec_label': 'Duration (sec)',
     'timer_started_msg': 'Timer started (visual only)',
+
+    // Exercise detail & progression (US-068)
+    'exercise_detail_title': 'Exercise Details',
+    'exercise_progression_title': 'Weight progression',
+    'exercise_period_1m': '1 Month',
+    'exercise_period_3m': '3 Months',
+    'exercise_period_all': 'All',
+    'exercise_personal_best_title': 'Personal Best',
+    'exercise_no_history_title': 'No history yet',
+    'exercise_no_history_body': 'Perform this exercise in a workout to track your progression over time.',
+    'exercise_last_session_title': 'Last Session',
+    'exercise_set_label': 'Set',
+    'exercise_completed_label': 'Completed',
+    'exercise_not_completed_label': 'Not completed',
   };
 
   static final Map<String, String> _it = {
@@ -493,6 +507,20 @@ class Localization {
     'time_min_label': 'Tempo (min)',
     'duration_sec_label': 'Durata (sec)',
     'timer_started_msg': 'Timer avviato (solo visuale)',
+
+    // Exercise detail & progression (US-068)
+    'exercise_detail_title': 'Dettagli esercizio',
+    'exercise_progression_title': 'Progressione carico',
+    'exercise_period_1m': '1 Mese',
+    'exercise_period_3m': '3 Mesi',
+    'exercise_period_all': 'Tutto',
+    'exercise_personal_best_title': 'Record Personale',
+    'exercise_no_history_title': 'Ancora nessuno storico',
+    'exercise_no_history_body': 'Esegui questo esercizio in un allenamento per tracciare la tua progressione nel tempo.',
+    'exercise_last_session_title': 'Ultima sessione',
+    'exercise_set_label': 'Serie',
+    'exercise_completed_label': 'Completata',
+    'exercise_not_completed_label': 'Non completata',
   };
 }
 
