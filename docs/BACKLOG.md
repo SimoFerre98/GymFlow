@@ -999,7 +999,7 @@ Dopo questa storia: le tre schermate più usate non contengono testo non tradott
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-026 | **Blocks:** US-067
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-027.md`](planning/US-027.md) · **delegabile** · il rischio non sono le stringhe dimenticate, sono quelle **tradotte per errore**: chiavi Firestore e valori salvati
 
 **Story**
 Come atleta italiano,
@@ -2707,7 +2707,7 @@ Dopo questa storia: il pulsante avvia il conto alla rovescia sui secondi della s
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-062 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-095.md`](planning/US-095.md) · **delegabile**, con l'avvertimento che conta scritto al punto 1 del piano: **e uno spostamento, non una riscrittura**
 
 > ⚠️ **Aperta il 2026-08-10, pianificando US-062.** Il mockup 01 disegna la home **senza** le quattro tessere di statistiche, la sezione salute, lo storico e i grafici che `dashboard_screen.dart` mostra oggi: li mette su un riquadro **«Statistiche»** che nel backlog non aveva una storia.
 >
