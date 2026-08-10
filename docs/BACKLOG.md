@@ -809,7 +809,7 @@ Dopo questa storia: i badge della sezione obiettivi usano forme della libreria E
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-033 | **Blocks:** US-037, US-038, US-051
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — mandato in [`planning/US-036.md`](planning/US-036.md) · **delegabile**: `motor 1.1.0` è già installato e verificato, quindi l'esecutore non tocca `pubspec.yaml`
 
 **Story**
 Come atleta che interagisce con l'app,
@@ -2362,7 +2362,7 @@ Fuori scope: il ridisegno secondo il mockup (storia sua), le stringhe non locali
 
 **Epic:** EP-016 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-084, US-085, US-090
-**Status:** 📋 PLANNED — piano in [`planning/US-083.md`](planning/US-083.md) · ⚠️ **non delegabile** · **serve una tua risposta prima di scrivere codice**: il punto 4 del piano, se `perSide` arriva fino a Isar o si ferma al piano
+**Status:** 📋 PLANNED — piano in [`planning/US-083.md`](planning/US-083.md) · ⚠️ **non delegabile** · il punto 4 è deciso: `perSide` si ferma al piano, Isar resta fuori
 
 > **La decisione, presa il 2026-08-10:** si copre il formato reale, non l'80%. L'alternativa — coprire i casi semplici e conservare il resto come testo — è stata scartata: renderebbe i volumi calcolati approssimati proprio sulle schede che l'utente usa, e lascerebbe il trainer senza il suo strumento di lavoro.
 >

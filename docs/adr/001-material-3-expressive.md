@@ -58,7 +58,7 @@ Ogni categoria di token o componente segue la strada più adatta:
 | Durate e curve | **nativo** | `Durations` ed `Easing` esistono |
 | Spaziature, raggi, elevazioni | **interno** | Sono valori, non comportamenti: scriverli costa poco e non giustifica una dipendenza |
 | Tipografia emphasized | **interno** | Variazioni di peso e spaziatura sul font già in uso |
-| Motion a molla | **package `motor`** | Maturo e adottato; riscriverlo sarebbe lavoro sprecato |
+| Motion a molla | **package `motor`** — installato il 2026-08-10 | Maturo e adottato; riscriverlo sarebbe lavoro sprecato. ⚠️ **Serve per la fisica, non per le curve**: la molla del mockup 03 e `cubic-bezier(.34,1.56,.64,1)`, che `Cubic` riproduce esattamente in una riga. Cio che una curva a durata fissa non sa fare e ripartire da posizione e velocita correnti quando un gesto la interrompe. E anche `Curves.easeOutBack` **non e** quella curva: nell'SDK installato e `Cubic(0.175, 0.885, 0.32, 1.275)` |
 | Forme e morphing | **interno** — deciso il 2026-08-06 | `m3e_design` valutato leggendone il sorgente: non serve. Vedi sotto |
 | Componenti | **interno, valutando caso per caso** | La famiglia `m3e_*` è acerba e una parte non è nemmeno installabile |
 
