@@ -191,6 +191,10 @@ class Localization {
     'exercise_tag_yours': 'yours',
     'exercise_tag_no_video': 'no video',
     'video_available': 'Execution video available',
+    'add_exercise_title': 'New Custom Exercise',
+    'add_exercise_name_label': 'Exercise Name',
+    'add_exercise_name_empty': 'Please enter an exercise name',
+    'add_exercise_error_saving': 'Error saving exercise',
 
     // Execution video
     'video_none': 'No execution video for this exercise yet.',
@@ -464,6 +468,10 @@ class Localization {
     'exercise_tag_yours': 'tuo',
     'exercise_tag_no_video': 'senza video',
     'video_available': "Video dell'esecuzione disponibile",
+    'add_exercise_title': 'Nuovo esercizio personalizzato',
+    'add_exercise_name_label': 'Nome esercizio',
+    'add_exercise_name_empty': "Inserisci un nome per l'esercizio",
+    'add_exercise_error_saving': "Errore durante il salvataggio dell'esercizio",
 
     // Video dell'esecuzione
     'video_none': "Per questo esercizio non c'e ancora un video.",

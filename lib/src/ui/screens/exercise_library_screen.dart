@@ -9,6 +9,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
+import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 
 /// Cosa mostrare al posto della lista, se qualcosa.
 enum ExerciseLibraryView { loading, empty, list }
@@ -36,6 +37,70 @@ ExerciseLibraryView exerciseLibraryViewFor(AsyncValue<List<Exercise>> snapshot) 
     return ExerciseLibraryView.empty;
   }
   return ExerciseLibraryView.list;
+}
+
+/// Esito del tentativo di aggiunta di un esercizio personalizzato.
+enum AddExerciseOutcome {
+  success,
+  validationError,
+  saveError,
+}
+
+/// Risultato dell'operazione di salvataggio dell'esercizio.
+class AddExerciseResult {
+  final AddExerciseOutcome outcome;
+  final String? errorKey;
+  final bool shouldCloseDialog;
+
+  const AddExerciseResult.success()
+      : outcome = AddExerciseOutcome.success,
+        errorKey = null,
+        shouldCloseDialog = true;
+
+  const AddExerciseResult.validationError(this.errorKey)
+      : outcome = AddExerciseOutcome.validationError,
+        shouldCloseDialog = false;
+
+  const AddExerciseResult.saveError(this.errorKey)
+      : outcome = AddExerciseOutcome.saveError,
+        shouldCloseDialog = false;
+}
+
+/// Gestisce la validazione e il salvataggio di un nuovo esercizio personalizzato.
+///
+/// Questa funzione e estratta per consentire il test unitario della logica di
+/// salvataggio e gestione errori, dato che [ExerciseLibraryScreen] non e montabile nei test.
+Future<AddExerciseResult> handleAddExerciseSubmit({
+  required String rawName,
+  required ExerciseType type,
+  required String? userId,
+  required Future<void> Function(Exercise exercise) saveExercise,
+}) async {
+  final name = rawName.trim();
+  if (name.isEmpty) {
+    return const AddExerciseResult.validationError('add_exercise_name_empty');
+  }
+
+  try {
+    final exercise = Exercise(
+      id: '',
+      userId: userId,
+      name: name,
+      description: 'Custom exercise',
+      type: type,
+      musclesTargeted: const [],
+      isCustom: true,
+    );
+    await saveExercise(exercise);
+    return const AddExerciseResult.success();
+  } catch (e) {
+    // All'utente va un messaggio comprensibile, ma il dettaglio tecnico deve
+    // restare nel log: questa storia nasce da un `permission-denied` che per
+    // sei mesi nessuno ha collegato ai sintomi, e il primo controllo quando un
+    // dato non arriva e `adb logcat`.
+    debugPrint('Errore nel salvataggio dell\'esercizio: $e');
+    return const AddExerciseResult.saveError('add_exercise_error_saving');
+  }
 }
 
 /// Estrae i gruppi muscolari dagli esercizi caricati, ordinati per frequenza.
@@ -466,20 +531,30 @@ class _ExerciseLibraryScreenState
   Future<void> _showAddExerciseDialog() async {
     final nameController = TextEditingController();
     ExerciseType selectedType = ExerciseType.strength;
+    String? nameError;
+
+    final loc = ref.read(localizationNotifierProvider);
 
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('New Custom Exercise'),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(loc.t('add_exercise_title')),
+            content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  decoration:
-                      const InputDecoration(labelText: 'Exercise Name'),
+                  decoration: InputDecoration(
+                    labelText: loc.t('add_exercise_name_label'),
+                    errorText: nameError,
+                  ),
+                  onChanged: (_) {
+                    if (nameError != null) {
+                      setState(() => nameError = null);
+                    }
+                  },
                 ),
                 SizedBox(height: context.expressive.spacing.md),
                 DropdownButton<ExerciseType>(
@@ -494,41 +569,43 @@ class _ExerciseLibraryScreenState
                   }).toList(),
                 ),
               ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (nameController.text.isEmpty) return;
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(loc.t('cancel')),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final result = await handleAddExerciseSubmit(
+                    rawName: nameController.text,
+                    type: selectedType,
+                    userId: _auth.currentUser?.uid,
+                    saveExercise: _firestore.addExercise,
+                  );
 
-              try {
-                final exercise = Exercise(
-                  id: '',
-                  userId: _auth.currentUser?.uid,
-                  name: nameController.text.trim(),
-                  description: 'Custom exercise',
-                  type: selectedType,
-                  musclesTargeted: [],
-                  isCustom: true,
-                );
+                  if (!dialogContext.mounted) return;
 
-                await _firestore.addExercise(exercise);
-
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-              } catch (e) {
-                debugPrint('Error saving exercise: $e');
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+                  if (result.shouldCloseDialog) {
+                    Navigator.of(dialogContext).pop();
+                  } else {
+                    if (result.outcome == AddExerciseOutcome.validationError) {
+                      setState(() {
+                        nameError = loc.t(result.errorKey!);
+                      });
+                    } else if (result.outcome == AddExerciseOutcome.saveError) {
+                      ToastUtils.showError(
+                        dialogContext,
+                        loc.t(result.errorKey!),
+                      );
+                    }
+                  }
+                },
+                child: Text(loc.t('save')),
+              ),
+            ],
+          );
+        },
       ),
     );
 
