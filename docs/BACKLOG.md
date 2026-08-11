@@ -1017,7 +1017,7 @@ Dopo questa storia: le tre schermate più usate non contengono testo non tradott
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-026 | **Blocks:** US-067
-**Status:** 🔍 IN REVIEW — **RESPINTA** il 2026-08-10, review in [`planning/US-027-review.md`](planning/US-027-review.md) · il branch resta aperto in `GF027`. Il criterio «tutte le stringhe» era spuntato e **diciassette restano**, in sei file su otto; il test del piano non era stato scritto ed è stato scritto in review, **rosso di proposito**: enumera con file e riga cosa manca. Il rischio peggiore — tradurre una chiave Firestore o un valore salvato — è stato **evitato**
+**Status:** ✅ DONE — piano in [`planning/US-027.md`](planning/US-027.md), review in [`planning/US-027-review.md`](planning/US-027-review.md) · implementata da Gemini, respinta in review e corretta: le stringhe erano cinquantasei, non diciassette: il test guardava una forma sola
 
 **Story**
 Come atleta italiano,
@@ -1039,7 +1039,7 @@ Dopo questa storia: nessuna schermata dell'app mostra testo non tradotto.
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-034 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — piano in [`planning/US-028.md`](planning/US-028.md) · delegabile · attenzione: i criteri 1, 2 e 3 sono gia soddisfatti da `test/contrast_test.dart`, il buco vero sono i preset nel tema chiaro
+**Status:** ✅ DONE — piano in [`planning/US-028.md`](planning/US-028.md), review in [`planning/US-028-review.md`](planning/US-028-review.md) · implementata da Gemini, respinta in review e corretta: i preset non erano mai stati misurati nel tema chiaro
 
 **Story**
 Come atleta che usa l'app in palestra, con luce forte o schermo poco luminoso,
@@ -1468,7 +1468,7 @@ Dopo questa storia: il quadrante occupa lo spazio disponibile, con anello, tacch
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-007 | **Blocks:** US-048
-**Status:** 📋 PLANNED — piano in [`planning/US-052.md`](planning/US-052.md) · delegabile, con tre trappole segnate nel piano: la navigazione dal `builder`, il contenuto che deve spostarsi, e il file fuori dalla lista sorvegliata
+**Status:** ✅ DONE — piano in [`planning/US-052.md`](planning/US-052.md), review in [`planning/US-052-review.md`](planning/US-052-review.md) · implementata da Gemini, respinta in review e corretta: la SafeArea attorno a tutto rubava 40 dp a ogni schermata anche a pillola nascosta
 
 **Story**
 Come atleta che naviga fra le schermate con il recupero in corso,
@@ -2696,7 +2696,7 @@ Fuori scope: la grafica della schermata (**US-051**, che la ridisegna sul mockup
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-093 | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — mandato in [`planning/US-094.md`](planning/US-094.md) · **delegabile** · ✅ **deciso dall'utente il 2026-08-10: il pulsante si collega**, non si rimuove
+**Status:** ✅ DONE — piano in [`planning/US-094.md`](planning/US-094.md), review in [`planning/US-094-review.md`](planning/US-094-review.md) · implementata da Gemini, respinta in review e corretta: i test riscrivevano la logica del pulsante invece di provarla
 
 > Trovato durante la review di **US-082**. In `active_session_screen.dart`, accanto al campo dei secondi delle serie isometriche, c'è un `IconButton` con l'icona del timer il cui gestore mostra un toast e nient'altro: la chiave dice `'Timer avviato (solo visuale)'`. **Non mente** — dichiara di non fare niente — ma è un controllo che occupa spazio sulla schermata più usata dell'app.
 >
@@ -2880,7 +2880,7 @@ Su Android il silenzioso zittisce i flussi di **suoneria e notifica**, non quell
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — piano in [`planning/US-100.md`](planning/US-100.md) · ⚠️ **delegabile in parte**: la causa del permesso mancante si decide sul dispositivo
+**Status:** ✅ DONE — piano in [`planning/US-100.md`](planning/US-100.md), review in [`planning/US-100-review.md`](planning/US-100-review.md) · implementata da Gemini, respinta in review e corretta: l errore diventava uno zero; resta aperto il criterio delle impostazioni di Health Connect
 
 > ⚠️ **Trovata nel `logcat` il 2026-08-10**, mentre si cercava il difetto del calendario. Non era stata segnalata da nessuno:
 >
@@ -2910,7 +2910,7 @@ così da vedere i passi invece di una sezione vuota che non spiega perché.
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 📋 PLANNED — piano in [`planning/US-101.md`](planning/US-101.md) · 📋 **delegabile**
+**Status:** ✅ DONE — piano in [`planning/US-101.md`](planning/US-101.md), review in [`planning/US-101-review.md`](planning/US-101-review.md) · implementata da Gemini, respinta in review e corretta: la soglia era kToolbarHeight ma la large si comprime a 64 dp
 
 > ⚠️ **Segnalato dall'utente il 2026-08-10** provando l'APK: «c'è il saluto correttamente, unica cosa che quando scorro verso il basso poi si sovrappone con l'icona dell'hamburger».
 >
@@ -3223,4 +3223,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[102 storie in 17 epiche — 324 story points totali · 3 storie accantonate in EP-008 · 47 completate]_
+_[102 storie in 17 epiche — 324 story points totali · 3 storie accantonate in EP-008 · 53 completate]_
