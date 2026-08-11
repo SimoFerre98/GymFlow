@@ -54,16 +54,21 @@ secondo difetto per questa strada — vedi US-098.
 
 ### Cosa si vede a schermo, oggi
 
-Le quattro schermate principali hanno il design system, e un **test sul sorgente**
-(`test/design_system_usage_test.dart`) impedisce che i valori a mano tornino. Da US-062 la home
-apre col blocco del mockup 01 — scheda in corso, azione in ambra, esercizi di oggi — e da US-095 le
-statistiche hanno una schermata loro.
+**Aggiornato il 2026-08-11, dopo una sessione di implementazione diretta** (niente fasi di
+`WORKFLOW.md`, per scelta esplicita dell'utente: si formalizza a fine lavoro, non prima). Il
+**test sul sorgente** (`test/design_system_usage_test.dart`) ora sorveglia **l'intero albero di
+`lib/src/ui`**, non solo le quattro schermate principali: schermate e widget, uno per uno, elencati
+in `schermate` e `widgetDeiMockup` dentro il file stesso.
 
-**Restano fuori**: le schermate secondarie (**US-023**, bloccata da US-037 e US-038) e la barra in
-basso, che è ancora quella generica di `google_nav_bar` (**US-038**).
+**US-023** (schermate secondarie) e **US-038** (barra di navigazione) sono ✅ **DONE** — vedi le loro
+voci in `BACKLOG.md` per cosa e stato toccato e cosa e dichiarato limite. La barra in basso non usa
+più `google_nav_bar`: il pacchetto e stato tolto anche da `pubspec.yaml`, non solo dal widget.
 
-**Il debito visibile di US-034** — `Colors.grey` ereditati dal fondo chiaro — è stato tolto dalle
-quattro principali. Se l'utente segnala testi sbiaditi in una schermata secondaria, è quello.
+**Il debito visibile di US-034** — `Colors.grey` ereditati dal fondo chiaro — non dovrebbe più
+comparire in nessuna schermata: ogni file di `lib/src/ui` e passato dai ruoli del `ColorScheme`.
+Se l'utente segnala ancora testi sbiaditi, è una regressione, non il debito noto — e il test
+guardiano dovrebbe già averla presa, quindi il primo sospetto è un colore letto da un posto che il
+test non guarda (uno stile di `Theme.of(context).textTheme` senza `.copyWith`, per esempio).
 
 ---
 
@@ -268,10 +273,13 @@ Le priorità decise con l'utente, in ordine:
    Non delegabile.
 3. **US-101** (il saluto sotto l'hamburger) e **US-100** (Health Connect nega `READ_STEPS`, e la
    sezione salute della dashboard **fallisce in silenzio**). Entrambe piccole e delegabili.
-4. **US-102**, i 17 avvisi rimasti. **Non sono rumore**: tre sono intenzioni non implementate —
-   l'ora che il dialogo di fine allenamento butta, «Azzera» che compare a cronometro su zero, un
-   `_isLoading` scritto e mai letto. **Non si cancellano: si implementano o si dichiarano.**
-5. **US-038** (la barra in basso) sblocca US-023 e US-051.
+4. **US-102**, gli avvisi rimasti (11 al 2026-08-11, scesi da 13 sistemando i due `dead_code` di
+   `workout_type_pie_chart.dart` dentro il lavoro di US-023). **Non sono rumore**: tre restano
+   intenzioni non implementate — l'ora che il dialogo di fine allenamento butta, «Azzera» che
+   compare a cronometro su zero, `_isLoading` scritto e mai letto in `settings_screen.dart:37`.
+   **Non si cancellano: si implementano o si dichiarano.**
+5. ~~US-038 (la barra in basso) sblocca US-023 e US-051~~ — **fatte entrambe**, US-051 resta da
+   verificare a parte (badge di Obiettivi, non toccati in questa sessione).
 
 ### Decisioni ancora aperte
 

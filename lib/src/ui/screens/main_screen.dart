@@ -174,11 +174,19 @@ class _VoceNav extends StatelessWidget {
         style: IconButton.styleFrom(
           minimumSize: Size.square(t.sizing.minTouchTarget),
         ),
-        icon: Icon(
-          item.icon,
-          color: selezionata
-              ? scheme.primary
-              : scheme.onSurface.withValues(alpha: 0.42),
+        icon: AnimatedScale(
+          // Il mockup non ha una pillola che scorre dietro l'icona attiva:
+          // il "moto a molla" del cambio di sezione e questo, un piccolo
+          // balzo sull'icona stessa, non un indicatore che non esiste.
+          scale: selezionata ? 1.15 : 1.0,
+          duration: t.motion.quick,
+          curve: t.motion.spring,
+          child: Icon(
+            item.icon,
+            color: selezionata
+                ? scheme.primary
+                : scheme.onSurface.withValues(alpha: 0.42),
+          ),
         ),
       ),
     );

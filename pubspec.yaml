@@ -51,7 +51,6 @@ dependencies:
   shared_preferences: ^2.2.3
   image_picker: ^1.2.1
   rxdart: ^0.28.0
-  google_nav_bar: ^5.0.7
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   add_2_calendar: ^3.0.1

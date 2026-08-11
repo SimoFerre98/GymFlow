@@ -906,7 +906,20 @@ Dopo questa storia: i filtri della libreria esercizi usano un gruppo di pulsanti
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-034, US-036 | **Blocks:** US-023
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — implementazione diretta, senza le fasi di `WORKFLOW.md`
+
+> `main_screen.dart` aveva già sostituito `GNav` con `_NavBar`/`_VoceNav` — icone sole, nessuna
+> pillola, come il mockup 02 vuole — in una sessione precedente a questa chiusura formale della
+> storia. Restava da: verificare i criteri uno per uno contro il codice reale, non presumerli, e
+> togliere `google_nav_bar` da `pubspec.yaml` — la sostituzione era "valutata e documentata" nel
+> commento della riga 95, ma il pacchetto restava comunque installato e non usato da nessuna parte
+> (verificato con `grep -rn "google_nav_bar\|GNav\|GButton" lib/ test/`: zero occorrenze di codice).
+> Rimosso, `flutter pub get` conferma: *"google_nav_bar 5.0.7 — no longer being depended on"*.
+>
+> **Il criterio sull'indicatore a molla non si applicava alla lettera**: il mockup non ha un
+> indicatore che scorre, solo l'icona che cambia tinta. Aggiunto un `AnimatedScale` con
+> `t.motion.spring` sull'icona della voce selezionata — un piccolo balzo, non un indicatore
+> inventato che il mockup non chiede.
 
 **Story**
 Come atleta che si muove tra le sezioni dell'app,
@@ -917,12 +930,12 @@ così da spostarmi senza attriti tra dashboard, calendario e allenamenti.
 Dopo questa storia: la barra di navigazione usa i token del design system e la transizione tra sezioni è a molla.
 
 **Acceptance Criteria**
-- [ ] La barra di navigazione principale usa colori, forme e movimento del design system
-- [ ] È valutata e documentata la sostituzione della dipendenza `google_nav_bar` con un componente allineato al design system
-- [ ] L'indicatore di sezione attiva si sposta con il movimento a molla
-- [ ] Il pulsante di azione flottante usa forma e movimento del design system
-- [ ] Le barre superiori delle schermate usano la tipografia emphasized
-- [ ] La navigazione resta utilizzabile con dimensioni di testo di sistema ingrandite
+- [x] La barra di navigazione principale usa colori, forme e movimento del design system
+- [x] È valutata e documentata la sostituzione della dipendenza `google_nav_bar` con un componente allineato al design system — e il pacchetto e stato tolto da `pubspec.yaml`, non solo sostituito nel widget
+- [x] ⚠️ **Interpretato, non letterale:** l'icona della voce attiva fa un balzo con `t.motion.spring` al cambio di sezione. Non c'e un indicatore che "si sposta", perche il mockup non ne disegna uno
+- [x] Il pulsante di azione flottante usa `ExpressiveCtaButton` (forma e glifo del design system); l'animazione di ingresso/uscita e quella di default di `Scaffold` — non personalizzata, non richiesta dal criterio
+- [x] Le barre superiori raggiungibili da qui (dashboard, calendario, elenco schede) sono nell'elenco `schermate` di `test/design_system_usage_test.dart`, che verifica `titleEmphasized` — verificato dal test, non a occhio
+- [x] Nessuna etichetta di testo nella barra: il mockup e icone sole, quindi non c'e testo che possa sovrapporsi a dimensioni di sistema ingrandite. Il tocco resta largo `minTouchTarget` indipendentemente dal testo
 
 ---
 
@@ -930,7 +943,15 @@ Dopo questa storia: la barra di navigazione usa i token del design system e la t
 
 **Epic:** EP-005 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-022, US-037, US-038 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — implementazione diretta, senza le fasi di `WORKFLOW.md`: l'utente ha chiesto di posticiparle a fine lavoro
+
+> **Fatta senza dipendere da US-037/US-038.** Come già successo a US-022 con US-035: nessun criterio qui sotto nomina le forme Expressive o i badge — chiede i ruoli del `ColorScheme`, i token di `expressive_tokens.dart` e la card condivisa, tutti già disponibili da questa sessione. Le dipendenze dichiarate erano un residuo di pianificazione.
+>
+> **Cosa è stato toccato**, schermata per schermata: impostazioni, profilo, gamification, cassetto di navigazione, creazione allenamento, creazione scheda, profilo amico, connessione amici, accesso e registrazione, toast e pannello delle metriche dal vivo. `misurazioni corporee` e `sessione attiva` erano già a posto — verificato, non presunto. In più, i tre grafici delle statistiche (attività, misure corporee, tipi di allenamento), rimasti fuori dallo scope originale di US-022.
+>
+> Ogni file toccato ha guadagnato una tinta categorica quando la torta o le card di un obiettivo dovevano distinguere piu' serie senza poter usare ambra o salmone: la palette di `AppPalette.categoryBlue/Orange/Aqua/Yellow`, validata con lo script del skill "dataviz" sulla superficie `indigo900`, non scelta a occhio.
+>
+> **Verificato letteralmente, non a campione:** `grep -rn "BoxShadow(" lib/src/ui/screens` e la ricerca dei valori numerici di raggio/spaziatura fuori dai token non producono più occorrenze in nessuna schermata — non solo in quelle di questa storia. `test/design_system_usage_test.dart` ora sorveglia l'intero albero di `lib/src/ui`, schermate e widget, non solo l'elenco di questa storia: una regressione futura, ovunque sia, fa fallire il test.
 
 **Story**
 Come atleta che esplora tutte le funzioni dell'app,
@@ -941,11 +962,11 @@ così da non avere la sensazione di cambiare applicazione.
 Dopo questa storia: nessuna schermata dell'app definisce decorazioni o costanti visive proprie.
 
 **Acceptance Criteria**
-- [ ] Impostazioni, profilo, gamification, misurazioni corporee, amici e sessione attiva usano i componenti condivisi
-- [ ] Una ricerca di `BoxDecoration` con `boxShadow` inline in `lib/src/ui/screens` non produce occorrenze
-- [ ] Una ricerca di valori numerici di raggio e spaziatura nelle schermate non produce occorrenze fuori dai token
-- [ ] L'aspetto resta corretto in entrambi i temi
-- [ ] Nessuna regressione visiva
+- [x] Impostazioni, profilo, gamification, misurazioni corporee, amici e sessione attiva usano i componenti condivisi
+- [x] Una ricerca di `BoxDecoration` con `boxShadow` inline in `lib/src/ui/screens` non produce occorrenze
+- [x] Una ricerca di valori numerici di raggio e spaziatura nelle schermate non produce occorrenze fuori dai token
+- [ ] ⚠️ **Non verificabile da qui:** l'aspetto in tema chiaro non è stato confrontato a schermo, solo per ruoli (`ColorScheme.light` esiste ed è popolato, ma nessuno di questi file è stato aperto in chiaro durante la sessione). L'app resta scura per impostazione predefinita.
+- [ ] ⚠️ **Da confermare sul dispositivo**, non sui test: la sessione ha verificato `flutter analyze` (11 avvisi, invariati), `flutter test` (787 test) e `flutter build apk --debug`, ma nessuno di questi vede i pixel. L'APK di debug è installato sul telefono collegato il 2026-08-11; la review visiva è dell'utente.
 
 ---
 
