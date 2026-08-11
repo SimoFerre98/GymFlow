@@ -99,6 +99,26 @@ abstract final class AppPalette {
   static const Color categoryAqua = Color(0xFF199E70);
   static const Color categoryYellow = Color(0xFFC98500);
 
+  /// Preset che l'utente puo scegliere per etichettare una scheda: e un tag
+  /// personale, non un ruolo del tema, e per questo resta fuori dal
+  /// `ColorScheme` — cosi come [accentPresets] qui sotto per il colore delle
+  /// azioni. Interi e non `Color`: e cosi che il modello lo salva su Firestore.
+  static const List<int> programColorPresets = <int>[
+    0xFFF44336, // Rosso
+    0xFFE91E63, // Rosa
+    0xFF9C27B0, // Viola
+    0xFF2196F3, // Blu
+    0xFF00BCD4, // Ciano
+    0xFF4CAF50, // Verde
+    0xFFFFEB3B, // Giallo
+    0xFFFF9800, // Arancio
+    0xFF795548, // Marrone
+    0xFF607D8B, // Blu grigio
+  ];
+
+  /// Colore di una scheda appena creata, prima che l'utente ne scelga uno.
+  static const int defaultProgramColor = 0xFF2196F3;
+
   /// Preset che l'utente puo scegliere come colore delle azioni.
   ///
   /// Ognuno supera 4,5:1 su [indigo900] e su [indigo800]: la scelta e libera

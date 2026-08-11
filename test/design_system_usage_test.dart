@@ -47,6 +47,7 @@ void main() {
     'lib/src/ui/screens/gamification_screen.dart',
     'lib/src/ui/screens/workout_creator_screen.dart',
     'lib/src/ui/screens/friend_detail_screen.dart',
+    'lib/src/ui/screens/program_creator_screen.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una

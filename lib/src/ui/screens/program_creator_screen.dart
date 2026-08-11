@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -9,6 +11,9 @@ import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
+
+/// Altezza della fila di pastiglie colore: geometria di questa schermata.
+const double _kAltezzaSelettoreColore = 50;
 
 class ProgramCreatorScreen extends ConsumerStatefulWidget {
   final WorkoutProgram? program;
@@ -24,7 +29,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   late TextEditingController _descController;
   DateTime? _startDate;
   DateTime? _endDate;
-  int _selectedColor = 0xFF2196F3;
+  int _selectedColor = AppPalette.defaultProgramColor;
   bool _isLoading = false;
 
   @override
@@ -36,7 +41,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
     );
     _startDate = widget.program?.startDate;
     _endDate = widget.program?.endDate;
-    _selectedColor = widget.program?.color ?? 0xFF2196F3;
+    _selectedColor = widget.program?.color ?? AppPalette.defaultProgramColor;
   }
 
   @override
@@ -106,6 +111,8 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -121,7 +128,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(t.spacing.md),
         child: Form(
           key: _formKey,
           child: Column(
@@ -137,120 +144,99 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                       decoration: InputDecoration(
                       labelText: loc.t('program_name'),
                         hintText: loc.t('program_name_hint'),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                       validator: (v) =>
                           v == null || v.isEmpty ? loc.t('name_required') : null,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: t.spacing.md),
                     TextFormField(
                       controller: _descController,
                       decoration: InputDecoration(
                       labelText: loc.t('description_label'),
                         hintText: loc.t('description_hint'),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                       maxLines: 3,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: t.spacing.md),
 
               _buildSection(
                 title: loc.t('color_label'),
                 child: SizedBox(
-                  height: 50,
+                  height: _kAltezzaSelettoreColore,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    children:
-                        [
-                          0xFFF44336, // Red
-                          0xFFE91E63, // Pink
-                          0xFF9C27B0, // Purple
-                          0xFF2196F3, // Blue
-                          0xFF00BCD4, // Cyan
-                          0xFF4CAF50, // Green
-                          0xFFFFEB3B, // Yellow
-                          0xFFFF9800, // Orange
-                          0xFF795548, // Brown
-                          0xFF607D8B, // Blue Grey
-                        ].map((color) {
-                          final isSelected = _selectedColor == color;
-                          return GestureDetector(
-                            onTap: () => setState(() => _selectedColor = color),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                color: Color(color),
-                                shape: BoxShape.circle,
-                                border: isSelected
-                                    ? Border.all(color: Colors.white, width: 3)
-                                    : null,
-                                boxShadow: [
-                                  if (isSelected)
-                                    BoxShadow(
-                                      color: Color(color).withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                ],
-                              ),
-                              child: isSelected
-                                  ? const Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 20,
-                                    )
-                                  : null,
-                            ),
-                          );
-                        }).toList(),
+                    children: AppPalette.programColorPresets.map((color) {
+                      final isSelected = _selectedColor == color;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedColor = color),
+                        child: Container(
+                          width: t.sizing.thumbnailSm,
+                          height: t.sizing.thumbnailSm,
+                          margin: EdgeInsets.only(right: t.spacing.sm),
+                          decoration: BoxDecoration(
+                            color: Color(color),
+                            shape: BoxShape.circle,
+                            border: isSelected
+                                ? Border.all(color: scheme.onSurface, width: 3)
+                                : null,
+                            boxShadow: isSelected
+                                ? t.elevation.level1(Color(color))
+                                : null,
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  color: AppPalette.paper,
+                                  size: t.sizing.iconMd,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: t.spacing.md),
 
               // Duration Card
               _buildSection(
                 title: loc.t('duration_section'),
                 child: InkWell(
                   onTap: _pickDateRange,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: t.shape.cornerXs,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(t.spacing.md),
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey.withValues(alpha: 0.3),
-                        style: BorderStyle.solid,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: scheme.outline),
+                      borderRadius: t.shape.cornerXs,
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.date_range, color: Colors.blue),
-                        const SizedBox(width: 16),
+                        Icon(Icons.date_range, color: scheme.primary),
+                        SizedBox(width: t.spacing.md),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               loc.t('date_range_label'),
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: t.spacing.xs),
                             Text(
                               _startDate != null && _endDate != null
                                   ? '${DateFormat('MMM d').format(_startDate!)} - ${DateFormat('MMM d, y').format(_endDate!)}'
                                   : loc.t('tap_to_select_dates'),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: scheme.onSurface,
+                                  ),
                             ),
                           ],
                         ),
@@ -260,7 +246,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: t.spacing.xl),
 
               // Days Section (Workouts)
               if (widget.program != null)
@@ -309,13 +295,10 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                       children: [
                         if (programWorkouts.isEmpty)
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: EdgeInsets.all(t.spacing.lg),
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey.withValues(alpha: 0.3),
-                                style: BorderStyle.solid,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: scheme.outline),
+                              borderRadius: t.shape.cornerSm,
                             ),
                             child: Center(
                               child: Text(loc.t('no_days_added')),
@@ -351,16 +334,15 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                               for (final workout in programWorkouts)
                                 Card(
                                   key: ValueKey(workout.id),
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 4,
+                                  margin: EdgeInsets.symmetric(
+                                    vertical: t.spacing.xs,
                                   ),
                                   child: ListTile(
                                     leading: CircleAvatar(
-                                      backgroundColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withValues(alpha: 0.2),
+                                      backgroundColor: scheme.surfaceContainer,
                                       child: Text(
                                         '${programWorkouts.indexOf(workout) + 1}',
+                                        style: TextStyle(color: scheme.onSurface),
                                       ),
                                     ),
                                     title: Text(workout.name),
@@ -383,7 +365,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                                 ),
                             ],
                           ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: t.spacing.sm),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
@@ -409,10 +391,10 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
               if (widget.program == null)
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 20),
+                    padding: EdgeInsets.only(top: t.spacing.lg),
                     child: Text(
                       loc.t('save_program_first'),
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: scheme.onSurfaceVariant),
                     ),
                   ),
                 ),
@@ -424,6 +406,9 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   }
 
   Widget _buildSection({required String title, required Widget child}) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -431,10 +416,10 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
           title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.onSurface,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: t.spacing.sm),
         child,
       ],
     );
