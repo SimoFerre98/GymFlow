@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_palette.dart';
+import '../../core/theme/expressive_tokens.dart';
+
 class ToastUtils {
   static void showSuccess(BuildContext context, String message) {
-    _showToast(context, message, Colors.green, Icons.check_circle);
+    _showToast(context, message, AppPalette.success, Icons.check_circle);
   }
 
   static void showError(BuildContext context, String message) {
-    _showToast(context, message, Colors.red, Icons.error);
+    _showToast(context, message, AppPalette.danger, Icons.error);
   }
 
   static void showInfo(BuildContext context, String message) {
-    _showToast(context, message, Colors.blue, Icons.info);
+    final scheme = Theme.of(context).colorScheme;
+    // Nessun ruolo semantico "info" in AppPalette: `secondary` e l'indaco
+    // riservato agli "elementi di supporto che non sono azioni", che e
+    // esattamente il ruolo di questo avviso.
+    _showToast(context, message, scheme.secondary, Icons.info);
   }
 
   static void _showToast(
@@ -19,10 +26,12 @@ class ToastUtils {
     Color color,
     IconData icon,
   ) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 60, // Top margin (below status bar safely)
+        top: MediaQuery.of(context).padding.top + t.spacing.xl,
         left: 0,
         right: 0,
         child: Material(
@@ -45,35 +54,29 @@ class ToastUtils {
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+                padding: EdgeInsets.symmetric(
+                  horizontal: t.spacing.md,
+                  vertical: t.spacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: scheme.surfaceContainerHigh,
+                  borderRadius: t.shape.cornerFull,
+                  boxShadow: t.elevation.level2(scheme.shadow),
                   border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, color: color, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(icon, color: color, size: t.sizing.iconMd),
+                    SizedBox(width: t.spacing.sm),
                     Flexible(
                       child: Text(
                         message,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          color: scheme.onSurface,
                         ),
                       ),
                     ),

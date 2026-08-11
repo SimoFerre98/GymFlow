@@ -40,6 +40,10 @@ void main() {
     'lib/src/ui/widgets/charts/workout_type_pie_chart.dart',
     'lib/src/ui/widgets/app_drawer.dart',
     'lib/src/ui/screens/settings_screen.dart',
+    'lib/src/ui/widgets/workout_receipt.dart',
+    'lib/src/ui/screens/workout_summary_screen.dart',
+    'lib/src/ui/widgets/toast_utils.dart',
+    'lib/src/ui/widgets/live_metrics_panel.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una

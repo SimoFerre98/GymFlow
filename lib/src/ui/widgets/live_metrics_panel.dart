@@ -67,9 +67,7 @@ class LiveMetricsPanel extends ConsumerWidget {
                         Text(
                           (statusText ?? loc.t('live_metrics_in_progress'))
                               .toUpperCase(),
-                          style: (theme.textTheme.labelSmall ??
-                                  const TextStyle(fontSize: 11))
-                              .copyWith(
+                          style: theme.textTheme.labelSmall?.copyWith(
                             color: onSurfaceVariantColor,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.1,
@@ -78,10 +76,10 @@ class LiveMetricsPanel extends ConsumerWidget {
                         SizedBox(height: expressive.spacing.xs / 2),
                         Text(
                           formattedTime,
-                          style: (expressive.typography.metricLarge ??
-                                  theme.textTheme.headlineMedium ??
-                                  const TextStyle(fontSize: 28))
-                              .copyWith(
+                          style:
+                              (expressive.typography.metricLarge ??
+                                      theme.textTheme.headlineMedium)
+                                  ?.copyWith(
                             color: primaryColor,
                             fontWeight: FontWeight.w800,
                           ),
@@ -189,15 +187,13 @@ class _MetricCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: color),
+              Icon(icon, size: expressive.sizing.iconSm, color: color),
               SizedBox(width: expressive.spacing.xs),
               Expanded(
                 child: Text(
                   title.toUpperCase(),
                   overflow: TextOverflow.ellipsis,
-                  style: (theme.textTheme.labelSmall ??
-                          const TextStyle(fontSize: 10))
-                      .copyWith(
+                  style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
@@ -213,10 +209,10 @@ class _MetricCard extends StatelessWidget {
             children: [
               Text(
                 valueText,
-                style: (expressive.typography.metricMedium ??
-                        theme.textTheme.titleLarge ??
-                        const TextStyle(fontSize: 20))
-                    .copyWith(
+                style:
+                    (expressive.typography.metricMedium ??
+                            theme.textTheme.titleLarge)
+                        ?.copyWith(
                   color: color,
                   fontWeight: FontWeight.w800,
                 ),
@@ -224,9 +220,7 @@ class _MetricCard extends StatelessWidget {
               SizedBox(width: expressive.spacing.xs / 2),
               Text(
                 unit,
-                style: (theme.textTheme.bodySmall ??
-                        const TextStyle(fontSize: 11))
-                    .copyWith(
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
@@ -274,16 +268,14 @@ class _PermissionPromptCard extends StatelessWidget {
         children: [
           Icon(
             Icons.health_and_safety_outlined,
-            size: 20,
+            size: expressive.sizing.iconMd,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           SizedBox(width: expressive.spacing.sm),
           Expanded(
             child: Text(
               promptText,
-              style: (theme.textTheme.bodySmall ??
-                      const TextStyle(fontSize: 12))
-                  .copyWith(
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
