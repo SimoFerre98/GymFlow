@@ -7,6 +7,7 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
@@ -120,6 +121,8 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
               ? loc.t('new_program')
               : loc.t('edit_program'),
         ),
+        leading: BackPill(label: loc.t('programs_tab')),
+        leadingWidth: BackPill.leadingWidth,
         actions: [
           IconButton(
             icon: const Icon(Icons.check),

@@ -7,6 +7,7 @@ import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_detail_screen.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 import 'package:gymflow/src/ui/widgets/add_exercise_dialog.dart';
@@ -174,10 +175,21 @@ String buildExerciseSubtitleText(Exercise exercise, Localization loc) {
 
 class ExerciseLibraryScreen extends ConsumerStatefulWidget {
   /// Vero quando la schermata serve a **scegliere** un esercizio per qualcos
-  /// altro: la creazione di una scheda. Falso quando la si consulta, che e il
-  /// caso di chi arriva dal menu.
+  /// altro: la creazione di una scheda. Dal cassetto non ci si arriva piu
+  /// (tolto insieme a Statistiche): oggi e sempre vero, ma resta un parametro
+  /// legittimo, non un residuo — un domani con un'altra via di consultazione
+  /// lo userebbe di nuovo.
   final bool isSelecting;
-  const ExerciseLibraryScreen({super.key, this.isSelecting = false});
+
+  /// Dove torna la pillola indietro: il nome della schermata che ha aperto
+  /// questa. Assente, mostra la freccia predefinita invece di indovinare.
+  final String? backLabel;
+
+  const ExerciseLibraryScreen({
+    super.key,
+    this.isSelecting = false,
+    this.backLabel,
+  });
 
   @override
   ConsumerState<ExerciseLibraryScreen> createState() =>
@@ -206,6 +218,10 @@ class _ExerciseLibraryScreenState
 
     return Scaffold(
       appBar: AppBar(
+        leading: widget.backLabel != null
+            ? BackPill(label: widget.backLabel!)
+            : null,
+        leadingWidth: widget.backLabel != null ? BackPill.leadingWidth : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

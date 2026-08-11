@@ -385,7 +385,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                     value: _notificationsEnabled,
-                    activeThumbColor: scheme.primary,
+                    // Nessun colore qui: `SwitchThemeData` in `app_theme.dart`
+                    // gia' distingue pollice (`onPrimary`) e binario (`primary`)
+                    // da acceso. Forzare qui lo stesso ambra sul pollice li
+                    // rendeva indistinguibili — una pillola unica, non uno
+                    // switch con un pollice visibile.
                     onChanged: (val) =>
                         setState(() => _notificationsEnabled = val),
                   ),

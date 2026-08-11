@@ -9,6 +9,7 @@ import 'package:gymflow/src/core/providers/personal_best_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/core/utils/exercise_progression.dart';
 import 'package:gymflow/src/models/exercise.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/exercise_image.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
@@ -59,6 +60,8 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.exercise.name),
+        leading: BackPill(label: loc.t('exercises_menu')),
+        leadingWidth: BackPill.leadingWidth,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(

@@ -62,6 +62,7 @@ void main() {
     'lib/src/ui/widgets/exercise_thumbnail.dart',
     'lib/src/ui/widgets/exercise_video_sheet.dart',
     'lib/src/ui/widgets/expressive_card.dart',
+    'lib/src/ui/widgets/back_pill.dart',
     'lib/src/ui/widgets/set_editor_sheet.dart',
     'lib/src/ui/widgets/set_value_slider.dart',
     'lib/src/ui/widgets/sparkline.dart',

@@ -4,8 +4,6 @@ import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 
-import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
-import 'package:gymflow/src/ui/screens/statistics_screen.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
@@ -95,18 +93,6 @@ class AppDrawer extends ConsumerWidget {
                 ),
                 SizedBox(height: t.spacing.sm),
                 _VoceMenu(
-                  icon: Icons.bar_chart,
-                  title: loc.t('statistics_title'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const StatisticsScreen()),
-                    );
-                  },
-                ),
-                SizedBox(height: t.spacing.sm),
-                _VoceMenu(
                   icon: Icons.settings_outlined,
                   title: loc.t('settings_title'),
                   onTap: () {
@@ -114,25 +100,6 @@ class AppDrawer extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    );
-                  },
-                ),
-                SizedBox(height: t.spacing.sm),
-                // La libreria era raggiungibile solo entrando nella creazione
-                // di una scheda: tutto il materiale visivo di EP-009 era di
-                // fatto invisibile.
-                _VoceMenu(
-                  icon: Icons.fitness_center_outlined,
-                  title: loc.t('exercises_menu'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        // In consultazione: dal menu si guarda la libreria,
-                        // non si sceglie un esercizio per qualcos'altro.
-                        builder: (_) => const ExerciseLibraryScreen(),
-                      ),
                     );
                   },
                 ),

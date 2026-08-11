@@ -8,6 +8,7 @@ import '../../core/theme/expressive_tokens.dart';
 import '../../models/body_measurement.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../ui/widgets/back_pill.dart';
 import '../../ui/widgets/set_value_slider.dart';
 import '../../ui/widgets/toast_utils.dart';
 
@@ -199,13 +200,21 @@ class _BodyMeasurementsScreenState
 
     if (_userId.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text(loc.t('body_measurements'))),
+        appBar: AppBar(
+          title: Text(loc.t('body_measurements')),
+          leading: BackPill(label: loc.t('settings_title')),
+          leadingWidth: BackPill.leadingWidth,
+        ),
         body: Center(child: Text(loc.t('login_required'))),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc.t('body_measurements'))),
+      appBar: AppBar(
+        title: Text(loc.t('body_measurements')),
+        leading: BackPill(label: loc.t('settings_title')),
+        leadingWidth: BackPill.leadingWidth,
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(t.spacing.md),
         child: Column(

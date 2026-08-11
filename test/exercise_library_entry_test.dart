@@ -15,8 +15,9 @@ import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 void main() {
   group('modalita della schermata', () {
     test('per difetto e in consultazione, non in scelta', () {
-      // E la modalita di chi arriva dal menu. Se il default cambiasse, dal menu
-      // si aprirebbe una schermata che "sceglie" un esercizio per nessuno.
+      // Il cassetto non nomina piu questa schermata (tolta insieme a
+      // Statistiche), ma il default resta la consultazione: e il valore
+      // corretto per chiunque la apra senza scegliere nulla per qualcos'altro.
       const screen = ExerciseLibraryScreen();
       expect(screen.isSelecting, isFalse);
     });

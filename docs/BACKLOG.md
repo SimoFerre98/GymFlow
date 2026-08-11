@@ -3001,13 +3001,15 @@ Dopo questa storia: `flutter analyze` è pulito, e ogni cosa che è stata trovat
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 IN CORSO — implementata il 2026-08-12, resta da confermare sull'APK
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11 provando l'APK**, e verificato con uno screenshot dal dispositivo: «non sono sicuro che abbia senso mettere ogni funzione che aggiungiamo anche nel menu hamburger».
 >
 > Il cassetto contiene sette voci — Home, Statistiche, Impostazioni, Esercizi, Obiettivi, Cronometro, Connetti Amico — **ognuna con un'icona di un colore diverso**: blu, viola, blu, verde acqua, giallo, verde, magenta. Nessuno di quei colori è nella palette. La direzione visiva dice indaco ovunque, ambra solo per «cosa fare adesso», salmone solo per i dati vitali: qui ogni riga urla un colore suo, quindi non ne spicca nessuna.
 >
 > Due voci non appartengono a un menu generale: **Statistiche** ha già la sua icona in alto sulla home, che l'utente giudica «perfetta lì»; **Esercizi** appartiene al mondo delle schede, e ci si arriva mentre si costruisce un allenamento.
+>
+> **Confermato di nuovo il 2026-08-12**, stessa richiesta indipendente dell'utente, e implementata insieme al resto della navigazione: `Statistiche` ed `Esercizi` tolte da `app_drawer.dart`. Il terzo criterio (icone dal `ColorScheme`) era già soddisfatto da una sessione precedente, che aveva riscritto il cassetto sui token — non c'era piu' un colore letterale da togliere quando questa storia e arrivata a implementarsi davvero.
 
 **Story**
 Come atleta che apre il menu per spostarsi,
@@ -3015,10 +3017,10 @@ voglio trovarci poche voci che non so raggiungere altrimenti,
 così da non dover leggere sette righe colorate per trovarne una.
 
 **Acceptance Criteria**
-- [ ] **Statistiche** ed **Esercizi** non sono più nel cassetto
-- [ ] Dalla sezione delle schede si arriva agli esercizi con un'azione visibile
-- [ ] Le icone del cassetto usano i ruoli del `ColorScheme`, non colori letterali
-- [ ] Nessuna voce diventa irraggiungibile: per ognuna tolta, è scritto da dove ci si arriva
+- [x] **Statistiche** ed **Esercizi** non sono più nel cassetto
+- [x] Dalla sezione delle schede si arriva agli esercizi con un'azione visibile — il pulsante «Aggiungi» dentro la creazione di un allenamento, che c'era già ed e l'unica via rimasta
+- [x] Le icone del cassetto usano i ruoli del `ColorScheme`, non colori letterali — gia' cosi da prima di questa storia
+- [x] Nessuna voce diventa irraggiungibile: **Statistiche** resta dietro l'icona in alto sulla home (`dashboard_screen.dart`); **Esercizi** resta dietro «Aggiungi esercizio» nella creazione di un allenamento (`workout_creator_screen.dart`), ora con una pillola indietro che dice dove si torna invece della freccia sola
 - [ ] **Da confermare sull'APK**: il menu si legge come un elenco, non come una tavolozza
 
 ---

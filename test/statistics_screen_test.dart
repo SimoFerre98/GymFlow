@@ -56,9 +56,14 @@ void main() {
     expect(count, equals(5), reason: 'Ci devono essere 4 chiamate a _buildStatCard più la definizione del metodo');
   });
 
-  test('La schermata è raggiungibile dal menu e dalla home', () {
+  test('La schermata è raggiungibile dalla home, non più dal cassetto', () {
+    // L'utente ha chiesto di togliere Statistiche ed Esercizi dal cassetto:
+    // troppe voci che duplicano una via già più diretta. Statistiche resta
+    // raggiungibile dall'icona nella barra della home, che è l'unica via
+    // rimasta — e questo test lo sorveglia cambiando verso, non cancellando
+    // il criterio.
     final drawerString = righeDiCodice('lib/src/ui/widgets/app_drawer.dart').join('\n');
-    expect(drawerString, contains('StatisticsScreen'), reason: 'Il menu deve nominare StatisticsScreen');
+    expect(drawerString, isNot(contains('StatisticsScreen')), reason: 'Il cassetto non deve più nominare StatisticsScreen');
 
     final dashboardString = righeDiCodice('lib/src/ui/screens/dashboard_screen.dart').join('\n');
     expect(dashboardString, contains('StatisticsScreen'), reason: 'La home deve nominare StatisticsScreen per arrivarci');

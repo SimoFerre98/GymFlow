@@ -9,7 +9,7 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
-import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 
 /// Raggio del ritratto grande in cima al profilo.
 const double _kRaggioAvatarProfilo = 60;
@@ -145,26 +145,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     // 2. Create updated profile
-    final updatedProfile = UserProfile(
-      id: _profile!.id,
-      email: _profile!.email,
+    //
+    // `copyWith` e non un `UserProfile(...)` scritto da zero: quest'ultimo
+    // esisteva prima e non passava `friends`, `calendarSharedWith`,
+    // `programsSharedWith` — tornavano `const []` a ogni salvataggio, quindi
+    // ogni volta che si aggiornava il profilo si perdeva la lista amici e le
+    // condivisioni. `copyWith` porta avanti quello che non viene toccato qui.
+    final updatedProfile = _profile!.copyWith(
       displayName: _nameController.text.trim(),
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      friendCode: _profile!.friendCode, // Preserve existing code
       photoUrl: photoUrl,
-      // Height and Weight are now managed in BodyMeasurementsScreen
-      // We keep existing values or allow them to be updated via that screen,
-      // but here we just pass existing values to avoid nulling them if we want to keep them in profile
-      height: _profile!.height,
-      weight: _profile!.weight,
-      createdAt: _profile!.createdAt,
-      gymName: _profile!.gymName,
-      gymAddress: _profile!.gymAddress,
-      gymLat: _profile!.gymLat,
-      gymLng: _profile!.gymLng,
-      subscriptionExpiry: _profile!.subscriptionExpiry,
-      streakDays: _profile!.streakDays,
       birthDate: _birthDate,
       gender: _gender,
     );
@@ -199,15 +190,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final t = context.expressive;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      drawer: const AppDrawer(),
+      // Si arriva sempre scendendo da Impostazioni, mai dal cassetto: la
+      // pillola indietro sostituisce l'hamburger, non lo affianca.
       appBar: AppBar(
         title: Text(loc.t('my_profile')),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        leading: BackPill(label: loc.t('settings_title')),
+        leadingWidth: BackPill.leadingWidth,
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.save : Icons.edit),

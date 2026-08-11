@@ -8,6 +8,7 @@ import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:intl/intl.dart';
 
@@ -86,7 +87,11 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.friend.displayName)),
+      appBar: AppBar(
+        title: Text(widget.friend.displayName),
+        leading: BackPill(label: loc.t('connect_friends_title')),
+        leadingWidth: BackPill.leadingWidth,
+      ),
       body: Column(
         children: [
           // Pill TabBar

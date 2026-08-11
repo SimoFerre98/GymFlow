@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../services/health_service.dart';
 import '../../core/theme/expressive_tokens.dart';
+import '../widgets/back_pill.dart';
 import '../widgets/expressive_card.dart';
 import '../widgets/expressive_segmented_control.dart';
 
@@ -143,7 +144,11 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        leading: BackPill(label: loc.t('statistics_title')),
+        leadingWidth: BackPill.leadingWidth,
+      ),
       body: Column(
         children: [
           SizedBox(height: t.spacing.lg),

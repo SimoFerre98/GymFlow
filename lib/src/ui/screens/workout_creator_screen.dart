@@ -8,6 +8,7 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
@@ -455,10 +456,18 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
   }
 
   void _addExercise() async {
+    final loc = ref.read(localizationNotifierProvider);
+    final backLabel = widget.workout == null
+        ? loc.t('new_day')
+        : loc.t('edit_day');
+
     final Exercise? result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ExerciseLibraryScreen(isSelecting: true),
+        builder: (_) => ExerciseLibraryScreen(
+          isSelecting: true,
+          backLabel: backLabel,
+        ),
       ),
     );
 
@@ -497,6 +506,8 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
         title: Text(
           widget.workout == null ? loc.t('new_day') : loc.t('edit_day'),
         ),
+        leading: BackPill(label: loc.t('programs_tab')),
+        leadingWidth: BackPill.leadingWidth,
         actions: [
           IconButton(
             icon: const Icon(Icons.check),

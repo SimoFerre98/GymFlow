@@ -10,6 +10,7 @@ import '../../core/providers/live_metrics_provider.dart'; // per healthServicePr
 import '../../services/health_service.dart'; // per PermessiSaluteMancanti
 import '../../models/session.dart';
 import '../../core/utils/statistics_helper.dart';
+import '../widgets/back_pill.dart';
 import '../widgets/charts/activity_chart.dart';
 import '../widgets/charts/body_measurements_chart.dart';
 import '../widgets/expressive_card.dart';
@@ -91,6 +92,8 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackPill(label: loc.t('home')),
+        leadingWidth: BackPill.leadingWidth,
         title: Text(
           loc.t('statistics_title'),
           style: t.typography.titleEmphasized?.copyWith(
