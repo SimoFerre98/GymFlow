@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gymflow/src/services/auth_service.dart';
+import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/screens/statistics_screen.dart';
@@ -9,109 +10,93 @@ import 'package:gymflow/src/ui/screens/settings_screen.dart';
 import 'package:gymflow/src/ui/screens/gamification_screen.dart';
 import 'package:gymflow/src/ui/screens/connect_friend_screen.dart';
 import 'package:gymflow/src/ui/screens/time_tools_screen.dart';
+import 'expressive_card.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = AuthService().currentUser;
+    final user = ref.watch(currentUserProvider);
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
 
     return Drawer(
       child: Column(
         children: [
-          // 1. Custom Premium Header
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withValues(alpha: 0.5),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+            color: scheme.surfaceContainerHigh,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.all(t.spacing.lg),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: t.sizing.thumbnailMd / 2,
+                      backgroundColor: scheme.surface,
+                      foregroundImage: user?.photoURL != null
+                          ? NetworkImage(user!.photoURL!)
+                          : null,
+                      child: user?.photoURL == null
+                          ? Text(
+                              (user?.displayName?.isNotEmpty == true)
+                                  ? user!.displayName![0].toUpperCase()
+                                  : 'U',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: scheme.onSurface),
+                            )
+                          : null,
+                    ),
+                    SizedBox(width: t.spacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            user?.displayName ?? loc.t('gymflow_user'),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: scheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            user?.email ?? '',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  foregroundImage: user?.photoURL != null
-                      ? NetworkImage(user!.photoURL!)
-                      : null,
-                  child: user?.photoURL == null
-                      ? Text(
-                          (user?.displayName?.isNotEmpty == true)
-                              ? user!.displayName![0].toUpperCase()
-                              : 'U',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        user?.displayName ?? loc.t('gymflow_user'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user?.email ?? '',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
           ),
-
-          const SizedBox(height: 16),
-
-          // 2. Menu Items
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.all(t.spacing.md),
               children: [
-                _buildDrawerItem(
-                  context,
+                _VoceMenu(
                   icon: Icons.home_filled,
                   title: loc.t('home'),
-                  color: Colors.indigo,
                   onTap: () {
                     Navigator.of(
                       context,
                     ).pushNamedAndRemoveUntil('/', (route) => false);
                   },
                 ),
-                const SizedBox(height: 8),
-                _buildDrawerItem(
-                  context,
+                SizedBox(height: t.spacing.sm),
+                _VoceMenu(
                   icon: Icons.bar_chart,
                   title: loc.t('statistics_title'),
-                  color: Colors.deepPurple,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -120,12 +105,10 @@ class AppDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
-                _buildDrawerItem(
-                  context,
+                SizedBox(height: t.spacing.sm),
+                _VoceMenu(
                   icon: Icons.settings_outlined,
                   title: loc.t('settings_title'),
-                  color: Colors.blueAccent,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -134,15 +117,13 @@ class AppDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: t.spacing.sm),
                 // La libreria era raggiungibile solo entrando nella creazione
                 // di una scheda: tutto il materiale visivo di EP-009 era di
                 // fatto invisibile.
-                _buildDrawerItem(
-                  context,
+                _VoceMenu(
                   icon: Icons.fitness_center_outlined,
                   title: loc.t('exercises_menu'),
-                  color: Colors.teal,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -155,12 +136,10 @@ class AppDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
-                _buildDrawerItem(
-                  context,
+                SizedBox(height: t.spacing.sm),
+                _VoceMenu(
                   icon: Icons.emoji_events_outlined,
                   title: loc.t('achievements'),
-                  color: Colors.amber,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -171,12 +150,10 @@ class AppDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
-                _buildDrawerItem(
-                  context,
+                SizedBox(height: t.spacing.sm),
+                _VoceMenu(
                   icon: Icons.timer,
                   title: loc.t('stopwatch_menu'),
-                  color: Colors.green,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -187,12 +164,10 @@ class AppDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
-                _buildDrawerItem(
-                  context,
+                SizedBox(height: t.spacing.sm),
+                _VoceMenu(
                   icon: Icons.person_add_alt_1,
                   title: loc.t('connect_friend'),
-                  color: Colors.purple,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -203,7 +178,6 @@ class AppDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-
               ],
             ),
           ),
@@ -211,39 +185,54 @@ class AppDrawer extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildDrawerItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+/// Una destinazione del cassetto.
+///
+/// Un solo colore per tutte le icone, non un'icona ciascuna: nessuna di
+/// queste e "cosa fare adesso", quindi nessuna prende l'ambra. Distinguerle
+/// con un colore diverso a testa avrebbe reintrodotto la stessa confusione
+/// gia risolta nella barra di navigazione.
+class _VoceMenu extends StatelessWidget {
+  const _VoceMenu({required this.icon, required this.title, required this.onTap});
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
+    return ExpressiveCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(t.spacing.sm),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainer,
+              borderRadius: t.shape.cornerSm,
+            ),
+            child: Icon(icon, color: scheme.onSurfaceVariant, size: t.sizing.iconMd),
+          ),
+          SizedBox(width: t.spacing.md),
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            size: t.sizing.iconSm,
+            color: scheme.onSurfaceVariant,
           ),
         ],
-      ),
-      child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
-        onTap: onTap,
       ),
     );
   }
