@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -8,15 +10,15 @@ import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
-class ProgramCreatorScreen extends StatefulWidget {
+class ProgramCreatorScreen extends ConsumerStatefulWidget {
   final WorkoutProgram? program;
   const ProgramCreatorScreen({super.key, this.program});
 
   @override
-  State<ProgramCreatorScreen> createState() => _ProgramCreatorScreenState();
+  ConsumerState<ProgramCreatorScreen> createState() => _ProgramCreatorScreenState();
 }
 
-class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
+class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descController;
@@ -86,12 +88,15 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
       await FirestoreService().saveProgram(program);
 
       if (mounted) {
-        ToastUtils.showSuccess(context, 'Program saved successfully!');
+        ToastUtils.showSuccess(context, ref.read(localizationNotifierProvider).t('program_saved_success'));
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ToastUtils.showError(context, 'Error saving program: $e');
+        ToastUtils.showError(
+          context,
+          '${ref.read(localizationNotifierProvider).t('program_save_error')}: $e',
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -100,9 +105,14 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.program == null ? 'New Program' : 'Edit Program'),
+        title: Text(
+          widget.program == null
+              ? loc.t('new_program')
+              : loc.t('edit_program'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -119,25 +129,25 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
             children: [
               // Basic Info Card
               _buildSection(
-                title: 'Basic Info',
+                title: loc.t('basic_info'),
                 child: Column(
                   children: [
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Program Name',
-                        hintText: 'e.g. Winter Bulk, Summer Shred',
+                      decoration: InputDecoration(
+                      labelText: loc.t('program_name'),
+                        hintText: loc.t('program_name_hint'),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) =>
-                          v == null || v.isEmpty ? 'Name required' : null,
+                          v == null || v.isEmpty ? loc.t('name_required') : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _descController,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Goals, focus, notes...',
+                      decoration: InputDecoration(
+                      labelText: loc.t('description_label'),
+                        hintText: loc.t('description_hint'),
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
@@ -148,7 +158,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
               const SizedBox(height: 16),
 
               _buildSection(
-                title: 'Color',
+                title: loc.t('color_label'),
                 child: SizedBox(
                   height: 50,
                   child: ListView(
@@ -205,7 +215,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
 
               // Duration Card
               _buildSection(
-                title: 'Duration',
+                title: loc.t('duration_section'),
                 child: InkWell(
                   onTap: _pickDateRange,
                   borderRadius: BorderRadius.circular(8),
@@ -226,7 +236,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Start - End Date',
+                              loc.t('date_range_label'),
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
@@ -236,7 +246,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                             Text(
                               _startDate != null && _endDate != null
                                   ? '${DateFormat('MMM d').format(_startDate!)} - ${DateFormat('MMM d, y').format(_endDate!)}'
-                                  : 'Tap to select dates',
+                                  : loc.t('tap_to_select_dates'),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -307,8 +317,8 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Center(
-                              child: Text('No days added yet'),
+                            child: Center(
+                              child: Text(loc.t('no_days_added')),
                             ),
                           )
                         else
@@ -388,7 +398,7 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                               );
                             },
                             icon: const Icon(Icons.add),
-                            label: const Text('Add Workout Day'),
+                            label: Text(loc.t('add_workout_day')),
                           ),
                         ),
                       ],
@@ -397,12 +407,12 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
                 ),
 
               if (widget.program == null)
-                const Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.only(top: 20),
+                    padding: const EdgeInsets.only(top: 20),
                     child: Text(
-                      'Save program to add workout days.',
-                      style: TextStyle(color: Colors.grey),
+                      loc.t('save_program_first'),
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ),
                 ),
@@ -430,3 +440,4 @@ class _ProgramCreatorScreenState extends State<ProgramCreatorScreen> {
     );
   }
 }
+

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -7,16 +9,16 @@ import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
-class WorkoutCreatorScreen extends StatefulWidget {
+class WorkoutCreatorScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate? workout; // If provided, we are editing
   final String? parentProgramId;
   const WorkoutCreatorScreen({super.key, this.workout, this.parentProgramId});
 
   @override
-  State<WorkoutCreatorScreen> createState() => _WorkoutCreatorScreenState();
+  ConsumerState<WorkoutCreatorScreen> createState() => _WorkoutCreatorScreenState();
 }
 
-class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
+class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -46,7 +48,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_exercises.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one exercise')),
+        SnackBar(content: Text(ref.read(localizationNotifierProvider).t('add_at_least_one_exercise'))),
       );
       return;
     }
@@ -83,7 +85,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -95,8 +97,8 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Focus Category',
+        Text(
+          ref.watch(localizationNotifierProvider).t('focus_category'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
@@ -145,6 +147,10 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     // Defaults based on Type
     // If existing, use values. Else, defaults.
     // However, 'type' comes from 'existing'. When adding new, we pass a temp object with correct type.
+    // `read` e non `watch`: questo non e un `build`, e il foglio vive il tempo
+    // di una configurazione.
+    final loc = ref.read(localizationNotifierProvider);
+
     final type = existing?.type ?? ExerciseType.strength;
     final isCardio = type == ExerciseType.cardio;
     final isTimed =
@@ -214,12 +220,14 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isCardio ? 'Configure Cardio' : 'Configure Strength',
+                          isCardio
+                              ? loc.t('configure_cardio')
+                              : loc.t('configure_strength'),
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          existing?.exerciseName ?? 'New Exercise',
+                          existing?.exerciseName ?? loc.t('new_exercise'),
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
@@ -242,7 +250,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: distanceController,
-                        label: 'Distance (km)',
+                        label: loc.t('distance_km_label'),
                         icon: Icons.map_outlined,
                       ),
                     ),
@@ -250,7 +258,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: durationController,
-                        label: 'Time (min)',
+                        label: loc.t('time_min_label'),
                         icon: Icons.timer_outlined,
                       ),
                     ),
@@ -264,7 +272,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: setsController,
-                        label: 'Sets',
+                        label: loc.t('sets_label'),
                         icon: Icons.repeat,
                       ),
                     ),
@@ -272,8 +280,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: durationController,
-                        label:
-                            'Duration (sec)', // Changed to sec for timed? Or keep min for consistency?
+                        label: loc.t('duration_sec_label'),
                         // Plan said min/sec. Let's assume min for consistency with cardio or sec for holds.
                         // Usually isometric is seconds. Let's label sec.
                         icon: Icons.timer,
@@ -288,7 +295,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: setsController,
-                        label: 'Sets',
+                        label: loc.t('sets_label'),
                         icon: Icons.repeat,
                       ),
                     ),
@@ -296,7 +303,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: repsController,
-                        label: 'Reps',
+                        label: loc.t('reps_label'),
                         icon: Icons.numbers,
                       ),
                     ),
@@ -304,7 +311,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                     Expanded(
                       child: _buildSheetInput(
                         controller: weightController,
-                        label: 'Weight (kg)',
+                        label: loc.t('weight_kg_label'),
                         icon: Icons.fitness_center_outlined,
                       ),
                     ),
@@ -320,7 +327,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                   Expanded(
                     child: _buildSheetInput(
                       controller: restController,
-                      label: 'Rest (sec)',
+                      label: loc.t('rest_sec_label'),
                       icon: Icons.hourglass_empty,
                     ),
                   ),
@@ -330,7 +337,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
               TextField(
                 controller: notesController,
                 decoration: InputDecoration(
-                  labelText: 'Notes / Cue (Optional)',
+                  labelText: loc.t('notes_optional'),
                   filled: true,
                   fillColor: Theme.of(context).cardColor,
                   border: OutlineInputBorder(
@@ -400,8 +407,8 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'Save Exercise',
+                child: Text(
+                  loc.t('save_exercise'),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -411,7 +418,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
       ),
     );
 
-    // Il bottom sheet è chiuso: nessun widget usa più questi controller.
+    // Il bottom sheet Ã¨ chiuso: nessun widget usa piÃ¹ questi controller.
     setsController.dispose();
     repsController.dispose();
     weightController.dispose();
@@ -478,9 +485,12 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.workout == null ? 'New Day' : 'Edit Day'),
+        title: Text(
+          widget.workout == null ? loc.t('new_day') : loc.t('edit_day'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -512,7 +522,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Day Name (e.g. Push Day)',
+                      labelText: loc.t('day_name_hint'),
                       filled: true,
                       fillColor: Theme.of(context).cardColor,
                       border: OutlineInputBorder(
@@ -520,7 +530,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (v) => v!.isEmpty ? 'Name required' : null,
+                    validator: (v) => v!.isEmpty ? loc.t('name_required') : null,
                   ),
                   const SizedBox(height: 16),
                   _buildCategorySelector(),
@@ -534,7 +544,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Exercises',
+                    loc.t('exercises_section'),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -542,7 +552,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                   ElevatedButton.icon(
                     onPressed: _addExercise,
                     icon: const Icon(Icons.add),
-                    label: const Text('Add'),
+                    label: Text(loc.t('add_btn')),
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -566,7 +576,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No exercises added yet',
+                            loc.t('no_exercises_added'),
                             style: TextStyle(color: Colors.grey[500]),
                           ),
                         ],
@@ -631,7 +641,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                                     ),
                                     if (_exercises[index].restSeconds != null)
                                       Text(
-                                        'Rest: ${_exercises[index].restSeconds}s',
+                                        '${loc.t('rest_label')}: ${_exercises[index].restSeconds}s',
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                           fontSize: 12,
@@ -640,7 +650,7 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
                                     if (_exercises[index].notes != null &&
                                         _exercises[index].notes!.isNotEmpty)
                                       Text(
-                                        'Note: ${_exercises[index].notes}',
+                                        '${loc.t('note_label')}: ${_exercises[index].notes}',
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                           fontSize: 12,
@@ -700,3 +710,5 @@ class _WorkoutCreatorScreenState extends State<WorkoutCreatorScreen> {
     );
   }
 }
+
+

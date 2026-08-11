@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:health/health.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../services/health_service.dart';
 
-class HealthDetailScreen extends StatefulWidget {
+class HealthDetailScreen extends ConsumerStatefulWidget {
   final HealthDataType dataType;
   final String title;
   final Color baseColor;
@@ -19,10 +21,10 @@ class HealthDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<HealthDetailScreen> createState() => _HealthDetailScreenState();
+  ConsumerState<HealthDetailScreen> createState() => _HealthDetailScreenState();
 }
 
-class _HealthDetailScreenState extends State<HealthDetailScreen> {
+class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
   bool _isWeekly = true; // true = Week, false = Month
   DateTime _currentDate = DateTime.now();
   Map<DateTime, double> _data = {};
@@ -133,6 +135,7 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -157,8 +160,8 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
             ),
             child: Row(
               children: [
-                _buildPeriodTab('Week', _isWeekly),
-                _buildPeriodTab('Month', !_isWeekly),
+                _buildPeriodTab(loc.t('week_tab'), _isWeekly, true),
+                _buildPeriodTab(loc.t('month_tab'), !_isWeekly, false),
               ],
             ),
           ),
@@ -211,7 +214,7 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
             ),
             child: Column(
               children: [
-                Text('Total / Average', style: TextStyle(color: Colors.grey)),
+                Text(loc.t('total_average'), style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 10),
                 Text(
                   _calculateSummary(),
@@ -248,13 +251,13 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
     );
   }
 
-  Widget _buildPeriodTab(String text, bool isSelected) {
+  Widget _buildPeriodTab(String text, bool isSelected, bool isWeeklyTab) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           if (isSelected) return;
           setState(() {
-            _isWeekly = text == 'Week';
+            _isWeekly = isWeeklyTab;
             // Reset date to now on switch? Or keep context?
             // Resetting to latest is usually better UX
             _currentDate = DateTime.now();
@@ -326,7 +329,7 @@ class _HealthDetailScreenState extends State<HealthDetailScreen> {
   }
 
   Widget _buildChart() {
-    if (_data.isEmpty) return Center(child: Text('No Data'));
+    if (_data.isEmpty) return Center(child: Text(ref.read(localizationNotifierProvider).t('no_data')));
 
     // Check if we use Bar or Line
     // Usually Steps/Calories -> Bar

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -7,16 +9,16 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:intl/intl.dart';
 
-class FriendDetailScreen extends StatefulWidget {
+class FriendDetailScreen extends ConsumerStatefulWidget {
   final UserProfile friend;
 
   const FriendDetailScreen({super.key, required this.friend});
 
   @override
-  State<FriendDetailScreen> createState() => _FriendDetailScreenState();
+  ConsumerState<FriendDetailScreen> createState() => _FriendDetailScreenState();
 }
 
-class _FriendDetailScreenState extends State<FriendDetailScreen>
+class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _canViewCalendar = false;
@@ -52,17 +54,18 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     // Re-calc tabs in build in case permissions change (though passed in widget is const)
     // For now assuming static permissions for this session
-    final tabs = <Widget>[const Tab(text: 'Profile')];
+    final tabs = <Widget>[Tab(text: loc.t('profile_tab'))];
     final views = <Widget>[_buildProfileTab()];
 
     if (_canViewCalendar) {
-      tabs.add(const Tab(text: 'Calendar'));
+      tabs.add(Tab(text: loc.t('calendar_tab')));
       views.add(_buildCalendarTab());
     }
     if (_canViewPrograms) {
-      tabs.add(const Tab(text: 'Programs'));
+      tabs.add(Tab(text: loc.t('programs_tab')));
       views.add(_buildProgramsTab());
     }
 
@@ -132,6 +135,7 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
   }
 
   Widget _buildProfileTab() {
+    final loc = ref.watch(localizationNotifierProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -158,15 +162,15 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
           if (widget.friend.gymName != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Gym: ${widget.friend.gymName}',
+              '${loc.t('gym_label')}: ${widget.friend.gymName}',
               style: const TextStyle(color: Colors.grey, fontSize: 16),
             ),
           ],
           const SizedBox(height: 32),
           _buildStatCard(
             context,
-            'Streak',
-            '${widget.friend.streakDays} Days',
+            loc.t('streak_label'),
+            '${widget.friend.streakDays} ${loc.t('days_label')}',
             Icons.local_fire_department,
             Colors.orange,
           ),
@@ -193,7 +197,7 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
         }
         final sessions = snapshot.data ?? [];
         if (sessions.isEmpty) {
-          return const Center(child: Text('No workout history shared.'));
+          return Center(child: Text(ref.read(localizationNotifierProvider).t('no_history_shared')));
         }
 
         return ListView.builder(
@@ -230,7 +234,7 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
         }
         final programs = snapshot.data ?? [];
         if (programs.isEmpty) {
-          return const Center(child: Text('No programs shared.'));
+          return Center(child: Text(ref.read(localizationNotifierProvider).t('no_programs_shared')));
         }
 
         return ListView.builder(
@@ -246,7 +250,7 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
                 trailing: IconButton(
                   icon: const Icon(Icons.download_rounded),
                   onPressed: () => _importProgram(program),
-                  tooltip: 'Import Program',
+                  tooltip: ref.read(localizationNotifierProvider).t('import_program_tooltip'),
                 ),
               ),
             );
@@ -260,18 +264,21 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Import Program?'),
+        title: Text(ref.read(localizationNotifierProvider).t('import_program_title')),
         content: Text(
-          'Do you want to add "${program.name}" to your library? This will create a copy of the program and all its workouts.',
+          ref
+              .read(localizationNotifierProvider)
+              .t('import_program_confirm')
+              .replaceFirst('%s', program.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('CANCEL'),
+            child: Text(ref.read(localizationNotifierProvider).t('cancel_caps')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('IMPORT'),
+            child: Text(ref.read(localizationNotifierProvider).t('import_caps')),
           ),
         ],
       ),
@@ -282,11 +289,14 @@ class _FriendDetailScreenState extends State<FriendDetailScreen>
       try {
         await FirestoreService().importSharedProgram(program, _currentUserId!);
         if (mounted) {
-          ToastUtils.showSuccess(context, 'Program imported successfully!');
+          ToastUtils.showSuccess(context, ref.read(localizationNotifierProvider).t('program_imported_success'));
         }
       } catch (e) {
         if (mounted) {
-          ToastUtils.showError(context, 'Failed to import: $e');
+          ToastUtils.showError(
+            context,
+            '${ref.read(localizationNotifierProvider).t('import_failed')}: $e',
+          );
         }
       }
     }

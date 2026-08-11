@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/register_screen.dart'; // Will create next
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -36,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: ${e.toString()}')));
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -51,26 +53,26 @@ class _LoginScreenState extends State<LoginScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Password'),
+        title: Text(ref.read(localizationNotifierProvider).t('reset_password')),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Enter your email address to receive a password reset link.',
+              Text(
+                ref.read(localizationNotifierProvider).t('reset_password_hint'),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                labelText: ref.read(localizationNotifierProvider).t('email_label'),
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) => value != null && value.contains('@')
                     ? null
-                    : 'Enter a valid email',
+                    : ref.read(localizationNotifierProvider).t('invalid_email'),
               ),
             ],
           ),
@@ -78,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(ref.read(localizationNotifierProvider).t('cancel')),
           ),
           TextButton(
             onPressed: () async {
@@ -90,8 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Password reset email sent'),
+                      SnackBar(
+                        content: Text(ref.read(localizationNotifierProvider).t('password_reset_sent')),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -100,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: ${e.toString()}'),
+                        content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: ${e.toString()}'),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -108,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 }
               }
             },
-            child: const Text('Send'),
+            child: Text(ref.read(localizationNotifierProvider).t('send_btn')),
           ),
         ],
       ),
@@ -119,6 +121,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // `watch` e non `read`: `read` non crea un'iscrizione, quindi cambiando
+    // lingua questa schermata resterebbe quella di prima finche qualcos'altro
+    // non la ricostruisce. E lo stesso difetto trovato in US-093 sul cronometro.
+    final loc = ref.watch(localizationNotifierProvider);
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -130,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Welcome Back',
+                  loc.t('login_welcome_back'),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
@@ -140,20 +147,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
+                  decoration: InputDecoration(
+                labelText: loc.t('email_label'),
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) => value != null && value.contains('@')
                       ? null
-                      : 'Enter a valid email',
+                      : loc.t('invalid_email'),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: loc.t('password_label'),
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -171,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   validator: (value) => value != null && value.length >= 6
                       ? null
-                      : 'Password too short',
+                      : loc.t('password_too_short'),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
@@ -182,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('Forgot Password?'),
+                    child: Text(loc.t('forgot_password')),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -190,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('LOGIN'),
+                      : Text(loc.t('login_btn')),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
@@ -200,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       MaterialPageRoute(builder: (_) => const RegisterScreen()),
                     );
                   },
-                  child: const Text('Don\'t have an account? Sign Up'),
+                  child: Text(loc.t('no_account_signup')),
                 ),
               ],
             ),
@@ -210,3 +217,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+

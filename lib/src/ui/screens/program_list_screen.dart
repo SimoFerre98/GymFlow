@@ -20,7 +20,7 @@ class ProgramListScreen extends ConsumerWidget {
     final loc = ref.watch(localizationNotifierProvider);
 
     if (userId == null) {
-      return const Scaffold(body: Center(child: Text('Login required')));
+      return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
 
     return Scaffold(
@@ -46,7 +46,7 @@ class ProgramListScreen extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsets.all(context.expressive.spacing.md),
                 child: Text(
-                  'Error loading programs: ${snapshot.error}', // Technical error message usually kept in English or generic error key
+                  '${loc.t('error_loading_programs')}: ${snapshot.error}', // Technical error message usually kept in English or generic error key
                   textAlign: TextAlign.center,
                   // `error` e il ruolo che significa «qualcosa non ha
                   // funzionato», e nel tema scuro non e il rosso acceso che
