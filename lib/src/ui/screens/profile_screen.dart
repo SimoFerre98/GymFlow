@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 
@@ -9,6 +10,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+
+/// Raggio del ritratto grande in cima al profilo.
+const double _kRaggioAvatarProfilo = 60;
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -192,6 +196,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -218,7 +224,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(t.spacing.md),
               child: Column(
                 children: [
                   GestureDetector(
@@ -234,8 +240,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       ? NetworkImage(_profile!.photoUrl!)
                                       : null);
                             return CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Colors.grey[200],
+                              radius: _kRaggioAvatarProfilo,
+                              backgroundColor: scheme.surfaceContainer,
                               backgroundImage: imageProvider,
                               onBackgroundImageError: imageProvider != null
                                   ? (exception, stackTrace) {
@@ -243,10 +249,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     }
                                   : null,
                               child: (imageProvider == null)
-                                  ? const Icon(
+                                  ? Icon(
                                       Icons.person,
-                                      size: 60,
-                                      color: Colors.grey,
+                                      size: _kRaggioAvatarProfilo,
+                                      color: scheme.onSurfaceVariant,
                                     )
                                   : null,
                             );
@@ -257,31 +263,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             bottom: 0,
                             right: 0,
                             child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
+                              padding: EdgeInsets.all(t.spacing.xs),
+                              decoration: BoxDecoration(
+                                color: scheme.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.camera_alt,
-                                color: Colors.white,
-                                size: 20,
+                                color: scheme.onPrimary,
+                                size: t.sizing.iconMd,
                               ),
                             ),
                           ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: t.spacing.xl),
                   TextField(
                     controller: _nameController,
                     enabled: _isEditing,
                     decoration: InputDecoration(
                       labelText: loc.t('username_label'), // Renamed from "Display Name"
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: t.spacing.md),
 
                   // Name and Surname
                   Row(
@@ -292,27 +298,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           enabled: _isEditing,
                           decoration: InputDecoration(
                             labelText: loc.t('first_name'),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: t.spacing.md),
                       Expanded(
                         child: TextField(
                           controller: _lastNameController,
                           enabled: _isEditing,
                           decoration: InputDecoration(
                             labelText: loc.t('last_name'),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 16),
-
-                  const SizedBox(height: 16),
+                  SizedBox(height: t.spacing.md),
 
                   // Gender and BirthDate
                   Row(
@@ -321,10 +325,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         child: InputDecorator(
                           decoration: InputDecoration(
                             labelText: loc.t('gender_label'),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             contentPadding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                              horizontal: t.spacing.sm,
+                              vertical: t.spacing.xs,
                             ),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -357,21 +361,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: t.spacing.md),
                       Expanded(
                         child: InkWell(
                           onTap: _isEditing ? () => _selectDate(context) : null,
                           child: InputDecorator(
                             decoration: InputDecoration(
                               labelText: loc.t('birth_date_label'),
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                             child: Text(
                               _birthDate != null
                                   ? "${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}"
                                   : loc.t('select_date_label'),
                               style: TextStyle(
-                                color: _birthDate == null ? Colors.grey : null,
+                                color: _birthDate == null
+                                    ? scheme.onSurfaceVariant
+                                    : scheme.onSurface,
                               ),
                             ),
                           ),
@@ -380,7 +386,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: t.spacing.md),
                   ListTile(
                     title: Text(loc.t('email_label')),
                     subtitle: Text(_profile?.email ?? ''),
