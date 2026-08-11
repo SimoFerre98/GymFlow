@@ -2969,6 +2969,175 @@ Dopo questa storia: `flutter analyze` è pulito, e ogni cosa che è stata trovat
 
 ---
 
+#### US-103: Il menu non e l'indice di tutta l'applicazione
+
+**Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Segnalato dall'utente il 2026-08-11 provando l'APK**, e verificato con uno screenshot dal dispositivo: «non sono sicuro che abbia senso mettere ogni funzione che aggiungiamo anche nel menu hamburger».
+>
+> Il cassetto contiene sette voci — Home, Statistiche, Impostazioni, Esercizi, Obiettivi, Cronometro, Connetti Amico — **ognuna con un'icona di un colore diverso**: blu, viola, blu, verde acqua, giallo, verde, magenta. Nessuno di quei colori è nella palette. La direzione visiva dice indaco ovunque, ambra solo per «cosa fare adesso», salmone solo per i dati vitali: qui ogni riga urla un colore suo, quindi non ne spicca nessuna.
+>
+> Due voci non appartengono a un menu generale: **Statistiche** ha già la sua icona in alto sulla home, che l'utente giudica «perfetta lì»; **Esercizi** appartiene al mondo delle schede, e ci si arriva mentre si costruisce un allenamento.
+
+**Story**
+Come atleta che apre il menu per spostarsi,
+voglio trovarci poche voci che non so raggiungere altrimenti,
+così da non dover leggere sette righe colorate per trovarne una.
+
+**Acceptance Criteria**
+- [ ] **Statistiche** ed **Esercizi** non sono più nel cassetto
+- [ ] Dalla sezione delle schede si arriva agli esercizi con un'azione visibile
+- [ ] Le icone del cassetto usano i ruoli del `ColorScheme`, non colori letterali
+- [ ] Nessuna voce diventa irraggiungibile: per ognuna tolta, è scritto da dove ci si arriva
+- [ ] **Da confermare sull'APK**: il menu si legge come un elenco, non come una tavolozza
+
+---
+
+#### US-104: Il permesso di Health Connect viene davvero chiesto
+
+**Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** US-100 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Segnalato dall'utente il 2026-08-11 e diagnosticato con certezza.** Sia la voce «Google Fit / Health Connect» nelle impostazioni sia il pulsante «Consenti la lettura» aggiunto da US-100 **non fanno niente**: si tocca e non succede nulla.
+>
+> `HealthService._dataTypes` chiede **otto** tipi. Due non hanno un permesso dichiarato nel manifest: `BASAL_ENERGY_BURNED` vuole `android.permission.health.READ_BASAL_METABOLIC_RATE` e `WATER` vuole `READ_HYDRATION`. Verificato sul dispositivo con `dumpsys package`: l'app ne dichiara **sette**, tutti `granted=false`, e quei due non ci sono.
+>
+> Health Connect rifiuta in blocco una richiesta che contiene permessi non dichiarati, **senza mostrare nessuna schermata**. È l'ipotesi 2 del piano di US-100, lasciata aperta apposta perché si decideva solo sul dispositivo.
+
+**Story**
+Come atleta che tocca «Consenti la lettura»,
+voglio che il telefono mi chieda davvero il permesso,
+così da poter dire di sì invece di guardare un pulsante che non reagisce.
+
+**Acceptance Criteria**
+- [ ] Toccando la richiesta compare la schermata di sistema di Health Connect
+- [ ] L'insieme dei tipi richiesti e l'insieme dei permessi dichiarati **coincidono**, e un test lo impone leggendo manifest e sorgente
+- [ ] I tipi che l'app non usa non vengono chiesti: ogni permesso in più è una riga in più nella schermata di consenso
+- [ ] Se la richiesta fallisce lo si vede: non torna il silenzio
+- [ ] **Da confermare sull'APK**, con `adb logcat` a conferma di quali tipi restano negati
+
+**Note**
+⚠️ Tocca `AndroidManifest.xml`: la decisione su quali permessi dichiarare va presa prima, non durante.
+
+---
+
+#### US-105: Il testo dei pulsanti non sparisce sul fondo colorato
+
+**Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 2
+**Depends on:** US-028 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Segnalato dall'utente il 2026-08-11**: «non si capisce cosa c'è scritto all'interno del tasto centrale» dello scontrino di fine allenamento.
+>
+> `workout_summary_screen.dart:168-186` imposta `foregroundColor: onPrimary`, ma l'etichetta ha uno `style` esplicito che viene da `titleMedium` — e il tema dipinge **tutti** i testi di `onSurface` (`app_theme.dart:126-129`). Uno stile che porta il colore dentro **vince** sul `foregroundColor`: il risultato è carta chiara su ambra chiara, circa 1,3:1.
+>
+> I test di US-028 non potevano vederlo, ed è il limite che quella review aveva dichiarato: misurano le coppie **dei ruoli del tema**, non quelle che una schermata si costruisce sovrascrivendo un colore.
+
+**Story**
+Come atleta che ha appena finito di allenarsi,
+voglio leggere cosa c'è scritto sul pulsante che sto per premere,
+così da sapere che sto chiudendo il riepilogo e non altro.
+
+**Acceptance Criteria**
+- [ ] L'etichetta del pulsante di chiusura del riepilogo è leggibile: rapporto ≥ 4.5:1 sul suo fondo
+- [ ] Una guardia trova i casi in cui uno `style` con colore sovrascrive il `foregroundColor` di un pulsante
+- [ ] La guardia è passata su tutte le schermate, e ciò che trova è corretto o dichiarato
+- [ ] **Da confermare sull'APK**
+
+---
+
+#### US-106: Un esercizio finito risulta finito
+
+**Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Segnalato dall'utente il 2026-08-11 provando l'APK**: «quando finisco un esercizio rimane sempre in corso».
+
+**Story**
+Come atleta che ha completato tutte le serie di un esercizio,
+voglio vederlo segnato come finito,
+così da sapere a colpo d'occhio a che punto sono dell'allenamento.
+
+**Acceptance Criteria**
+- [ ] Completate tutte le serie, l'esercizio non è più «in corso»
+- [ ] Lo stato si vede senza aprire l'esercizio
+- [ ] Togliendo la spunta a una serie l'esercizio torna in corso
+- [ ] **Da confermare sull'APK**
+
+---
+
+#### US-107: Chiudere l'allenamento chiede una cosa sola, una volta sola
+
+**Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 3
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Segnalato dall'utente il 2026-08-11**: «la fase per terminare chiede più volte le stesse cose».
+
+**Story**
+Come atleta che ha finito di allenarsi ed è stanco,
+voglio confermare la chiusura una volta,
+così da non rispondere due volte alla stessa domanda prima di vedere il riepilogo.
+
+**Acceptance Criteria**
+- [ ] Il percorso di chiusura è enumerato: ogni domanda posta, e perché
+- [ ] Nessun dato viene chiesto due volte
+- [ ] Ciò che si può dedurre non viene chiesto
+- [ ] **Da confermare sull'APK**: dal «Termina» al riepilogo si passa da un numero di schermate dichiarato
+
+---
+
+#### US-108: Lo scontrino racconta l'allenamento
+
+**Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
+**Depends on:** US-049 (✅), US-107 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Segnalato dall'utente il 2026-08-11**: lo scontrino è «molto carino» ma povero. «Forse aggiungerei altre informazioni dentro per renderlo più corposo.»
+
+**Story**
+Come atleta che guarda il riepilogo di quello che ha appena fatto,
+voglio trovarci abbastanza da riconoscere l'allenamento,
+così da avere qualcosa da guardare invece di quattro numeri.
+
+**Acceptance Criteria**
+- [ ] Cosa aggiungere è deciso prima di scrivere codice, e scritto
+- [ ] Ogni numero mostrato viene da un dato vero: **nessun valore d'esempio**
+- [ ] Se un dato manca, la riga non compare invece di mostrare zero
+- [ ] Il bordo dentellato e la forma restano quelli di US-049
+- [ ] **Da confermare sull'APK**
+
+---
+
+#### US-109: Nessun testo storpiato nel sorgente
+
+**Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 1
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO
+
+> ⚠️ **Trovato il 2026-08-11 guardando uno screenshot del dispositivo**, non segnalato da nessuno. Nelle impostazioni la lingua mostra una sequenza di caratteri illeggibili al posto della bandiera italiana.
+>
+> Non è un problema di resa: è **nel sorgente**. Qualcuno ha aperto e risalvato quei file con la codifica sbagliata, e i byte UTF-8 sono stati letti come Latin-1. Quattro occorrenze in tre file, e una è visibile in un dialogo: `localization_provider.dart:468`, il messaggio che dice che l'azione non può essere annullata.
+>
+> Nessun test poteva vederlo: quello sulla localizzazione controlla che le chiavi esistano in EN e IT, non che il testo sia valido.
+
+**Story**
+Come atleta che legge l'app in italiano,
+voglio vedere le lettere accentate e le bandiere,
+così da non trovarmi davanti a caratteri che sembrano un errore di sistema.
+
+**Acceptance Criteria**
+- [ ] Le quattro occorrenze sono corrette, e i file sono salvati in UTF-8
+- [ ] Un test fallisce se una sequenza tipica di codifica sbagliata rientra nel sorgente
+- [ ] Il test dichiara cosa riconosce e cosa no
+- [ ] **Da confermare sull'APK**: la lingua mostra la bandiera
+
+---
+
 ### EP-008: Recupero del target Web
 
 > Riportare l'applicazione a compilare ed essere distribuita sul web.
@@ -3223,4 +3392,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[102 storie in 17 epiche — 324 story points totali · 3 storie accantonate in EP-008 · 53 completate]_
+_[109 storie in 17 epiche — 341 story points totali · 3 storie accantonate in EP-008 · 53 completate]_
