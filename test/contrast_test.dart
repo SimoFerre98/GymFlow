@@ -113,30 +113,39 @@ void main() {
     for (var i = 0; i < AppPalette.accentPresets.length; i++) {
       final c = AppPalette.accentPresets[i];
 
-      test('il preset $i e leggibile come testo sul fondo', () {
-        final r = Contrast.ratio(c, AppPalette.indigo900);
+      testWidgets('il preset $i nel tema scuro supera AA', (tester) async {
+        final s = AppTheme.darkTheme(c).colorScheme;
+        
+        final rBg = Contrast.ratio(s.primary, s.surfaceContainerLowest);
         expect(
-          r,
+          rBg,
           greaterThanOrEqualTo(Contrast.aa),
-          reason: 'preset $i: ${r.toStringAsFixed(2)}:1 sul fondo',
+          reason: 'preset $i scuro (primary su surfaceContainerLowest): ${rBg.toStringAsFixed(2)}:1',
+        );
+
+        final rCard = Contrast.ratio(s.primary, s.surface);
+        expect(
+          rCard,
+          greaterThanOrEqualTo(Contrast.aa),
+          reason: 'preset $i scuro (primary su surface): ${rCard.toStringAsFixed(2)}:1',
+        );
+
+        final rBtn = Contrast.ratio(s.onPrimary, s.primary);
+        expect(
+          rBtn,
+          greaterThanOrEqualTo(Contrast.aa),
+          reason: 'preset $i scuro (onPrimary su primary): ${rBtn.toStringAsFixed(2)}:1',
         );
       });
 
-      test('il preset $i e leggibile come testo sulle card', () {
-        final r = Contrast.ratio(c, AppPalette.indigo800);
+      testWidgets('il preset $i nel tema chiaro supera AA', (tester) async {
+        final s = AppTheme.lightTheme(c).colorScheme;
+        
+        final rBtn = Contrast.ratio(s.onPrimaryContainer, s.primaryContainer);
         expect(
-          r,
+          rBtn,
           greaterThanOrEqualTo(Contrast.aa),
-          reason: 'preset $i: ${r.toStringAsFixed(2)}:1 sulle card',
-        );
-      });
-
-      test('il preset $i regge il testo scuro sopra di se', () {
-        final r = Contrast.ratio(AppPalette.indigo900, c);
-        expect(
-          r,
-          greaterThanOrEqualTo(Contrast.aa),
-          reason: 'preset $i come sfondo di un bottone: ${r.toStringAsFixed(2)}:1',
+          reason: 'preset $i chiaro (onPrimaryContainer su primaryContainer): ${rBtn.toStringAsFixed(2)}:1',
         );
       });
     }
