@@ -16,6 +16,38 @@ import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/services/timer_service.dart';
+
+/// Avvia il conto alla rovescia sui secondi di una serie a tempo.
+///
+/// Restituisce `true` se il timer e partito. Chi chiama mostra la conferma solo
+/// in quel caso.
+///
+/// **Sta fuori dalla schermata perche la schermata non si monta in un test**:
+/// istanzia `FirestoreService` nel proprio `State`, che e il debito di US-008.
+/// Lasciata dentro `onPressed`, questa logica poteva essere provata solo
+/// riscrivendola nel test — e un test che riscrive cio che deve controllare non
+/// controlla niente: resta verde qualunque cosa succeda al pulsante.
+///
+/// Le due decisioni che il piano chiedeva di prendere e dichiarare:
+///
+/// - **Secondi assenti o a zero: non parte niente, e in silenzio.** Il campo
+///   accanto non ricostruisce la riga quando cambia (`onChanged` scrive nel
+///   modello senza `setState`), quindi un pulsante disattivato mostrerebbe lo
+///   stato di prima invece di quello vero: meglio nessuna reazione di una
+///   reazione sbagliata.
+/// - **Timer gia in corsa: si lascia scorrere.** E la protezione voluta di
+///   `setTimerDuration`, che rifiuta di cambiare durata mentre il tempo scorre:
+///   qui viene rispettata, non aggirata. Un timer **in pausa** invece non e in
+///   corsa, e viene sostituito da questa serie.
+bool startSetTimer(TimerNotifier notifier, int? seconds) {
+  if (seconds == null || seconds <= 0) return false;
+  if (notifier.isTimerRunning) return false;
+
+  notifier.setTimerDuration(Duration(seconds: seconds));
+  notifier.toggleTimer();
+  return true;
+}
 
 class ActiveSessionScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate workout;
@@ -686,19 +718,26 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                             set.durationSeconds = int.tryParse(val) ?? 0,
                       ),
                     ),
-                    // Questo pulsante non avvia nessun timer: mostra un toast
-                    // che dichiara «solo visuale». Quindi **non** porta l'ambra,
-                    // che nella palette significa «cosa fare adesso» ed e gia
-                    // sul pulsante «Termina»: un secondo ambra su un abbozzo
-                    // insegna all'occhio a ignorarla. Torna ambra quando il
-                    // timer esiste davvero.
+                    // Questo pulsante avvia il conto alla rovescia sui secondi
+                    // di questa serie. Prima non faceva niente e lo dichiarava,
+                    // e per questo la review di US-082 gli aveva tolto l'ambra:
+                    // nella palette significa «cosa fare adesso» ed e gia sul
+                    // pulsante «Termina». Ora il timer esiste, e durante una
+                    // serie a tempo avviarlo **e** cosa fare adesso.
                     IconButton(
                       icon: Icon(
                         Icons.timer_outlined,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       onPressed: () {
-                        // Start a mini timer? For now just visual.
+                        final avviato = startSetTimer(
+                          ref.read(timerNotifierProvider.notifier),
+                          set.durationSeconds,
+                        );
+                        // Il messaggio conferma un timer partito davvero: se
+                        // non e partito, dirlo sarebbe peggio del silenzio.
+                        if (!avviato) return;
+
                         ToastUtils.showInfo(
                           context,
                           loc.t('timer_started_msg'),

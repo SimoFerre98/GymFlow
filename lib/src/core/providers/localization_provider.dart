@@ -257,7 +257,7 @@ class Localization {
     'add_set': 'Add Set',
     'time_min_label': 'Time (min)',
     'duration_sec_label': 'Duration (sec)',
-    'timer_started_msg': 'Timer started (visual only)',
+    'timer_started_msg': 'Timer started',
 
     // Exercise detail & progression (US-068)
     'exercise_detail_title': 'Exercise Details',
@@ -646,7 +646,7 @@ class Localization {
     'add_set': 'Aggiungi serie',
     'time_min_label': 'Tempo (min)',
     'duration_sec_label': 'Durata (sec)',
-    'timer_started_msg': 'Timer avviato (solo visuale)',
+    'timer_started_msg': 'Timer avviato',
 
     // Exercise detail & progression (US-068)
     'exercise_detail_title': 'Dettagli esercizio',
