@@ -1,154 +1,147 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/timer_service.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/app.dart';
+import 'package:gymflow/src/ui/screens/time_tools_screen.dart';
 
-class TimerOverlay extends ConsumerStatefulWidget {
+/// La chiave della pillola, per i test.
+const chiavePillola = Key('pillola_del_tempo');
+
+/// Se la pillola del tempo deve comparire.
+///
+/// Sta qui e non dentro `build` perche la serve anche il telaio in `app.dart`,
+/// che sulla stessa risposta decide se togliere al contenuto il bordo di sistema
+/// — quello che la pillola sta gia coprendo. Due copie della stessa condizione
+/// finirebbero per divergere.
+bool pillolaVisibile(TimerNotifier service) {
+  final cronometroAttivo =
+      service.isStopwatchRunning || service.stopwatchElapsed > Duration.zero;
+  final recuperoAttivo =
+      service.isTimerRunning || service.timerRemaining != service.timerDuration;
+  return !service.isToolsVisible && (cronometroAttivo || recuperoAttivo);
+}
+
+class TimerOverlay extends ConsumerWidget {
   const TimerOverlay({super.key});
 
   @override
-  ConsumerState<TimerOverlay> createState() => _TimerOverlayState();
-}
-
-class _TimerOverlayState extends ConsumerState<TimerOverlay> {
-  // Initial position (bottom right-ish)
-  Offset _position = const Offset(20, 100);
-  bool _isInitialized = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      // Set initial position safely after context is available
-      final size = MediaQuery.of(context).size;
-      _position = Offset(size.width - 200, size.height - 150);
-      _isInitialized = true;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // watch per ricostruire a ogni tick; il notifier espone stato e comandi.
+  Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(timerNotifierProvider);
     final service = ref.read(timerNotifierProvider.notifier);
 
-    // Logic to show overlay
-    final bool isStopwatchActive =
-        service.isStopwatchRunning || service.stopwatchElapsed > Duration.zero;
+    // Il recupero ha la precedenza sul cronometro: e quello che scade.
     final bool isTimerActive =
-        service.isTimerRunning ||
-        service.timerRemaining != service.timerDuration;
+        service.isTimerRunning || service.timerRemaining != service.timerDuration;
 
-    final bool showOverlay =
-        !service.isToolsVisible && (isStopwatchActive || isTimerActive);
+    // La `SafeArea` sta **dentro** il ramo visibile e non attorno a tutto.
+    // Attorno, impagina un figlio di dimensione zero e occupa comunque la
+    // fascia di sistema: misurato, con una barra di stato da 40 dp la pillola
+    // nascosta si prendeva 40 dp su ogni schermata, per sempre.
+    return AnimatedSize(
+      duration: context.expressive.motion.standard,
+      curve: context.expressive.motion.standardCurve,
+      alignment: Alignment.topCenter,
+      child: pillolaVisibile(service)
+          ? SafeArea(
+              bottom: false,
+              child: _buildPill(context, service, isTimerActive),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
 
-    if (!showOverlay) return const SizedBox.shrink();
+  Widget _buildPill(BuildContext context, TimerNotifier service, bool isTimerActive) {
+    final scheme = Theme.of(context).colorScheme;
+    final t = context.expressive;
 
-    return Positioned(
-      left: _position.dx,
-      top: _position.dy,
-      child: GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            _position += details.delta;
-          });
-        },
-        child: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(50), // Pill shape
-          color: Theme.of(context).primaryColor, // More visible
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20, // Increased
-              vertical: 12, // Increased
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              // border: Border.all(color: Colors.white24),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min, // Wrap content
-              children: [
-                // Icon
-                Icon(
-                  service.isStopwatchRunning ||
-                          service.stopwatchElapsed > Duration.zero
-                      ? Icons.timer
-                      : Icons.hourglass_bottom,
-                  color: Colors.white,
-                  size: 24, // Increased
-                ),
-                const SizedBox(width: 12),
-                // Text
-                RepaintBoundary(
-                  child: Text(
-                    _getMainDisplay(service),
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18, // Increased
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Controls (Compact)
-                // Pause/Resume
-                InkWell(
-                  onTap: () {
-                    if (service.stopwatchElapsed > Duration.zero ||
-                        service.isStopwatchRunning) {
-                      service.toggleStopwatch();
-                    } else {
-                      service.toggleTimer();
-                    }
-                  },
-                  child: Icon(
-                    (service.isStopwatchRunning || service.isTimerRunning)
-                        ? Icons.pause_circle_filled
-                        : Icons.play_circle_fill,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Close
-                InkWell(
-                  onTap: () {
-                    if (service.stopwatchElapsed > Duration.zero ||
-                        service.isStopwatchRunning) {
-                      service.resetStopwatch();
-                    } else {
-                      service.resetTimer();
-                    }
-                  },
-                  child: const Icon(
-                    Icons.cancel,
-                    color: Colors.white70,
-                    size: 24,
-                  ),
-                ),
-              ],
-            ),
+    return GestureDetector(
+      onTap: () {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => const TimeToolsScreen(),
           ),
+        );
+      },
+      child: Container(
+        // Con una chiave: `find.byType(Container)` prende il primo Container
+        // che capita, e in un albero vero ce ne sono molti.
+        key: chiavePillola,
+        margin: EdgeInsets.all(t.spacing.sm),
+        padding: EdgeInsets.symmetric(
+          horizontal: t.spacing.lg,
+          vertical: t.spacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh,
+          borderRadius: t.shape.cornerFull,
+          boxShadow: t.elevation.level3(scheme.shadow),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isTimerActive ? Icons.hourglass_bottom : Icons.timer,
+              color: scheme.primary,
+              size: t.sizing.iconLg,
+            ),
+            SizedBox(width: t.spacing.sm),
+            RepaintBoundary(
+              child: Text(
+                _getMainDisplay(service, isTimerActive),
+                style: t.typography.metricMedium?.copyWith(
+                  color: scheme.onSurface,
+                ),
+              ),
+            ),
+            SizedBox(width: t.spacing.md),
+            GestureDetector(
+              onTap: () {
+                if (isTimerActive) {
+                  service.toggleTimer();
+                } else {
+                  service.toggleStopwatch();
+                }
+              },
+              child: Icon(
+                (isTimerActive ? service.isTimerRunning : service.isStopwatchRunning)
+                    ? Icons.pause_circle_filled
+                    : Icons.play_circle_fill,
+                color: scheme.primary,
+                size: t.sizing.iconLg,
+              ),
+            ),
+            SizedBox(width: t.spacing.sm),
+            GestureDetector(
+              onTap: () {
+                if (isTimerActive) {
+                  service.resetTimer();
+                } else {
+                  service.resetStopwatch();
+                }
+              },
+              child: Icon(
+                Icons.cancel,
+                color: scheme.onSurfaceVariant,
+                size: t.sizing.iconLg,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _getMainDisplay(TimerNotifier service) {
-    if (service.isStopwatchRunning ||
-        service.stopwatchElapsed > Duration.zero) {
-      final d = service.stopwatchElapsed;
-      String twoDigits(int n) => n.toString().padLeft(2, '0');
-      final minutes = twoDigits(d.inMinutes.remainder(60));
-      final seconds = twoDigits(d.inSeconds.remainder(60));
-      return '$minutes:$seconds';
+  String _getMainDisplay(TimerNotifier service, bool isTimerActive) {
+    final Duration d;
+    if (isTimerActive) {
+      d = service.timerRemaining;
     } else {
-      final d = service.timerRemaining;
-      String twoDigits(int n) => n.toString().padLeft(2, '0');
-      final minutes = twoDigits(d.inMinutes.remainder(60));
-      final seconds = twoDigits(d.inSeconds.remainder(60));
-      return '$minutes:$seconds';
+      d = service.stopwatchElapsed;
     }
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(d.inMinutes.remainder(60));
+    final seconds = twoDigits(d.inSeconds.remainder(60));
+    return '$minutes:$seconds';
   }
 }
