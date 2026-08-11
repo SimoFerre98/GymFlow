@@ -22,6 +22,27 @@ class DashboardScreen extends riverpod.ConsumerStatefulWidget {
       _DashboardScreenState();
 }
 
+/// Ritaglia lo spazio flessibile alla porzione **sotto** le icone della barra.
+///
+/// Serve perche il titolo di `FlexibleSpaceBar` sale insieme al fondo della
+/// barra mentre si scorre, e a un certo punto si trova nella fascia dove stanno
+/// il cassetto e le azioni. Ritagliare li significa che quel pezzo non viene
+/// disegnato affatto, invece di finire sopra un'icona.
+class _SottoLeIcone extends CustomClipper<Rect> {
+  const _SottoLeIcone(this.fascia);
+
+  /// L'altezza della barra quando e tutta compressa: sopra questa linea
+  /// stanno le icone.
+  final double fascia;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(0, fascia.clamp(0, size.height), size.width, size.height);
+
+  @override
+  bool shouldReclip(_SottoLeIcone oldClipper) => oldClipper.fascia != fascia;
+}
+
 class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
   @override
   void initState() {
@@ -44,32 +65,81 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar.large(
-              title: null,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: EdgeInsets.only(
-                  left: t.spacing.lg,
-                  bottom: t.spacing.lg,
+              // Il titolo della SliverAppBar viene mostrato automaticamente da 
+              // Material quando la barra è compressa, ed è già impaginato
+              // correttamente fra il cassetto e le azioni.
+              title: Text(
+                userName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                // Utilizziamo lo stesso stile previsto per il nome, adattato
+                style: t.typography.titleEmphasized?.copyWith(
+                  color: scheme.onSurface,
                 ),
-                title: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      loc.t('welcome_back'),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
+              ),
+              // Lo spazio flessibile viene **ritagliato** sotto la fascia che
+              // occupano le icone.
+              //
+              // `FlexibleSpaceBar` tiene il proprio titolo a distanza fissa dal
+              // **fondo** della barra: mentre la barra si accorcia il titolo sale
+              // con lei e passa sopra il cassetto e le azioni. Misurato su
+              // `main`: bastano **24 px** di scorrimento sugli 88 di corsa perche
+              // il saluto arrivi a `top = 34` e copra l'hamburger, e a 32 px e
+              // gia incastrato a `top = 1`.
+              //
+              // Per questo non basta nasconderlo a barra compressa — la
+              // sovrapposizione accade molto prima — e non basta dissolverlo,
+              // perche sparirebbe al primo tocco di scorrimento. Il ritaglio
+              // invece non sposta niente: a riposo il blocco resta esattamente
+              // dov'e sempre stato, con l'ingrandimento che `FlexibleSpaceBar`
+              // gli applica, e mentre si scorre viene mangiato dall'alto invece
+              // di essere disegnato sopra le icone.
+              flexibleSpace: Builder(
+                builder: (context) {
+                  final impostazioni = context
+                      .dependOnInheritedWidgetOfExactType<
+                        FlexibleSpaceBarSettings
+                      >();
+                  // L'altezza della barra da compressa, presa da chi la calcola
+                  // invece che riscritta a mano: `kToolbarHeight` sarebbe
+                  // sbagliata di otto dp, perche la variante `large` si comprime
+                  // a 64 e non ai 56 della toolbar.
+                  final fasciaCompressa =
+                      impostazioni?.minExtent ??
+                      kToolbarHeight + MediaQuery.paddingOf(context).top;
+
+                  return ClipRect(
+                    clipper: _SottoLeIcone(fasciaCompressa),
+                    child: FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.only(
+                      left: t.spacing.lg,
+                      bottom: t.spacing.lg,
                     ),
-                    Text(
-                      userName,
-                      style: t.typography.titleEmphasized?.copyWith(
-                        color: scheme.onSurface,
-                      ),
+                    title: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                loc.t('welcome_back'),
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.typography.titleEmphasized?.copyWith(
+                                  color: scheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               actions: [
                 // Navigazione verso Statistiche (richiesta da US-095)
