@@ -79,7 +79,25 @@ abstract final class AppPalette {
   static const Color warning = Color(0xFFE8B54A);
   static const Color danger = Color(0xFFE2685C);
 
+  // ── Categorico: identita di serie in un grafico, non un'azione ──────────
 
+  /// Le tinte per distinguere categorie in un grafico — per esempio i tipi
+  /// di allenamento in un grafico a torta — dove servono piu tinte
+  /// genuinamente separate di quante ne offra il `ColorScheme` (indaco,
+  /// ambra, salmone). Ambra e salmone restano riservati al loro significato
+  /// e non entrano in questo elenco.
+  ///
+  /// Valori e **ordine** dalla palette di riferimento del skill "dataviz"
+  /// (i primi quattro slot, gia validati per accoppiamenti in entrambe le
+  /// direzioni di daltonismo), verificati con
+  /// `validate_palette.js "#3987E5,#D95926,#199E70,#C98500" --mode dark
+  /// --surface "#221E3A"` sulla superficie di [indigo900]: tutti i controlli
+  /// passano. L'ordine e fisso e non si ricicla: una quinta categoria non
+  /// genera una quinta tinta, ricade su un neutro.
+  static const Color categoryBlue = Color(0xFF3987E5);
+  static const Color categoryOrange = Color(0xFFD95926);
+  static const Color categoryAqua = Color(0xFF199E70);
+  static const Color categoryYellow = Color(0xFFC98500);
 
   /// Preset che l'utente puo scegliere come colore delle azioni.
   ///

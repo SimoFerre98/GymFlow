@@ -1,6 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../../../core/providers/firestore_provider.dart';
+import '../../../core/providers/localization_provider.dart';
+import '../../../core/theme/expressive_tokens.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/body_measurement.dart';
@@ -15,44 +17,57 @@ class BodyMeasurementsChart extends ConsumerStatefulWidget {
       _BodyMeasurementsChartState();
 }
 
+/// Un campo misurabile: la chiave del modello, e le due chiavi di traduzione
+/// per l'etichetta e l'unita.
+///
+/// Le stesse chiavi di traduzione di `body_measurements_screen.dart`
+/// (`bm_chest`, `bm_arms` per i bicipiti, e cosi via): sono la stessa
+/// grandezza vista da due schermate, e una sola parola per dirla — non
+/// "Biceps" qui e "Braccia" nella schermata di inserimento.
+class _Metrica {
+  const _Metrica(this.chiave, this.etichetta, this.unita);
+  final String chiave;
+  final String etichetta;
+  final String unita;
+}
+
+const _metriche = <_Metrica>[
+  _Metrica('weight', 'bm_weight', 'bm_kg'),
+  _Metrica('bodyFat', 'bm_body_fat', 'bm_percent'),
+  _Metrica('chest', 'bm_chest', 'bm_cm'),
+  _Metrica('waist', 'bm_waist', 'bm_cm'),
+  _Metrica('hips', 'bm_hips', 'bm_cm'),
+  _Metrica('biceps', 'bm_arms', 'bm_cm'),
+  _Metrica('thighs', 'bm_thighs', 'bm_cm'),
+  _Metrica('calves', 'bm_calves', 'bm_cm'),
+  _Metrica('shoulders', 'bm_shoulders', 'bm_cm'),
+  _Metrica('neck', 'bm_neck', 'bm_cm'),
+];
+
 class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
-  String _selectedMetric = 'Weight'; // Default
+  String _selectedMetric = _metriche.first.chiave;
 
-  final Map<String, String> _metrics = {
-    'Weight': 'kg',
-    'Body Fat': '%',
-    'Chest': 'cm',
-    'Waist': 'cm',
-    'Hips': 'cm',
-    'Biceps': 'cm',
-    'Thighs': 'cm',
-    'Calves': 'cm',
-    'Shoulders': 'cm',
-    'Neck': 'cm',
-  };
-
-  // Helper to extract value based on key
-  double? _getValue(BodyMeasurement m, String key) {
-    switch (key) {
-      case 'Weight':
+  double? _getValue(BodyMeasurement m, String chiave) {
+    switch (chiave) {
+      case 'weight':
         return m.weight;
-      case 'Body Fat':
+      case 'bodyFat':
         return m.bodyFatPercentage;
-      case 'Chest':
+      case 'chest':
         return m.chest;
-      case 'Waist':
+      case 'waist':
         return m.waist;
-      case 'Hips':
+      case 'hips':
         return m.hips;
-      case 'Biceps':
+      case 'biceps':
         return m.biceps;
-      case 'Thighs':
+      case 'thighs':
         return m.thighs;
-      case 'Calves':
+      case 'calves':
         return m.calves;
-      case 'Shoulders':
+      case 'shoulders':
         return m.shoulders;
-      case 'Neck':
+      case 'neck':
         return m.neck;
       default:
         return null;
@@ -62,100 +77,96 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
   @override
   Widget build(BuildContext context) {
     final firestore = ref.read(firestoreServiceProvider);
+    final loc = ref.watch(localizationNotifierProvider);
 
     return StreamBuilder<List<BodyMeasurement>>(
       stream: firestore.getBodyMeasurements(widget.userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            height: 250,
-            child: Center(child: CircularProgressIndicator()),
+          return Column(
+            children: [
+              _buildMetricSelector(loc),
+              const Expanded(child: Center(child: CircularProgressIndicator())),
+            ],
           );
         }
 
         final allData = snapshot.data ?? [];
-
-        // Filter data points that have value for selected metric
         final dataPoints = allData
             .where((m) => _getValue(m, _selectedMetric) != null)
             .toList();
-
-        // Sort by date ascending for the chart
         dataPoints.sort((a, b) => a.date.compareTo(b.date));
 
-        // If no data
         if (dataPoints.isEmpty) {
-          return SizedBox(
-            height: 250,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildMetricSelector(),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'No data for this metric yet',
-                      style: TextStyle(color: Colors.grey),
+          return Column(
+            children: [
+              _buildMetricSelector(loc),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    loc.t('no_data'),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         }
 
-        return SizedBox(
-          height: 300,
-          child: Column(
-            children: [
-              _buildMetricSelector(),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    right: 16,
-                    left: 0,
-                    top: 20,
-                    bottom: 10,
-                  ),
-                  child: LineChart(_buildChartData(dataPoints, context)),
+        return Column(
+          children: [
+            _buildMetricSelector(loc),
+            SizedBox(height: context.expressive.spacing.sm),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: context.expressive.spacing.md,
+                  top: context.expressive.spacing.lg,
+                  bottom: context.expressive.spacing.sm,
                 ),
+                child: LineChart(_buildChartData(dataPoints, context, loc)),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildMetricSelector() {
+  Widget _buildMetricSelector(Localization loc) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: EdgeInsets.symmetric(horizontal: t.spacing.sm),
       child: Row(
-        children: _metrics.keys.map((key) {
-          final isSelected = key == _selectedMetric;
+        children: _metriche.map((metrica) {
+          final isSelected = metrica.chiave == _selectedMetric;
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: EdgeInsets.only(right: t.spacing.sm),
             child: ChoiceChip(
-              label: Text(key),
+              label: Text(loc.t(metrica.etichetta)),
               selected: isSelected,
-              selectedColor: Colors.blueAccent.withValues(alpha: 0.2),
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.blueAccent : Colors.grey,
+              selectedColor: scheme.primary.withValues(alpha: 0.2),
+              labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
-              backgroundColor: Theme.of(context).cardColor,
+              backgroundColor: scheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: t.shape.cornerFull,
                 side: BorderSide(
                   color: isSelected
-                      ? Colors.blueAccent
-                      : Colors.grey.withValues(alpha: 0.2),
+                      ? scheme.primary
+                      : scheme.onSurface.withValues(alpha: 0.2),
                 ),
               ),
               onSelected: (bool selected) {
                 if (selected) {
-                  setState(() => _selectedMetric = key);
+                  setState(() => _selectedMetric = metrica.chiave);
                 }
               },
             ),
@@ -168,67 +179,63 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
   LineChartData _buildChartData(
     List<BodyMeasurement> data,
     BuildContext context,
+    Localization loc,
   ) {
     if (data.isEmpty) return LineChartData();
+
+    final scheme = Theme.of(context).colorScheme;
+    final testoAsse = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    final lingua = loc.locale.languageCode;
+    final unita = loc.t(_metriche.firstWhere((m) => m.chiave == _selectedMetric).unita);
 
     final spots = data.asMap().entries.map((e) {
       final m = e.value;
       final val = _getValue(m, _selectedMetric) ?? 0;
-      // Use index as X for equidistant points, usually better for discrete measurements than date value
-      // But using date allows seeing gaps. Let's try Using Date.millisecondsSinceEpoch as double
       return FlSpot(m.date.millisecondsSinceEpoch.toDouble(), val);
     }).toList();
 
     final minY = spots.map((e) => e.y).reduce((a, b) => a < b ? a : b);
     final maxY = spots.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-
-    // Add padding to Y axis
     final paddingY = (maxY - minY) * 0.1;
 
     return LineChartData(
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        getDrawingHorizontalLine: (value) =>
-            FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
+        getDrawingHorizontalLine: (value) => FlLine(
+          color: scheme.onSurface.withValues(alpha: 0.1),
+          strokeWidth: 1,
+        ),
       ),
       titlesData: FlTitlesData(
         show: true,
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 30,
-            interval: 86400000 * 5, // ~5 days? Roughly.
-            // Dynamically calculate interval based on range?
-            // FlChart is tricky with date axes.
-            // Let's simplified approach: Just show Start and End dates or sparse titles.
+            reservedSize: context.expressive.spacing.xxl,
+            interval: 86400000 * 5, // Circa cinque giorni.
             getTitlesWidget: (value, meta) {
               final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
               return Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.only(top: context.expressive.spacing.sm),
                 child: Text(
-                  DateFormat('MM/dd').format(date),
-                  style: const TextStyle(color: Colors.grey, fontSize: 10),
+                  DateFormat('MM/dd', lingua).format(date),
+                  style: testoAsse,
                 ),
               );
             },
           ),
         ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: false,
-          ), // Hide left titles for cleaner look
-        ),
+        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         rightTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 40,
+            reservedSize: context.expressive.sizing.thumbnailSm,
             getTitlesWidget: (value, meta) {
-              return Text(
-                value.toStringAsFixed(1),
-                style: const TextStyle(color: Colors.grey, fontSize: 10),
-              );
+              return Text(value.toStringAsFixed(1), style: testoAsse);
             },
           ),
         ),
@@ -240,7 +247,7 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
         LineChartBarData(
           spots: spots,
           isCurved: true,
-          color: Colors.blueAccent,
+          color: scheme.primary,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -249,11 +256,10 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
           ),
           belowBarData: BarAreaData(
             show: true,
-            color: Colors.blueAccent.withValues(alpha: 0.1),
             gradient: LinearGradient(
               colors: [
-                Colors.blueAccent.withValues(alpha: 0.2),
-                Colors.blueAccent.withValues(alpha: 0.0),
+                scheme.primary.withValues(alpha: 0.2),
+                scheme.primary.withValues(alpha: 0.0),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -263,16 +269,18 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
       ],
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
-          getTooltipColor: (touchedSpot) => Colors.grey[800] ?? Colors.black,
+          getTooltipColor: (touchedSpot) => scheme.inverseSurface,
           getTooltipItems: (touchedSpots) {
             return touchedSpots.map((spot) {
               final date = DateTime.fromMillisecondsSinceEpoch(spot.x.toInt());
               return LineTooltipItem(
-                '${DateFormat('MMM d').format(date)}\n${spot.y.toStringAsFixed(1)} ${_metrics[_selectedMetric]}',
-                const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                '${DateFormat('MMM d', lingua).format(date)}\n'
+                '${spot.y.toStringAsFixed(1)} $unita',
+                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onInverseSurface,
+                      fontWeight: FontWeight.bold,
+                    ) ??
+                    TextStyle(color: scheme.onInverseSurface),
               );
             }).toList();
           },

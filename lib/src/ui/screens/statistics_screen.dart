@@ -18,6 +18,14 @@ import 'package:health/health.dart';
 import 'health_detail_screen.dart';
 import 'workout_summary_screen.dart';
 
+/// L'altezza dei due grafici a card: attivita e progresso corporeo.
+///
+/// Non e una misura del design system — nessun token descrive l'altezza di un
+/// grafico — ma `fl_chart` ne vuole una definita per disegnare. Una costante
+/// sola e non due numeri scritti a mano nei due punti d'uso: cosi i due
+/// grafici restano della stessa altezza per costruzione, non per coincidenza.
+const double kAltezzaGraficoStatistiche = 200;
+
 class StatisticsScreen extends riverpod.ConsumerStatefulWidget {
   const StatisticsScreen({super.key});
 
@@ -267,7 +275,7 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
                             child: ExpressiveCard(
                               title: loc.t('workout_activity_chart'),
                               child: SizedBox(
-                                height: 200,
+                                height: kAltezzaGraficoStatistiche,
                                 child: ActivityChart(sessions: sessions),
                               ),
                             ),
@@ -276,7 +284,10 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
                           RepaintBoundary(
                             child: ExpressiveCard(
                               title: loc.t('body_progress_chart'),
-                              child: BodyMeasurementsChart(userId: userId),
+                              child: SizedBox(
+                                height: kAltezzaGraficoStatistiche,
+                                child: BodyMeasurementsChart(userId: userId),
+                              ),
                             ),
                           ),
                         ],

@@ -36,6 +36,8 @@ void main() {
     'lib/src/ui/widgets/expressive_segmented_control.dart',
     'lib/src/ui/widgets/time_dial.dart',
     'lib/src/ui/widgets/charts/activity_chart.dart',
+    'lib/src/ui/widgets/charts/body_measurements_chart.dart',
+    'lib/src/ui/widgets/charts/workout_type_pie_chart.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una
