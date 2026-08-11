@@ -53,6 +53,19 @@ void main() {
     'lib/src/ui/screens/login_screen.dart',
     'lib/src/ui/screens/register_screen.dart',
     'lib/src/ui/screens/exercise_detail_screen.dart',
+    'lib/src/ui/auth_wrapper.dart',
+    'lib/src/ui/screens/body_measurements_screen.dart',
+    'lib/src/ui/screens/exercise_library_screen.dart',
+    'lib/src/ui/widgets/add_exercise_dialog.dart',
+    'lib/src/ui/widgets/exercise_image.dart',
+    'lib/src/ui/widgets/exercise_row.dart',
+    'lib/src/ui/widgets/exercise_thumbnail.dart',
+    'lib/src/ui/widgets/exercise_video_sheet.dart',
+    'lib/src/ui/widgets/expressive_card.dart',
+    'lib/src/ui/widgets/set_editor_sheet.dart',
+    'lib/src/ui/widgets/set_value_slider.dart',
+    'lib/src/ui/widgets/sparkline.dart',
+    'lib/src/ui/widgets/spring_page_transition.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una
