@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -8,6 +10,13 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:intl/intl.dart';
+
+/// Altezza della barra a pillola delle scheda: geometria di questa
+/// schermata, non una misura condivisa.
+const double _kAltezzaBarraTab = 50;
+
+/// Raggio del ritratto grande in cima al profilo dell'amico.
+const double _kRaggioAvatarProfilo = 60;
 
 class FriendDetailScreen extends ConsumerStatefulWidget {
   final UserProfile friend;
@@ -55,6 +64,8 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     // Re-calc tabs in build in case permissions change (though passed in widget is const)
     // For now assuming static permissions for this session
     final tabs = <Widget>[Tab(text: loc.t('profile_tab'))];
@@ -81,43 +92,28 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
           // Pill TabBar
           if (tabs.length > 1)
             Container(
-              height: 50,
-              margin: const EdgeInsets.all(16),
+              height: _kAltezzaBarraTab,
+              margin: EdgeInsets.all(t.spacing.md),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: scheme.surfaceContainerHigh,
+                borderRadius: t.shape.cornerFull,
+                boxShadow: t.elevation.level2(scheme.shadow),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  color: Theme.of(context).primaryColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  borderRadius: t.shape.cornerFull,
+                  color: scheme.primary,
+                  boxShadow: t.elevation.level1(scheme.primary),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.grey[600], // Visible in light/dark
-                labelStyle: const TextStyle(
+                labelColor: scheme.onPrimary,
+                unselectedLabelColor: scheme.onSurfaceVariant,
+                labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
                 ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
+                unselectedLabelStyle: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
                 dividerColor: Colors.transparent,
                 tabs: tabs,
               ),
@@ -136,12 +132,14 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
 
   Widget _buildProfileTab() {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(t.spacing.xl),
       child: Column(
         children: [
           CircleAvatar(
-            radius: 60,
+            radius: _kRaggioAvatarProfilo,
             backgroundImage: widget.friend.photoUrl != null
                 ? NetworkImage(widget.friend.photoUrl!)
                 : null,
@@ -150,37 +148,44 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
                     widget.friend.displayName.isNotEmpty
                         ? widget.friend.displayName[0].toUpperCase()
                         : '?',
-                    style: const TextStyle(fontSize: 48),
+                    style: Theme.of(context).textTheme.displaySmall,
                   )
                 : null,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: t.spacing.xl),
           Text(
             widget.friend.displayName,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: scheme.onSurface,
+            ),
           ),
           if (widget.friend.gymName != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: t.spacing.sm),
             Text(
               '${loc.t('gym_label')}: ${widget.friend.gymName}',
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ],
-          const SizedBox(height: 32),
+          SizedBox(height: t.spacing.xxl),
           _buildStatCard(
             context,
             loc.t('streak_label'),
             '${widget.friend.streakDays} ${loc.t('days_label')}',
             Icons.local_fire_department,
-            Colors.orange,
+            AppPalette.categoryOrange,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: t.spacing.md),
           if (!_canViewCalendar && !_canViewPrograms)
             Padding(
-              padding: const EdgeInsets.only(top: 24.0),
+              padding: EdgeInsets.only(top: t.spacing.xl),
               child: Text(
-                '${widget.friend.displayName} hasn\'t shared any content yet.',
-                style: const TextStyle(color: Colors.grey),
+                loc
+                    .t('friend_no_shared_content')
+                    .replaceFirst('%s', widget.friend.displayName),
+                style: TextStyle(color: scheme.onSurfaceVariant),
               ),
             ),
         ],
@@ -189,6 +194,8 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
   }
 
   Widget _buildCalendarTab() {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     return StreamBuilder<List<WorkoutSession>>(
       stream: FirestoreService().getUserSessions(widget.friend.id),
       builder: (context, snapshot) {
@@ -201,14 +208,14 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(t.spacing.md),
           itemCount: sessions.length,
           itemBuilder: (context, index) {
             final session = sessions[index];
             return Card(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: EdgeInsets.only(bottom: t.spacing.sm),
               child: ListTile(
-                leading: const Icon(Icons.history, color: Colors.blue),
+                leading: Icon(Icons.history, color: scheme.onSurfaceVariant),
                 title: Text(session.workoutName),
                 subtitle: Text(
                   DateFormat('MMM dd, yyyy - HH:mm').format(session.startTime),
@@ -226,6 +233,7 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
   }
 
   Widget _buildProgramsTab() {
+    final t = context.expressive;
     return StreamBuilder<List<WorkoutProgram>>(
       stream: FirestoreService().getUserPrograms(widget.friend.id),
       builder: (context, snapshot) {
@@ -238,12 +246,12 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(t.spacing.md),
           itemCount: programs.length,
           itemBuilder: (context, index) {
             final program = programs[index];
             return Card(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: EdgeInsets.only(bottom: t.spacing.sm),
               child: ListTile(
                 title: Text(program.name),
                 subtitle: Text('${program.workoutIds.length} workouts'),
@@ -309,42 +317,41 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
     IconData icon,
     Color color,
   ) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(t.spacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: scheme.surfaceContainerHigh,
+        borderRadius: t.shape.cornerMd,
+        boxShadow: t.elevation.level2(scheme.shadow),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(t.spacing.sm),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: t.shape.cornerSm,
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: t.sizing.iconLg),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: t.spacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 20,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: scheme.onSurface,
                 ),
               ),
             ],

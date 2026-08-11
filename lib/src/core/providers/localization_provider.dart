@@ -383,6 +383,7 @@ class Localization {
     'day_name_hint': 'Day Name (e.g. Push Day)',
     'no_history_shared': 'No workout history shared.',
     'no_programs_shared': 'No programs shared.',
+    'friend_no_shared_content': "%s hasn't shared any content yet.",
     'error_loading_programs': 'Error loading programs',
 
     // Il secondo giro di US-027: le stringhe che il primo test non vedeva
@@ -794,6 +795,7 @@ class Localization {
     'day_name_hint': 'Nome Giorno (es. Spinta)',
     'no_history_shared': 'Nessuno storico condiviso.',
     'no_programs_shared': 'Nessuna scheda condivisa.',
+    'friend_no_shared_content': '%s non ha ancora condiviso nulla.',
     'error_loading_programs': 'Errore caricamento schede',
 
     // Il secondo giro di US-027: le stringhe che il primo test non vedeva
