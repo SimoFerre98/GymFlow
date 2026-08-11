@@ -42,6 +42,23 @@
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
             </intent-filter>
         </activity-alias>
+
+        <!-- US-053: il recupero prosegue e resta visibile fuori dall'app.
+
+             Un servizio in primo piano e non solo una notifica: senza, il
+             conteggio si fermerebbe quando il sistema toglie risorse all'app
+             in background, che su Samsung e aggressivo. Il tipo `specialUse`
+             e quello che Android chiede da API 34 quando il servizio non
+             rientra in una categoria predefinita (musica, posizione,
+             fotocamera...): un timer di recupero non ci rientra. -->
+        <service
+            android:name=".TimerForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="allenamento: conto alla rovescia del recupero" />
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -74,5 +91,11 @@
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
 
+    <!-- US-053: la notifica persistente del recupero, e il servizio che la
+         tiene viva. POST_NOTIFICATIONS e richiesto solo da Android 13 (API
+         33): sotto, e concesso da solo, e permission_handler lo sa gia. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
 
 </manifest>

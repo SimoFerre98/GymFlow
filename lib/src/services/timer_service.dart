@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
-import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'timer_notification_channel.dart';
 
 part 'timer_service.g.dart';
 
@@ -58,13 +61,16 @@ class TimerState {
   }
 }
 
-/// Cronometro e timer da conto alla rovescia, condivisi da tutta l'app.
-///
-/// keepAlive perche devono continuare a scorrere anche quando l'utente lascia
-/// la schermata degli strumenti: e il presupposto dell'overlay flottante.
 /// Da quando comincia il conto alla rovescia sentito: gli ultimi tre secondi.
 const Duration kSecondiDiAvviso = Duration(seconds: 3);
 
+/// Il ritorno fisico del conto alla rovescia: vibra e suona.
+///
+/// È un'interfaccia e non due chiamate sparse nel ticker per una ragione sola:
+/// `HapticFeedback` e `SystemSound` parlano con un canale di piattaforma che in
+/// un test non esiste, e senza poterli sostituire «vibra negli ultimi tre
+/// secondi» non sarebbe dimostrabile — resterebbe una cosa da provare a mano
+/// ogni volta.
 abstract class AvvisiTempo {
   /// Uno degli ultimi secondi e passato.
   void secondoFinale();
@@ -103,17 +109,13 @@ class AvvisiTempoDiSistema implements AvvisiTempo {
   }
 }
 
+/// Cronometro e timer da conto alla rovescia, condivisi da tutta l'app.
 ///
-/// Il ticker gira a 100 ms ed e attivo solo quando serve.
+/// keepAlive perche devono continuare a scorrere anche quando l'utente lascia
+/// la schermata degli strumenti: e il presupposto dell'overlay flottante. Il
+/// ticker gira a 100 ms ed e attivo solo quando serve.
 @Riverpod(keepAlive: true)
-/// Il ritorno fisico del conto alla rovescia: vibra e suona.
-///
-/// È un'interfaccia e non due chiamate sparse nel ticker per una ragione sola:
-/// `HapticFeedback` e `SystemSound` parlano con un canale di piattaforma che in
-/// un test non esiste, e senza poterli sostituire «vibra negli ultimi tre
-/// secondi» non sarebbe dimostrabile — resterebbe una cosa da provare a mano
-/// ogni volta.
-class TimerNotifier extends _$TimerNotifier {
+class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   Timer? _ticker;
 
   /// Istante di avvio dell'ultima corsa del cronometro.
@@ -125,13 +127,68 @@ class TimerNotifier extends _$TimerNotifier {
   /// Istante in cui il conto alla rovescia raggiungera lo zero.
   DateTime? _timerEndsAt;
 
+  /// Il servizio nativo che tiene vivo il recupero fuori dall'app.
+  /// Sostituibile nei test, come `avvisi`.
+  TimerNotificationChannel servizioTimer = TimerNotificationChannelAndroid();
+
   @override
   TimerState build() {
+    // `WidgetsBindingObserver` e non un semplice metodo chiamato da fuori: la
+    // riconciliazione deve avvenire **ogni volta** che l'app torna in primo
+    // piano, e nessun'altra parte dell'app sa quando succede se non
+    // osservando il ciclo di vita direttamente.
+    //
+    // `ensureInitialized()` e non `WidgetsBinding.instance` da solo: in
+    // un test **non** widget — `ProviderContainer` letto da un `test()`
+    // qualunque, come fanno gia `timer_service_test.dart` e altri — nessuno
+    // ha ancora creato il binding, e leggere `.instance` prima solleva
+    // un'eccezione. `ensureInitialized()` e idempotente: in produzione
+    // `runApp()` l'ha gia chiamato, e questa chiamata non fa niente.
+    WidgetsFlutterBinding.ensureInitialized().addObserver(this);
     ref.onDispose(() {
+      WidgetsBinding.instance.removeObserver(this);
       _ticker?.cancel();
       _ticker = null;
     });
     return const TimerState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) riconciliaConIlServizio();
+  }
+
+  /// Legge lo stato del servizio nativo e allinea questo notifier a lui.
+  ///
+  /// Serve solo per il **recupero**: il cronometro non ha un servizio fuori
+  /// dall'app — non ha una fine da notificare — e non tocca `_stopwatch*`.
+  ///
+  /// Se il servizio dice che il tempo e scaduto mentre l'app non c'era, lo si
+  /// tratta come una scadenza vera: si avvisa e si azzera, esattamente come
+  /// farebbe il ticker se l'app fosse rimasta aperta.
+  @visibleForTesting
+  Future<void> riconciliaConIlServizio() async {
+    if (!state.isTimerRunning) return;
+    final remoto = await servizioTimer.leggiStato();
+    if (remoto == null) return;
+
+    final restante = remoto.restanteOra();
+    if (restante <= Duration.zero) {
+      _timerEndsAt = null;
+      state = state.copyWith(timerRemaining: Duration.zero, isTimerRunning: false);
+      segnalaScadenza();
+      _syncTicker();
+      return;
+    }
+
+    if (remoto.inPausa) {
+      _timerEndsAt = null;
+      state = state.copyWith(timerRemaining: restante, isTimerRunning: false);
+    } else {
+      _timerEndsAt = remoto.orarioFine;
+      state = state.copyWith(timerRemaining: restante, isTimerRunning: true);
+    }
+    _syncTicker();
   }
 
   // Getter di comodo: permettono ai consumatori di usare il notifier come
@@ -205,6 +262,7 @@ class TimerNotifier extends _$TimerNotifier {
     if (changed) state = next;
     if (timerReachedZero) {
       segnalaScadenza();
+      unawaited(servizioTimer.ferma());
       _syncTicker();
     }
   }
@@ -294,14 +352,46 @@ class TimerNotifier extends _$TimerNotifier {
       // In pausa: il tempo rimanente e gia aggiornato dal ticker.
       _timerEndsAt = null;
       state = state.copyWith(isTimerRunning: false);
+      unawaited(servizioTimer.metteInPausa(state.timerRemaining));
     } else {
       final remaining = state.timerRemaining == Duration.zero
           ? state.timerDuration
           : state.timerRemaining;
       _timerEndsAt = DateTime.now().add(remaining);
       state = state.copyWith(isTimerRunning: true, timerRemaining: remaining);
+      unawaited(_avviaServizioSeConsentito(_timerEndsAt!));
     }
     _syncTicker();
+  }
+
+  /// Chiede il permesso di notifica. Sostituibile nei test — la richiesta
+  /// vera bussa a un canale di piattaforma che in un test non esiste, e
+  /// senza poterla sostituire non si potrebbe dimostrare che il servizio
+  /// parte quando il permesso c'e.
+  ///
+  /// ⚠️ **Chiede senza spiegare a cosa serve.** Il criterio di US-053 vuole
+  /// una spiegazione prima della richiesta di sistema, e questa e solo la
+  /// richiesta: la spiegazione e un'schermata che manca ancora.
+  Future<bool> Function() richiediPermessoNotifiche =
+      () async => (await Permission.notification.request()).isGranted;
+
+  /// Avvia il servizio solo se il permesso e concesso.
+  ///
+  /// Un servizio in primo piano senza permesso di notifica non serve a
+  /// niente — non lo vedrebbe nessuno — e costerebbe comunque batteria: non
+  /// vale la pena avviarlo. Un errore nel chiedere il permesso (piattaforma
+  /// che non lo supporta: desktop, i test senza il finto sopra) non deve
+  /// impedire al timer di funzionare **dentro** l'app, quindi qui si assorbe
+  /// e basta.
+  Future<void> _avviaServizioSeConsentito(DateTime orarioFine) async {
+    bool concesso;
+    try {
+      concesso = await richiediPermessoNotifiche();
+    } catch (_) {
+      return;
+    }
+    if (!concesso) return;
+    await servizioTimer.avvia(orarioFine);
   }
 
   void resetTimer() {
@@ -311,5 +401,6 @@ class TimerNotifier extends _$TimerNotifier {
       timerRemaining: state.timerDuration,
     );
     _syncTicker();
+    unawaited(servizioTimer.ferma());
   }
 }
