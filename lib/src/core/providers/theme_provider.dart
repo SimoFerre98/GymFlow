@@ -12,6 +12,7 @@ class ThemeSettings {
   const ThemeSettings({
     this.themeMode = ThemeMode.dark,
     this.primaryColor = defaultPrimaryColor,
+    this.hapticFeedback = true,
   });
 
   /// Ambra: il colore delle azioni della palette Indigo.
@@ -23,10 +24,21 @@ class ThemeSettings {
   final ThemeMode themeMode;
   final Color primaryColor;
 
-  ThemeSettings copyWith({ThemeMode? themeMode, Color? primaryColor}) {
+  /// Vibra a ogni tocco che disegna un'onda materiale — bottoni, righe di
+  /// lista, chip, switch. Acceso per impostazione predefinita: e un
+  /// feedback fisico che l'utente ha chiesto, non un'aggiunta che si scopre
+  /// per caso in Impostazioni.
+  final bool hapticFeedback;
+
+  ThemeSettings copyWith({
+    ThemeMode? themeMode,
+    Color? primaryColor,
+    bool? hapticFeedback,
+  }) {
     return ThemeSettings(
       themeMode: themeMode ?? this.themeMode,
       primaryColor: primaryColor ?? this.primaryColor,
+      hapticFeedback: hapticFeedback ?? this.hapticFeedback,
     );
   }
 }
@@ -41,6 +53,7 @@ class ThemeSettings {
 class ThemeSettingsNotifier extends _$ThemeSettingsNotifier {
   static const _themeModeKey = 'theme_mode';
   static const _primaryColorKey = 'primary_color';
+  static const _hapticFeedbackKey = 'haptic_feedback';
 
   @override
   ThemeSettings build() {
@@ -53,12 +66,14 @@ class ThemeSettingsNotifier extends _$ThemeSettingsNotifier {
 
     final savedMode = prefs.getInt(_themeModeKey);
     final savedColor = prefs.getInt(_primaryColorKey);
+    final savedHaptic = prefs.getBool(_hapticFeedbackKey);
 
     state = state.copyWith(
       themeMode: savedMode != null && savedMode >= 0
           ? ThemeMode.values.elementAtOrNull(savedMode)
           : null,
       primaryColor: savedColor != null ? Color(savedColor) : null,
+      hapticFeedback: savedHaptic,
     );
   }
 
@@ -72,5 +87,11 @@ class ThemeSettingsNotifier extends _$ThemeSettingsNotifier {
     state = state.copyWith(primaryColor: color);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_primaryColorKey, color.toARGB32());
+  }
+
+  Future<void> setHapticFeedback(bool enabled) async {
+    state = state.copyWith(hapticFeedback: enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_hapticFeedbackKey, enabled);
   }
 }

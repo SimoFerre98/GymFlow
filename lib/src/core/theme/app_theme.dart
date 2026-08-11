@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_palette.dart';
@@ -18,8 +19,9 @@ class AppTheme {
   /// Tema scuro, quello predefinito dell'applicazione.
   ///
   /// [accent] e il colore delle azioni: ambra per impostazione predefinita,
-  /// modificabile fra i preset di [AppPalette.accentPresets].
-  static ThemeData darkTheme(Color accent) {
+  /// modificabile fra i preset di [AppPalette.accentPresets]. [hapticFeedback]
+  /// accende la vibrazione al tocco, impostabile da Impostazioni.
+  static ThemeData darkTheme(Color accent, {bool hapticFeedback = true}) {
     final scheme = ColorScheme.dark(
       // Azioni. Un solo colore, un solo significato.
       primary: accent,
@@ -63,7 +65,7 @@ class AppTheme {
       onErrorContainer: AppPalette.paper,
     );
 
-    return _build(scheme, AppPalette.indigo900, Brightness.dark);
+    return _build(scheme, AppPalette.indigo900, Brightness.dark, hapticFeedback);
   }
 
   /// Tema chiaro, per chi lo preferisce.
@@ -71,7 +73,7 @@ class AppTheme {
   /// Non e un'inversione meccanica: ambra e salmone non hanno contrasto
   /// sufficiente per il testo su fondo chiaro, quindi i ruoli testuali usano le
   /// loro varianti scurite e gli originali finiscono sui contenitori.
-  static ThemeData lightTheme(Color accent) {
+  static ThemeData lightTheme(Color accent, {bool hapticFeedback = true}) {
     final scheme = ColorScheme.light(
       primary: AppPalette.amberOnLight,
       onPrimary: AppPalette.paper,
@@ -110,7 +112,7 @@ class AppTheme {
       onErrorContainer: const Color(0xFF410E0B),
     );
 
-    return _build(scheme, AppPalette.lightBackground, Brightness.light);
+    return _build(scheme, AppPalette.lightBackground, Brightness.light, hapticFeedback);
   }
 
   /// Parte comune ai due temi: tutto cio che deriva dai ruoli, invece di
@@ -119,6 +121,7 @@ class AppTheme {
     ColorScheme scheme,
     Color scaffoldBackground,
     Brightness brightness,
+    bool hapticFeedback,
   ) {
     final base = brightness == Brightness.dark
         ? ThemeData.dark().textTheme
@@ -135,6 +138,16 @@ class AppTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: scaffoldBackground,
       textTheme: textTheme,
+
+      // Un solo punto da cui accendere o spegnere la vibrazione al tocco,
+      // invece di una chiamata ripetuta in ogni bottone: ogni widget che
+      // disegna un'onda materiale (bottoni, righe di lista, chip, switch)
+      // passa da qui. `InkSparkle` e il ripiego che Material 3 sceglierebbe
+      // comunque su Android, che e l'unica piattaforma di questo progetto:
+      // non serve replicare qui la logica di scelta di `ThemeData`.
+      splashFactory: hapticFeedback
+          ? const _HapticSplashFactory(InkSparkle.splashFactory)
+          : null,
 
       // Token del design system, con la tipografia derivata dalla stessa scala.
       // Vedi docs/adr/001-material-3-expressive.md
@@ -304,6 +317,50 @@ class AppTheme {
     return OutlineInputBorder(
       borderRadius: const ExpressiveShape().cornerLg,
       borderSide: BorderSide(color: color, width: width),
+    );
+  }
+}
+
+/// Fa vibrare al tocco e poi disegna l'onda materiale come farebbe [_inner]:
+/// non sostituisce l'effetto visivo, gli aggiunge un effetto fisico prima.
+///
+/// `selectionClick()` e non `lightImpact()`: e il piu' breve e neutro dei due
+/// (vedi `AvvisiTempoDiSistema` in `timer_service.dart`, che invece cerca
+/// apposta il piu' forte per il countdown) — qui deve segnare "ho toccato
+/// qualcosa", non farsi notare da solo, perche' suonerebbe a ogni bottone
+/// della schermata.
+class _HapticSplashFactory extends InteractiveInkFeatureFactory {
+  const _HapticSplashFactory(this._inner);
+
+  final InteractiveInkFeatureFactory _inner;
+
+  @override
+  InteractiveInkFeature create({
+    required MaterialInkController controller,
+    required RenderBox referenceBox,
+    required Offset position,
+    required Color color,
+    required TextDirection textDirection,
+    bool containedInkWell = false,
+    RectCallback? rectCallback,
+    BorderRadius? borderRadius,
+    ShapeBorder? customBorder,
+    double? radius,
+    VoidCallback? onRemoved,
+  }) {
+    HapticFeedback.selectionClick();
+    return _inner.create(
+      controller: controller,
+      referenceBox: referenceBox,
+      position: position,
+      color: color,
+      textDirection: textDirection,
+      containedInkWell: containedInkWell,
+      rectCallback: rectCallback,
+      borderRadius: borderRadius,
+      customBorder: customBorder,
+      radius: radius,
+      onRemoved: onRemoved,
     );
   }
 }

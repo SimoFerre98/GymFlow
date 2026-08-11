@@ -436,6 +436,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                     ),
                   ),
+
+                  // Vibrazione al tocco
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
+                    ),
+                    secondary: _buildLeadingIcona(
+                      context,
+                      scheme,
+                      t,
+                      Icons.vibration,
+                    ),
+                    title: Text(
+                      loc.t('haptic_feedback'),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    value: theme.hapticFeedback,
+                    onChanged: (val) => themeNotifier.setHapticFeedback(val),
+                  ),
                 ],
               ),
               SizedBox(height: t.spacing.xxl - t.spacing.xs),

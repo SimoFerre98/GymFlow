@@ -6,17 +6,13 @@ part of 'timer_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$timerNotifierHash() => r'68760cde716d0bec36110a4f55ca17d829793938';
+String _$timerNotifierHash() => r'3d1eb5b401c0c3d047974ab9c12e1dc2f92c1485';
 
 /// Cronometro e timer da conto alla rovescia, condivisi da tutta l'app.
 ///
 /// keepAlive perche devono continuare a scorrere anche quando l'utente lascia
-/// la schermata degli strumenti: e il presupposto dell'overlay flottante.
-///
-/// Il ticker gira a 30 ms ed e sempre attivo, come nella versione precedente.
-/// Fermarlo quando cronometro e timer sono inattivi e compito di US-013:
-/// cambiarlo qui renderebbe indistinguibile una regressione della migrazione
-/// da un cambio voluto di comportamento.
+/// la schermata degli strumenti: e il presupposto dell'overlay flottante. Il
+/// ticker gira a 100 ms ed e attivo solo quando serve.
 ///
 /// Copied from [TimerNotifier].
 @ProviderFor(TimerNotifier)

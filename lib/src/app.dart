@@ -18,8 +18,14 @@ class GymFlowApp extends ConsumerWidget {
       navigatorKey: navigatorKey,
       title: 'GymFlow',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme(theme.primaryColor),
-      darkTheme: AppTheme.darkTheme(theme.primaryColor),
+      theme: AppTheme.lightTheme(
+        theme.primaryColor,
+        hapticFeedback: theme.hapticFeedback,
+      ),
+      darkTheme: AppTheme.darkTheme(
+        theme.primaryColor,
+        hapticFeedback: theme.hapticFeedback,
+      ),
       themeMode: theme.themeMode,
       home: const AuthWrapper(),
       builder: (context, child) => GymFlowShell(child: child),

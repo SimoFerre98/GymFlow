@@ -7,7 +7,7 @@ part of 'theme_provider.dart';
 // **************************************************************************
 
 String _$themeSettingsNotifierHash() =>
-    r'c5ca7da7eccb7c2c6f75c84ebc94c33af39d86b7';
+    r'941d22cf22e5a8ef0e23ed63b683c908eb649ec9';
 
 /// Espone modalità e colore del tema, persistendoli fra i riavvii.
 ///
