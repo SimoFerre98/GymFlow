@@ -1039,7 +1039,7 @@ Dopo questa storia: nessuna schermata dell'app mostra testo non tradotto.
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-034 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — piano in [`planning/US-028.md`](planning/US-028.md) · delegabile · attenzione: i criteri 1, 2 e 3 sono gia soddisfatti da `test/contrast_test.dart`, il buco vero sono i preset nel tema chiaro
 
 **Story**
 Come atleta che usa l'app in palestra, con luce forte o schermo poco luminoso,
@@ -1468,7 +1468,7 @@ Dopo questa storia: il quadrante occupa lo spazio disponibile, con anello, tacch
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-007 | **Blocks:** US-048
-**Status:** ⬜ TODO
+**Status:** 📋 PLANNED — piano in [`planning/US-052.md`](planning/US-052.md) · delegabile, con tre trappole segnate nel piano: la navigazione dal `builder`, il contenuto che deve spostarsi, e il file fuori dalla lista sorvegliata
 
 **Story**
 Come atleta che naviga fra le schermate con il recupero in corso,
