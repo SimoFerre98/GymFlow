@@ -59,8 +59,12 @@ void main() {
       // resterebbe verde anche con la schermata montata sulla prima voce e il
       // Dashboard sulla terza, che e esattamente il difetto che US-025 chiude.
       // Quindi si estrae la lista _screens e si guarda la posizione.
+      //
+      // `(?:const\s*)?` perche una lista di widget `const` e legittima — anzi
+      // e la forma raccomandata da AGENTS.md — e non deve far sparire il
+      // match: e successo, con la barra riscritta per US-038.
       final listaScreens = RegExp(
-        r'_screens\s*=\s*\[(.*?)\]',
+        r'_screens\s*=\s*(?:const\s*)?\[(.*?)\]',
         dotAll: true,
       ).firstMatch(content);
       expect(

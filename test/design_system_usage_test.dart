@@ -32,6 +32,12 @@ void main() {
     'lib/src/ui/widgets/home_hero_card.dart',
     'lib/src/ui/widgets/progress_ring.dart',
     'lib/src/ui/widgets/timer_overlay.dart',
+    'lib/src/ui/widgets/expressive_cta_button.dart',
+    // È una schermata, non un widget: sta qui e non fra `schermate` perché non
+    // vuole le due verifiche in fondo al file (la card condivisa,
+    // `titleEmphasized`) — non ha un titolo né una card, è il telaio della
+    // navigazione.
+    'lib/src/ui/screens/main_screen.dart',
   ];
 
   const sorvegliati = <String>[...schermate, ...widgetDeiMockup];

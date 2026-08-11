@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/expressive_tokens.dart';
 import 'expressive_card.dart';
+import 'expressive_cta_button.dart';
 import 'progress_ring.dart';
 
 /// La pillola piccola in maiuscolo: «IN CORSO», il gruppo muscolare di una riga.
@@ -128,7 +129,7 @@ class HomeHeroCard extends StatelessWidget {
               ),
             ),
             SizedBox(height: t.spacing.md),
-            _pulsanteAzione(context, locCreateAction, scheme, t),
+            _pulsanteAzione(context, locCreateAction),
           ],
         ),
       );
@@ -213,73 +214,21 @@ class HomeHeroCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: t.spacing.sm),
-          _pulsanteAzione(context, locResume, scheme, t),
+          _pulsanteAzione(context, locResume),
         ],
       ),
     );
   }
 
-  /// Il `.cta` del mockup: fondo ambra, raggio pieno, e il cerchio scuro con la
-  /// freccia a destra. **Non un `FilledButton` rettangolare**, lo dice
-  /// `DESIGN-SPEC.md`.
-  Widget _pulsanteAzione(
-    BuildContext context,
-    String testo,
-    ColorScheme scheme,
-    ExpressiveTokens t,
-  ) {
-    // L'ambra come **fondo** non e `primary` nel tema chiaro, dove `primary` e
-    // un marrone scuro pensato per il testo: e `primaryContainer`. E la riga di
-    // DESIGN-SPEC scritta dopo US-049, e qui era gia rispettata.
-    final chiaro = scheme.brightness == Brightness.dark;
-    final fondo = chiaro ? scheme.primary : scheme.primaryContainer;
-    final testoColore = chiaro ? scheme.onPrimary : scheme.onPrimaryContainer;
-
-    return GestureDetector(
-      onTap: onAction,
-      child: Container(
-        decoration: BoxDecoration(
-          color: fondo,
-          borderRadius: t.shape.cornerFull,
-        ),
-        padding: EdgeInsets.fromLTRB(
-          t.spacing.lg,
-          t.spacing.sm,
-          t.spacing.sm,
-          t.spacing.sm,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              testo,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: testoColore,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.1,
-              ),
-            ),
-            Container(
-              // Il cerchio del mockup e 20 px, cioe 27 dp: fra i token il piu
-              // vicino e `sizing.iconLg` (24), e la differenza non si vede.
-              width: t.sizing.iconLg,
-              height: t.sizing.iconLg,
-              decoration: BoxDecoration(
-                color: testoColore,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  '→',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: fondo,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+  /// Il `.cta` del mockup, a piena larghezza: vedi `ExpressiveCtaButton`.
+  ///
+  /// Era duplicato qui — lo stesso ambra, lo stesso cerchio con la freccia —
+  /// prima di diventare un widget condiviso: un componente scritto due volte è
+  /// un valore da sbagliare due volte.
+  Widget _pulsanteAzione(BuildContext context, String testo) {
+    return SizedBox(
+      width: double.infinity,
+      child: ExpressiveCtaButton(label: testo, onTap: onAction),
     );
   }
 }
