@@ -35,12 +35,14 @@ void main() {
     'lib/src/ui/widgets/expressive_cta_button.dart',
     'lib/src/ui/widgets/expressive_segmented_control.dart',
     'lib/src/ui/widgets/time_dial.dart',
+    'lib/src/ui/widgets/charts/activity_chart.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una
     // card, sono il telaio della navigazione e la schermata del tempo.
     'lib/src/ui/screens/main_screen.dart',
     'lib/src/ui/screens/time_tools_screen.dart',
+    'lib/src/ui/screens/health_detail_screen.dart',
   ];
 
   const sorvegliati = <String>[...schermate, ...widgetDeiMockup];

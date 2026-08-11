@@ -1,18 +1,22 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/providers/localization_provider.dart';
+import '../../../core/theme/expressive_tokens.dart';
 import '../../../models/session.dart';
+import '../expressive_segmented_control.dart';
 
-class ActivityChart extends StatefulWidget {
+class ActivityChart extends ConsumerStatefulWidget {
   final List<WorkoutSession> sessions;
 
   const ActivityChart({super.key, required this.sessions});
 
   @override
-  State<ActivityChart> createState() => _ActivityChartState();
+  ConsumerState<ActivityChart> createState() => _ActivityChartState();
 }
 
-class _ActivityChartState extends State<ActivityChart> {
+class _ActivityChartState extends ConsumerState<ActivityChart> {
   // 0 = Week, 1 = Month
   int _viewMode = 0;
 
@@ -91,82 +95,37 @@ class _ActivityChartState extends State<ActivityChart> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
     return Column(
       children: [
-        // Toggle Control
-        Container(
-          height: 32,
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildToggleOption('Week', 0),
-              _buildToggleOption('Month', 1),
-            ],
-          ),
+        ExpressiveSegmentedControl(
+          labels: [loc.t('week_tab'), loc.t('month_tab')],
+          selectedIndex: _viewMode,
+          onChanged: (i) => setState(() => _viewMode = i),
         ),
-        const SizedBox(height: 16),
-
-        // Chart
+        SizedBox(height: context.expressive.spacing.md),
         Expanded(
           child: _viewMode == 0
-              ? _buildChart(_weeklyData, isMonthly: false)
-              : _buildChart(_monthlyData, isMonthly: true),
+              ? _buildBarChart(_weeklyData, loc)
+              : _buildMonthlyHeatmap(_monthlyData, loc),
         ),
       ],
     );
   }
 
-  Widget _buildToggleOption(String text, int mode) {
-    final isSelected = _viewMode == mode;
-    return GestureDetector(
-      onTap: () => setState(() => _viewMode = mode),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.black : Colors.grey[600],
-          ),
-        ),
-      ),
+  Widget _buildBarChart(Map<int, int> data, Localization loc) {
+    final scheme = Theme.of(context).colorScheme;
+    final t = context.expressive;
+    final testoAsse = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+      fontWeight: FontWeight.bold,
     );
-  }
 
-  Widget _buildChart(Map<int, int> data, {required bool isMonthly}) {
-    if (isMonthly) {
-      return _buildMonthlyHeatmap(data);
-    } else {
-      return _buildBarChart(data);
-    }
-  }
-
-  Widget _buildBarChart(Map<int, int> data) {
-    // Determine Max Y
     int maxY = 0;
     data.forEach((_, count) {
       if (count > maxY) maxY = count;
     });
-    maxY = (maxY < 4) ? 4 : maxY + 1; // Minimum scale height
+    maxY = (maxY < 4) ? 4 : maxY + 1; // Altezza minima della scala.
 
     return BarChart(
       BarChartData(
@@ -175,21 +134,21 @@ class _ActivityChartState extends State<ActivityChart> {
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) => Colors.blueGrey,
+            getTooltipColor: (_) => scheme.inverseSurface,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 rod.toY.toInt().toString(),
-                const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onInverseSurface,
+                      fontWeight: FontWeight.bold,
+                    ) ??
+                    TextStyle(color: scheme.onInverseSurface),
                 children: [
                   TextSpan(
-                    text: '\n${_getWeekdayName(group.x.toInt())}',
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    text: '\n${_getWeekdayName(group.x.toInt(), loc)}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: scheme.onInverseSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.normal,
-                      fontSize: 10,
                     ),
                   ),
                 ],
@@ -204,18 +163,11 @@ class _ActivityChartState extends State<ActivityChart> {
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    _getWeekdayName(value.toInt()),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  padding: EdgeInsets.only(top: t.spacing.sm),
+                  child: Text(_getWeekdayName(value.toInt(), loc), style: testoAsse),
                 );
               },
-              reservedSize: 30,
+              reservedSize: t.spacing.xxl,
             ),
           ),
           leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -226,47 +178,55 @@ class _ActivityChartState extends State<ActivityChart> {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 1,
-          getDrawingHorizontalLine: (value) =>
-              FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: scheme.onSurface.withValues(alpha: 0.1),
+            strokeWidth: 1,
+          ),
         ),
         borderData: FlBorderData(show: false),
-        barGroups: _buildBarGroups(data),
+        barGroups: _buildBarGroups(data, scheme),
       ),
     );
   }
 
-  Widget _buildMonthlyHeatmap(Map<int, int> data) {
-    // Determine Max for color scaling
+  Widget _buildMonthlyHeatmap(Map<int, int> data, Localization loc) {
+    final scheme = Theme.of(context).colorScheme;
+    final t = context.expressive;
+    final lingua = loc.locale.languageCode;
+
     int maxVal = 1;
     data.forEach((_, count) {
       if (count > maxVal) maxVal = count;
     });
 
-    // Calendar Grid Logic
     final now = DateTime.now();
     final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
-
-    // Weekday of 1st day (1=Mon, 7=Sun).
     final offset = firstDayOfMonth.weekday - 1;
-
     final totalCells = daysInMonth + offset;
+
+    // Le iniziali dei sette giorni, nella lingua scelta: lunedi e il giorno 1
+    // di un lunedi vero (8 gennaio 2024), non una lettera scritta a mano —
+    // «M T W T F S S» presume l'inglese, e in italiano «giovedi» e «venerdi»
+    // cominciano con la stessa lettera di «giovedi» in inglese non lo fa.
+    final iniziali = List.generate(7, (i) {
+      final giorno = DateTime(2024, 1, 8 + i);
+      return DateFormat('EEE', lingua).format(giorno)[0].toUpperCase();
+    });
 
     return Column(
       children: [
-        // Weekday Headers
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+          children: iniziali
               .map(
                 (e) => SizedBox(
-                  width: 30,
+                  width: t.sizing.thumbnailSm - t.spacing.sm,
                   child: Text(
                     e,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 10,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -274,14 +234,14 @@ class _ActivityChartState extends State<ActivityChart> {
               )
               .toList(),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: t.spacing.sm),
         Expanded(
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+              mainAxisSpacing: t.spacing.sm,
+              crossAxisSpacing: t.spacing.sm,
               childAspectRatio: 1,
             ),
             itemCount: totalCells,
@@ -295,62 +255,58 @@ class _ActivityChartState extends State<ActivityChart> {
               if (isFuture) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[100], // Very faint for future
-                    borderRadius: BorderRadius.circular(6),
+                    color: scheme.onSurface.withValues(alpha: 0.04),
+                    borderRadius: t.shape.cornerXs,
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '$day',
-                    style: TextStyle(color: Colors.grey[300], fontSize: 10),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.3),
+                    ),
                   ),
                 );
               }
 
-              // Color intensity
-              Color color;
-              Color textColor;
+              Color colore;
+              Color coloreTesto;
 
               if (count == 0) {
-                color = Colors.grey[200]!; // Lighter grey for empty
-                textColor = Colors.grey[500]!;
+                colore = scheme.onSurface.withValues(alpha: 0.08);
+                coloreTesto = scheme.onSurfaceVariant;
               } else {
-                final opacity = 0.5 + (0.5 * (count / maxVal));
-                color = Theme.of(context).primaryColor.withValues(alpha: opacity);
-                textColor = Colors.white;
+                final opacita = 0.5 + (0.5 * (count / maxVal));
+                colore = scheme.primary.withValues(alpha: opacita);
+                coloreTesto = scheme.onPrimary;
               }
 
-              // Highlight today
               final isToday = day == now.day;
+              final dataGiorno = DateTime(now.year, now.month, day);
 
               return Tooltip(
-                message:
-                    '$count workouts on ${DateFormat('MMM').format(now)} $day',
+                message: loc
+                    .t('activity_heatmap_tooltip')
+                    .replaceFirst(
+                      '%s',
+                      DateFormat('MMM d', lingua).format(dataGiorno),
+                    )
+                    .replaceFirst('%s', '$count'),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(6), // Softer corners
+                    color: colore,
+                    borderRadius: t.shape.cornerXs,
                     border: isToday
-                        ? Border.all(
-                            color: Theme.of(context).primaryColor,
-                            width: 2,
-                          )
+                        ? Border.all(color: scheme.primary, width: 2)
                         : null,
                     boxShadow: count > 0
-                        ? [
-                            BoxShadow(
-                              color: color.withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
+                        ? t.elevation.level1(colore)
                         : null,
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '$day',
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 10,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: coloreTesto,
                       fontWeight: count > 0 || isToday
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -365,7 +321,8 @@ class _ActivityChartState extends State<ActivityChart> {
     );
   }
 
-  List<BarChartGroupData> _buildBarGroups(Map<int, int> data) {
+  List<BarChartGroupData> _buildBarGroups(Map<int, int> data, ColorScheme scheme) {
+    final t = context.expressive;
     final List<BarChartGroupData> items = [];
     final sortedKeys = data.keys.toList()..sort();
 
@@ -376,17 +333,16 @@ class _ActivityChartState extends State<ActivityChart> {
           barRods: [
             BarChartRodData(
               toY: data[key]!.toDouble(),
-              gradient: const LinearGradient(
-                colors: [Colors.blue, Colors.cyanAccent],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-              ),
-              width: 16,
-              borderRadius: BorderRadius.circular(6),
+              // Un solo colore e non un gradiente indaco/ciano che non stava
+              // nella palette: l'ambra e cio che significa «un dato che
+              // conta», qui la quantita di allenamenti in un giorno.
+              color: scheme.primary,
+              width: t.sizing.iconLg,
+              borderRadius: t.shape.cornerXs,
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
                 toY: 0,
-                color: Colors.grey.withValues(alpha: 0.05),
+                color: scheme.onSurface.withValues(alpha: 0.05),
               ),
             ),
           ],
@@ -396,24 +352,16 @@ class _ActivityChartState extends State<ActivityChart> {
     return items;
   }
 
-  String _getWeekdayName(int dayIndex) {
-    switch (dayIndex) {
-      case 1:
-        return 'Mon';
-      case 2:
-        return 'Tue';
-      case 3:
-        return 'Wed';
-      case 4:
-        return 'Thu';
-      case 5:
-        return 'Fri';
-      case 6:
-        return 'Sat';
-      case 7:
-        return 'Sun';
-      default:
-        return '';
-    }
+  /// Il nome breve del giorno, nella lingua scelta dentro l'app.
+  ///
+  /// `DateFormat('EEE', lingua)` e non uno `switch` scritto a mano: il
+  /// progetto ha due lingue, e un giorno la terza non deve tornare qui a
+  /// scrivere un altro `case`. L'8 gennaio 2024 e un lunedi vero: `dayIndex`
+  /// arriva da `DateTime.weekday` (1=lunedi..7=domenica), e la data di
+  /// riferimento segue la stessa numerazione.
+  String _getWeekdayName(int dayIndex, Localization loc) {
+    if (dayIndex < 1 || dayIndex > 7) return '';
+    final giorno = DateTime(2024, 1, 7 + dayIndex);
+    return DateFormat('EEE', loc.locale.languageCode).format(giorno);
   }
 }

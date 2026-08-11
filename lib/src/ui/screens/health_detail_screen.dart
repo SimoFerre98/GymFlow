@@ -5,6 +5,9 @@ import 'package:health/health.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../services/health_service.dart';
+import '../../core/theme/expressive_tokens.dart';
+import '../widgets/expressive_card.dart';
+import '../widgets/expressive_segmented_control.dart';
 
 class HealthDetailScreen extends ConsumerStatefulWidget {
   final HealthDataType dataType;
@@ -136,40 +139,34 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(widget.title, style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: Column(
         children: [
-          const SizedBox(height: 20),
-          // Period Selector
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                _buildPeriodTab(loc.t('week_tab'), _isWeekly, true),
-                _buildPeriodTab(loc.t('month_tab'), !_isWeekly, false),
-              ],
+          SizedBox(height: t.spacing.lg),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: t.spacing.xl),
+            child: ExpressiveSegmentedControl(
+              labels: [loc.t('week_tab'), loc.t('month_tab')],
+              selectedIndex: _isWeekly ? 0 : 1,
+              onChanged: (i) {
+                setState(() {
+                  _isWeekly = i == 0;
+                  // Si torna a oggi cambiando modalita: restare sull'ultimo
+                  // giorno del mese visto mentre si passa alla settimana non
+                  // avrebbe senso per l'utente.
+                  _currentDate = DateTime.now();
+                });
+                _loadData();
+              },
             ),
           ),
-          const SizedBox(height: 20),
-
-          // Date Navigator
+          SizedBox(height: t.spacing.lg),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: t.spacing.xl),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -178,9 +175,8 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                   onPressed: () => _changePeriod(-1),
                 ),
                 Text(
-                  _getDateRangeLabel(),
-                  style: const TextStyle(
-                    fontSize: 16,
+                  _getDateRangeLabel(loc),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -191,59 +187,55 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                         DateTime.now().subtract(const Duration(days: 1)),
                       )
                       ? () => _changePeriod(1)
-                      : null, // Disable if current
+                      : null, // Disattivato se e gia oggi.
                 ),
               ],
             ),
           ),
-
-          // Stats Summary
-          Container(
-            margin: const EdgeInsets.all(20),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(loc.t('total_average'), style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 10),
-                Text(
-                  _calculateSummary(),
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: widget.baseColor,
+          Padding(
+            padding: EdgeInsets.all(t.spacing.xl),
+            child: ExpressiveCard(
+              child: Column(
+                children: [
+                  Text(
+                    loc.t('total_average'),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-                Text(
-                  widget.unit,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                ),
-              ],
+                  SizedBox(height: t.spacing.sm),
+                  Text(
+                    _calculateSummary(loc),
+                    style: t.typography.metricLarge?.copyWith(
+                      color: widget.baseColor,
+                    ),
+                  ),
+                  Text(
+                    widget.unit,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-
-          // Chart
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-              padding: const EdgeInsets.fromLTRB(10, 20, 20, 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                t.spacing.xl,
+                0,
+                t.spacing.xl,
+                t.spacing.xxl,
               ),
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildChart(),
+              child: ExpressiveCard(
+                child: SizedBox(
+                  height: double.infinity,
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildChart(loc),
+                ),
+              ),
             ),
           ),
         ],
@@ -251,76 +243,41 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     );
   }
 
-  Widget _buildPeriodTab(String text, bool isSelected, bool isWeeklyTab) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (isSelected) return;
-          setState(() {
-            _isWeekly = isWeeklyTab;
-            // Reset date to now on switch? Or keep context?
-            // Resetting to latest is usually better UX
-            _currentDate = DateTime.now();
-          });
-          _loadData();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: isSelected
-                ? [BoxShadow(color: Colors.black12, blurRadius: 4)]
-                : null,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Colors.black : Colors.grey[600],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _getDateRangeLabel() {
-    final dateFormat = DateFormat('MMM d');
+  // `loc.locale.languageCode` e non l'omissione che c'era: senza, `DateFormat`
+  // usa la lingua **del telefono**, che puo differire da quella scelta
+  // dentro l'app — e allora meta pagina si legge in una lingua e l'asse del
+  // grafico in un'altra.
+  String _getDateRangeLabel(Localization loc) {
+    final lingua = loc.locale.languageCode;
+    final dateFormat = DateFormat('MMM d', lingua);
     if (_isWeekly) {
       final end = _currentDate;
       final start = end.subtract(const Duration(days: 6));
       return '${dateFormat.format(start)} - ${dateFormat.format(end)}';
     } else {
-      return DateFormat('MMMM y').format(_currentDate);
+      return DateFormat('MMMM y', lingua).format(_currentDate);
     }
   }
 
-  String _calculateSummary() {
+  String _calculateSummary(Localization loc) {
     if (_data.isEmpty) return '0';
     double total = 0;
     for (var v in _data.values) {
       total += v;
     }
 
-    // For heart rate or weight, we likely want Average
+    // Battito e peso: la media ha senso, la somma di sette giorni di battito
+    // no.
     if (widget.dataType == HealthDataType.HEART_RATE ||
         widget.dataType == HealthDataType.WEIGHT) {
       return (total / _data.length).toStringAsFixed(1);
     }
 
-    // For others (Steps, Distance, Calories, Sleep, Water) Sum is better?
-    // Wait, sleep usually "Avg 7h" is better than "Total 50h".
-    // Activity usually "Total 10k steps".
-    // Let's decide based on type.
-
     if (widget.dataType == HealthDataType.SLEEP_SESSION) {
-      // Total minutes -> Hours
-      return "${(total / 60).toStringAsFixed(1)} h (Total)";
+      final ore = (total / 60).toStringAsFixed(1);
+      return loc.t('health_total_hours').replaceFirst('%s', ore);
     }
 
-    // Default sum
     if (total > 1000 && widget.dataType == HealthDataType.STEPS) {
       return '${(total / 1000).toStringAsFixed(1)}k';
     }
@@ -328,18 +285,42 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     return total.toInt().toString();
   }
 
-  Widget _buildChart() {
-    if (_data.isEmpty) return Center(child: Text(ref.read(localizationNotifierProvider).t('no_data')));
+  Widget _buildChart(Localization loc) {
+    if (_data.isEmpty) return Center(child: Text(loc.t('no_data')));
 
-    // Check if we use Bar or Line
-    // Usually Steps/Calories -> Bar
-    // Heart Rate/Weight -> Line
+    final scheme = Theme.of(context).colorScheme;
+    final testoAsse = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    final lingua = loc.locale.languageCode;
+
+    // Steps/Calories/Water/Distance/Sleep sono conteggi del giorno: una
+    // barra. Battito/peso sono un valore che varia con continuita: una linea.
     bool useBar =
         widget.dataType == HealthDataType.STEPS ||
         widget.dataType == HealthDataType.ACTIVE_ENERGY_BURNED ||
         widget.dataType == HealthDataType.WATER ||
         widget.dataType == HealthDataType.DISTANCE_DELTA ||
         widget.dataType == HealthDataType.SLEEP_SESSION;
+
+    Widget etichettaAsse(DateTime date) {
+      if (_isWeekly) {
+        return Padding(
+          padding: EdgeInsets.only(top: context.expressive.spacing.sm),
+          child: Text(
+            DateFormat('EEE', lingua).format(date).substring(0, 1),
+            style: testoAsse,
+          ),
+        );
+      }
+      if (date.day % 5 == 0 || date.day == 1) {
+        return Padding(
+          padding: EdgeInsets.only(top: context.expressive.spacing.sm),
+          child: Text('${date.day}', style: testoAsse),
+        );
+      }
+      return const SizedBox.shrink();
+    }
 
     if (useBar) {
       return BarChart(
@@ -350,27 +331,31 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
               1.2,
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) => Colors.blueGrey,
+              getTooltipColor: (_) => scheme.inverseSurface,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 String date = DateFormat(
                   'EEE',
+                  lingua,
                 ).format(_data.keys.elementAt(group.x.toInt()));
                 if (!_isWeekly) {
                   date = DateFormat(
                     'd',
+                    lingua,
                   ).format(_data.keys.elementAt(group.x.toInt()));
                 }
                 return BarTooltipItem(
                   '$date\n',
-                  const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onInverseSurface,
+                        fontWeight: FontWeight.bold,
+                      ) ??
+                      TextStyle(color: scheme.onInverseSurface),
                   children: [
                     TextSpan(
                       text: rod.toY.toInt().toString(),
-                      style: TextStyle(color: widget.baseColor, fontSize: 12),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: widget.baseColor,
+                      ),
                     ),
                   ],
                 );
@@ -387,29 +372,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                   if (index < 0 || index >= _data.length) {
                     return const SizedBox.shrink();
                   }
-                  final date = _data.keys.elementAt(index);
-
-                  if (_isWeekly) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        DateFormat('EEE').format(date).substring(0, 1),
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    );
-                  } else {
-                    // Show every 5th day
-                    if (date.day % 5 == 0 || date.day == 1) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          '${date.day}',
-                          style: TextStyle(color: Colors.grey, fontSize: 10),
-                        ),
-                      );
-                    }
-                    return SizedBox.shrink();
-                  }
+                  return etichettaAsse(_data.keys.elementAt(index));
                 },
               ),
             ),
@@ -426,8 +389,10 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                 BarChartRodData(
                   toY: entry.value,
                   color: widget.baseColor,
-                  width: _isWeekly ? 16 : 6,
-                  borderRadius: BorderRadius.circular(4),
+                  width: _isWeekly
+                      ? context.expressive.sizing.iconLg
+                      : context.expressive.spacing.sm,
+                  borderRadius: context.expressive.shape.cornerXs,
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY:
@@ -435,7 +400,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                           (curr, next) => curr > next ? curr : next,
                         ) *
                         1.2,
-                    color: Colors.grey[100],
+                    color: scheme.onSurface.withValues(alpha: 0.06),
                   ),
                 ),
               ],
@@ -444,7 +409,6 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         ),
       );
     } else {
-      // Line Chart for Heart Rate / Weight
       return LineChart(
         LineChartData(
           gridData: FlGridData(show: false),
@@ -458,28 +422,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                   if (index < 0 || index >= _data.length) {
                     return const SizedBox.shrink();
                   }
-                  final date = _data.keys.elementAt(index);
-
-                  if (_isWeekly) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        DateFormat('EEE').format(date).substring(0, 1),
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    );
-                  } else {
-                    if (date.day % 5 == 0 || date.day == 1) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          '${date.day}',
-                          style: TextStyle(color: Colors.grey, fontSize: 10),
-                        ),
-                      );
-                    }
-                    return SizedBox.shrink();
-                  }
+                  return etichettaAsse(_data.keys.elementAt(index));
                 },
               ),
             ),
@@ -492,7 +435,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
           maxX: (_data.length - 1).toDouble(),
           minY:
               _data.values.reduce((curr, next) => curr < next ? curr : next) *
-              0.9, // Start y-axis near min value
+              0.9,
           lineBarsData: [
             LineChartBarData(
               spots: _data.entries.mapIndexed((index, entry) {
@@ -507,7 +450,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 4,
-                    color: Colors.white,
+                    color: scheme.surface,
                     strokeWidth: 2,
                     strokeColor: widget.baseColor,
                   );
@@ -521,16 +464,17 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
           ],
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (_) => Colors.blueGrey,
+              getTooltipColor: (_) => scheme.inverseSurface,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final date = _data.keys.elementAt(spot.x.toInt());
                   return LineTooltipItem(
-                    '${DateFormat('MM/dd').format(date)}\n${spot.y.toInt()}',
-                    const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    '${DateFormat('MM/dd', lingua).format(date)}\n${spot.y.toInt()}',
+                    Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onInverseSurface,
+                          fontWeight: FontWeight.bold,
+                        ) ??
+                        TextStyle(color: scheme.onInverseSurface),
                   );
                 }).toList();
               },
