@@ -328,12 +328,20 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     }
 
     if (useBar) {
+      // Se il permesso di Health Connect manca (US-100), `_data` arriva tutta
+      // a zero: `maxY: 0` e un grafico degenere, non un grafico vuoto — fl_chart
+      // non ha una scala su cui disegnare le barre e il riquadro si rompe
+      // visivamente invece di restare semplicemente piatto. Un minimo di 1
+      // mantiene una scala valida anche quando non c'e niente da mostrare.
+      final picchettoMassimo = _data.values.reduce(
+        (curr, next) => curr > next ? curr : next,
+      );
+      final maxY = picchettoMassimo > 0 ? picchettoMassimo * 1.2 : 1.0;
+
       return BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
-          maxY:
-              _data.values.reduce((curr, next) => curr > next ? curr : next) *
-              1.2,
+          maxY: maxY,
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
               getTooltipColor: (_) => scheme.inverseSurface,
@@ -400,11 +408,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                   borderRadius: context.expressive.shape.cornerXs,
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
-                    toY:
-                        _data.values.reduce(
-                          (curr, next) => curr > next ? curr : next,
-                        ) *
-                        1.2,
+                    toY: maxY,
                     color: scheme.onSurface.withValues(alpha: 0.06),
                   ),
                 ),

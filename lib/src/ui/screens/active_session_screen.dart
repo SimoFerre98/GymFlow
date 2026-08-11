@@ -9,6 +9,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:gymflow/src/core/providers/personal_best_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 import 'package:gymflow/src/ui/widgets/live_metrics_panel.dart';
@@ -325,6 +326,8 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           style: expressive.typography.titleEmphasized,
         ),
         centerTitle: true,
+        leading: BackPill(label: loc.t('cancel')),
+        leadingWidth: BackPill.leadingWidth,
         actions: [
           _isSaving
               ? Padding(
