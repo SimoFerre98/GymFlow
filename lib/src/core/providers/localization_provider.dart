@@ -225,6 +225,14 @@ class Localization {
     'live_metrics_permission_prompt':
         'Enable Health to see live calories and heart rate.',
     'live_metrics_grant_permission': 'Enable Health',
+
+    // US-100: la sintesi salute delle statistiche. Non riusa le chiavi del
+    // pannello dal vivo: quelle parlano di calorie e battito, qui si tratta di
+    // passi e calorie, e un messaggio che nomina la cosa sbagliata e peggio di
+    // un messaggio generico.
+    'health_permission_needed': 'GymFlow cannot read your health data.',
+    'health_permission_missing_prefix': 'Missing permission for:',
+    'health_permission_grant': 'Allow reading',
     'live_metrics_in_progress': 'In progress',
     'live_metrics_kcal': 'kcal',
     'live_metrics_bpm': 'bpm',
@@ -614,6 +622,14 @@ class Localization {
     'live_metrics_permission_prompt':
         'Attiva Salute per vedere calorie e battito dal vivo.',
     'live_metrics_grant_permission': 'Attiva Salute',
+
+    // US-100: la sintesi salute delle statistiche. Non riusa le chiavi del
+    // pannello dal vivo: quelle parlano di calorie e battito, qui si tratta di
+    // passi e calorie, e un messaggio che nomina la cosa sbagliata e peggio di
+    // un messaggio generico.
+    'health_permission_needed': 'GymFlow non riesce a leggere i tuoi dati di salute.',
+    'health_permission_missing_prefix': 'Manca il permesso per:',
+    'health_permission_grant': 'Consenti la lettura',
     'live_metrics_in_progress': 'In corso',
     'live_metrics_kcal': 'kcal',
     'live_metrics_bpm': 'bpm',

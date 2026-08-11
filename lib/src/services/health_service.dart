@@ -1,7 +1,26 @@
 import 'package:health/health.dart';
 
+/// Il permesso per leggere i dati di salute manca, e si sa **quali** tipi.
+///
+/// Un'eccezione con dentro l'elenco, invece di una stringa: chi la riceve puo
+/// dire all'utente che cosa non e leggibile, che e il punto di US-100.
+class PermessiSaluteMancanti implements Exception {
+  const PermessiSaluteMancanti(this.tipi);
+
+  final List<HealthDataType> tipi;
+
+  @override
+  String toString() => 'PermessiSaluteMancanti($tipi)';
+}
+
 class HealthService {
-  final Health _health = Health();
+  /// Il plugin si passa da fuori **solo nei test**: in produzione resta quello
+  /// vero. Senza questo aggancio la logica dei permessi non e provabile, perche
+  /// `Health` parla con un method channel che in un test non esiste — ed e il
+  /// motivo per cui il test consegnato con US-100 era un `expect(true, isTrue)`.
+  HealthService({Health? health}) : _health = health ?? Health();
+
+  final Health _health;
 
   // Define data types to access
   static final List<HealthDataType> _dataTypes = [
@@ -25,6 +44,38 @@ class HealthService {
     // Request permissions
     bool requested = await _health.requestAuthorization(_dataTypes);
     return requested;
+  }
+
+  /// I tipi della sintesi giornaliera che oggi **non** sono leggibili.
+  ///
+  /// Lista vuota: si legge tutto. `null`: lo stato **non e determinabile**, e
+  /// non e la stessa cosa di «negato» — `hasPermissions` restituisce `null`
+  /// quando non sa rispondere, e trattarlo come un rifiuto farebbe comparire
+  /// l'avviso a chi ha concesso tutto.
+  ///
+  /// Anche un'eccezione del plugin vale `null`, per la stessa ragione: se la
+  /// chiamata non e riuscita non sappiamo cosa manchi, e dirlo lo stesso
+  /// sarebbe inventare. Chi legge i dati fallira per conto suo, e quello e un
+  /// errore vero da mostrare.
+  Future<List<HealthDataType>?> getMissingSummaryPermissions() async {
+    const tipi = [HealthDataType.STEPS, HealthDataType.ACTIVE_ENERGY_BURNED];
+    try {
+      final tutti = await _health.hasPermissions(tipi);
+      if (tutti == null) return null;
+      if (tutti) return const [];
+
+      final mancanti = <HealthDataType>[];
+      for (final tipo in tipi) {
+        // Uno per uno solo ora che si sa che qualcosa manca: serve a dire
+        // **cosa**, non a decidere **se**.
+        if (await _health.hasPermissions([tipo]) == false) {
+          mancanti.add(tipo);
+        }
+      }
+      return mancanti;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// I tipi che servono al pannello della sessione, calorie a parte il battito.

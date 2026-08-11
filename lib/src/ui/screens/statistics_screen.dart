@@ -7,6 +7,7 @@ import '../../core/providers/localization_provider.dart';
 import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/live_metrics_provider.dart'; // per healthServiceProvider
+import '../../services/health_service.dart'; // per PermessiSaluteMancanti
 import '../../models/session.dart';
 import '../../core/utils/statistics_helper.dart';
 import '../widgets/charts/activity_chart.dart';
@@ -40,11 +41,27 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
     try {
       final health = ref.read(healthServiceProvider);
       await health.configure();
+      final mancanti = await health.getMissingSummaryPermissions();
+      if (mancanti != null && mancanti.isNotEmpty) {
+        // Con dentro l'elenco: la schermata deve poter dire **cosa** manca, non
+        // solo che qualcosa e andato storto.
+        throw PermessiSaluteMancanti(mancanti);
+      }
       return await health.fetchDailySummary();
     } catch (e) {
       debugPrint('Health Load Error: $e');
       rethrow;
     }
+  }
+
+  /// Chiede i permessi e ricarica, se sono stati concessi.
+  ///
+  /// `mounted` dopo l'attesa: la richiesta apre una schermata di sistema, e
+  /// l'utente puo tornare indietro chiudendo questa.
+  Future<void> _chiediPermessiSalute() async {
+    final concessi = await ref.read(healthServiceProvider).requestPermissions();
+    if (!mounted) return;
+    if (concessi) await _refreshHealthData();
   }
 
   Future<void> _refreshHealthData() async {
@@ -240,7 +257,11 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
                           ),
                           SizedBox(height: t.spacing.md),
 
-                          _buildHealthSection(loc),
+                          HealthSummarySection(
+                            future: _healthDataFuture,
+                            loc: loc,
+                            onConsenti: _chiediPermessiSalute,
+                          ),
                           SizedBox(height: t.spacing.md),
                           RepaintBoundary(
                             child: ExpressiveCard(
@@ -512,12 +533,53 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
     );
   }
 
-  Widget _buildHealthSection(Localization loc) {
+}
+
+/// La sintesi salute delle statistiche: passi e calorie di oggi.
+///
+/// È un widget suo e non un metodo della schermata perche `StatisticsScreen`
+/// intera non si monta in un test — legge Firestore e i provider della
+/// dashboard — e senza montarla non c'e modo di dimostrare la cosa che questa
+/// storia promette: che quando il permesso manca **non compare uno zero**.
+class HealthSummarySection extends StatelessWidget {
+  const HealthSummarySection({
+    super.key,
+    required this.future,
+    required this.loc,
+    required this.onConsenti,
+  });
+
+  /// La sintesi giornaliera, o l'errore che ne ha impedito la lettura.
+  final Future<Map<String, dynamic>>? future;
+  final Localization loc;
+
+  /// Chiede i permessi. Vive nella schermata, che ha `ref`.
+  final VoidCallback onConsenti;
+
+  /// Il nome leggibile di un tipo di dato, per dire cosa manca.
+  String _nome(HealthDataType tipo, Localization loc) => switch (tipo) {
+    HealthDataType.STEPS => loc.t('steps_label'),
+    HealthDataType.ACTIVE_ENERGY_BURNED => loc.t('active_cal_label'),
+    _ => tipo.name,
+  };
+
+  @override
+  Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _healthDataFuture,
+      future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const LinearProgressIndicator();
+        }
+        if (snapshot.hasError) {
+          // Prima di questa storia l'errore finiva in `snapshot.data ?? {}` e
+          // diventava «0 passi, 0 calorie». Uno zero inventato e peggio di un
+          // dato assente: il secondo si nota e si chiede, il primo si crede.
+          final errore = snapshot.error;
+          return _avviso(
+            context,
+            errore is PermessiSaluteMancanti ? errore.tipi : null,
+          );
         }
         final data = snapshot.data ?? {};
         final steps = data['steps'] ?? 0;
@@ -615,6 +677,59 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _avviso(BuildContext context, List<HealthDataType>? mancanti) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+    
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: t.spacing.lg),
+      child: ExpressiveCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: scheme.error),
+                SizedBox(width: t.spacing.sm),
+                Expanded(
+                  child: Text(
+                    loc.t('health_permission_needed'),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Quali dati mancano, quando si sa: e la differenza fra «qualcosa
+            // non va» e un'informazione su cui si puo agire. Se non si sa —
+            // `hasPermissions` non sempre risponde — non si inventa un elenco.
+            if (mancanti != null && mancanti.isNotEmpty) ...[
+              SizedBox(height: t.spacing.sm),
+              Text(
+                '${loc.t('health_permission_missing_prefix')} '
+                '${mancanti.map((tipo) => _nome(tipo, loc)).join(', ')}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            SizedBox(height: t.spacing.md),
+            FilledButton.icon(
+              onPressed: onConsenti,
+              icon: const Icon(Icons.health_and_safety_outlined),
+              label: Text(loc.t('health_permission_grant')),
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

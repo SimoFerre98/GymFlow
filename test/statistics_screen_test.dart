@@ -23,7 +23,12 @@ void main() {
       'ActivityChart',
       'BodyMeasurementsChart',
       '_buildStatCard',
-      '_buildHealthSection',
+      // Era `_buildHealthSection`, un metodo privato della schermata. US-100 lo
+      // ha estratto in un widget suo per poter dimostrare che col permesso
+      // mancante non compare uno zero: la schermata intera non si monta in un
+      // test. Il nome cambia, cio che questo test sorveglia no — la sezione
+      // salute sta nelle statistiche e non piu nella home.
+      'HealthSummarySection',
       '_buildHistoryItem'
     ];
 
