@@ -2999,7 +2999,7 @@ così da non dover leggere sette righe colorate per trovarne una.
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 2
 **Depends on:** US-100 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — tre cause sovrapposte, e la vera era `MainActivity` che estendeva `FlutterActivity`: senza `ComponentActivity` il plugin non registra il launcher dei permessi. Verificato sul telefono, la schermata di sistema ora si apre
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11 e diagnosticato con certezza.** Sia la voce «Google Fit / Health Connect» nelle impostazioni sia il pulsante «Consenti la lettura» aggiunto da US-100 **non fanno niente**: si tocca e non succede nulla.
 >
@@ -3028,7 +3028,7 @@ così da poter dire di sì invece di guardare un pulsante che non reagisce.
 
 **Epic:** EP-006 | **Priority:** HIGH | **Story Points:** 2
 **Depends on:** US-028 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — uno `style` col colore dentro vinceva sul `foregroundColor`: il test del riepilogo ora misura il contrasto
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11**: «non si capisce cosa c'è scritto all'interno del tasto centrale» dello scontrino di fine allenamento.
 >
@@ -3117,7 +3117,7 @@ così da avere qualcosa da guardare invece di quattro numeri.
 
 **Epic:** EP-006 | **Priority:** MEDIUM | **Story Points:** 1
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — quattro punti risalvati in UTF-8, e `encoding_test.dart` fallisce se rientrano
 
 > ⚠️ **Trovato il 2026-08-11 guardando uno screenshot del dispositivo**, non segnalato da nessuno. Nelle impostazioni la lingua mostra una sequenza di caratteri illeggibili al posto della bandiera italiana.
 >
@@ -3392,4 +3392,4 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 ---
 
 _Backlog generated via Archetipo — 2026-08-06_
-_[109 storie in 17 epiche — 341 story points totali · 3 storie accantonate in EP-008 · 53 completate]_
+_[109 storie in 17 epiche — 341 story points totali · 3 storie accantonate in EP-008 · 56 completate]_
