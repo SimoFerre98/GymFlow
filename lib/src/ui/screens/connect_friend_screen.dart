@@ -7,6 +7,11 @@ import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+
+/// Altezza del contenuto del dialogo mentre carica le impostazioni di
+/// condivisione: geometria di questo dialogo.
+const double _kAltezzaCaricamentoDialogo = 100;
 
 class ConnectFriendScreen extends ConsumerStatefulWidget {
   const ConnectFriendScreen({super.key});
@@ -84,6 +89,8 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -97,60 +104,56 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
       ),
       drawer: const AppDrawer(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(t.spacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // My Friend Code Section
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(t.spacing.xl),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                ),
+                color: scheme.surfaceContainerHigh,
+                borderRadius: t.shape.cornerMd,
+                border: Border.all(color: scheme.outline),
               ),
               child: Column(
                 children: [
                   Text(
                     loc.t('your_friend_code'),
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: scheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: t.spacing.sm),
                   SelectableText(
                     _myFriendCode ?? 'loading...',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      // Ensure readable on the light red bg, or switch bg.
-                      // Theme.of(context).primaryColor is usually dark red/purple, which works on light opacity.
-                      // If in dark mode, the container might need adjustment.
-                      color: Theme.of(context).primaryColor,
+                    style: t.typography.metricLarge?.copyWith(
+                      color: scheme.onSurface,
                       letterSpacing: 4,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: t.spacing.sm),
                   Text(
                     loc.t('share_code_msg'),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: scheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 48),
+            SizedBox(height: t.spacing.xxl),
 
             // Enter Code Section
             Text(
               loc.t('enter_friend_code'),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: scheme.onSurface,
+              ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: t.spacing.md),
             TextField(
               controller: _codeController,
               textCapitalization: TextCapitalization.characters,
@@ -160,35 +163,37 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                 prefixIcon: const Icon(Icons.person_add_alt_1),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: t.spacing.xl),
             ElevatedButton(
               onPressed: _isLoading ? null : _connectWithFriend,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: t.spacing.md),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: t.shape.cornerSm,
                 ),
               ),
               child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? SizedBox(
+                      width: t.sizing.iconMd,
+                      height: t.sizing.iconMd,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(
                       loc.t('connect_btn'),
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
             ),
-            const SizedBox(height: 48),
+            SizedBox(height: t.spacing.xxl),
             Text(
               loc.t('your_friends_list'),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: scheme.onSurface,
+              ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: t.spacing.md),
             StreamBuilder<UserProfile?>(
               stream: _auth.getUserProfileStream(),
               builder: (context, snapshot) {
@@ -202,7 +207,7 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                   return Center(
                     child: Text(
                       loc.t('no_friends_msg'),
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: scheme.onSurfaceVariant),
                     ),
                   );
                 }
@@ -219,7 +224,7 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: friends.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
+                      separatorBuilder: (_, _) => SizedBox(height: t.spacing.sm),
                       itemBuilder: (context, index) {
                         final friend = friends[index];
                         return ListTile(
@@ -330,7 +335,7 @@ class _AccessControlDialogState extends ConsumerState<_AccessControlDialog> {
       title: Text('${loc.t('privacy_settings')} ${widget.friend.displayName}'),
       content: _isLoading
           ? const SizedBox(
-              height: 100,
+              height: _kAltezzaCaricamentoDialogo,
               child: Center(child: CircularProgressIndicator()),
             )
           : Column(
