@@ -5,6 +5,8 @@ import 'package:gymflow/src/ui/auth_wrapper.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/ui/widgets/timer_overlay.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
+
 class GymFlowApp extends ConsumerWidget {
   const GymFlowApp({super.key});
 
@@ -13,6 +15,7 @@ class GymFlowApp extends ConsumerWidget {
     final theme = ref.watch(themeSettingsNotifierProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'GymFlow',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(theme.primaryColor),
@@ -20,8 +23,11 @@ class GymFlowApp extends ConsumerWidget {
       themeMode: theme.themeMode,
       home: const AuthWrapper(),
       builder: (context, child) {
-        return Stack(
-          children: [if (child != null) child, const TimerOverlay()],
+        return Column(
+          children: [
+            const TimerOverlay(),
+            if (child != null) Expanded(child: child),
+          ],
         );
       },
     );

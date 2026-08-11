@@ -31,6 +31,7 @@ void main() {
   const widgetDeiMockup = <String>[
     'lib/src/ui/widgets/home_hero_card.dart',
     'lib/src/ui/widgets/progress_ring.dart',
+    'lib/src/ui/widgets/timer_overlay.dart',
   ];
 
   const sorvegliati = <String>[...schermate, ...widgetDeiMockup];
