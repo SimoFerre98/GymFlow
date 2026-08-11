@@ -63,6 +63,12 @@
     <uses-permission android:name="android.permission.health.READ_SLEEP"/>
     <uses-permission android:name="android.permission.health.READ_WEIGHT"/>
     <uses-permission android:name="android.permission.health.READ_NUTRITION"/>
+    <!-- I due che mancavano, e per cui Health Connect rifiutava in blocco la
+         richiesta senza mostrare niente: il servizio chiede otto tipi, e
+         BASAL_ENERGY_BURNED e WATER si traducono in questi due record.
+         Verificato nel plugin: BasalMetabolicRateRecord e HydrationRecord. -->
+    <uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE"/>
+    <uses-permission android:name="android.permission.health.READ_HYDRATION"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
 
 

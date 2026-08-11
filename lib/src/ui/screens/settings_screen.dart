@@ -314,11 +314,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       items: const [
                         DropdownMenuItem(
                           value: 'it',
-                          child: Text('ðŸ‡®ðŸ‡¹ Italiano'),
+                          child: Text('🇮🇹 Italiano'),
                         ),
                         DropdownMenuItem(
                           value: 'en',
-                          child: Text('ðŸ‡¬ðŸ‡§ English'),
+                          child: Text('🇬🇧 English'),
                         ),
                       ],
                       onChanged: (val) {

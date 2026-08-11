@@ -179,6 +179,12 @@ class WorkoutSummaryScreen extends ConsumerWidget {
                     loc.t('workout_summary_close_cta'),
                     style: (theme.textTheme.titleMedium ?? const TextStyle())
                         .copyWith(
+                          // Esplicito, e non e ridondante: il tema dipinge tutti
+                          // i testi di `onSurface`, e uno stile che porta il
+                          // colore dentro vince sul `foregroundColor` del
+                          // pulsante. Senza questa riga l'etichetta era carta
+                          // chiara su ambra chiara, circa 1,3:1: illeggibile.
+                          color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.2,
                         ),

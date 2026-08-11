@@ -465,7 +465,7 @@ class Localization {
     'schedule_workout': 'Programma Allenamento',
     'schedule_workout_btn': 'Programma Allenamento',
     'delete_event_title': 'Elimina Evento?',
-    'delete_event_body': 'Questa azione non puÃ² essere annullata.',
+    'delete_event_body': 'Questa azione non può essere annullata.',
     'sync_calendar': 'Sincronizza con Calendario',
     'workout_label': 'Allenamento:',
     'scheduled_using': 'Programmato con GymFlow',

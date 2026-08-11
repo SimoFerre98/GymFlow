@@ -418,7 +418,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
       ),
     );
 
-    // Il bottom sheet Ã¨ chiuso: nessun widget usa piÃ¹ questi controller.
+    // Il bottom sheet è chiuso: nessun widget usa più questi controller.
     setsController.dispose();
     repsController.dispose();
     weightController.dispose();

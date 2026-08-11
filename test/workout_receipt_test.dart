@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/providers/dashboard_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
+import 'package:gymflow/src/core/theme/contrast.dart';
 import 'package:gymflow/src/core/utils/personal_record.dart';
 import 'package:gymflow/src/core/utils/workout_summary.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -157,6 +158,27 @@ void main() {
       // storico non c'e niente da salvare.
       expect(find.text('Chiudi'), findsOneWidget);
       expect(find.byType(WorkoutReceipt), findsOneWidget);
+
+      // L'etichetta si legge sul fondo del pulsante.
+      //
+      // Non e un dettaglio: il tema dipinge tutti i testi di `onSurface`, e uno
+      // `style` che porta il colore dentro vince sul `foregroundColor` del
+      // pulsante. Cosi l'etichetta era carta chiara su ambra chiara, circa
+      // 1,3:1, e sul telefono non si leggeva. I test dei contrasti non potevano
+      // vederlo: misurano le coppie dei ruoli del tema, non quelle che una
+      // schermata si costruisce sovrascrivendo un colore.
+      final etichetta = tester.widget<Text>(find.text('Chiudi'));
+      final fondo = AppTheme.darkTheme(const Color(0xFFF0C38E)).colorScheme;
+      expect(
+        etichetta.style?.color,
+        isNotNull,
+        reason: 'senza colore esplicito vince quello del tema, non del pulsante',
+      );
+      expect(
+        Contrast.ratio(etichetta.style!.color!, fondo.primary),
+        greaterThanOrEqualTo(Contrast.aa),
+        reason: 'l etichetta del pulsante non si legge sul suo fondo',
+      );
 
       // Toccare Chiudi
       await tester.tap(find.text('Chiudi'));

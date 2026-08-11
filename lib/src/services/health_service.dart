@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
 
 /// Il permesso per leggere i dati di salute manca, e si sa **quali** tipi.
@@ -35,15 +36,41 @@ class HealthService {
     HealthDataType.WATER,
   ];
 
-  // Configure Health (Android specific mostly)
+  /// `configure()` e stata chiamata almeno una volta.
+  ///
+  /// Il plugin va inizializzato prima di qualunque altra chiamata, e senza
+  /// inizializzazione `requestAuthorization` restituisce `false` **in silenzio**:
+  /// nessuna schermata, nessun errore, nessuna traccia nel log. Provato sul
+  /// telefono l'11 agosto, ed e meta della ragione per cui «Attiva Salute» non
+  /// faceva niente — l'altra meta erano due permessi non dichiarati nel manifest.
+  ///
+  /// Finora `configure()` veniva chiamata in **un solo punto** dell'app, la
+  /// schermata delle statistiche. Il pannello della sessione e la voce nelle
+  /// impostazioni chiedevano i permessi senza averla mai chiamata. Con la
+  /// garanzia qui dentro, un chiamante non puo piu dimenticarsene.
+  bool _configurato = false;
+
   Future<void> configure() async {
+    if (_configurato) return;
     await _health.configure();
+    _configurato = true;
   }
 
   Future<bool> requestPermissions() async {
-    // Request permissions
-    bool requested = await _health.requestAuthorization(_dataTypes);
-    return requested;
+    await configure();
+    final concessi = await _health.requestAuthorization(_dataTypes);
+    if (!concessi) {
+      // Il silenzio era il problema: la richiesta tornava `false` senza che
+      // l'utente vedesse niente e senza lasciare traccia. Le cause possibili
+      // sono poche e questa riga le distingue: SDK non disponibile, oppure
+      // permesso gia negato in modo permanente — che Android smette di
+      // chiedere dopo due rifiuti.
+      debugPrint(
+        'SALUTE: richiesta rifiutata. '
+        'SDK=${await _health.getHealthConnectSdkStatus()}',
+      );
+    }
+    return concessi;
   }
 
   /// I tipi della sintesi giornaliera che oggi **non** sono leggibili.
