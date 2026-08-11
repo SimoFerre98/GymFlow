@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -94,16 +96,19 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
 
   // Custom Filter Chip Widget for Category Selection
   Widget _buildCategorySelector() {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           ref.watch(localizationNotifierProvider).t('focus_category'),
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: t.spacing.sm),
         Wrap(
-          spacing: 8,
+          spacing: t.spacing.sm,
           children: ExerciseType.values.map((type) {
             final isSelected = _selectedType == type;
             return FilterChip(
@@ -114,23 +119,17 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                   _selectedType = type;
                 });
               },
-              backgroundColor: Theme.of(context).cardColor,
-              selectedColor: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.3),
-              checkmarkColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: scheme.surfaceContainerHigh,
+              selectedColor: scheme.primary.withValues(alpha: 0.3),
+              checkmarkColor: scheme.primary,
               labelStyle: TextStyle(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).textTheme.bodyMedium?.color,
+                color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: t.shape.cornerFull,
                 side: BorderSide(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.transparent,
+                  color: isSelected ? scheme.primary : Colors.transparent,
                 ),
               ),
             );
@@ -150,6 +149,8 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
     // `read` e non `watch`: questo non e un `build`, e il foglio vive il tempo
     // di una configurazione.
     final loc = ref.read(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
 
     final type = existing?.type ?? ExerciseType.strength;
     final isCardio = type == ExerciseType.cardio;
@@ -182,16 +183,16 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      backgroundColor: scheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(t.shape.radiusLg)),
       ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          left: 20,
-          right: 20,
-          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + t.spacing.lg,
+          left: t.spacing.lg,
+          right: t.spacing.lg,
+          top: t.spacing.lg,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -202,19 +203,17 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: EdgeInsets.all(t.spacing.sm),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.1),
+                      color: scheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       isCardio ? Icons.directions_run : Icons.fitness_center,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: scheme.primary,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: t.spacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,9 +227,8 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         ),
                         Text(
                           existing?.exerciseName ?? loc.t('new_exercise'),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -241,7 +239,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: t.spacing.xl),
 
               // Dynamic Fields
               if (isCardio) ...[
@@ -254,7 +252,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         icon: Icons.map_outlined,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: t.spacing.md),
                     Expanded(
                       child: _buildSheetInput(
                         controller: durationController,
@@ -276,7 +274,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         icon: Icons.repeat,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: t.spacing.md),
                     Expanded(
                       child: _buildSheetInput(
                         controller: durationController,
@@ -299,7 +297,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         icon: Icons.repeat,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: t.spacing.md),
                     Expanded(
                       child: _buildSheetInput(
                         controller: repsController,
@@ -307,7 +305,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         icon: Icons.numbers,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: t.spacing.md),
                     Expanded(
                       child: _buildSheetInput(
                         controller: weightController,
@@ -319,7 +317,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                 ),
               ],
 
-              const SizedBox(height: 16),
+              SizedBox(height: t.spacing.md),
 
               // Common Fields
               Row(
@@ -333,21 +331,21 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: t.spacing.md),
               TextField(
                 controller: notesController,
                 decoration: InputDecoration(
                   labelText: loc.t('notes_optional'),
                   filled: true,
-                  fillColor: Theme.of(context).cardColor,
+                  fillColor: scheme.surfaceContainerHigh,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: t.shape.cornerSm,
                     borderSide: BorderSide.none,
                   ),
                 ),
                 maxLines: 2,
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: t.spacing.xl),
 
               ElevatedButton(
                 onPressed: () {
@@ -400,16 +398,19 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                   Navigator.pop(ctx);
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: t.spacing.md),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: t.shape.cornerSm,
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: scheme.primary,
+                  foregroundColor: scheme.onPrimary,
                 ),
                 child: Text(
                   loc.t('save_exercise'),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: scheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -433,17 +434,20 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
     required String label,
     required IconData icon,
   }) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return TextField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 18),
+        prefixIcon: Icon(icon, size: t.sizing.iconSm),
         filled: true,
-        fillColor: Theme.of(context).cardColor,
+        fillColor: scheme.surfaceContainerHigh,
         isDense: true,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: t.shape.cornerSm,
           borderSide: BorderSide.none,
         ),
       ),
@@ -486,6 +490,8 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -503,19 +509,13 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(t.spacing.md),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(24),
+                color: scheme.surface,
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(t.shape.radiusLg),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+                boxShadow: t.elevation.level2(scheme.shadow),
               ),
               child: Column(
                 children: [
@@ -524,22 +524,27 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                     decoration: InputDecoration(
                       labelText: loc.t('day_name_hint'),
                       filled: true,
-                      fillColor: Theme.of(context).cardColor,
+                      fillColor: scheme.surfaceContainerHigh,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: t.shape.cornerSm,
                         borderSide: BorderSide.none,
                       ),
                     ),
                     validator: (v) => v!.isEmpty ? loc.t('name_required') : null,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: t.spacing.md),
                   _buildCategorySelector(),
                 ],
               ),
             ),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+              padding: EdgeInsets.fromLTRB(
+                t.spacing.md,
+                t.spacing.xl,
+                t.spacing.md,
+                t.spacing.sm,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -555,7 +560,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                     label: Text(loc.t('add_btn')),
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: t.shape.cornerFull,
                       ),
                     ),
                   ),
@@ -571,13 +576,13 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         children: [
                           Icon(
                             Icons.fitness_center,
-                            size: 48,
-                            color: Colors.grey[400],
+                            size: t.sizing.thumbnailSm,
+                            color: scheme.onSurfaceVariant,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: t.spacing.md),
                           Text(
                             loc.t('no_exercises_added'),
-                            style: TextStyle(color: Colors.grey[500]),
+                            style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -585,7 +590,7 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                   : ReorderableListView(
                       buildDefaultDragHandles:
                           false, // Hide default handles outside card
-                      padding: const EdgeInsets.only(bottom: 80),
+                      padding: EdgeInsets.only(bottom: t.spacing.bottomInset),
                       onReorder: (oldIndex, newIndex) {
                         setState(() {
                           if (oldIndex < newIndex) newIndex -= 1;
@@ -597,19 +602,19 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                         for (int index = 0; index < _exercises.length; index++)
                           Card(
                             key: ValueKey(_exercises[index]),
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
+                            margin: EdgeInsets.symmetric(
+                              horizontal: t.spacing.md,
+                              vertical: t.spacing.sm,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: t.shape.cornerMd,
                             ),
                             child: ListTile(
-                              contentPadding: const EdgeInsets.only(
-                                left: 16,
-                                right: 8,
-                                top: 4,
-                                bottom: 4,
+                              contentPadding: EdgeInsets.only(
+                                left: t.spacing.md,
+                                right: t.spacing.sm,
+                                top: t.spacing.xs,
+                                bottom: t.spacing.xs,
                               ),
                               // Al posto del numero d'ordine: in una lista
                               // riordinabile la posizione e l'ordine, e la
@@ -622,12 +627,13 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                               ),
                               title: Text(
                                 _exercises[index].exerciseName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
+                                  color: scheme.onSurface,
                                 ),
                               ),
                               subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
+                                padding: EdgeInsets.only(top: t.spacing.xs),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -635,27 +641,31 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                                       '${_exercises[index].targetSets} x ${_exercises[index].targetReps}'
                                       '${_exercises[index].targetWeight != null && _exercises[index].targetWeight! > 0 ? " @ ${_exercises[index].targetWeight}kg" : ""}',
                                       style: TextStyle(
-                                        color: Colors.grey[800],
+                                        color: scheme.onSurface,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     if (_exercises[index].restSeconds != null)
                                       Text(
                                         '${loc.t('rest_label')}: ${_exercises[index].restSeconds}s',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: scheme.onSurfaceVariant,
+                                            ),
                                       ),
                                     if (_exercises[index].notes != null &&
                                         _exercises[index].notes!.isNotEmpty)
                                       Text(
                                         '${loc.t('note_label')}: ${_exercises[index].notes}',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
-                                          fontStyle: FontStyle.italic,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: scheme.onSurfaceVariant,
+                                              fontStyle: FontStyle.italic,
+                                            ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -666,10 +676,10 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete_outline,
-                                      color: Colors.redAccent,
-                                      size: 20,
+                                      color: AppPalette.danger,
+                                      size: t.sizing.iconMd,
                                     ),
                                     onPressed: () {
                                       setState(
@@ -679,11 +689,11 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                                   ),
                                   ReorderableDragStartListener(
                                     index: index,
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(8.0),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(t.spacing.sm),
                                       child: Icon(
                                         Icons.drag_handle,
-                                        color: Colors.grey,
+                                        color: scheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ),
