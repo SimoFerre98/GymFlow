@@ -75,23 +75,31 @@ abstract class AvvisiTempo {
 
 /// Quello vero: la vibrazione e il suono del sistema.
 ///
-/// Nessuna dipendenza nuova. `heavyImpact` e il colpo piu deciso che
-/// `HapticFeedback` offra: su Android diventa un `LONG_PRESS`, cioe un tocco
-/// breve tarato dal produttore. Se all'atto pratico risulta moscio, l'unica
-/// strada e una dipendenza che comandi il motore di vibrazione — ed e una
-/// decisione di prodotto, non un dettaglio da decidere qui.
+/// Nessuna dipendenza nuova. `HapticFeedback.vibrate()` e non `heavyImpact()`:
+/// verificato nel sorgente di Flutter (`haptic_feedback.dart`), su Android
+/// `heavyImpact` diventa `HapticFeedbackConstants.CONTEXT_CLICK` — pensato per
+/// il click destro del mouse, quasi impercettibile su un telefono — mentre
+/// `vibrate()` diventa `LONG_PRESS`, un impulso piu lungo e piu netto. Sono
+/// comunque due colpi brevi tarati dal produttore, non un'ampiezza
+/// controllabile: se anche `vibrate()` risulta moscio, l'unica strada resta una
+/// dipendenza che comandi il motore di vibrazione direttamente.
 class AvvisiTempoDiSistema implements AvvisiTempo {
   const AvvisiTempoDiSistema();
 
   @override
-  void secondoFinale() => HapticFeedback.heavyImpact();
+  void secondoFinale() => HapticFeedback.vibrate();
 
   @override
   void scaduto() {
     // Il suono e la vibrazione insieme: in palestra la cuffia puo essere
     // occupata dalla musica e il telefono in tasca.
     SystemSound.play(SystemSoundType.alert);
+    // Due colpi vicini invece di uno: `vibrate()` e gia il piu forte
+    // disponibile senza dipendenze, e un singolo LONG_PRESS resta breve. La
+    // scadenza e il momento che conta di piu — deve notarsi anche col telefono
+    // in tasca — quindi qui si raddoppia.
     HapticFeedback.vibrate();
+    Future.delayed(const Duration(milliseconds: 120), HapticFeedback.vibrate);
   }
 }
 
