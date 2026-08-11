@@ -139,27 +139,37 @@ void main() {
       );
       await tester.pump();
 
+      // I comandi sono icone da quando la schermata segue il mockup 03: si
+      // cercano per **etichetta accessibile**, che e cio che significano, e non
+      // per icona — se un giorno la freccia cambia disegno il test non deve
+      // rompersi, se cambia significato si.
+      //
       // La lingua predefinita del progetto e l'italiano.
-      expect(find.text('Avvia'), findsOneWidget);
-      expect(find.text('Azzera'), findsOneWidget);
+      expect(find.bySemanticsLabel('Avvia'), findsOneWidget);
+      expect(find.bySemanticsLabel('Pausa'), findsNothing);
 
-      await tester.tap(find.text('Avvia'));
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       await tester.pump(const Duration(milliseconds: 350));
 
       expect(
-        find.text('Pausa'),
+        find.bySemanticsLabel('Pausa'),
         findsOneWidget,
-        reason: 'partito il cronometro, il tasto destro diventa Pausa',
+        reason: 'partito il cronometro, il pulsante grande diventa Pausa',
       );
       expect(
-        find.text('Avvia'),
+        find.bySemanticsLabel('Avvia'),
         findsNothing,
         reason: 'e non resta anche quello di prima',
       );
       expect(
-        find.text('Parziale'),
-        findsOneWidget,
-        reason: 'e il tasto sinistro passa da Azzera a Parziale',
+        tester.widget<IconButton>(
+          find.ancestor(
+            of: find.byIcon(Icons.flag_outlined),
+            matching: find.byType(IconButton),
+          ),
+        ).onPressed,
+        isNotNull,
+        reason: 'e il giro si puo segnare solo mentre scorre',
       );
 
       // Si ferma il ticker, o `testWidgets` protesta per un timer pendente.

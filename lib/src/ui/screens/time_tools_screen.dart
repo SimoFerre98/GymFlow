@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/ui/widgets/time_dial.dart';
 
 class TimeToolsScreen extends ConsumerStatefulWidget {
   const TimeToolsScreen({super.key});
@@ -173,115 +175,71 @@ class StopwatchView extends ConsumerWidget {
 
     return Column(
       children: [
-        const Spacer(flex: 2),
-        Text(
-          _formatDuration(stato.stopwatchElapsed),
-          style: const TextStyle(
-            fontSize: 80,
-            fontWeight: FontWeight.bold,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-        ),
-        const Spacer(flex: 1),
-        // Laps List
+        // Il quadrante prende lo spazio che avanza: «tutta l'altezza, un solo
+        // protagonista». Prima le cifre stavano in mezzo al vuoto e l'ultima
+        // arrivava tagliata — sullo schermo si leggeva «00:00:0».
         Expanded(
-          flex: 4,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            itemCount: stato.stopwatchLaps.length,
-            itemBuilder: (context, index) {
-              final lapTime = stato.stopwatchLaps[index];
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade200),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${loc.t('lap')} ${stato.stopwatchLaps.length - index}',
-                      style: const TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                    Text(
-                      _formatDuration(lapTime),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+          child: TimeDial(
+            tempo: _formatDuration(stato.stopwatchElapsed),
+            etichetta: isRunning
+                ? loc.t('time_running')
+                : (hasTime ? loc.t('time_paused') : loc.t('time_ready')),
           ),
         ),
-        const SizedBox(height: 20),
+        // I giri, se ce ne sono.
+        if (stato.stopwatchLaps.isNotEmpty)
+          SizedBox(
+            height: context.expressive.sizing.thumbnailMd * 2,
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: context.expressive.spacing.lg,
+              ),
+              itemCount: stato.stopwatchLaps.length,
+              itemBuilder: (context, index) {
+                final lapTime = stato.stopwatchLaps[index];
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: context.expressive.spacing.xs,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${loc.t('lap')} ${stato.stopwatchLaps.length - index}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        _formatDuration(lapTime),
+                        style: context.expressive.typography.metricSmall
+                            ?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
         Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Left Button (Lap / Reset)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (isRunning) {
-                        service.lapStopwatch();
-                      } else {
-                        service.resetStopwatch();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: isRunning
-                          ? Colors.grey[300]
-                          : Colors.red, // Grey for Lap, Red for Reset
-                      foregroundColor: isRunning ? Colors.black : Colors.white,
-                    ),
-                    child: Text(
-                      isRunning ? loc.t('lap') : loc.t('reset'),
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-              ),
-              // Right Button (Avvia / Pausa)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: ElevatedButton(
-                    onPressed: service.toggleStopwatch,
-                    style: ElevatedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: isRunning
-                          ? Colors.orange
-                          : Colors.green, // Orange for Pause, Green for Start
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      isRunning ? loc.t('pause') : loc.t('start'),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          padding: EdgeInsets.all(context.expressive.spacing.lg),
+          child: TimeControls(
+            inCorsa: isRunning,
+            onPrimario: service.toggleStopwatch,
+            etichettaPrimario: isRunning ? loc.t('pause') : loc.t('start'),
+            iconaSinistra: Icons.refresh_rounded,
+            etichettaSinistra: loc.t('reset'),
+            // «Azzera» non compare a cronometro fermo su zero: non c'e niente
+            // da azzerare. Era una delle intenzioni non implementate dei
+            // diciassette avvisi — la variabile `hasTime` scritta e mai letta.
+            onSinistra: hasTime ? service.resetStopwatch : null,
+            iconaDestra: Icons.flag_outlined,
+            etichettaDestra: loc.t('lap'),
+            onDestra: isRunning ? service.lapStopwatch : null,
           ),
         ),
-        const SizedBox(height: 20),
       ],
     );
   }
@@ -332,185 +290,57 @@ class TimerView extends ConsumerWidget {
     final loc = ref.watch(localizationNotifierProvider);
     final isRunning = stato.isTimerRunning;
 
-    // Logic for Buttons (requested):
-    // "Quando avvio un timer, vorrei poterlo prima stoppare con lo stesso pulsante" -> Pause
-    // "e quando lo fermo il testo a sinistra diventa il tasto che fa resettare l'orologio" -> Reset
-    //
-    // So:
-    // Right Button: Start / Pause
-    // Left Button:
-    //  - If Running: Disabled or maybe "+1m"? (User didn't specify, likely nothing or Lap?)
-    //  - If Paused: Reset
+    final durata = stato.timerDuration;
+    final restante = stato.timerRemaining;
+    final haTempo = restante != durata || isRunning;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Spacer(),
-        // Display Time
-        // Circular Progress + Time
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 300,
-              height: 300,
-              child: CircularProgressIndicator(
-                value: stato.timerDuration.inMilliseconds > 0
-                    ? stato.timerRemaining.inMilliseconds /
-                          stato.timerDuration.inMilliseconds
-                    : 0.0,
-                strokeWidth: 12,
-                backgroundColor: Theme.of(
-                  context,
-                ).disabledColor.withValues(alpha: 0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isRunning ? Colors.orange : Theme.of(context).primaryColor,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: isRunning ? null : () => _showTimePicker(context, service),
-              child: Text(
-                _formatDuration(stato.timerRemaining),
-                style: TextStyle(
-                  fontSize: 56, // Smaller to fit
-                  fontWeight: FontWeight.bold,
-                  color: stato.timerRemaining == Duration.zero && !isRunning
-                      ? Colors.red
-                      : null,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (!isRunning)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Text(
-              loc.t('tap_to_edit'),
-              style: TextStyle(color: Colors.grey[500]),
+        // Il quadrante, con l'anello che dice quanto resta senza leggere le
+        // cifre: e la ragione per cui il mockup lo vuole grande.
+        Expanded(
+          child: GestureDetector(
+            onTap: isRunning ? null : () => _showTimePicker(context, service),
+            child: TimeDial(
+              tempo: _formatDuration(restante),
+              etichetta: isRunning
+                  ? loc.t('time_running')
+                  : (haTempo ? loc.t('time_paused') : loc.t('tap_to_edit')),
+              frazione: durata.inMilliseconds > 0
+                  ? restante.inMilliseconds / durata.inMilliseconds
+                  : 0,
+              // Il quadrante del recupero vira sul salmone: il tempo di
+              // recupero e un dato del corpo, non un'azione da fare.
+              coloreArco: Theme.of(context).colorScheme.tertiary,
             ),
           ),
-        const Spacer(),
-        // Presets
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildPresetButton(service, stato.timerDuration, 3, isRunning),
-            const SizedBox(width: 16),
-            _buildPresetButton(service, stato.timerDuration, 5, isRunning),
-            const SizedBox(width: 16),
-            _buildPresetButton(service, stato.timerDuration, 10, isRunning),
-          ],
         ),
-        const SizedBox(height: 48),
-
-        // Controls
+        // I tempi pronti, come le pillole del mockup.
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Logic: Show split if we are NOT in the initial state (Timer not running AND at full duration)
-              // i.e. Show split if Running OR (Paused/Finished and not at full duration)
-              final bool isInitial =
-                  !isRunning && stato.timerRemaining == stato.timerDuration;
-              final bool showSplit = !isInitial;
-
-              final double totalWidth = constraints.maxWidth;
-              // We want a gap of 16 when split
-              final double gap = 16.0;
-              // Calculate width for the left button (Reset)
-              // When split: (Total - Gap) / 2
-              // When not split: 0
-              final double resetButtonTargetWidth = showSplit
-                  ? (totalWidth - gap) / 2
-                  : 0;
-
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // LEFT BUTTON (Reset) - Animated Entry
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    width: resetButtonTargetWidth,
-                    height: 56, // Fixed height for smoother animation
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: Container(
-                        width:
-                            (totalWidth - gap) /
-                            2, // Always render full width content to avoid squishing
-                        padding: const EdgeInsets.only(
-                          right: 0,
-                        ), // No padding needed here
-                        child: ElevatedButton(
-                          onPressed: service.resetTimer,
-                          style: ElevatedButton.styleFrom(
-                            shape: const StadiumBorder(),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            fixedSize: Size.fromHeight(56),
-                          ),
-                          child: Text(
-                            loc.t('reset'),
-                            overflow: TextOverflow.visible,
-                            softWrap: false,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // GAP - Animated
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: showSplit ? gap : 0,
-                  ),
-
-                  // RIGHT BUTTON (Start / Pause)
-                  // We can't use Expanded easily with AnimatedContainer width changes causing flex issues?
-                  // Actually, if we use a fixed width for the Right button that animates from Full to Half?
-                  // Or just Expanded?
-                  // If Left is 0, Gap is 0, Expanded takes Total.
-                  // If Left is Half, Gap is 16, Expanded takes Remaining (Half).
-                  // This works perfectly without explicit width animation on this one.
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: service.toggleTimer,
-                        style: ElevatedButton.styleFrom(
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: isRunning
-                              ? Colors.orange
-                              : Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text(
-                          isRunning ? loc.t('pause') : loc.t('start'),
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+          padding: EdgeInsets.symmetric(
+            horizontal: context.expressive.spacing.lg,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildPresetButton(service, durata, 1, isRunning),
+              _buildPresetButton(service, durata, 2, isRunning),
+              _buildPresetButton(service, durata, 3, isRunning),
+              _buildPresetButton(service, durata, 5, isRunning),
+            ],
           ),
         ),
-        const Spacer(flex: 2),
+        Padding(
+          padding: EdgeInsets.all(context.expressive.spacing.lg),
+          child: TimeControls(
+            inCorsa: isRunning,
+            onPrimario: service.toggleTimer,
+            etichettaPrimario: isRunning ? loc.t('pause') : loc.t('start'),
+            iconaSinistra: Icons.refresh_rounded,
+            etichettaSinistra: loc.t('reset'),
+            onSinistra: haTempo ? service.resetTimer : null,
+          ),
+        ),
       ],
     );
   }
@@ -524,18 +354,35 @@ class TimerView extends ConsumerWidget {
     bool isRunning,
   ) {
     final isSelected = !isRunning && durataCorrente.inMinutes == minutes;
-    return ElevatedButton(
-      onPressed: isRunning
-          ? null
-          : () => service.setTimerDuration(Duration(minutes: minutes)),
-      style: ElevatedButton.styleFrom(
-        shape: const StadiumBorder(),
-        backgroundColor: isSelected ? Colors.blue : Colors.grey[200],
-        foregroundColor: isSelected ? Colors.white : Colors.black,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      ),
-      child: Text('${minutes}m'),
+    return Builder(
+      builder: (context) {
+        final t = context.expressive;
+        final scheme = Theme.of(context).colorScheme;
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
+          child: TextButton(
+            onPressed: isRunning
+                ? null
+                : () => service.setTimerDuration(Duration(minutes: minutes)),
+            style: TextButton.styleFrom(
+              shape: const StadiumBorder(),
+              // La pillola scelta e in ambra, le altre sono superficie: e la
+              // stessa grammatica del segmentato del mockup.
+              backgroundColor: isSelected
+                  ? scheme.primary
+                  : scheme.surfaceContainerHigh,
+              foregroundColor: isSelected
+                  ? scheme.onPrimary
+                  : scheme.onSurfaceVariant,
+              padding: EdgeInsets.symmetric(
+                horizontal: t.spacing.md,
+                vertical: t.spacing.sm,
+              ),
+            ),
+            child: Text('${minutes}m'),
+          ),
+        );
+      },
     );
   }
 }
