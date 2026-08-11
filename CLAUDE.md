@@ -18,7 +18,7 @@ Per avviare il ciclo su una storia: `/gymflow-story US-XXX`.
 
 **La grafica segue i mockup, non l'inventiva.** I tre mockup approvati sono in [`docs/design/`](docs/design/) e il loro estratto operativo — valori già convertiti in dp — è in [`docs/DESIGN-SPEC.md`](docs/DESIGN-SPEC.md). Prima di scrivere un widget che si vede, si guarda lì. **I pixel dei mockup non si copiano**: il telaio è largo 282 px e il telefono 384 dp, quindi `dp ≈ px × 1,36`.
 
-**Il baseline degli avvisi è 17.** Una storia che lo alza ha introdotto qualcosa: va sistemato prima del merge, non spiegato dopo. (Era 66 fino a US-071, 63 fino a US-066 — che ne ha tolti sette riscrivendo la schermata delle misure — e 56 fino a US-008, che ha reso usato un import che non lo era.)
+**Il baseline degli avvisi è 14.** Una storia che lo alza ha introdotto qualcosa: va sistemato prima del merge, non spiegato dopo. (Era 17 fino alla riscrittura della chiusura dell allenamento, che ne ha tolti tre — l ora buttata e due BuildContext dopo await; 66 fino a US-071, 63 fino a US-066 — che ne ha tolti sette riscrivendo la schermata delle misure — e 56 fino a US-008, che ha reso usato un import che non lo era.)
 
 **Un calo va spiegato quanto un aumento.** In US-047 il calo veniva da un rifacimento fuori mandato, in US-066 dal codice che la storia riscriveva davvero: la differenza si vede solo confrontando l'**elenco** degli avvisi con quello di `main`, non il totale.
 
@@ -130,7 +130,7 @@ Debito noto e già tracciato — non aprire storie nuove per queste, esistono gi
 | Stream ricreati dentro `build` in undici punti | US-010, US-011, US-012 |
 | Istanziazioni dirette dei servizi nelle schermate — le tre principali sono a posto da US-008 | ~~US-008~~ ✅, US-009 |
 | ~~Regole Firestore non versionate~~ | US-018 ✅ |
-| 17 avvisi dell'analyzer, e nessuno e rumore | ~~US-030~~ ✅, US-102 |
+| 14 avvisi dell'analyzer, e nessuno e rumore | ~~US-030~~ ✅, US-102 |
 | Ticker del timer sempre attivo a 30 ms | US-013 |
 | Limite `whereIn` a 10 non gestito | US-019, US-020 |
 

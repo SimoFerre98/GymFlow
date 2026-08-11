@@ -49,6 +49,23 @@ bool startSetTimer(TimerNotifier notifier, int? seconds) {
   return true;
 }
 
+/// Come si chiude un allenamento: adesso, in un altro momento, o non si chiude.
+enum _FineAllenamento { adesso, altraData, annulla }
+
+/// Un esercizio e finito quando **tutte** le sue serie sono spuntate.
+///
+/// Un esercizio senza serie non e finito: non e stato fatto niente, e mostrarlo
+/// come concluso sarebbe una bugia comoda.
+///
+/// Sta fuori dalla schermata perche `ActiveSessionScreen` non si monta in un
+/// test — istanzia `FirestoreService` nel proprio `State`, che e il debito di
+/// US-008 — e una regola che decide cosa l'utente vede segnato come fatto merita
+/// di essere provata davvero.
+bool esercizioFinito(WorkoutExercise esercizio) {
+  if (esercizio.sets.isEmpty) return false;
+  return esercizio.sets.every((serie) => serie.isCompleted);
+}
+
 class ActiveSessionScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate workout;
   final String? scheduledWorkoutId;
@@ -187,90 +204,72 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     if (user == null) return;
     final loc = ref.read(localizationNotifierProvider);
 
-    // Ask user for date/time
-    DateTime? selectedDate = DateTime.now();
-    TimeOfDay? selectedTime = TimeOfDay.now();
-
-    final confirm = await showDialog<bool>(
+    // Una domanda sola, e la risposta piu probabile e gia pronta.
+    //
+    // Prima erano tre: un dialogo con un selettore di data che **non faceva
+    // niente** — il commento nel codice lo ammetteva, il valore scelto veniva
+    // scartato perche il dialogo non si ricostruiva — poi un secondo selettore
+    // di data, poi uno dell'ora. L'utente rispondeva due volte alla stessa
+    // domanda prima di vedere il riepilogo, e l'ora finiva in una variabile
+    // che nessuno leggeva (uno dei diciassette avvisi dell'analyzer).
+    //
+    // Adesso: l'allenamento finisce **adesso**, che e il caso di gran lunga
+    // piu frequente e si deduce senza chiedere. Chi sta registrando un
+    // allenamento di ieri tocca «altra data» e allora — e solo allora — gli
+    // vengono chiesti data e ora, una volta ciascuna.
+    final scelta = await showDialog<_FineAllenamento>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(loc.t('finish_workout_title')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(loc.t('finish_workout_body')),
-            SizedBox(height: context.expressive.spacing.md),
-            ListTile(
-              title: Text(loc.t('date_label')),
-              subtitle: Text(selectedDate!.toString().split(' ')[0]),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: ctx,
-                  initialDate: selectedDate!,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime.now(),
-                );
-                if (picked != null) {
-                  selectedDate = picked;
-                  // Force rebuild of dialog? No, simple way: close and reopen or use StatefulBuilder.
-                  // For simplicity in this iteration, we just use current date if not complex.
-                  // Correct approach: Use StatefulBuilder inside Dialog.
-                  // But to keep it simple, let's just use the current time logic or build a smarter dialog.
-                }
-              },
-            ),
-          ],
-        ),
+        content: Text(loc.t('finish_workout_body')),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => Navigator.pop(ctx, _FineAllenamento.annulla),
             child: Text(loc.t('cancel')),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(loc.t('save')),
+            onPressed: () => Navigator.pop(ctx, _FineAllenamento.altraData),
+            child: Text(loc.t('finish_other_date')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, _FineAllenamento.adesso),
+            child: Text(loc.t('finish_now')),
           ),
         ],
       ),
     );
 
-    if (confirm != true) return;
+    if (scelta == null || scelta == _FineAllenamento.annulla) return;
 
-    // Show date picker to confirm/change date
-    // Actually, let's just show the picker directly if they want to "Backdate" vs "Save Now"
-    // Better UX: Show ActionSheet: "Finish Now" or "Choose Date"
+    DateTime finalDateTime = DateTime.now();
 
-    // final action = await showModalBottomSheet<String>(...);
-    // This is getting complex. Let's simplify:
-    // Just show a DateTime picker if they long-press "FINISH"? No, discovery issue.
+    if (scelta == _FineAllenamento.altraData) {
+      if (!mounted) return;
+      final pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime.now(),
+        helpText: loc.t('confirm_date'),
+      );
+      if (pickedDate == null) return;
 
-    // Let's go with a simple date picker dialog step.
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      helpText: loc.t('confirm_date'),
-    );
+      if (!mounted) return;
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+        helpText: loc.t('confirm_end_time'),
+      );
+      if (pickedTime == null) return;
 
-    if (pickedDate == null) return; // User cancelled
-
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-      helpText: loc.t('confirm_end_time'),
-    );
-
-    if (pickedTime == null) return;
-
-    final finalDateTime = DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
+      finalDateTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    }
 
     // Calculate start time based on duration (duration matches expected stopwatch)
     final startTime = finalDateTime.subtract(_stopwatch.elapsed);
@@ -402,9 +401,34 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                       Expanded(
                         child: Text(
                           exercise.exerciseName,
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                // Barrato quando e finito: si legge senza
+                                // contare le spunte una per una.
+                                decoration: esercizioFinito(exercise)
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                color: esercizioFinito(exercise)
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant
+                                    : null,
+                              ),
                         ),
                       ),
+                      if (esercizioFinito(exercise)) ...[
+                        Icon(
+                          Icons.check_circle,
+                          // Ne ambra ne salmone. L'ambra significa «cosa fare
+                          // adesso», e un esercizio finito e l'opposto; il
+                          // salmone e riservato ai dati vitali, e questo non lo
+                          // e. Resta il grigio del testo secondario, che e
+                          // coerente col nome barrato accanto.
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          semanticLabel: loc.t('exercise_done'),
+                        ),
+                        SizedBox(width: context.expressive.spacing.sm),
+                      ],
                       IconButton(
                         icon: Icon(
                           Icons.delete_outline,
