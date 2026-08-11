@@ -30,6 +30,7 @@ void main() {
               locCreateAction: 'Vai',
               locMin: 'min',
               locExercises: 'esercizi',
+      locExerciseOne: 'esercizio',
             ),
           ),
         ),
@@ -38,6 +39,41 @@ void main() {
       expect(find.text('Panca piana'), findsOneWidget);
       expect(find.text('GIORNO 3 / 5'), findsOneWidget);
       expect(find.text('72%'), findsOneWidget);
+      expect(find.text('6 esercizi'), findsOneWidget);
+    });
+
+    testWidgets('con un esercizio solo scrive «1 esercizio», non «1 esercizi»', (
+      tester,
+    ) async {
+      // Sulla home si leggeva «1 esercizi», che sembra un errore di sistema.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: HomeHeroCard(
+              hasActiveProgram: true,
+              programName: 'Scheda',
+              currentDay: 1,
+              totalDays: 5,
+              durationMinutes: 48,
+              exerciseCount: 1,
+              progressFraction: 0.2,
+              onAction: () {},
+              locInProgress: 'In corso',
+              formattedDay: 'Giorno 1 / 5',
+              locResume: 'Riprendi',
+              locNoActive: 'Nessuna',
+              locCreatePrompt: 'Crea',
+              locCreateAction: 'Vai',
+              locExercises: 'esercizi',
+              locExerciseOne: 'esercizio',
+              locMin: 'min',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('1 esercizio'), findsOneWidget);
+      expect(find.text('1 esercizi'), findsNothing);
     });
 
     testWidgets('HomeHeroCard shows invite when no active program', (tester) async {
@@ -55,6 +91,7 @@ void main() {
               locCreateAction: 'Vai',
               locMin: 'min',
               locExercises: 'esercizi',
+      locExerciseOne: 'esercizio',
             ),
           ),
         ),

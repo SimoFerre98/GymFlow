@@ -244,6 +244,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
               locCreateAction: loc.t('home_create_program_action'),
               locMin: loc.t('home_min'),
               locExercises: loc.t('home_exercises'),
+              locExerciseOne: loc.t('home_exercise_one'),
             ),
           );
         }
@@ -301,6 +302,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     locCreateAction: loc.t('home_create_program_action'),
                     locMin: loc.t('home_min'),
                     locExercises: loc.t('home_exercises'),
+              locExerciseOne: loc.t('home_exercise_one'),
                   ),
                   SizedBox(height: context.expressive.spacing.xl),
                   Text(
@@ -336,7 +338,14 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
         ),
       );
 
-      final metaText = '${we.targetSets} × ${we.targetReps} · ${we.targetWeight} kg';
+      // Il carico compare **solo se c'e**. Prima l'interpolazione lo mostrava
+      // com'era, e sulla home si leggeva «3 × 10 · null kg»: un `null` sotto gli
+      // occhi dell'utente, che e la versione peggiore del dato inventato —
+      // non finge nemmeno di essere un numero.
+      final carico = we.targetWeight;
+      final metaText = carico == null
+          ? '${we.targetSets} × ${we.targetReps}'
+          : '${we.targetSets} × ${we.targetReps} · $carico kg';
       final gruppo = ex.musclesTargeted.isNotEmpty
           ? ex.musclesTargeted.first
           : null;

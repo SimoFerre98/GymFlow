@@ -79,6 +79,7 @@ class HomeHeroCard extends StatelessWidget {
   final String locCreateAction;
   final String locMin;
   final String locExercises;
+  final String locExerciseOne;
 
   const HomeHeroCard({
     super.key,
@@ -99,6 +100,7 @@ class HomeHeroCard extends StatelessWidget {
     required this.locCreateAction,
     required this.locMin,
     required this.locExercises,
+    required this.locExerciseOne,
   });
 
   @override
@@ -191,7 +193,11 @@ class HomeHeroCard extends StatelessWidget {
                           ),
                         ],
                         Text(
-                          '${exerciseCount ?? 0} $locExercises',
+                          // Singolare e plurale: «1 esercizi» si legge come un
+                          // errore, e sulla home compare a ogni scheda da un
+                          // esercizio solo.
+                          '${exerciseCount ?? 0} '
+                          '${exerciseCount == 1 ? locExerciseOne : locExercises}',
                           style: stileMeta,
                         ),
                       ],

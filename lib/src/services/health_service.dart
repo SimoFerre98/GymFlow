@@ -27,8 +27,9 @@ class HealthService {
   static final List<HealthDataType> _dataTypes = [
     HealthDataType.STEPS,
     HealthDataType.ACTIVE_ENERGY_BURNED,
-    HealthDataType
-        .BASAL_ENERGY_BURNED, // Added to ensure we capture all calories
+    HealthDataType.BASAL_ENERGY_BURNED,
+    // Il totale, che e quello che l'orologio scrive: vedi [_calorie].
+    HealthDataType.TOTAL_CALORIES_BURNED,
     HealthDataType.DISTANCE_DELTA,
     HealthDataType.HEART_RATE,
     HealthDataType.SLEEP_SESSION,
@@ -109,7 +110,46 @@ class HealthService {
   static final List<HealthDataType> _liveCalorieTypes = [
     HealthDataType.ACTIVE_ENERGY_BURNED,
     HealthDataType.BASAL_ENERGY_BURNED,
+    HealthDataType.TOTAL_CALORIES_BURNED,
   ];
+
+  /// Le calorie di un insieme di punti, senza contarle due volte.
+  ///
+  /// Health Connect ha tre grandezze che si sovrappongono: le **attive**, le
+  /// **basali** e il **totale**, che e gia la somma delle prime due. Quindi non
+  /// si sommano tutte e tre.
+  ///
+  /// Quale sia disponibile dipende da chi scrive. Samsung Health — cioe
+  /// l'orologio — scrive il **totale** e non le attive: verificato con
+  /// `dumpsys` l'11 agosto, ha `WRITE_TOTAL_CALORIES_BURNED` e
+  /// `WRITE_BASAL_METABOLIC_RATE`, ma nessun permesso sulle calorie attive.
+  /// Sommando solo attive e basali, le calorie dell'orologio non comparivano
+  /// affatto — ed e la ragione per cui il pannello restava vuoto anche con i
+  /// permessi a posto.
+  ///
+  /// `null` e non zero quando non c'e niente: uno zero inventato si crede, un
+  /// dato assente si nota.
+  static double? _calorie(Iterable<HealthDataPoint> punti) {
+    double totale = 0;
+    double attiveEBasali = 0;
+
+    for (final punto in punti) {
+      if (punto.value is! NumericHealthValue) continue;
+      final valore =
+          (punto.value as NumericHealthValue).numericValue.toDouble();
+
+      if (punto.type == HealthDataType.TOTAL_CALORIES_BURNED) {
+        totale += valore;
+      } else if (punto.type == HealthDataType.ACTIVE_ENERGY_BURNED ||
+          punto.type == HealthDataType.BASAL_ENERGY_BURNED) {
+        attiveEBasali += valore;
+      }
+    }
+
+    if (totale > 0) return totale;
+    if (attiveEBasali > 0) return attiveEBasali;
+    return null;
+  }
 
   /// Se le calorie sono leggibili, cioe se il pannello dal vivo ha qualcosa da
   /// mostrare.
@@ -159,22 +199,16 @@ class HealthService {
         types: [
           HealthDataType.ACTIVE_ENERGY_BURNED,
           HealthDataType.BASAL_ENERGY_BURNED,
+          HealthDataType.TOTAL_CALORIES_BURNED,
           HealthDataType.HEART_RATE,
         ],
       );
 
-      double? calories;
+      final double? calories = _calorie(healthData);
       int? lastHeartRate;
 
       for (var point in healthData) {
-        if (point.type == HealthDataType.ACTIVE_ENERGY_BURNED ||
-            point.type == HealthDataType.BASAL_ENERGY_BURNED) {
-          if (point.value is NumericHealthValue) {
-            final val =
-                (point.value as NumericHealthValue).numericValue.toDouble();
-            calories = (calories ?? 0) + val;
-          }
-        } else if (point.type == HealthDataType.HEART_RATE) {
+        if (point.type == HealthDataType.HEART_RATE) {
           if (point.value is NumericHealthValue) {
             lastHeartRate =
                 (point.value as NumericHealthValue).numericValue.toInt();
@@ -210,14 +244,14 @@ class HealthService {
       types: [
         HealthDataType.ACTIVE_ENERGY_BURNED,
         HealthDataType.BASAL_ENERGY_BURNED,
-        HealthDataType.DISTANCE_DELTA,
+        HealthDataType.TOTAL_CALORIES_BURNED,
         HealthDataType.DISTANCE_DELTA,
         HealthDataType.WATER,
         HealthDataType.HEART_RATE,
       ],
     );
 
-    double calories = 0;
+    final double calories = _calorie(healthData) ?? 0;
     double distance = 0;
     double water = 0;
     int heartRateSum = 0;
@@ -225,13 +259,7 @@ class HealthService {
     int lastHeartRate = 0;
 
     for (var point in healthData) {
-      if (point.type == HealthDataType.ACTIVE_ENERGY_BURNED) {
-        final val = point.value as NumericHealthValue;
-        calories += val.numericValue.toDouble();
-      } else if (point.type == HealthDataType.BASAL_ENERGY_BURNED) {
-        final val = point.value as NumericHealthValue;
-        calories += val.numericValue.toDouble();
-      } else if (point.type == HealthDataType.DISTANCE_DELTA) {
+      if (point.type == HealthDataType.DISTANCE_DELTA) {
         final val = point.value as NumericHealthValue;
         distance += val.numericValue.toDouble();
       } else if (point.type == HealthDataType.WATER) {
