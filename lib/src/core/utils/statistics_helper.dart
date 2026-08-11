@@ -109,7 +109,11 @@ class StatisticsHelper {
     for (var session in sessions) {
       for (var exercise in session.exercises) {
         for (var set in exercise.sets) {
-          if (set.isCompleted && set.weight != null && set.reps != null) {
+          // `weight` e `reps` sono `double`/`int` non nullable con default 0,
+          // non `double?`/`int?`: il confronto con `null` che c'era qui non
+          // era mai falso, e un peso a 0 (esercizio a corpo libero) contribuisce
+          // comunque 0 al volume, che e il comportamento corretto.
+          if (set.isCompleted) {
             volume += set.weight * set.reps;
           }
         }

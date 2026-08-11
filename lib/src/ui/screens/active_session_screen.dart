@@ -511,7 +511,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       case ExerciseType.bodyweight:
         return _buildStrengthTable(exercise, loc, showWeight: false);
       case ExerciseType.strength:
-      default:
         return _buildStrengthTable(exercise, loc, showWeight: true);
     }
   }

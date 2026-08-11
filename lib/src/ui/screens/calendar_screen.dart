@@ -622,7 +622,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   scheduledDate: date,
                                 );
                                 await ref.read(firestoreServiceProvider).scheduleWorkout(schedule);
-                                if (mounted) Navigator.of(context).pop();
+                                // `mounted` e dello State del calendario, non
+                                // di questo `context`: e quello dell'item
+                                // dentro `itemBuilder`, un `BuildContext`
+                                // diverso. `context.mounted` controlla quello
+                                // giusto invece di un ramo dello stesso albero.
+                                if (context.mounted) Navigator.of(context).pop();
                               },
                               child: Container(
                                 padding: EdgeInsets.all(t.spacing.md),

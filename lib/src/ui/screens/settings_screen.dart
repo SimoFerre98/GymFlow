@@ -34,8 +34,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   double? _gymLat;
   double? _gymLng;
   DateTime? _subscriptionExpiry;
-  bool _isLoading =
-      true; // Use this to check if initial load is done for pristine check.
+
+  /// Vero mentre `_saveGymInfo` e in corso: disabilita il pulsante di
+  /// aggiornamento, cosi un secondo tocco durante il salvataggio non parte
+  /// una seconda scrittura.
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -201,8 +204,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _saveGymInfo,
-                          child: Text(loc.t('update_info_btn')),
+                          onPressed: _isSaving ? null : _saveGymInfo,
+                          child: _isSaving
+                              ? SizedBox(
+                                  width: t.sizing.iconSm,
+                                  height: t.sizing.iconSm,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: scheme.onPrimary,
+                                  ),
+                                )
+                              : Text(loc.t('update_info_btn')),
                         ),
                       ),
                     ],
@@ -654,11 +666,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveGymInfo() async {
-    setState(
-      () => _isLoading = true,
-    ); // Reuse isLoading for button state or add new one
-    // Actually, let's create a local saving state to not mess with the page loading logic
-    // But since _isLoading was for initial load, let's use a new variable or just wrap in try/catch properly.
+    setState(() => _isSaving = true);
 
     try {
       var userProfile = await AuthService().getUserProfile();
@@ -709,7 +717,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false); // Or separate saving flag
+        setState(() => _isSaving = false);
       }
     }
   }

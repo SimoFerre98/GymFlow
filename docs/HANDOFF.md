@@ -271,13 +271,13 @@ Le priorità decise con l'utente, in ordine:
 1. **Finire US-027** (branch aperto, test rosso che elenca il lavoro) e **US-094** (pianificata).
 2. **US-083**, il modello delle serie: sblocca l'importazione delle schede reali **e** il trainer.
    Non delegabile.
-3. **US-101** (il saluto sotto l'hamburger) e **US-100** (Health Connect nega `READ_STEPS`, e la
-   sezione salute della dashboard **fallisce in silenzio**). Entrambe piccole e delegabili.
-4. **US-102**, gli avvisi rimasti (11 al 2026-08-11, scesi da 13 sistemando i due `dead_code` di
-   `workout_type_pie_chart.dart` dentro il lavoro di US-023). **Non sono rumore**: tre restano
-   intenzioni non implementate — l'ora che il dialogo di fine allenamento butta, «Azzera» che
-   compare a cronometro su zero, `_isLoading` scritto e mai letto in `settings_screen.dart:37`.
-   **Non si cancellano: si implementano o si dichiarano.**
+3. ~~US-101 (il saluto sotto l'hamburger) e US-100 (Health Connect nega `READ_STEPS`)~~ — **erano
+   già `✅ DONE` nel backlog quando questa lista e stata scritta**: la prova, ancora una volta, che
+   questo elenco invecchia in un giorno. Guarda `BACKLOG.md`, non qui.
+4. **US-102**, i sei `deprecated_member_use` rimasti — gli altri cinque tipi di avviso della storia
+   sono stati chiusi il 2026-08-12, uno per uno, non con `dart fix`. Restano i provider scritti come
+   funzione: il rename tocca 14 file, e uno (`sync_provider.dart`) fa da ponte Firestore↔Isar.
+   **Non e un mandato meccanico.**
 5. ~~US-038 (la barra in basso) sblocca US-023 e US-051~~ — **fatte entrambe**, US-051 resta da
    verificare a parte (badge di Obiettivi, non toccati in questa sessione).
 
