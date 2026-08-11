@@ -10,7 +10,17 @@ import 'package:gymflow/src/services/gamification_service.dart';
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
+import '../../core/theme/app_palette.dart';
+import '../../core/theme/expressive_tokens.dart';
 import '../widgets/app_drawer.dart';
+
+/// Lato del cerchio di avanzamento delle calorie: geometria di questa
+/// card, non una misura condivisa.
+const double _kDiametroAnelloCalorie = 80;
+
+/// Lato del cerchio e dell'icona dentro una card di traguardo.
+const double _kDiametroIconaBadge = 50;
+const double _kLatoIconaBadge = 28;
 
 class GamificationScreen extends ConsumerStatefulWidget {
   const GamificationScreen({super.key});
@@ -89,6 +99,7 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
     final firestore = ref.read(firestoreServiceProvider);
     final loc = ref.watch(localizationNotifierProvider);
     final userId = AuthService().currentUser?.uid ?? '';
+    final t = context.expressive;
 
     return Scaffold(
       drawer: const AppDrawer(),
@@ -126,17 +137,17 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
               final unlockedIds = unlockedBadges.map((e) => e.id).toSet();
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(t.spacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Monthly Challenge Section
-                    _buildSectionHeader(loc.t('monthly_challenges')),
-                    const SizedBox(height: 12),
+                    _buildSectionHeader(context, loc.t('monthly_challenges')),
+                    SizedBox(height: t.spacing.sm),
 
                     // 1. Steps (Linear)
                     _buildStepChallengeCard(loc),
-                    const SizedBox(height: 16),
+                    SizedBox(height: t.spacing.md),
 
                     // 2. Calories & Distance (Row)
                     IntrinsicHeight(
@@ -144,26 +155,25 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(child: _buildCaloriesChallengeCard(loc)),
-                          const SizedBox(width: 12),
+                          SizedBox(width: t.spacing.sm),
                           Expanded(child: _buildDistanceChallengeCard(loc)),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: t.spacing.xxl),
 
                     // Achievements Section
-                    _buildSectionHeader(loc.t('badges_section')),
-                    const SizedBox(height: 12),
+                    _buildSectionHeader(context, loc.t('badges_section')),
+                    SizedBox(height: t.spacing.sm),
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            childAspectRatio: 0.75,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: t.spacing.sm,
+                        mainAxisSpacing: t.spacing.sm,
+                      ),
                       itemCount: allBadges.length,
                       itemBuilder: (context, index) {
                         final badge = allBadges[index];
@@ -181,39 +191,34 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final scheme = Theme.of(context).colorScheme;
     return Text(
       title.toUpperCase(),
-      style: TextStyle(
-        fontSize: 14,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
         fontWeight: FontWeight.bold,
         letterSpacing: 1.2,
-        color: Colors.grey[600],
+        color: scheme.onSurfaceVariant,
       ),
     );
   }
 
   Widget _buildStepChallengeCard(Localization loc) {
+    final t = context.expressive;
     final progress = (_monthlySteps / _monthlyStepGoal).clamp(0.0, 1.0);
     final percentage = (progress * 100).toInt();
+    // Il testo sopra questa card e sempre indigo900, non bianco: e la tinta
+    // che vince il contrasto contro categoryBlue, verificato con la stessa
+    // formula WCAG usata per le fette della torta dei tipi di allenamento.
+    const inchiostro = AppPalette.indigo900;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(t.spacing.lg),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.blueAccent, Colors.lightBlueAccent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppPalette.categoryBlue,
+        borderRadius: t.shape.cornerLg,
+        boxShadow: t.elevation.level2(AppPalette.categoryBlue),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,63 +226,62 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(t.spacing.sm),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: inchiostro.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.directions_walk, color: Colors.white),
+                child: const Icon(Icons.directions_walk, color: inchiostro),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: t.spacing.sm),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.t('step_master'),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: inchiostro,
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
                     ),
                   ),
                   Text(
                     loc.t('reach_steps_goal'),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: inchiostro.withValues(alpha: 0.7),
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: t.spacing.lg),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '$_monthlySteps / $_monthlyStepGoal',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: inchiostro,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
                 ),
               ),
               Text(
                 '$percentage%',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: inchiostro,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: t.spacing.sm),
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: t.shape.cornerSm,
             child: LinearProgressIndicator(
               value: _isLoading ? null : progress,
-              minHeight: 8,
-              backgroundColor: Colors.black.withValues(alpha: 0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              minHeight: t.spacing.sm,
+              backgroundColor: inchiostro.withValues(alpha: 0.2),
+              valueColor: const AlwaysStoppedAnimation<Color>(inchiostro),
             ),
           ),
         ],
@@ -286,75 +290,81 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
   }
 
   Widget _buildCaloriesChallengeCard(Localization loc) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     final progress = (_monthlyCalories / _monthlyCalorieGoal).clamp(0.0, 1.0);
     final percentage = (progress * 100).toInt();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(t.spacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.3)),
+        color: scheme.surfaceContainerHigh,
+        borderRadius: t.shape.cornerLg,
+        boxShadow: t.elevation.level2(AppPalette.categoryOrange),
+        border: Border.all(color: AppPalette.categoryOrange.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Text(
             loc.t('calorie_burn'),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: scheme.onSurface,
+            ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: t.spacing.xs),
           Text(
             '${loc.t('goal_label')} ${_monthlyCalorieGoal ~/ 1000}k kcal',
-            style: const TextStyle(color: Colors.grey, fontSize: 10),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: t.spacing.md),
           Stack(
             alignment: Alignment.center,
             children: [
               SizedBox(
-                height: 80,
-                width: 80,
+                height: _kDiametroAnelloCalorie,
+                width: _kDiametroAnelloCalorie,
                 child: _isLoading
                     ? const CircularProgressIndicator(strokeWidth: 4)
                     : CircularProgressIndicator(
                         value: progress,
                         strokeWidth: 8,
-                        backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                        backgroundColor: AppPalette.categoryOrange.withValues(
+                          alpha: 0.1,
+                        ),
                         valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.orangeAccent,
+                          AppPalette.categoryOrange,
                         ),
                       ),
               ),
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.local_fire_department,
-                    color: Colors.orange,
-                    size: 20,
+                    color: AppPalette.categoryOrange,
+                    size: t.sizing.iconMd,
                   ),
                   Text(
                     '$percentage%',
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      color: scheme.onSurface,
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: t.spacing.sm),
           Text(
             '${_monthlyCalories.toInt()} kcal',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: scheme.onSurface,
+            ),
           ),
         ],
       ),
@@ -362,64 +372,76 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
   }
 
   Widget _buildDistanceChallengeCard(Localization loc) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     final progress = (_monthlyDistance / _monthlyDistanceGoal).clamp(0.0, 1.0);
     // Convert to km
     final currentKm = (_monthlyDistance / 1000).toStringAsFixed(1);
     final goalKm = _monthlyDistanceGoal ~/ 1000;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(t.spacing.md),
       decoration: BoxDecoration(
-        color: Colors.tealAccent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.teal.withValues(alpha: 0.3)),
+        color: AppPalette.categoryAqua.withValues(alpha: 0.1),
+        borderRadius: t.shape.cornerLg,
+        border: Border.all(color: AppPalette.categoryAqua.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.map_outlined, color: Colors.teal, size: 20),
-              const SizedBox(width: 8),
+              Icon(
+                Icons.map_outlined,
+                color: AppPalette.categoryAqua,
+                size: t.sizing.iconMd,
+              ),
+              SizedBox(width: t.spacing.sm),
               Expanded(
                 child: Text(
                   loc.t('distance_label'),
-                  style: const TextStyle(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    color: scheme.onSurface,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: t.spacing.xs),
           Text(
             '${loc.t('goal_label')} ${goalKm}km',
-            style: TextStyle(color: Colors.teal[700], fontSize: 10),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: t.spacing.lg),
           Text(
             '$currentKm km',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: scheme.onSurface,
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: t.spacing.sm),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: t.shape.cornerXs,
             child: LinearProgressIndicator(
               value: _isLoading ? null : progress,
               minHeight: 6,
-              backgroundColor: Colors.teal.withValues(alpha: 0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.teal),
+              backgroundColor: AppPalette.categoryAqua.withValues(alpha: 0.2),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppPalette.categoryAqua,
+              ),
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: t.spacing.xs),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
               '${(progress * 100).toInt()}%',
-              style: TextStyle(
-                color: Colors.teal[800],
-                fontSize: 10,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -435,63 +457,65 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
     bool isUnlocked,
     Localization loc,
   ) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: scheme.surfaceContainerHigh,
+        borderRadius: t.shape.cornerMd,
+        boxShadow: t.elevation.level1(scheme.shadow),
         border: isUnlocked
-            ? Border.all(color: Colors.amber.withValues(alpha: 0.5), width: 2)
+            ? Border.all(color: AppPalette.success.withValues(alpha: 0.5), width: 2)
             : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: _kDiametroIconaBadge,
+            height: _kDiametroIconaBadge,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isUnlocked
-                  ? Colors.amber.withValues(alpha: 0.2)
-                  : Colors.grey.withValues(alpha: 0.1),
+                  ? AppPalette.success.withValues(alpha: 0.15)
+                  : scheme.onSurface.withValues(alpha: 0.08),
             ),
             child: Icon(
               badge.icon,
-              size: 28,
-              color: isUnlocked ? Colors.amber[800] : Colors.grey,
+              size: _kLatoIconaBadge,
+              color: isUnlocked
+                  ? AppPalette.success
+                  : scheme.onSurface.withValues(alpha: 0.35),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: t.spacing.sm),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
             child: Text(
               loc.t('badge_name_${badge.id}'),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 11,
-                color: isUnlocked ? null : Colors.grey,
+                color: isUnlocked
+                    ? scheme.onSurface
+                    : scheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: t.spacing.xs),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
             child: Text(
               loc.t('badge_desc_${badge.id}'),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 9, color: Colors.grey),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
