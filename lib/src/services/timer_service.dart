@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -60,9 +62,49 @@ class TimerState {
 ///
 /// keepAlive perche devono continuare a scorrere anche quando l'utente lascia
 /// la schermata degli strumenti: e il presupposto dell'overlay flottante.
+/// Da quando comincia il conto alla rovescia sentito: gli ultimi tre secondi.
+const Duration kSecondiDiAvviso = Duration(seconds: 3);
+
+abstract class AvvisiTempo {
+  /// Uno degli ultimi secondi e passato.
+  void secondoFinale();
+
+  /// Il tempo e scaduto.
+  void scaduto();
+}
+
+/// Quello vero: la vibrazione e il suono del sistema.
+///
+/// Nessuna dipendenza nuova. `heavyImpact` e il colpo piu deciso che
+/// `HapticFeedback` offra: su Android diventa un `LONG_PRESS`, cioe un tocco
+/// breve tarato dal produttore. Se all'atto pratico risulta moscio, l'unica
+/// strada e una dipendenza che comandi il motore di vibrazione — ed e una
+/// decisione di prodotto, non un dettaglio da decidere qui.
+class AvvisiTempoDiSistema implements AvvisiTempo {
+  const AvvisiTempoDiSistema();
+
+  @override
+  void secondoFinale() => HapticFeedback.heavyImpact();
+
+  @override
+  void scaduto() {
+    // Il suono e la vibrazione insieme: in palestra la cuffia puo essere
+    // occupata dalla musica e il telefono in tasca.
+    SystemSound.play(SystemSoundType.alert);
+    HapticFeedback.vibrate();
+  }
+}
+
 ///
 /// Il ticker gira a 100 ms ed e attivo solo quando serve.
 @Riverpod(keepAlive: true)
+/// Il ritorno fisico del conto alla rovescia: vibra e suona.
+///
+/// È un'interfaccia e non due chiamate sparse nel ticker per una ragione sola:
+/// `HapticFeedback` e `SystemSound` parlano con un canale di piattaforma che in
+/// un test non esiste, e senza poterli sostituire «vibra negli ultimi tre
+/// secondi» non sarebbe dimostrabile — resterebbe una cosa da provare a mano
+/// ogni volta.
 class TimerNotifier extends _$TimerNotifier {
   Timer? _ticker;
 
@@ -103,6 +145,15 @@ class TimerNotifier extends _$TimerNotifier {
   /// `build()`, senza questo getter la suite restava verde.
   bool get isTickerActive => _ticker != null;
 
+  /// Chi vibra e chi suona. Sostituibile nei test.
+  AvvisiTempo avvisi = const AvvisiTempoDiSistema();
+
+  /// L'ultimo secondo per cui si e gia vibrato.
+  ///
+  /// Il ticker batte molto piu spesso di una volta al secondo: senza ricordare
+  /// l'ultimo, negli ultimi tre secondi il telefono vibrerebbe a ogni battito.
+  int? _ultimoSecondoAvvisato;
+
   /// Il ticker serve solo se c'e qualcosa che scorre.
   void _syncTicker() {
     final serve = state.isStopwatchRunning || state.isTimerRunning;
@@ -138,12 +189,41 @@ class TimerNotifier extends _$TimerNotifier {
         timerReachedZero = true;
       } else {
         next = next.copyWith(timerRemaining: remaining);
+        avvisaSeUltimiSecondi(remaining);
       }
       changed = true;
     }
 
     if (changed) state = next;
-    if (timerReachedZero) _syncTicker();
+    if (timerReachedZero) {
+      segnalaScadenza();
+      _syncTicker();
+    }
+  }
+
+  /// Una vibrazione per ognuno degli ultimi tre secondi.
+  ///
+  /// Si conta il secondo **intero** che sta per finire: a 2,4 secondi dalla fine
+  /// il secondo e il terzo, e si vibra una volta sola finche non diventa il
+  /// secondo. Cosi i colpi sono tre, uno al secondo, e non uno per battito del
+  /// ticker.
+  @visibleForTesting
+  void avvisaSeUltimiSecondi(Duration restante) {
+    if (restante > kSecondiDiAvviso) {
+      _ultimoSecondoAvvisato = null;
+      return;
+    }
+    final secondo = restante.inSeconds;
+    if (_ultimoSecondoAvvisato == secondo) return;
+    _ultimoSecondoAvvisato = secondo;
+    avvisi.secondoFinale();
+  }
+
+  /// Il tempo e finito: si suona, e il conto delle vibrazioni riparte.
+  @visibleForTesting
+  void segnalaScadenza() {
+    _ultimoSecondoAvvisato = null;
+    avvisi.scaduto();
   }
 
   void setToolsVisible(bool visible) {

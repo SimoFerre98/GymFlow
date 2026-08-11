@@ -83,14 +83,23 @@ class TimeDial extends StatelessWidget {
                 // `FittedBox` perche le cifre non si taglino: sulla schermata
                 // vera «00:00:0» arrivava troncato a meta dell'ultima cifra.
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: t.spacing.lg),
+                  // Il quadrante e largo: al tempo si lascia quasi tutto lo
+                  // spazio dentro l'anello, che e il motivo per cui l'anello e
+                  // grande.
+                  padding: EdgeInsets.symmetric(horizontal: t.spacing.md),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
                       tempo,
                       maxLines: 1,
-                      style: t.typography.metricLarge?.copyWith(
+                      // Il ruolo piu grande che il tema abbia, con le cifre a
+                      // larghezza fissa: senza, i numeri ballano a ogni
+                      // decimo. `FittedBox` lo rimpicciolisce solo se serve.
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: scheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -1,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),

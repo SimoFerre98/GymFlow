@@ -7,8 +7,7 @@ import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/ui/screens/time_tools_screen.dart';
 import 'package:gymflow/src/ui/widgets/timer_overlay.dart';
 
-/// La pillola del tempo: sta in alto, non copre niente, e non toglie niente
-/// quando non c'e.
+/// La pillola del tempo: flotta sopra il contenuto e non gli toglie spazio.
 ///
 /// **I test montano `GymFlowShell`, cioe il telaio vero di `app.dart`.** La
 /// prima versione di questi test si costruiva una `Column` nel proprio file:
@@ -16,20 +15,35 @@ import 'package:gymflow/src/ui/widgets/timer_overlay.dart';
 /// contenuto, cioe proprio il difetto che questa storia chiude. È il difetto
 /// n. 3 dell'handoff — provare i pezzi e non il cablaggio fra loro.
 ///
-/// **La superficie di prova ha un bordo di sistema di 40 dp.** Senza, il difetto
-/// piu grosso trovato in review sarebbe invisibile: la `SafeArea` attorno a
-/// tutto occupava quella fascia **anche a pillola nascosta**, e ogni schermata
-/// scendeva di 40 dp per sempre.
+/// **La pillola flotta, e questo e cambiato dopo la prova sul telefono.** Per un
+/// giro ha occupato spazio davvero, spingendo giu il contenuto: era il criterio
+/// scritto nel backlog, e visto sullo schermo era peggio del problema che
+/// risolveva. Quindi questi test ora sorvegliano l'opposto — che il contenuto
+/// **non** si muova — ed e giusto cosi: il criterio veniva da un documento, il
+/// giudizio dall'occhio.
+///
+/// **La superficie di prova ha un bordo di sistema di 40 dp**, perche e con un
+/// bordo vero che si vedono i difetti di ingombro.
 ///
 /// **Limite dichiarato**: sono misure di geometria. Che la pillola si legga, e
 /// che l'entrata e l'uscita non diano fastidio, resta da confermare sull'APK.
 void main() {
   /// Il telaio vero, con un bordo di sistema come su un telefono.
-  Widget app(ProviderContainer container, {PreferredSizeWidget? barra}) =>
+  Widget app(
+    ProviderContainer container,
+    WidgetTester tester, {
+    PreferredSizeWidget? barra,
+  }) =>
       UncontrolledProviderScope(
         container: container,
         child: MediaQuery(
-          data: const MediaQueryData(padding: EdgeInsets.only(top: 40)),
+        // `copyWith` e non un `MediaQueryData` costruito da zero: da zero si
+        // perde anche la **dimensione** dello schermo, la pillola si posiziona
+        // rispetto a una superficie di lato nullo e finisce fuori. Costato un
+        // giro di test rossi.
+        data: MediaQueryData.fromView(
+          tester.view,
+        ).copyWith(padding: const EdgeInsets.only(top: 40)),
           child: MaterialApp(
             navigatorKey: navigatorKey,
             theme: ThemeData(extensions: const [ExpressiveTokens()]),
@@ -52,7 +66,7 @@ void main() {
     tester,
   ) async {
     final c = nuovo(tester);
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     await tester.pumpAndSettle();
     expect(find.byKey(chiavePillola), findsNothing);
 
@@ -75,7 +89,7 @@ void main() {
   testWidgets('non compare sulla schermata del tempo', (tester) async {
     final c = nuovo(tester);
     c.read(timerNotifierProvider.notifier).toggleTimer();
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     await tester.pumpAndSettle();
     expect(find.byKey(chiavePillola), findsOneWidget);
 
@@ -93,10 +107,10 @@ void main() {
     // Misurato: 40 dp su ogni schermata, sempre, piu i 40 che la `AppBar`
     // aggiunge per conto suo.
     final c = nuovo(tester);
-    await tester.pumpWidget(app(c, barra: AppBar(title: const Text('Titolo'))));
+    await tester.pumpWidget(app(c, tester, barra: AppBar(title: const Text('Titolo'))));
     await tester.pumpAndSettle();
 
-    expect(tester.getSize(find.byType(TimerOverlay)).height, 0.0);
+    expect(find.byKey(chiavePillola), findsNothing);
     expect(
       tester.getRect(find.byType(AppBar)).top,
       0.0,
@@ -104,66 +118,62 @@ void main() {
     );
   });
 
-  testWidgets('il contenuto si sposta invece di essere coperto', (tester) async {
+  testWidgets('non sposta il contenuto: ci sta sopra', (tester) async {
     final c = nuovo(tester);
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     await tester.pumpAndSettle();
     final senza = tester.getRect(find.byKey(const Key('c')));
 
     c.read(timerNotifierProvider.notifier).toggleTimer();
     await tester.pumpAndSettle();
     final con = tester.getRect(find.byKey(const Key('c')));
-    final pillola = tester.getRect(find.byKey(chiavePillola));
 
-    expect(con.top, greaterThan(senza.top), reason: 'il contenuto non si e mosso');
     expect(
-      pillola.overlaps(con),
-      isFalse,
-      reason: 'la pillola copre il contenuto invece di spostarlo',
+      con,
+      senza,
+      reason: 'la pillola flotta: il contenuto sotto resta dov era',
     );
 
     c.read(timerNotifierProvider.notifier).resetTimer();
     await tester.pumpAndSettle();
   });
 
-  testWidgets('con la pillola la barra non ripete il bordo di sistema', (
+  testWidgets('la barra della schermata resta dov era', (tester) async {
+    // Il difetto da cui nasce questo test: per un giro la pillola occupava la
+    // fascia di sistema **anche da nascosta**, e ogni schermata scendeva di
+    // 40 dp per sempre. Ora non deve muovere niente in nessuno dei due stati.
+    final c = nuovo(tester);
+    await tester.pumpWidget(app(c, tester, barra: AppBar(title: const Text('Titolo'))));
+    await tester.pumpAndSettle();
+    final barraSenza = tester.getRect(find.byType(AppBar));
+
+    c.read(timerNotifierProvider.notifier).toggleTimer();
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(find.byType(AppBar)), barraSenza);
+    expect(barraSenza.top, 0.0);
+
+    c.read(timerNotifierProvider.notifier).resetTimer();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('si puo spostare col dito, e resta nello schermo', (
     tester,
   ) async {
-    // La pillola copre gia la fascia di sistema: se il contenuto se la prende
-    // di nuovo, fra pillola e titolo restano altri 40 dp vuoti.
     final c = nuovo(tester);
     c.read(timerNotifierProvider.notifier).toggleTimer();
-    await tester.pumpWidget(app(c, barra: AppBar(title: const Text('Titolo'))));
-    await tester.pumpAndSettle();
-
-    final pillola = tester.getRect(find.byKey(chiavePillola));
-    final barra = tester.getRect(find.byType(AppBar));
-
-    expect(barra.height, kToolbarHeight);
-    expect(
-      barra.top - pillola.bottom,
-      lessThanOrEqualTo(8.0),
-      reason: 'fra la pillola e la barra e rimasta una striscia vuota',
-    );
-
-    c.read(timerNotifierProvider.notifier).resetTimer();
-    await tester.pumpAndSettle();
-  });
-
-  testWidgets('sta in alto e non si sposta col dito', (tester) async {
-    final c = nuovo(tester);
-    c.read(timerNotifierProvider.notifier).toggleTimer();
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     await tester.pumpAndSettle();
 
     final prima = tester.getRect(find.byKey(chiavePillola));
-    expect(prima.top, lessThan(tester.getSize(find.byType(MaterialApp)).height / 2));
 
-    // Trascinarla non deve piu spostarla: era una funzione della vecchia
-    // pillola flottante, tolta di proposito con la posizione fissa.
-    await tester.drag(find.byKey(chiavePillola), const Offset(0, 200));
+    // Trascinandola si sposta, e resta dentro lo schermo: e una pillola
+    // flottante, e coprire un pulsante senza poterla spostare sarebbe peggio.
+    await tester.drag(find.byKey(chiavePillola), const Offset(0, -200));
     await tester.pumpAndSettle();
-    expect(tester.getRect(find.byKey(chiavePillola)), prima);
+    final dopo = tester.getRect(find.byKey(chiavePillola));
+    expect(dopo.top, lessThan(prima.top));
+    expect(dopo.top, greaterThanOrEqualTo(0.0));
 
     c.read(timerNotifierProvider.notifier).resetTimer();
     await tester.pumpAndSettle();
@@ -173,7 +183,7 @@ void main() {
     final c = nuovo(tester);
     final notifier = c.read(timerNotifierProvider.notifier);
     notifier.toggleTimer();
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     await tester.pumpAndSettle();
     expect(notifier.isTimerRunning, isTrue);
 
@@ -194,12 +204,21 @@ void main() {
   testWidgets('un tocco porta alla schermata del tempo', (tester) async {
     final c = nuovo(tester);
     c.read(timerNotifierProvider.notifier).toggleTimer();
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     await tester.pumpAndSettle();
 
-    // Sul testo e non sulla pillola intera: al centro ci sono i comandi, e
-    // toccare li vuol dire mettere in pausa, non navigare.
-    await tester.tap(find.byType(Text).first);
+    // Sul tempo **dentro la pillola**, non sul primo `Text` dell'albero: da
+    // quando la pillola flotta sopra il contenuto, il primo testo dell'albero e
+    // quello della schermata sotto. E non al centro della pillola, dove stanno
+    // i comandi: toccare li mette in pausa, non naviga.
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byKey(chiavePillola),
+            matching: find.byType(Text),
+          )
+          .first,
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(TimeToolsScreen, skipOffstage: false), findsOneWidget);
@@ -216,7 +235,7 @@ void main() {
     notifier.toggleStopwatch();
     notifier.setTimerDuration(const Duration(seconds: 45));
     notifier.toggleTimer();
-    await tester.pumpWidget(app(c));
+    await tester.pumpWidget(app(c, tester));
     // Un fotogramma solo: `pumpAndSettle` con due ticker in corsa fa scorrere
     // il tempo finto fino a far scadere il recupero, e il numero non e piu
     // quello impostato.

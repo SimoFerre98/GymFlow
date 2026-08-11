@@ -4,7 +4,6 @@ import 'package:gymflow/src/core/theme/app_theme.dart';
 import 'package:gymflow/src/ui/auth_wrapper.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/ui/widgets/timer_overlay.dart';
-import 'package:gymflow/src/services/timer_service.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -28,13 +27,18 @@ class GymFlowApp extends ConsumerWidget {
   }
 }
 
-/// Il telaio: la pillola del tempo in alto, tutto il resto sotto.
+/// Il telaio: la pillola del tempo **sopra** il contenuto, senza spostarlo.
 ///
-/// È un widget e non una chiusura dentro `builder` per una ragione precisa: i
-/// test devono poter montare **questo**, cioe la struttura vera. La prima
-/// versione di US-052 era provata da test che si costruivano una `Column` nel
-/// proprio file, e sarebbero rimasti verdi anche rimettendo lo `Stack` che
-/// copriva il contenuto — cioe proprio il difetto che la storia chiude.
+/// È tornata a flottare dopo la prova sul telefono: farle occupare spazio in
+/// una `Column` spingeva giu tutta l'applicazione, e il risultato era peggiore
+/// del problema che risolveva. Il criterio di US-052 diceva «il contenuto si
+/// sposta invece di essere coperto»: era sbagliato, e a dirlo e stato l'occhio
+/// sull'APK. Resta di quel giro tutto il resto — i token al posto dei valori a
+/// mano, il tocco che porta al tempo, la precedenza al recupero.
+///
+/// È un widget e non una chiusura dentro `builder` perche i test devono poter
+/// montare **questo**, cioe la struttura vera: la prima versione di US-052 era
+/// provata da test che si costruivano un albero nel proprio file.
 class GymFlowShell extends ConsumerWidget {
   const GymFlowShell({super.key, required this.child});
 
@@ -42,23 +46,10 @@ class GymFlowShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(timerNotifierProvider);
-    final visibile = pillolaVisibile(ref.read(timerNotifierProvider.notifier));
-
-    return Column(
+    return Stack(
       children: [
+        if (child != null) child!,
         const TimerOverlay(),
-        if (child != null)
-          Expanded(
-            // Quando la pillola c'e, copre lei la fascia di sistema: lasciarla
-            // anche al contenuto significa una seconda striscia vuota sotto di
-            // lei, che su una schermata con `AppBar` misura altri 40 dp.
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: visibile,
-              child: child!,
-            ),
-          ),
       ],
     );
   }
