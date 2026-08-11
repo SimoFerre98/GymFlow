@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
@@ -8,10 +8,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart'; // Added
+
+/// Altezza del dialogo di scelta della posizione: geometria di questo
+/// dialogo, non una spaziatura condivisa.
+const double _kAltezzaDialogoMappa = 400;
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -45,6 +50,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final loc = ref.watch(localizationNotifierProvider);
     final theme = ref.watch(themeSettingsNotifierProvider);
     final themeNotifier = ref.read(themeSettingsNotifierProvider.notifier);
+    final scheme = Theme.of(context).colorScheme;
+    final t = context.expressive;
 
     // Preset del colore delle azioni. Ognuno supera WCAG AA sulle superfici
     // scure: la scelta e libera dentro un insieme che non produce testo
@@ -81,10 +88,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           }
 
           return ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(t.spacing.xl),
             children: [
               // 1. Account Section
-              _buildSectionHeader(loc.t('account_section')),
+              _buildSectionHeader(context, loc.t('account_section')),
               _buildSettingsCard(
                 context,
                 children: [
@@ -93,7 +100,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: loc.t('my_profile'),
                     subtitle: profile?.displayName ?? loc.t('guest_user'),
                     icon: Icons.person_outline,
-                    color: Colors.blueAccent,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -109,7 +115,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: loc.t('body_measurements'),
                     subtitle: loc.t('track_progress'),
                     icon: Icons.monitor_weight_outlined,
-                    color: Colors.tealAccent,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -127,40 +132,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ? loc.t('free_plan')
                         : '${loc.t('expires')}: ${_subscriptionExpiry!.toString().split(' ')[0]}',
                     icon: Icons.star_outline,
-                    color: Colors.amber,
                     trailing: _subscriptionExpiry != null
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  _subscriptionExpiry!.isAfter(DateTime.now())
-                                  ? Colors.green.withValues(alpha: 0.2)
-                                  : Colors.red.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color:
-                                    _subscriptionExpiry!.isAfter(DateTime.now())
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                            child: Text(
-                              _subscriptionExpiry!.isAfter(DateTime.now())
-                                  ? loc.t('subscription_active')
-                                  : loc.t('subscription_expired'),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    _subscriptionExpiry!.isAfter(DateTime.now())
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                          )
+                        ? _buildBadgeAbbonamento(context, scheme, t)
                         : null,
                     onTap: () async {
                       final now = DateTime.now();
@@ -181,38 +154,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: t.spacing.xl),
 
               // 2. Gym Section
-              _buildSectionHeader(loc.t('gym_settings_section')),
+              _buildSectionHeader(context, loc.t('gym_settings_section')),
               _buildSettingsCard(
                 context,
                 children: [
                   ExpansionTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.purpleAccent.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.fitness_center,
-                        color: Colors.purpleAccent,
-                      ),
-                    ),
+                    leading: _buildLeadingIcona(context, scheme, t, Icons.fitness_center),
                     title: Text(
                       loc.t('gym_details'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
                     ),
                     subtitle: Text(
                       _gymNameController.text.isNotEmpty
                           ? _gymNameController.text
                           : loc.t('set_name_address'),
                     ),
-                    childrenPadding: const EdgeInsets.all(16),
-                    tilePadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
+                    childrenPadding: EdgeInsets.all(t.spacing.md),
+                    tilePadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
                     ),
                     shape: const Border(),
                     children: [
@@ -220,18 +186,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         controller: _gymNameController,
                         decoration: InputDecoration(
                           labelText: loc.t('gym_name_label'),
-                          prefixIcon: Icon(Icons.business),
+                          prefixIcon: const Icon(Icons.business),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: t.spacing.sm),
                       TextField(
                         controller: _gymAddressController,
                         decoration: InputDecoration(
                           labelText: loc.t('address_label'),
-                          prefixIcon: Icon(Icons.place),
+                          prefixIcon: const Icon(Icons.place),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: t.spacing.md),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -249,15 +215,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ? loc.t('location_pinned')
                         : loc.t('tap_to_set'),
                     icon: Icons.map_outlined,
-                    color: Colors.green,
                     onTap: _showMapPicker,
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: t.spacing.xl),
 
               // Integrations
-              _buildSectionHeader(loc.t('integrations_section')),
+              _buildSectionHeader(context, loc.t('integrations_section')),
               _buildSettingsCard(
                 context,
                 children: [
@@ -266,7 +231,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Google Fit / Health Connect',
                     subtitle: loc.t('sync_steps'),
                     icon: Icons.health_and_safety,
-                    color: Colors.redAccent,
                     onTap: () async {
                       bool success = await HealthService().requestPermissions();
                       if (context.mounted) {
@@ -283,30 +247,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: t.spacing.xl),
 
               // 3. Preferences Section
-              _buildSectionHeader(loc.t('preferences_section')),
+              _buildSectionHeader(context, loc.t('preferences_section')),
               _buildSettingsCard(
                 context,
                 children: [
                   // Language Selection
                   ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
                     ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.indigo.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.language, color: Colors.indigo),
-                    ),
+                    leading: _buildLeadingIcona(context, scheme, t, Icons.language),
                     title: Text(
                       loc.t('language'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
                     ),
                     trailing: DropdownButton<String>(
                       value: loc.locale.languageCode,
@@ -333,24 +293,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   // Color Picker
                   ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.sm,
                     ),
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(t.spacing.sm),
                       decoration: BoxDecoration(
                         color: theme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: t.shape.cornerSm,
                       ),
                       child: Icon(Icons.color_lens, color: theme.primaryColor),
                     ),
                     title: Text(
                       loc.t('primary_color'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
                     ),
                     subtitle: SizedBox(
-                      height: 40,
+                      height: t.sizing.thumbnailSm,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: colorPresets.map((color) {
@@ -360,33 +323,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           return GestureDetector(
                             onTap: () => themeNotifier.setPrimaryColor(color),
                             child: Container(
-                              margin: const EdgeInsets.only(right: 12, top: 4),
-                              width: 32,
-                              height: 32,
+                              margin: EdgeInsets.only(
+                                right: t.spacing.sm,
+                                top: t.spacing.xs,
+                              ),
+                              width: t.sizing.iconLg + t.spacing.sm,
+                              height: t.sizing.iconLg + t.spacing.sm,
                               decoration: BoxDecoration(
                                 color: color,
                                 shape: BoxShape.circle,
                                 border: isSelected
                                     ? Border.all(
-                                        color: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge!.color!,
+                                        color: scheme.onSurface,
                                         width: 2,
                                       )
                                     : null,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: color.withValues(alpha: 0.4),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                                boxShadow: t.elevation.level1(color),
                               ),
                               child: isSelected
-                                  ? const Icon(
+                                  ? Icon(
                                       Icons.check,
-                                      size: 16,
-                                      color: Colors.white,
+                                      size: t.sizing.iconSm,
+                                      color: AppPalette.indigo900,
                                     )
                                   : null,
                             ),
@@ -397,47 +355,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
 
                   SwitchListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
                     ),
-                    secondary: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.orangeAccent,
-                      ),
+                    secondary: _buildLeadingIcona(
+                      context,
+                      scheme,
+                      t,
+                      Icons.notifications_outlined,
                     ),
                     title: Text(
                       loc.t('notifications'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
                     ),
                     value: _notificationsEnabled,
-                    activeThumbColor: Theme.of(context).primaryColor,
+                    activeThumbColor: scheme.primary,
                     onChanged: (val) =>
                         setState(() => _notificationsEnabled = val),
                   ),
 
                   // Theme Selector
                   ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.tealAccent.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.palette_outlined,
-                        color: Colors.teal,
-                      ),
-                    ),
+                    leading: _buildLeadingIcona(context, scheme, t, Icons.palette_outlined),
                     title: Text(
                       loc.t('app_theme'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
                     ),
                     subtitle: Text(
                       theme.themeMode == ThemeMode.system
@@ -471,20 +420,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                     ),
                   ),
-
                 ],
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: t.spacing.xxl - t.spacing.xs),
 
               // Logout Button
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                    backgroundColor: Colors.red.withValues(alpha: 0.1),
+                    padding: EdgeInsets.all(t.spacing.md),
+                    backgroundColor: AppPalette.danger.withValues(alpha: 0.1),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: t.shape.cornerMd,
                     ),
                   ),
                   onPressed: () async {
@@ -493,18 +441,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     }
                   },
-                  icon: const Icon(Icons.logout, color: Colors.red),
+                  icon: const Icon(Icons.logout, color: AppPalette.danger),
                   label: Text(
                     loc.t('sign_out'),
-                    style: const TextStyle(
-                      color: Colors.red,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppPalette.danger,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: t.spacing.xxl + t.spacing.sm),
             ],
           );
         },
@@ -514,16 +461,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   // --- UI Helpers ---
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildBadgeAbbonamento(
+    BuildContext context,
+    ColorScheme scheme,
+    ExpressiveTokens t,
+  ) {
+    final attiva = _subscriptionExpiry!.isAfter(DateTime.now());
+    final colore = attiva ? AppPalette.success : AppPalette.danger;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: t.spacing.sm,
+        vertical: t.spacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: colore.withValues(alpha: 0.2),
+        borderRadius: t.shape.cornerSm,
+        border: Border.all(color: colore),
+      ),
+      child: Text(
+        attiva
+            ? ref.read(localizationNotifierProvider).t('subscription_active')
+            : ref.read(localizationNotifierProvider).t('subscription_expired'),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: colore,
+        ),
+      ),
+    );
+  }
+
+  /// L'icona a sinistra di una voce, sempre nello stesso neutro: nessuna di
+  /// queste destinazioni e "cosa fare adesso", quindi nessuna prende l'ambra.
+  Widget _buildLeadingIcona(
+    BuildContext context,
+    ColorScheme scheme,
+    ExpressiveTokens t,
+    IconData icon,
+  ) {
+    return Container(
+      padding: EdgeInsets.all(t.spacing.sm),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
+        borderRadius: t.shape.cornerSm,
+      ),
+      child: Icon(icon, color: scheme.onSurfaceVariant),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 12),
+      padding: EdgeInsets.only(left: t.spacing.sm, bottom: t.spacing.md),
       child: Text(
         title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 13,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
-          color: Colors.grey[600],
+          color: scheme.onSurfaceVariant,
         ),
       ),
     );
@@ -533,17 +530,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     BuildContext context, {
     required List<Widget> children,
   }) {
-    return Container(
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: scheme.surfaceContainerHigh,
+        borderRadius: t.shape.cornerLg,
+        boxShadow: t.elevation.level2(scheme.shadow),
       ),
       child: Column(children: children),
     );
@@ -554,32 +548,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required String title,
     String? subtitle,
     required IconData icon,
-    required Color color,
     VoidCallback? onTap,
     Widget? trailing,
   }) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: color),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: t.spacing.md,
+        vertical: t.spacing.xs,
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      leading: _buildLeadingIcona(context, scheme, t, icon),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: scheme.onSurface,
+        ),
+      ),
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             )
           : null,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (trailing != null) ...[trailing, const SizedBox(width: 8)],
-          const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+          if (trailing != null) ...[trailing, SizedBox(width: t.spacing.sm)],
+          Icon(
+            Icons.chevron_right,
+            color: scheme.onSurfaceVariant,
+            size: t.sizing.iconMd,
+          ),
         ],
       ),
       onTap: onTap,
@@ -587,6 +591,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showMapPicker() {
+    final t = context.expressive;
+
     // Default to Rome if not set
     final initialCenter = _gymLat != null && _gymLng != null
         ? LatLng(_gymLat!, _gymLng!)
@@ -596,7 +602,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => Dialog(
         child: SizedBox(
-          height: 400,
+          height: _kAltezzaDialogoMappa,
           child: Column(
             children: [
               Expanded(
@@ -627,7 +633,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             height: 80,
                             child: const Icon(
                               Icons.location_on,
-                              color: Colors.red,
+                              color: AppPalette.danger,
                               size: 40,
                             ),
                           ),
@@ -637,7 +643,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(t.spacing.sm),
                 child: Text(ref.read(localizationNotifierProvider).t('tap_to_select_location')),
               ),
             ],
@@ -708,4 +714,3 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 }
-

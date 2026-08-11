@@ -39,6 +39,7 @@ void main() {
     'lib/src/ui/widgets/charts/body_measurements_chart.dart',
     'lib/src/ui/widgets/charts/workout_type_pie_chart.dart',
     'lib/src/ui/widgets/app_drawer.dart',
+    'lib/src/ui/screens/settings_screen.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una
@@ -140,8 +141,15 @@ void main() {
         // `cardColor` e `primaryColor` esistono ancora in `ThemeData` ma il
         // tema del progetto non li imposta: quando funzionano, funzionano per
         // un valore di default, non per una decisione.
+        //
+        // Il criterio guarda `Theme.of(...)`, non un `.primaryColor` qualsiasi:
+        // `ThemeSettings.primaryColor` — il colore d'azione scelto
+        // dall'utente, letto da `themeSettingsNotifierProvider` — porta lo
+        // stesso nome ma non e il campo di `ThemeData` che la storia vuole
+        // fuori da qui.
+        final campoVietato = RegExp(r'Theme\.of\([^)]*\)\.(cardColor|primaryColor)');
         final colpevoli = righeDiCodice(percorso)
-            .where((r) => r.contains('.cardColor') || r.contains('.primaryColor'))
+            .where((r) => campoVietato.hasMatch(r))
             .toList();
 
         expect(
