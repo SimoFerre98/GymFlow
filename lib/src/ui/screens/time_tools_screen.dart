@@ -7,6 +7,7 @@ import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/time_dial.dart';
+import 'package:gymflow/src/ui/widgets/expressive_segmented_control.dart';
 
 class TimeToolsScreen extends ConsumerStatefulWidget {
   const TimeToolsScreen({super.key});
@@ -15,9 +16,9 @@ class TimeToolsScreen extends ConsumerStatefulWidget {
   ConsumerState<TimeToolsScreen> createState() => _TimeToolsScreenState();
 }
 
-class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
+  /// Quale vista e scelta: 0 il cronometro, 1 il recupero.
+  int _selezionata = 0;
 
   /// Il notifier del tempo, catturato dopo il primo frame.
   ///
@@ -29,7 +30,6 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     // Dopo il frame e non subito: modificare un provider mentre l'albero si
     // costruisce solleva un'eccezione, e la schermata diventa rossa.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -41,8 +41,6 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
-
     // L'overlay flottante torna visibile uscendo di qui.
     //
     // In un microtask perche `dispose` gira dentro la stessa fase in cui
@@ -80,55 +78,17 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen>
       drawer: const AppDrawer(), // Persistent Drawer
       body: Column(
         children: [
-          // Styled Pill Tabs
-          Container(
-            height: 50,
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(25),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: Theme.of(context).primaryColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.grey[600],
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-              dividerColor: Colors.transparent,
-              tabs: [
-                Tab(text: loc.t('stopwatch_tab')),
-                Tab(text: loc.t('timer_tab')),
-              ],
+          Padding(
+            padding: EdgeInsets.all(context.expressive.spacing.md),
+            child: ExpressiveSegmentedControl(
+              labels: [loc.t('stopwatch_tab'), loc.t('timer_tab')],
+              selectedIndex: _selezionata,
+              onChanged: (i) => setState(() => _selezionata = i),
             ),
           ),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
+            child: IndexedStack(
+              index: _selezionata,
               children: const [StopwatchView(), TimerView()],
             ),
           ),
@@ -266,7 +226,7 @@ class TimerView extends ConsumerWidget {
       context: context,
       builder: (context) => Container(
         height: 250,
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
         child: CupertinoTimerPicker(
           mode: CupertinoTimerPickerMode.hm,
           initialTimerDuration: service.timerDuration,
