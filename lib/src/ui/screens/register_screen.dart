@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -54,11 +55,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(loc.t('create_account'))),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(t.spacing.xl),
           child: Form(
             key: _formKey,
             child: Column(
@@ -69,50 +72,50 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   loc.t('join_gymflow'),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: scheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: t.spacing.xxl),
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
                         labelText: loc.t('full_name'),
-                    prefixIcon: Icon(Icons.person_outline),
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
                   validator: (value) => value != null && value.isNotEmpty
                       ? null
                       : loc.t('name_required'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: t.spacing.md),
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
                         labelText: loc.t('email_label'),
-                    prefixIcon: Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) => value != null && value.contains('@')
                       ? null
                       : loc.t('invalid_email'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: t.spacing.md),
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
                         labelText: loc.t('password_label'),
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   obscureText: true,
                   validator: (value) => value != null && value.length >= 6
                       ? null
                       : loc.t('password_too_short_min6'),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: t.spacing.xl),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _register,
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? CircularProgressIndicator(color: scheme.onPrimary)
                       : Text(loc.t('signup_btn')),
                 ),
               ],

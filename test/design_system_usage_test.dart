@@ -50,6 +50,9 @@ void main() {
     'lib/src/ui/screens/program_creator_screen.dart',
     'lib/src/ui/screens/connect_friend_screen.dart',
     'lib/src/ui/screens/profile_screen.dart',
+    'lib/src/ui/screens/login_screen.dart',
+    'lib/src/ui/screens/register_screen.dart',
+    'lib/src/ui/screens/exercise_detail_screen.dart',
     // Sono una schermata, non un widget: stanno qui e non fra `schermate`
     // perché non vogliono le due verifiche in fondo al file (la card
     // condivisa, `titleEmphasized`) — nessuna delle due ha un titolo o una

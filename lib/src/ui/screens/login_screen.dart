@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
+import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/register_screen.dart'; // Will create next
 
@@ -49,6 +51,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _resetPassword() async {
     final emailController = TextEditingController();
     final formKey = GlobalKey<FormState>(); // Local key for the dialog form
+    final t = context.expressive;
 
     await showDialog(
       context: context,
@@ -62,7 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 ref.read(localizationNotifierProvider).t('reset_password_hint'),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: t.spacing.md),
               TextFormField(
                 controller: emailController,
                 decoration: InputDecoration(
@@ -94,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(ref.read(localizationNotifierProvider).t('password_reset_sent')),
-                        backgroundColor: Colors.green,
+                        backgroundColor: AppPalette.success,
                       ),
                     );
                   }
@@ -103,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('${ref.read(localizationNotifierProvider).t('error_prefix')}: ${e.toString()}'),
-                        backgroundColor: Colors.red,
+                        backgroundColor: AppPalette.danger,
                       ),
                     );
                   }
@@ -125,11 +128,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // lingua questa schermata resterebbe quella di prima finche qualcos'altro
     // non la ricostruisce. E lo stesso difetto trovato in US-093 sul cronometro.
     final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(t.spacing.xl),
           child: Form(
             key: _formKey,
             child: Column(
@@ -140,11 +145,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   loc.t('login_welcome_back'),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: scheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: t.spacing.xxl),
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
@@ -156,7 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? null
                       : loc.t('invalid_email'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: t.spacing.md),
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
@@ -192,14 +197,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Text(loc.t('forgot_password')),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: t.spacing.xl),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? CircularProgressIndicator(color: scheme.onPrimary)
                       : Text(loc.t('login_btn')),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: t.spacing.md),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
