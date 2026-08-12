@@ -219,12 +219,15 @@ void main() {
           )
           .first,
     );
-    await tester.pumpAndSettle();
+    // Non `pumpAndSettle`: la schermata del tempo porta con se l'atmosfera di
+    // sfondo, che gira in loop apposta e non si ferma mai da sola — e
+    // `pumpAndSettle` aspetterebbe in eterno un fotogramma che non arriva.
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(TimeToolsScreen, skipOffstage: false), findsOneWidget);
 
     c.read(timerNotifierProvider.notifier).resetTimer();
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
   });
 
   testWidgets('col cronometro e il recupero insieme mostra il recupero', (

@@ -91,10 +91,19 @@ class SetValueSlider extends StatelessWidget {
                   horizontal: t.spacing.sm,
                   vertical: t.spacing.xs,
                 ),
-                child: Text(
-                  _text,
-                  style: t.typography.metricSmall?.copyWith(color: accent) ??
-                      TextStyle(color: accent, fontWeight: FontWeight.bold),
+                // «Valore che pulsa»: al cambio si ingrandisce e torna, senza
+                // un messaggio di conferma. Non vira sull'ambra come nel
+                // mockup — qui l'accento puo essere il salmone dello sforzo
+                // percepito, e forzare l'ambra sopra violerebbe la stessa
+                // regola che la riserva alle azioni.
+                child: _ValoreChePulsa(
+                  valore: value,
+                  child: Text(
+                    _text,
+                    style:
+                        t.typography.metricSmall?.copyWith(color: accent) ??
+                        TextStyle(color: accent, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ),
@@ -148,5 +157,66 @@ class SetValueSlider extends StatelessWidget {
     // I decimali del passo si trascinano dietro errori di virgola mobile:
     // 62,499999 invece di 62,5 finirebbe a schermo cosi com'e.
     return double.parse(snapped.toStringAsFixed(3)).clamp(min, max).toDouble();
+  }
+}
+
+/// «Valore che pulsa», dal mockup 03: un balzo di scala al cambio, non un
+/// messaggio. Vale sia per il trascinamento del cursore sia per il dialog di
+/// inserimento diretto — entrambi passano da qui perche entrambi cambiano
+/// [SetValueSlider.value], e questo widget confronta solo quello.
+class _ValoreChePulsa extends StatefulWidget {
+  const _ValoreChePulsa({required this.valore, required this.child});
+
+  final double valore;
+  final Widget child;
+
+  @override
+  State<_ValoreChePulsa> createState() => _ValoreChePulsaState();
+}
+
+class _ValoreChePulsaState extends State<_ValoreChePulsa>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scala;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    // 40% del giro al picco (1,24), come il keyframe del mockup — non un
+    // `Tween` solo, perche il valore deve salire e tornare, non solo salire.
+    _scala = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 1.24).chain(CurveTween(curve: Easing.emphasizedDecelerate)),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.24, end: 1.0).chain(CurveTween(curve: Easing.standard)),
+        weight: 60,
+      ),
+    ]).animate(_controller);
+  }
+
+  @override
+  void didUpdateWidget(_ValoreChePulsa old) {
+    super.didUpdateWidget(old);
+    if (old.valore != widget.valore &&
+        !MediaQuery.of(context).disableAnimations) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(scale: _scala, child: widget.child);
   }
 }

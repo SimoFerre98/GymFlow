@@ -3,11 +3,11 @@
 **I mockup sono la fonte autorevole della grafica.** Stanno in
 [`docs/design/`](design/), sono versionati nel repository, e si aprono in un browser:
 
-| File | Contenuto |
-|---|---|
-| [`01-direzione-visiva.html`](design/01-direzione-visiva.html) | 6 schermate: home, sessione, statistiche, serie in corso, riepilogo, catena delle immagini |
-| [`02-schermate-app.html`](design/02-schermate-app.html) | 9 schermate: libreria, nuovo esercizio, tipi di allenamento, timer, pillola, Now Bar, calendario, obiettivi, impostazioni |
-| [`03-timer-e-movimento.html`](design/03-timer-e-movimento.html) | timer **funzionante**, repertorio delle micro-interazioni, Now Bar |
+| File                                                            | Contenuto                                                                                                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [`01-direzione-visiva.html`](design/01-direzione-visiva.html)   | 6 schermate: home, sessione, statistiche, serie in corso, riepilogo, catena delle immagini                                |
+| [`02-schermate-app.html`](design/02-schermate-app.html)         | 9 schermate: libreria, nuovo esercizio, tipi di allenamento, timer, pillola, Now Bar, calendario, obiettivi, impostazioni |
+| [`03-timer-e-movimento.html`](design/03-timer-e-movimento.html) | timer **funzionante**, repertorio delle micro-interazioni, Now Bar                                                        |
 
 Questo documento è il loro **estratto operativo**: i valori che servono al codice, già convertiti.
 Non sostituisce i mockup — quando c'è un dubbio si apre l'HTML e si guarda.
@@ -19,11 +19,11 @@ Non sostituisce i mockup — quando c'è un dubbio si apre l'HTML e si guarda.
 **I numeri dell'HTML non si copiano.** E il fattore non è nemmeno uno solo: i primi due mockup
 disegnano un telefono da 300 px, il terzo da 340. Verificato nei file, non dedotto.
 
-| Mockup | Telaio | Cornice | Schermo disegnato | Fattore verso 384 dp |
-|---|---|---|---|---|
-| `01-direzione-visiva` | 300 px | 9 px | 282 px | **× 1,36** |
-| `02-schermate-app` | 300 px | 9 px | 282 px | **× 1,36** |
-| `03-timer-e-movimento` | 340 px | 10 px | 320 px | **× 1,20** |
+| Mockup                 | Telaio | Cornice | Schermo disegnato | Fattore verso 384 dp |
+| ---------------------- | ------ | ------- | ----------------- | -------------------- |
+| `01-direzione-visiva`  | 300 px | 9 px    | 282 px            | **× 1,36**           |
+| `02-schermate-app`     | 300 px | 9 px    | 282 px            | **× 1,36**           |
+| `03-timer-e-movimento` | 340 px | 10 px   | 320 px            | **× 1,20**           |
 
 Il telefono reale (S26 Ultra) è **384 dp** di larghezza logica: 1080 px reali diviso 2,8125 di
 densità.
@@ -32,17 +32,17 @@ Chi legge `width: 40px` sulla miniatura e scrive `40` in Flutter la fa **un quar
 com'è disegnata. È l'errore più facile da fare con questi file, ed è il motivo per cui questo
 documento esiste.
 
-| Elemento nel mockup (file 01 e 02, × 1,36) | px | dp | Token |
-|---|---|---|---|
-| Miniatura esercizio | 40 | **54** | `sizing.thumbnailMd` = 56 ✅ |
-| Raggio miniatura | 12 | **16** | `shape.cornerMd` = 16 ✅ |
-| Indicatore video | 13 | **18** | `sizing.badge` = 20, accettabile |
-| Raggio card | 20 | **27** | `shape.cornerLg` = 24, accettabile |
-| Padding card | 12 | **16** | `spacing.md` = 16 — **oggi si usa `lg` = 20** |
-| Raggio riga esercizio | 16 | **22** | fra `cornerMd` e `cornerLg` |
-| Padding riga esercizio | 8 | **11** | `spacing.sm` = 8 o `md` = 16 |
-| Raggio barra di navigazione | 20 | **27** | `cornerLg` |
-| Pillole, pulsanti, chip | 99 | pieno | `cornerFull` ✅ |
+| Elemento nel mockup (file 01 e 02, × 1,36) | px  | dp     | Token                                         |
+| ------------------------------------------ | --- | ------ | --------------------------------------------- |
+| Miniatura esercizio                        | 40  | **54** | `sizing.thumbnailMd` = 56 ✅                  |
+| Raggio miniatura                           | 12  | **16** | `shape.cornerMd` = 16 ✅                      |
+| Indicatore video                           | 13  | **18** | `sizing.badge` = 20, accettabile              |
+| Raggio card                                | 20  | **27** | `shape.cornerLg` = 24, accettabile            |
+| Padding card                               | 12  | **16** | `spacing.md` = 16 — **oggi si usa `lg` = 20** |
+| Raggio riga esercizio                      | 16  | **22** | fra`cornerMd` e `cornerLg`                    |
+| Padding riga esercizio                     | 8   | **11** | `spacing.sm` = 8 o `md` = 16                  |
+| Raggio barra di navigazione                | 20  | **27** | `cornerLg`                                    |
+| Pillole, pulsanti, chip                    | 99  | pieno  | `cornerFull` ✅                               |
 
 ---
 
@@ -50,15 +50,15 @@ documento esiste.
 
 I mockup usano cinque colori del prodotto. Tutti e cinque esistono già in `app_palette.dart`.
 
-| Mockup | Valore | Dove va nel tema | Uso nei mockup |
-|---|---|---|---|
-| `--ink-900` | `#221E3A` | `surfaceContainerLowest` | **Sfondo dello schermo** |
-| `--ink-800` | `#312C51` | `surface`, `surfaceContainer` | Telaio, testo su ambra |
-| `--ink-700` | `#48426D` | `surfaceContainerHigh` | **Fondo delle card e delle righe** |
-| `--ink-600` | `#5A5384` | `outline` | Estremo chiaro dei gradienti |
-| `--amber` | `#F0C38E` | `primary` | Azione, valore in evidenza, elemento selezionato |
-| `--salmon` | `#F1AA9B` | `tertiary` | Dati vitali **e indicatore video** |
-| `--paper` | `#F7F5FB` | `onSurface` | Testo |
+| Mockup      | Valore    | Dove va nel tema              | Uso nei mockup                                   |
+| ----------- | --------- | ----------------------------- | ------------------------------------------------ |
+| `--ink-900` | `#221E3A` | `surfaceContainerLowest`      | **Sfondo dello schermo**                         |
+| `--ink-800` | `#312C51` | `surface`, `surfaceContainer` | Telaio, testo su ambra                           |
+| `--ink-700` | `#48426D` | `surfaceContainerHigh`        | **Fondo delle card e delle righe**               |
+| `--ink-600` | `#5A5384` | `outline`                     | Estremo chiaro dei gradienti                     |
+| `--amber`   | `#F0C38E` | `primary`                     | Azione, valore in evidenza, elemento selezionato |
+| `--salmon`  | `#F1AA9B` | `tertiary`                    | Dati vitali**e indicatore video**                |
+| `--paper`   | `#F7F5FB` | `onSurface`                   | Testo                                            |
 
 ### ⚠️ Le card stanno su `ink-700`, non su `ink-800`
 
@@ -70,9 +70,9 @@ disegnato.
 
 Vale per lo scontrino di US-049, per la card ambra piena e per ogni superficie ambra del mockup.
 
-| Tema | Fondo ambra | Testo sopra |
-|---|---|---|
-| Scuro | `scheme.primary` | `scheme.onPrimary` |
+| Tema       | Fondo ambra                   | Testo sopra                     |
+| ---------- | ----------------------------- | ------------------------------- |
+| Scuro      | `scheme.primary`              | `scheme.onPrimary`              |
 | **Chiaro** | **`scheme.primaryContainer`** | **`scheme.onPrimaryContainer`** |
 
 Nel tema chiaro `primary` è `amberOnLight` `#7A5A2E` — **marrone scuro**, perché l'ambra non regge
@@ -116,6 +116,7 @@ piena) in ambra, salmone o carta. Non sette tinte diverse per regione del corpo.
 `fondo ink-700 · raggio 27dp · padding 16dp · gap 12dp`
 
 Tre varianti:
+
 - **normale**: fondo `ink-700`
 - **piena** (`.card.solid`): fondo **ambra**, testo `ink-800` — «questo è il livello primario»
 - **contornata** (`.card.outline`): trasparente, bordo ambra 1,4px — recupero, record
@@ -148,11 +149,11 @@ la freccia. **Non un `FilledButton` rettangolare.**
 
 ## Movimento (dal mockup 03)
 
-| Curva nel mockup | Token Flutter |
-|---|---|
-| `cubic-bezier(.2,0,0,1)` | `Easing.standard` → `motion.standardCurve` |
-| `cubic-bezier(.05,.7,.1,1)` | `Easing.emphasizedDecelerate` → `motion.emphasizedCurve` |
-| `cubic-bezier(.3,0,.8,.15)` | `Easing.emphasizedAccelerate` → `motion.exit` |
+| Curva nel mockup               | Token Flutter                                             |
+| ------------------------------ | --------------------------------------------------------- |
+| `cubic-bezier(.2,0,0,1)`       | `Easing.standard` → `motion.standardCurve`                |
+| `cubic-bezier(.05,.7,.1,1)`    | `Easing.emphasizedDecelerate` → `motion.emphasizedCurve`  |
+| `cubic-bezier(.3,0,.8,.15)`    | `Easing.emphasizedAccelerate` → `motion.exit`             |
 | `cubic-bezier(.34,1.56,.64,1)` | **elastica, non esiste in `Easing`** — è US-036 (`motor`) |
 
 Micro-interazioni dichiarate:
@@ -165,7 +166,26 @@ Micro-interazioni dichiarate:
    in pausa.
 4. **Cursore che scivola** — nel segmentato l'ambra scorre sotto le etichette (0,48 s, emphasized
    decelerate) e il quadrante vira sul salmone.
-5. **Valore che pulsa** — al cambio si ingrandisce del 24% e vira sull'ambra.
+5. **Valore che pulsa** — al cambio si ingrandisce del 24% e vira sull'ambra. **Non implementato cosi
+   com'e**: il balzo di scala si, il viraggio no — un valore in salmone (sforzo percepito) che
+   virasse sull'ambra userebbe il colore delle azioni per un dato vitale, la stessa confusione che
+   la palette vuole evitare ovunque altro.
+
+### Lo sfondo del timer (`.aura`), mancante finche l'utente non l'ha segnalato il 2026-08-12
+
+Tre masse sfocate (`blur 38px`) che galleggiano lentissime dietro il quadrante — non decorazione fine
+a se stessa: **e la differenza fra "un quadrante su una schermata vuota" e "un'app da palestra"**, ed
+e esattamente cosi che l'utente l'ha descritta mancando. Estratta solo ora perche le prime letture del
+mockup si sono fermate alle micro-interazioni sopra, che sono a schermo (le note del mockup), mentre
+l'atmosfera e nel CSS e non ha una nota propria.
+
+| Massa | Diametro (px → dp, ×1,20) | Colore mockup | Ruolo Flutter | Posizione | Periodo |
+|---|---|---|---|---|---|
+| a1 | 210 → 252 | `rgba(240,195,142,.30)` (ambra) | `scheme.primary` @30% | top:-50→-60, right:-60→-72 | 14s |
+| a2 | 190 → 228 | `rgba(241,170,155,.24)` (salmone) | `scheme.tertiary` @24% | bottom:60→72, left:-70→-84 | 17s |
+| a3 | 150 → 180 | `rgba(90,83,132,.5)` — e `indigo600` | `scheme.outline` @50% | top:44% dell'altezza, right:-50→-60 | 20s, invertito |
+
+Ogni massa si muove avanti e indietro (`0%,100% → 50%`), non in tondo: `AnimationController.repeat(reverse: true)`, un solo controller condiviso per le tre masse invece di tre `Ticker`. Rispetta `MediaQuery.disableAnimations`, letto in `didChangeDependencies` e non in `initState` — la differenza e un errore vero, non stile: `MediaQuery.of` prima che `initState` sia finito lancia un'eccezione.
 
 ---
 

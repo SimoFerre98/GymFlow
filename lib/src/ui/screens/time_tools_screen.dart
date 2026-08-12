@@ -8,6 +8,7 @@ import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/time_dial.dart';
 import 'package:gymflow/src/ui/widgets/expressive_segmented_control.dart';
+import 'package:gymflow/src/ui/widgets/timer_aurora.dart';
 
 class TimeToolsScreen extends ConsumerStatefulWidget {
   const TimeToolsScreen({super.key});
@@ -76,21 +77,29 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
         ),
       ),
       drawer: const AppDrawer(), // Persistent Drawer
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.all(context.expressive.spacing.md),
-            child: ExpressiveSegmentedControl(
-              labels: [loc.t('stopwatch_tab'), loc.t('timer_tab')],
-              selectedIndex: _selezionata,
-              onChanged: (i) => setState(() => _selezionata = i),
-            ),
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: _selezionata,
-              children: const [StopwatchView(), TimerView()],
-            ),
+          // Dietro tutto: «un'app da palestra», non un quadrante su una
+          // schermata vuota. Dal mockup 03, la sezione che l'utente ha
+          // segnalato mancante dopo aver visto l'APK.
+          const Positioned.fill(child: TimerAurora()),
+          Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(context.expressive.spacing.md),
+                child: ExpressiveSegmentedControl(
+                  labels: [loc.t('stopwatch_tab'), loc.t('timer_tab')],
+                  selectedIndex: _selezionata,
+                  onChanged: (i) => setState(() => _selezionata = i),
+                ),
+              ),
+              Expanded(
+                child: IndexedStack(
+                  index: _selezionata,
+                  children: const [StopwatchView(), TimerView()],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -144,6 +153,7 @@ class StopwatchView extends ConsumerWidget {
             etichetta: isRunning
                 ? loc.t('time_running')
                 : (hasTime ? loc.t('time_paused') : loc.t('time_ready')),
+            inCorsa: isRunning,
           ),
         ),
         // I giri, se ce ne sono.
@@ -272,6 +282,7 @@ class TimerView extends ConsumerWidget {
               // Il quadrante del recupero vira sul salmone: il tempo di
               // recupero e un dato del corpo, non un'azione da fare.
               coloreArco: Theme.of(context).colorScheme.tertiary,
+              inCorsa: isRunning,
             ),
           ),
         ),

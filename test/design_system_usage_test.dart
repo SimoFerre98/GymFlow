@@ -35,6 +35,7 @@ void main() {
     'lib/src/ui/widgets/expressive_cta_button.dart',
     'lib/src/ui/widgets/expressive_segmented_control.dart',
     'lib/src/ui/widgets/time_dial.dart',
+    'lib/src/ui/widgets/timer_aurora.dart',
     'lib/src/ui/widgets/charts/activity_chart.dart',
     'lib/src/ui/widgets/charts/body_measurements_chart.dart',
     'lib/src/ui/widgets/charts/workout_type_pie_chart.dart',
