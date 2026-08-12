@@ -163,6 +163,11 @@ class AppDrawer extends ConsumerWidget {
 class _VoceMenu extends StatelessWidget {
   const _VoceMenu({required this.icon, required this.title, required this.onTap});
 
+  /// Il 5% in meno di `spacing.md` (16): l'utente ha chiesto righe un po piu
+  /// compatte nel cassetto, a icona e testo invariati — solo lo spazio
+  /// intorno si stringe.
+  static const double _paddingVerticale = 15;
+
   final IconData icon;
   final String title;
   final VoidCallback onTap;
@@ -174,6 +179,10 @@ class _VoceMenu extends StatelessWidget {
 
     return ExpressiveCard(
       onTap: onTap,
+      padding: EdgeInsets.symmetric(
+        horizontal: t.spacing.md,
+        vertical: _paddingVerticale,
+      ),
       child: Row(
         children: [
           Container(

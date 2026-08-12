@@ -65,7 +65,14 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
     final loc = ref.watch(localizationNotifierProvider);
 
     return Scaffold(
+      // L'atmosfera deve coprire tutto lo schermo, non fermarsi dove inizia
+      // l'intestazione: l'utente l'ha segnalato guardando l'APK. La barra
+      // resta trasparente sopra di lei invece di tagliarla.
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           loc.t('stopwatch_menu'),
         ), // Using general stopwatch_menu key or specific title
@@ -83,23 +90,29 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
           // schermata vuota. Dal mockup 03, la sezione che l'utente ha
           // segnalato mancante dopo aver visto l'APK.
           const Positioned.fill(child: TimerAurora()),
-          Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(context.expressive.spacing.md),
-                child: ExpressiveSegmentedControl(
-                  labels: [loc.t('stopwatch_tab'), loc.t('timer_tab')],
-                  selectedIndex: _selezionata,
-                  onChanged: (i) => setState(() => _selezionata = i),
+          // `SafeArea` qui e non genericamente sul contenuto: con
+          // `extendBodyBehindAppBar` e' lei che sa quanto spazio occupa la
+          // barra trasparente sopra, e sposta la Column sotto — l'atmosfera
+          // resta visibile anche dietro la barra, il contenuto no.
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(context.expressive.spacing.md),
+                  child: ExpressiveSegmentedControl(
+                    labels: [loc.t('stopwatch_tab'), loc.t('timer_tab')],
+                    selectedIndex: _selezionata,
+                    onChanged: (i) => setState(() => _selezionata = i),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: IndexedStack(
-                  index: _selezionata,
-                  children: const [StopwatchView(), TimerView()],
+                Expanded(
+                  child: IndexedStack(
+                    index: _selezionata,
+                    children: const [StopwatchView(), TimerView()],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

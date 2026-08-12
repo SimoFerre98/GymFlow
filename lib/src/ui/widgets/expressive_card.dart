@@ -26,6 +26,7 @@ class ExpressiveCard extends StatelessWidget {
     required this.child,
     this.title,
     this.onTap,
+    this.padding,
   });
 
   final Widget child;
@@ -36,6 +37,11 @@ class ExpressiveCard extends StatelessWidget {
   /// Azione al tocco. Nulla rende la card non toccabile, senza onda ne
   /// reazione.
   final VoidCallback? onTap;
+
+  /// Spaziatura interna. Assente, `spacing.md` su tutti i lati — il valore di
+  /// sempre. Esiste per le righe compatte (il cassetto) che vogliono restare
+  /// la stessa card, non un'altra decorazione scritta a mano.
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +66,7 @@ class ExpressiveCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: t.shape.cornerLg,
           child: Padding(
-            padding: EdgeInsets.all(t.spacing.md),
+            padding: padding ?? EdgeInsets.all(t.spacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

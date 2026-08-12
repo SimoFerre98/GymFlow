@@ -161,6 +161,10 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
+        // Il 5% in meno dei 56 dp standard: l'utente lo ha chiesto per
+        // alleggerire l'intestazione, hamburger compreso, senza toccare
+        // dimensione di icona o testo — solo lo spazio intorno.
+        toolbarHeight: kToolbarHeight * 0.95,
         iconTheme: IconThemeData(color: scheme.onSurface),
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w800,
