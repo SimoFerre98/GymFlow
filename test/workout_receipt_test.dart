@@ -106,6 +106,45 @@ void main() {
 
       expect(find.text('12 / 18'), findsOneWidget);
     });
+
+    testWidgets('elenca gli esercizi con le serie finite sul totale', (tester) async {
+      final summary = WorkoutSummary(
+        workoutName: 'Spinte',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 48),
+        totalVolume: 4240,
+        completedSets: 18,
+        totalSets: 18,
+        exercises: const [
+          ExerciseLine(name: 'Panca piana', completedSets: 4, totalSets: 4),
+          ExerciseLine(name: 'Croci manubri', completedSets: 3, totalSets: 3),
+        ],
+      );
+
+      await tester.pumpWidget(createReceiptWidget(summary: summary));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Panca piana'), findsOneWidget);
+      expect(find.text('4/4'), findsOneWidget);
+      expect(find.text('Croci manubri'), findsOneWidget);
+      expect(find.text('3/3'), findsOneWidget);
+    });
+
+    testWidgets('senza esercizi, la sezione dell elenco non compare', (tester) async {
+      final summary = WorkoutSummary(
+        workoutName: 'Spinte',
+        startTime: DateTime(2026, 8, 6, 10, 0),
+        endTime: DateTime(2026, 8, 6, 10, 48),
+        totalVolume: 4240,
+        completedSets: 18,
+        totalSets: 18,
+      );
+
+      await tester.pumpWidget(createReceiptWidget(summary: summary));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ESERCIZI'), findsNothing);
+    });
   });
 
   group('ReceiptClipper', () {

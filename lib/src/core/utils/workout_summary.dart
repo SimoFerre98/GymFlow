@@ -1,5 +1,24 @@
 import '../../models/session.dart';
 
+/// Un esercizio della sessione, con quante serie sono finite sul totale.
+///
+/// Non porta pesi o ripetizioni: fino a US-083 una serie pianificata non ha
+/// un formato unico da riassumere in una riga (a cedimento, per lato, a
+/// piramide), e un numero sbagliato sullo scontrino sarebbe peggio di non
+/// mostrarlo. Il conteggio delle serie invece e sempre corretto, per ogni
+/// tipo di esercizio.
+class ExerciseLine {
+  const ExerciseLine({
+    required this.name,
+    required this.completedSets,
+    required this.totalSets,
+  });
+
+  final String name;
+  final int completedSets;
+  final int totalSets;
+}
+
 /// Dati aggregati di una sessione di allenamento per la schermata di riepilogo.
 ///
 /// Calcola volume totale, serie completate su totale, sforzo medio (RPE),
@@ -15,6 +34,7 @@ class WorkoutSummary {
     this.averageRpe,
     this.calories,
     this.avgHeartRate,
+    this.exercises = const [],
   });
 
   final String workoutName;
@@ -26,6 +46,11 @@ class WorkoutSummary {
   final double? averageRpe;
   final int? calories;
   final int? avgHeartRate;
+
+  /// Gli esercizi della sessione, nell'ordine in cui sono stati eseguiti —
+  /// l'elenco che fa riconoscere l'allenamento sullo scontrino, non solo
+  /// quattro numeri aggregati.
+  final List<ExerciseLine> exercises;
 
   /// Durata in minuti dell'allenamento.
   int get durationMinutes {
@@ -54,11 +79,15 @@ class WorkoutSummary {
     double setCaloriesSum = 0;
     bool hasSetCalories = false;
 
+    final exerciseLines = <ExerciseLine>[];
+
     for (final exercise in session.exercises) {
+      var completedPerEsercizio = 0;
       for (final set in exercise.sets) {
         total++;
         if (set.isCompleted) {
           completed++;
+          completedPerEsercizio++;
           if (set.weight > 0 && set.reps > 0) {
             // In `double` e arrotondato una volta sola alla fine: con `toInt()`
             // a ogni serie, 62,5 kg per 7 diventava 437 invece di 437,5. Con il
@@ -75,6 +104,15 @@ class WorkoutSummary {
           setCaloriesSum += set.calories!;
           hasSetCalories = true;
         }
+      }
+      if (exercise.sets.isNotEmpty) {
+        exerciseLines.add(
+          ExerciseLine(
+            name: exercise.exerciseName,
+            completedSets: completedPerEsercizio,
+            totalSets: exercise.sets.length,
+          ),
+        );
       }
     }
 
@@ -97,6 +135,7 @@ class WorkoutSummary {
               : null,
       avgHeartRate:
           (avgHeartRate != null && avgHeartRate > 0) ? avgHeartRate : null,
+      exercises: exerciseLines,
     );
   }
 }

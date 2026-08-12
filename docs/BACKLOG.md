@@ -3128,10 +3128,12 @@ così da non rispondere due volte alla stessa domanda prima di vedere il riepilo
 #### US-108: Lo scontrino racconta l'allenamento
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
-**Depends on:** US-049 (✅), US-107 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Depends on:** US-049 (✅), US-107 (🟡) | **Blocks:** —  _(nessuna)_
+**Status:** 🟡 IN CORSO — implementata il 2026-08-12, resta la conferma sull'APK
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11**: lo scontrino è «molto carino» ma povero. «Forse aggiungerei altre informazioni dentro per renderlo più corposo.»
+>
+> **La decisione presa** (primo criterio di questa storia): un elenco degli esercizi fatti, come le righe di un vero scontrino, sopra le metriche aggregate che c'erano già. **Solo il conteggio delle serie finite sul totale** ("4/4"), non pesi o ripetizioni — fino a US-083 una serie pianificata non ha un formato unico da riassumere in una riga (a cedimento, per lato, a piramide), e un numero sbagliato sullo scontrino sarebbe peggio di non mostrarlo. I record personali erano già mostrati (card separate sotto lo scontrino, da prima di questa storia): non duplicati.
 
 **Story**
 Come atleta che guarda il riepilogo di quello che ha appena fatto,
@@ -3139,10 +3141,10 @@ voglio trovarci abbastanza da riconoscere l'allenamento,
 così da avere qualcosa da guardare invece di quattro numeri.
 
 **Acceptance Criteria**
-- [ ] Cosa aggiungere è deciso prima di scrivere codice, e scritto
-- [ ] Ogni numero mostrato viene da un dato vero: **nessun valore d'esempio**
-- [ ] Se un dato manca, la riga non compare invece di mostrare zero
-- [ ] Il bordo dentellato e la forma restano quelli di US-049
+- [x] Cosa aggiungere è deciso prima di scrivere codice, e scritto — l'elenco degli esercizi, sopra
+- [x] Ogni numero mostrato viene da un dato vero: **nessun valore d'esempio** — `WorkoutSummary.of` calcola `ExerciseLine` dalle serie vere della sessione, un test lo verifica
+- [x] Se un dato manca, la riga non compare invece di mostrare zero — un esercizio senza serie non entra nell'elenco; l'intera sezione non compare se l'elenco è vuoto
+- [x] Il bordo dentellato e la forma restano quelli di US-049 — `ReceiptClipper` non toccato
 - [ ] **Da confermare sull'APK**
 
 ---

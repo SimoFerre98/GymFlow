@@ -220,6 +220,61 @@ class WorkoutReceipt extends ConsumerWidget {
             ),
             SizedBox(height: t.spacing.sm),
             _ReceiptDashedDivider(color: dividerColor),
+
+            // Elenco degli esercizi: e quello che fa riconoscere
+            // l'allenamento sullo scontrino, non solo quattro numeri
+            // aggregati — segnalato dall'utente come "scontrino povero".
+            // Solo le serie finite sul totale, non pesi o ripetizioni: fino
+            // a US-083 una serie pianificata non ha un formato solo da
+            // riassumere in una riga, e un numero sbagliato qui sarebbe
+            // peggio di non mostrarlo.
+            if (summary.exercises.isNotEmpty) ...[
+              SizedBox(height: t.spacing.xs),
+              Text(
+                loc.t('workout_receipt_exercises'),
+                style: (theme.textTheme.labelSmall ?? const TextStyle())
+                    .copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      color: inkColor.withValues(alpha: 0.62),
+                    ),
+              ),
+              for (final esercizio in summary.exercises)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: t.spacing.xs / 2),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          esercizio.name,
+                          style: (theme.textTheme.bodySmall ??
+                                  const TextStyle())
+                              .copyWith(color: inkColor.withValues(alpha: 0.85)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${esercizio.completedSets}/${esercizio.totalSets}',
+                        style: (t.typography.metricSmall ?? const TextStyle())
+                            .copyWith(
+                              fontSize: theme.textTheme.bodySmall?.fontSize,
+                              fontWeight: FontWeight.w700,
+                              color: inkColor,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              SizedBox(height: t.spacing.xs),
+              _ReceiptDashedDivider(color: dividerColor),
+            ],
             SizedBox(height: t.spacing.xs),
 
             // Righe di riepilogo con separatori tratteggiati

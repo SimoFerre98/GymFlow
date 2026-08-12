@@ -54,6 +54,43 @@ void main() {
       expect(summary.averageRpe, closeTo(7.5, 0.01));
       expect(summary.calories, 412);
       expect(summary.avgHeartRate, 131);
+
+      expect(summary.exercises, hasLength(2));
+      expect(summary.exercises[0].name, 'Panca piana');
+      expect(summary.exercises[0].completedSets, 2);
+      expect(summary.exercises[0].totalSets, 2);
+      expect(summary.exercises[1].name, 'Croci manubri');
+      expect(summary.exercises[1].completedSets, 1);
+      expect(summary.exercises[1].totalSets, 1);
+    });
+
+    test('l elenco degli esercizi conta le serie finite sul totale, non pesi e ripetizioni', () {
+      final session = WorkoutSession(
+        id: 's8',
+        userId: 'u1',
+        workoutTemplateId: 't1',
+        workoutName: 'Mista',
+        startTime: DateTime.now(),
+        exercises: [
+          WorkoutExercise(
+            exerciseId: 'e1',
+            exerciseName: 'Squat',
+            sets: [
+              WorkoutSet(weight: 80, reps: 8, isCompleted: true),
+              WorkoutSet(weight: 80, reps: 8, isCompleted: false),
+            ],
+          ),
+          // Un esercizio senza serie non compare: non c e niente da contare.
+          WorkoutExercise(exerciseId: 'e2', exerciseName: 'Vuoto', sets: []),
+        ],
+      );
+
+      final summary = WorkoutSummary.of(session);
+
+      expect(summary.exercises, hasLength(1));
+      expect(summary.exercises[0].name, 'Squat');
+      expect(summary.exercises[0].completedSets, 1);
+      expect(summary.exercises[0].totalSets, 2);
     });
 
     test('interrompendo a meta, le serie non completate non entrano nel volume ma sono nel totale', () {
@@ -243,6 +280,7 @@ void main() {
       expect(summary.calories, isNull);
       expect(summary.avgHeartRate, isNull);
       expect(summary.durationMinutes, 0);
+      expect(summary.exercises, isEmpty);
     });
   });
 }
