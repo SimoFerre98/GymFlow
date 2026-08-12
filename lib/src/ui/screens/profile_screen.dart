@@ -73,7 +73,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    // Un ritratto non ha bisogno della risoluzione della foto originale: senza
+    // un limite, una foto di un telefono recente pesa diversi MB e va tutta
+    // su Storage, che sul piano gratuito ha un tetto di 5 GB totali condiviso
+    // da tutti gli utenti. 1024 px e qualita 85 restano nitidi su un ritratto
+    // e riducono il peso di un ordine di grandezza.
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
 
     if (pickedFile != null) {
       setState(() {
@@ -111,11 +121,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     // 1. Upload Image if new one selected
     if (_imageFile != null) {
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      // Nome fisso per utente, non un timestamp: chi cambia foto dieci volte
+      // sovrascrive lo stesso file invece di lasciarne nove abbandonati su
+      // Storage. Senza, i 5 GB del piano gratuito si consumano da soli con
+      // l'uso normale — nessuno li libera mai perche nessuno li cancella.
       final ref = FirebaseStorage.instance
           .ref()
           .child('user_avatars')
-          .child('${_profile!.id}_$timestamp.jpg');
+          .child('${_profile!.id}.jpg');
 
       try {
         debugPrint('Starting upload to ${ref.fullPath}');
@@ -134,6 +147,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         debugPrint('Getting download URL');
         photoUrl = await ref.getDownloadURL();
         debugPrint('Got URL: $photoUrl');
+        // Il nome del file non cambia piu tra un salvataggio e il successivo,
+        // quindi neanche l'URL: senza svuotare la cache delle immagini, la
+        // vecchia foto resterebbe a schermo finche l'app non riparte.
+        if (mounted) {
+          await NetworkImage(photoUrl).evict();
+        }
       } catch (e) {
         debugPrint('Error in getDownloadURL: $e');
         if (mounted) {
