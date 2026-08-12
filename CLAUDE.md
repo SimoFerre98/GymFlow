@@ -131,7 +131,7 @@ Debito noto e già tracciato — non aprire storie nuove per queste, esistono gi
 | Istanziazioni dirette dei servizi nelle schermate — le tre principali sono a posto da US-008 | ~~US-008~~ ✅, US-009 |
 | ~~Regole Firestore non versionate~~ | US-018 ✅ |
 | 6 avvisi dell'analyzer (i typedef deprecati dei provider), e nessuno e rumore | ~~US-030~~ ✅, US-102 |
-| Ticker del timer sempre attivo a 30 ms | US-013 |
+| ~~Ticker del timer sempre attivo a 30 ms~~ | US-013 ✅ |
 | Limite `whereIn` a 10 non gestito | US-019, US-020 |
 
 **Debito visibile a schermo, risolto**: l'app è diventata scura con US-034, e per un periodo le schermate hanno tenuto `Colors.grey[...]` ereditati dal fondo chiaro — testi secondari sbiaditi. US-022 e US-023 (quest'ultima chiusa il 2026-08-11) li hanno tolti da tutto `lib/src/ui`: se l'utente lo segnala ancora, è una regressione da guardare, non questo debito noto.

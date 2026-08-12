@@ -3083,9 +3083,11 @@ così da sapere che sto chiudendo il riepilogo e non altro.
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 IN CORSO — implementata il 2026-08-11 (`a50e825`), resta solo la conferma sull'APK
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11 provando l'APK**: «quando finisco un esercizio rimane sempre in corso».
+>
+> **Trovata già risolta il 2026-08-12**, non da questa sessione: `esercizioFinito(WorkoutExercise)` in `active_session_screen.dart:65-68` confronta `esercizio.sets.every((serie) => serie.isCompleted)`, e il nome dell'esercizio prende il taglio e l'icona di spunta quando e vero (righe 411-434). `test/esercizio_finito_test.dart` cita alla lettera la segnalazione dell'utente e copre tutto/parziale/niente/serie vuote. Il backlog era rimasto `TODO` dopo che il codice era già stato scritto — non un difetto residuo, solo una chiusura mancata.
 
 **Story**
 Come atleta che ha completato tutte le serie di un esercizio,
@@ -3093,10 +3095,10 @@ voglio vederlo segnato come finito,
 così da sapere a colpo d'occhio a che punto sono dell'allenamento.
 
 **Acceptance Criteria**
-- [ ] Completate tutte le serie, l'esercizio non è più «in corso»
-- [ ] Lo stato si vede senza aprire l'esercizio
-- [ ] Togliendo la spunta a una serie l'esercizio torna in corso
-- [ ] **Da confermare sull'APK**
+- [x] Completate tutte le serie, l'esercizio non è più «in corso»
+- [x] Lo stato si vede senza aprire l'esercizio
+- [x] Togliendo la spunta a una serie l'esercizio torna in corso — `esercizioFinito` si ricalcola a ogni `build`, non è cache
+- [ ] **Da confermare sull'APK**: nessuno l'ha guardato su un dispositivo dopo `a50e825`
 
 ---
 
@@ -3104,9 +3106,11 @@ così da sapere a colpo d'occhio a che punto sono dell'allenamento.
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 IN CORSO — implementata il 2026-08-11 (`a50e825`), resta solo la conferma sull'APK
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11**: «la fase per terminare chiede più volte le stesse cose».
+>
+> **Stesso commit di US-106**, e il titolo del commit lo dice quasi alla lettera: «La chiusura chiede una cosa sola». Il dialogo terminava con tre domande — un selettore di data che non faceva niente (il valore scelto veniva scartato, il commento nel codice lo ammetteva), poi un secondo selettore di data, poi quello dell'ora, con l'ora finita in una variabile che nessuno leggeva. Ora l'allenamento finisce **adesso** per il caso frequente, deducendolo senza chiedere; chi registra un allenamento di un altro giorno tocca «altra data» e solo allora data e ora vengono chieste, una volta ciascuna.
 
 **Story**
 Come atleta che ha finito di allenarsi ed è stanco,
@@ -3114,10 +3118,10 @@ voglio confermare la chiusura una volta,
 così da non rispondere due volte alla stessa domanda prima di vedere il riepilogo.
 
 **Acceptance Criteria**
-- [ ] Il percorso di chiusura è enumerato: ogni domanda posta, e perché
-- [ ] Nessun dato viene chiesto due volte
-- [ ] Ciò che si può dedurre non viene chiesto
-- [ ] **Da confermare sull'APK**: dal «Termina» al riepilogo si passa da un numero di schermate dichiarato
+- [x] Il percorso di chiusura è enumerato: «Termina» → adesso (default, nessuna domanda) o «altra data» → data, poi ora
+- [x] Nessun dato viene chiesto due volte — il doppio selettore di data era il difetto stesso
+- [x] Ciò che si può dedurre (l'orario di chiusura, nel caso frequente) non viene chiesto
+- [ ] **Da confermare sull'APK**: dal «Termina» al riepilogo, nessuno l'ha contato di nuovo su un dispositivo dopo `a50e825`
 
 ---
 
