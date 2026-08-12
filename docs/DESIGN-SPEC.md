@@ -187,6 +187,24 @@ l'atmosfera e nel CSS e non ha una nota propria.
 
 Ogni massa si muove avanti e indietro (`0%,100% → 50%`), non in tondo: `AnimationController.repeat(reverse: true)`, un solo controller condiviso per le tre masse invece di tre `Ticker`. Rispetta `MediaQuery.disableAnimations`, letto in `didChangeDependencies` e non in `initState` — la differenza e un errore vero, non stile: `MediaQuery.of` prima che `initState` sia finito lancia un'eccezione.
 
+### Il repertorio del movimento, fuori dal cronometro
+
+La seconda galleria del mockup 03 («Il repertorio del movimento») elenca quattro pattern pensati per
+tutta l'app, non solo per il timer. Due sono nel codice, due non lo sono ancora:
+
+- [x] **Forma che muta** — e il pulsante primario di `TimeControls`, gia in `time_dial.dart`.
+- [x] **Gruppo di pulsanti** — icone che si solleva e si arrotonda una alla volta al tocco (il
+  mockup lo scrive per `:hover`, che sul telefono non esiste: l'equivalente e la pressione).
+  `LiftingIconButton`, applicato per ora al cestino della lista esercizi in
+  `workout_creator_screen.dart`. Il colore da premuto resta nella famiglia semantica del pulsante —
+  il cestino usa un rosso piu tenue, non l'ambra, perche cancellare non e "cosa fare adesso".
+- [ ] **Carte sovrapposte** — tre schede che si aprono a ventaglio al tocco. **Non implementata**:
+  non ha ancora un punto d'uso naturale nell'app. Il filtro per gruppo muscolare della libreria
+  esercizi (`exercise_library_screen.dart`) sembra il candidato piu vicino, ma e semanticamente
+  diverso — un filtro multi-selezione deve mostrare tutte le voci insieme, non nasconderne due
+  dietro un tocco. Da riconsiderare quando (se) arriva una schermata con davvero tre voci correlate
+  da svelare, non da filtrare.
+
 ---
 
 ## Cosa nei mockup non è ancora nel backlog come dettaglio

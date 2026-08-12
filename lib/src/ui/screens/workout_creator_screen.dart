@@ -10,6 +10,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
+import 'package:gymflow/src/ui/widgets/lifting_icon_button.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 
 class WorkoutCreatorScreen extends ConsumerStatefulWidget {
@@ -686,13 +687,18 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.delete_outline,
-                                      color: AppPalette.danger,
-                                      size: t.sizing.iconMd,
-                                    ),
-                                    onPressed: () {
+                                  LiftingIconButton(
+                                    icon: Icons.delete_outline,
+                                    color: AppPalette.danger,
+                                    // Resta nella sua famiglia di significato
+                                    // anche premuto: un rosso piu tenue, non
+                                    // l'ambra delle azioni — cancellare non e
+                                    // "cosa fare adesso" nel senso della
+                                    // palette, e' distruttivo.
+                                    pressedColor: AppPalette.danger
+                                        .withValues(alpha: 0.7),
+                                    semanticLabel: loc.t('delete'),
+                                    onTap: () {
                                       setState(
                                         () => _exercises.removeAt(index),
                                       );
