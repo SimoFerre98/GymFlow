@@ -6,6 +6,7 @@ import '../../core/providers/localization_provider.dart';
 import '../../core/theme/expressive_tokens.dart';
 import '../../core/utils/personal_record.dart';
 import '../../core/utils/workout_summary.dart';
+import '../../core/providers/goals_provider.dart';
 import '../../models/session.dart';
 import '../widgets/workout_receipt.dart';
 
@@ -82,6 +83,12 @@ class WorkoutSummaryScreen extends ConsumerWidget {
           session: session,
           allSessions: ref.watch(dashboardSessionsProvider).value ?? [],
         );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(userGoalsNotifierProvider.notifier)
+          .updateProgressFromSessions([session]);
+    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

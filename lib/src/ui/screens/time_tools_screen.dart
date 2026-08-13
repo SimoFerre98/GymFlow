@@ -299,19 +299,25 @@ class TimerView extends ConsumerWidget {
             ),
           ),
         ),
-        // I tempi pronti, come le pillole del mockup.
+        // I tempi pronti o le regolazioni rapide se in corso.
         Padding(
           padding: EdgeInsets.symmetric(
             horizontal: context.expressive.spacing.lg,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildPresetButton(service, durata, 1, isRunning),
-              _buildPresetButton(service, durata, 2, isRunning),
-              _buildPresetButton(service, durata, 3, isRunning),
-              _buildPresetButton(service, durata, 5, isRunning),
-            ],
+            children: isRunning
+                ? [
+                    _buildAdjustmentButton(context, service, -15, '-15s'),
+                    _buildAdjustmentButton(context, service, 30, '+30s'),
+                    _buildAdjustmentButton(context, service, 60, '+1m'),
+                  ]
+                : [
+                    _buildPresetButton(service, durata, 1, isRunning),
+                    _buildPresetButton(service, durata, 2, isRunning),
+                    _buildPresetButton(service, durata, 3, isRunning),
+                    _buildPresetButton(service, durata, 5, isRunning),
+                  ],
           ),
         ),
         Padding(
@@ -367,6 +373,31 @@ class TimerView extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAdjustmentButton(
+    BuildContext context,
+    TimerNotifier service,
+    int deltaSeconds,
+    String label,
+  ) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
+      child: OutlinedButton(
+        onPressed: () => service.addTimerSeconds(deltaSeconds),
+        style: OutlinedButton.styleFrom(
+          shape: const StadiumBorder(),
+          foregroundColor: scheme.primary,
+          padding: EdgeInsets.symmetric(
+            horizontal: t.spacing.md,
+            vertical: t.spacing.sm,
+          ),
+        ),
+        child: Text(label),
+      ),
     );
   }
 }

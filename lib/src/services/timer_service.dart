@@ -394,6 +394,33 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     await servizioTimer.avvia(orarioFine);
   }
 
+  void startTimerWithDuration(Duration d) {
+    _timerEndsAt = DateTime.now().add(d);
+    state = state.copyWith(
+      timerDuration: d,
+      timerRemaining: d,
+      isTimerRunning: true,
+    );
+    unawaited(_avviaServizioSeConsentito(_timerEndsAt!));
+    _syncTicker();
+  }
+
+  void addTimerSeconds(int seconds) {
+    final newRemaining = state.timerRemaining + Duration(seconds: seconds);
+    final clamped = newRemaining.isNegative ? Duration.zero : newRemaining;
+
+    if (clamped == Duration.zero) {
+      resetTimer();
+      return;
+    }
+
+    if (state.isTimerRunning) {
+      _timerEndsAt = DateTime.now().add(clamped);
+      unawaited(_avviaServizioSeConsentito(_timerEndsAt!));
+    }
+    state = state.copyWith(timerRemaining: clamped);
+  }
+
   void resetTimer() {
     _timerEndsAt = null;
     state = state.copyWith(

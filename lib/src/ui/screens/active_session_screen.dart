@@ -678,10 +678,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
 
     if (restSeconds > 0) {
       final timerNotifier = ref.read(timerNotifierProvider.notifier);
-      timerNotifier.setTimerDuration(Duration(seconds: restSeconds));
-      if (!timerNotifier.isTimerRunning) {
-        timerNotifier.toggleTimer();
-      }
+      timerNotifier.startTimerWithDuration(Duration(seconds: restSeconds));
     }
   }
 

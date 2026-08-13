@@ -14,7 +14,9 @@ import '../widgets/exercise_row.dart';
 import '../../models/exercise.dart';
 import '../../core/providers/exercise_provider.dart';
 import '../../core/providers/active_session_provider.dart';
+import '../../core/providers/goals_provider.dart';
 import '../../models/session.dart';
+import 'goals_screen.dart';
 
 class DashboardScreen extends riverpod.ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -343,6 +345,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                         locExercises: loc.t('home_exercises'),
                         locExerciseOne: loc.t('home_exercise_one'),
                       ),
+                      _buildGoalsSummaryCard(context, loc),
                       SizedBox(height: context.expressive.spacing.xl),
                       Text(
                         loc.t('home_today_in_workout'),
@@ -561,6 +564,64 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoalsSummaryCard(BuildContext context, Localization loc) {
+    final goals = ref.watch(userGoalsNotifierProvider);
+    final achieved = goals.where((g) => g.isAchieved).length;
+    final total = goals.length;
+
+    return Padding(
+      padding: EdgeInsets.only(top: context.expressive.spacing.lg),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const GoalsScreen()),
+          );
+        },
+        borderRadius: context.expressive.shape.cornerLg,
+        child: Container(
+          padding: EdgeInsets.all(context.expressive.spacing.md),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            borderRadius: context.expressive.shape.cornerLg,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.emoji_events_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: context.expressive.sizing.iconLg,
+              ),
+              SizedBox(width: context.expressive.spacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      loc.t('goals_card_title'),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      '$achieved / $total ${loc.t('goals_achieved')}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );
