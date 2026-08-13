@@ -68,6 +68,7 @@ class SetValueSlider extends StatelessWidget {
     // lavora a scatti, quindi il conteggio delle divisioni parte dal minimo.
     final divisions = ((max - min) / step).round().clamp(1, 100000);
     final clamped = value.clamp(min, max);
+    final sliderValue = _snap(clamped);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -128,7 +129,7 @@ class SetValueSlider extends StatelessWidget {
                 inactiveTickMarkColor: scheme.outline.withValues(alpha: 0.4),
               ),
               child: Slider(
-                value: clamped.toDouble(),
+                value: sliderValue,
                 min: min,
                 max: max,
                 divisions: divisions,

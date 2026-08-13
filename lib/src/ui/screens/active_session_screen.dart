@@ -55,6 +55,8 @@ bool startSetTimer(TimerNotifier notifier, int? seconds) {
 /// Come si chiude un allenamento: adesso, in un altro momento, o non si chiude.
 enum _FineAllenamento { adesso, altraData, annulla }
 
+enum _ExitAction { discard, keepActive }
+
 /// Un esercizio e finito quando **tutte** le sue serie sono spuntate.
 ///
 /// Un esercizio senza serie non e finito: non e stato fatto niente, e mostrarlo
@@ -312,13 +314,16 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     );
 
     // Fire and forget save
-    final service = FirestoreService();
-    await service.saveSession(session);
-    ref.read(activeSessionNotifierProvider.notifier).endSession();
+    try {
+      final service = FirestoreService();
+      await service.saveSession(session);
 
-    // If this was a scheduled workout, remove the schedule now that it's done
-    if (widget.scheduledWorkoutId != null) {
-      await service.deleteScheduledWorkout(widget.scheduledWorkoutId!);
+      // If this was a scheduled workout, remove the schedule now that it's done
+      if (widget.scheduledWorkoutId != null) {
+        await service.deleteScheduledWorkout(widget.scheduledWorkoutId!);
+      }
+    } finally {
+      ref.read(activeSessionNotifierProvider.notifier).endSession();
     }
 
     if (mounted) {
@@ -327,6 +332,38 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           builder: (context) => WorkoutSummaryScreen(session: session),
         ),
       );
+    }
+  }
+
+  Future<void> _confirmExitSession(BuildContext context) async {
+    final loc = ref.read(localizationNotifierProvider);
+    final navigator = Navigator.of(context);
+    final action = await showDialog<_ExitAction>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.t('workout_in_progress_title')),
+        content: Text(loc.t('workout_in_progress_body')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, _ExitAction.discard),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(loc.t('discard_workout')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, _ExitAction.keepActive),
+            child: Text(loc.t('keep_in_background')),
+          ),
+        ],
+      ),
+    );
+
+    if (action == _ExitAction.discard) {
+      ref.read(activeSessionNotifierProvider.notifier).endSession();
+      navigator.pop();
+    } else if (action == _ExitAction.keepActive) {
+      navigator.pop();
     }
   }
 
@@ -343,15 +380,25 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     // dashboard, restando montata sotto, lo tiene gia caldo.
     ref.watch(personalBestsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.workout.name,
-          style: expressive.typography.titleEmphasized,
-        ),
-        centerTitle: true,
-        leading: BackPill(label: loc.t('cancel')),
-        leadingWidth: BackPill.leadingWidth,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _confirmExitSession(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.workout.name,
+            style: expressive.typography.titleEmphasized,
+          ),
+          centerTitle: true,
+          leading: BackPill(
+            label: loc.t('cancel'),
+            onTap: () => _confirmExitSession(context),
+          ),
+          leadingWidth: BackPill.leadingWidth,
         actions: [
           _isSaving
               ? Padding(
@@ -520,8 +567,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   // Helper to build the table based on type
   Widget _buildExerciseTable(

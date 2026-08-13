@@ -6,6 +6,7 @@ import '../../core/providers/localization_provider.dart';
 import '../../core/theme/expressive_tokens.dart';
 import '../../core/utils/personal_record.dart';
 import '../../models/workout.dart';
+import 'expressive_cta_button.dart';
 import 'set_value_slider.dart';
 
 /// Quanto vale una serie, deciso trascinando.
@@ -145,28 +146,97 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
 
     final result = await showDialog<double>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.numberWithOptions(decimal: decimals),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-          ],
-          onSubmitted: (raw) => Navigator.pop(ctx, _parse(raw)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(loc.t('cancel')),
+      builder: (ctx) {
+        final t = ctx.expressive;
+        final scheme = Theme.of(ctx).colorScheme;
+
+        return Dialog(
+          backgroundColor: scheme.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(borderRadius: t.shape.cornerLg),
+          child: Padding(
+            padding: EdgeInsets.all(t.spacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title.toUpperCase(),
+                      style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: t.spacing.md),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: t.spacing.md,
+                    vertical: t.spacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLowest,
+                    borderRadius: t.shape.cornerMd,
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: controller,
+                    autofocus: true,
+                    style: t.typography.metricLarge?.copyWith(
+                          color: scheme.primary,
+                        ) ??
+                        Theme.of(ctx).textTheme.headlineMedium?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.numberWithOptions(decimal: decimals),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                    ],
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onSubmitted: (raw) => Navigator.pop(ctx, _parse(raw)),
+                  ),
+                ),
+                SizedBox(height: t.spacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(loc.t('cancel')),
+                      ),
+                    ),
+                    SizedBox(width: t.spacing.sm),
+                    Expanded(
+                      child: ExpressiveCtaButton(
+                        label: loc.t('done'),
+                        onTap: () => Navigator.pop(ctx, _parse(controller.text)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, _parse(controller.text)),
-            child: Text(loc.t('done')),
-          ),
-        ],
-      ),
+        );
+      },
     );
 
     controller.dispose();
