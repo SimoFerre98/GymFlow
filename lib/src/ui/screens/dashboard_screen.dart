@@ -292,9 +292,13 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                         );
                       }
                     },
-                    locInProgress: loc.t('home_in_progress'),
+                    locInProgress: activeSession.isActive
+                        ? loc.t('home_in_progress')
+                        : loc.t('home_active_program_tag'),
                     formattedDay: '',
-                    locResume: loc.t('home_resume_workout'),
+                    locResume: activeSession.isActive
+                        ? loc.t('home_resume_workout')
+                        : loc.t('start_workout'),
                     locNoActive: loc.t('home_no_active_program'),
                     locCreatePrompt: loc.t('home_create_program_prompt'),
                     locCreateAction: loc.t('home_create_program_action'),
