@@ -13,6 +13,7 @@ import '../widgets/home_hero_card.dart';
 import '../widgets/exercise_row.dart';
 import '../../models/exercise.dart';
 import '../../core/providers/exercise_provider.dart';
+import '../../core/providers/active_session_provider.dart';
 
 class DashboardScreen extends riverpod.ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -220,13 +221,15 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
 
 
   Widget _buildHomeHeroBlock(BuildContext context, String userId, Localization loc) {
+    final activeSession = ref.watch(activeSessionNotifierProvider);
+
     return StreamBuilder<List<WorkoutProgram>>(
       stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
       builder: (context, programSnap) {
         final programs = programSnap.data ?? [];
         final activeProgram = programs.where((p) => p.isActive).firstOrNull;
 
-        if (activeProgram == null) {
+        if (activeProgram == null && !activeSession.isActive) {
           return Padding(
             padding: EdgeInsets.only(
               left: context.expressive.spacing.lg,
@@ -253,8 +256,11 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
           stream: ref.watch(firestoreServiceProvider).getUserWorkouts(userId),
           builder: (context, workoutSnap) {
             final workouts = workoutSnap.data ?? [];
-            final currentWorkoutId = activeProgram.workoutIds.firstOrNull;
-            final currentWorkout = workouts.where((w) => w.id == currentWorkoutId).firstOrNull;
+            final targetWorkout = activeSession.isActive
+                ? activeSession.workout
+                : workouts
+                    .where((w) => w.id == (activeProgram?.workoutIds.firstOrNull))
+                    .firstOrNull;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -267,34 +273,26 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                 children: [
                   HomeHeroCard(
                     hasActiveProgram: true,
-                    programName: activeProgram.name,
-                    workoutName: currentWorkout?.name ?? '',
-                    // ⚠️ Giorno, avanzamento e durata **non si passano**, perche
-                    // non sappiamo calcolarli: il «3 / 5», il «72%» e i «45 min»
-                    // erano i numeri d'esempio del mockup scritti a mano, cioe un
-                    // avanzamento finto mostrato a ogni utente, sempre lo stesso.
-                    //
-                    // «A che punto sono dentro la scheda» e US-063, che dipende
-                    // da US-059: finche non c'e, la card mostra cio che sappiamo
-                    // — quale allenamento e di oggi, quanti esercizi, e l'azione
-                    // per iniziarlo — e tace sul resto. Un numero inventato e
-                    // peggio di un numero assente.
-                    totalDays: activeProgram.workoutIds.length,
-                    exerciseCount: currentWorkout?.exercises.length ?? 0,
+                    programName: activeProgram?.name ?? loc.t('workout_label'),
+                    workoutName: targetWorkout?.name ?? '',
+                    totalDays: activeProgram?.workoutIds.length ?? 1,
+                    exerciseCount: activeSession.isActive
+                        ? activeSession.sessionExercises.length
+                        : (targetWorkout?.exercises.length ?? 0),
                     onAction: () {
-                      if (currentWorkout != null) {
+                      if (targetWorkout != null) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => ActiveSessionScreen(
-                              workout: currentWorkout,
+                              workout: targetWorkout,
+                              scheduledWorkoutId: activeSession.scheduledWorkoutId,
                             ),
                           ),
                         );
                       }
                     },
                     locInProgress: loc.t('home_in_progress'),
-                    // Vuoto, e la card lo omette: il «3» era scritto a mano.
                     formattedDay: '',
                     locResume: loc.t('home_resume_workout'),
                     locNoActive: loc.t('home_no_active_program'),
@@ -302,7 +300,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     locCreateAction: loc.t('home_create_program_action'),
                     locMin: loc.t('home_min'),
                     locExercises: loc.t('home_exercises'),
-              locExerciseOne: loc.t('home_exercise_one'),
+                    locExerciseOne: loc.t('home_exercise_one'),
                   ),
                   SizedBox(height: context.expressive.spacing.xl),
                   Text(
@@ -312,7 +310,7 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
                     ),
                   ),
                   SizedBox(height: context.expressive.spacing.md),
-                  if (currentWorkout != null) ..._buildExercisesList(context, currentWorkout),
+                  if (targetWorkout != null) ..._buildExercisesList(context, targetWorkout),
                 ],
               ),
             );

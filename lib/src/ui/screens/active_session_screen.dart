@@ -19,6 +19,7 @@ import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/core/providers/timer_settings_provider.dart';
+import 'package:gymflow/src/core/providers/active_session_provider.dart';
 
 /// Avvia il conto alla rovescia sui secondi di una serie a tempo.
 ///
@@ -84,7 +85,6 @@ class ActiveSessionScreen extends ConsumerStatefulWidget {
 }
 
 class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
-  late Stopwatch _stopwatch;
   late Timer _timer;
   String _formattedTime = "00:00:00";
 
@@ -95,16 +95,29 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   @override
   void initState() {
     super.initState();
-    _stopwatch = Stopwatch()..start();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(activeSessionNotifierProvider.notifier).startOrResumeSession(
+            widget.workout,
+            scheduledWorkoutId: widget.scheduledWorkoutId,
+          );
+
+      final sessionState = ref.read(activeSessionNotifierProvider);
       if (mounted) {
         setState(() {
-          _formattedTime = _formatTime(_stopwatch.elapsedMilliseconds);
+          _sessionExercises = sessionState.sessionExercises;
+          _updateElapsedDisplay();
         });
       }
     });
 
-    // Initialize with template values
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        _updateElapsedDisplay();
+      }
+    });
+
+    // Initialize with template values as fallback before post frame
     _sessionExercises = widget.workout.exercises.map((e) {
       return WorkoutExercise(
         exerciseId: e.exerciseId,
@@ -136,6 +149,14 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
 
     // Try to load last session data
     _loadLastSessionData();
+  }
+
+  void _updateElapsedDisplay() {
+    final activeSession = ref.read(activeSessionNotifierProvider);
+    final elapsed = activeSession.elapsedDuration;
+    setState(() {
+      _formattedTime = _formatTime(elapsed.inMilliseconds);
+    });
   }
 
   Future<void> _loadLastSessionData() async {
@@ -273,8 +294,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       );
     }
 
-    // Calculate start time based on duration (duration matches expected stopwatch)
-    final startTime = finalDateTime.subtract(_stopwatch.elapsed);
+    final activeSession = ref.read(activeSessionNotifierProvider);
+    final elapsed = activeSession.elapsedDuration;
+    final startTime = finalDateTime.subtract(elapsed);
 
     setState(() => _isSaving = true);
 
@@ -292,6 +314,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     // Fire and forget save
     final service = FirestoreService();
     await service.saveSession(session);
+    ref.read(activeSessionNotifierProvider.notifier).endSession();
 
     // If this was a scheduled workout, remove the schedule now that it's done
     if (widget.scheduledWorkoutId != null) {
