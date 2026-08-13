@@ -14,6 +14,7 @@ import '../widgets/exercise_row.dart';
 import '../../models/exercise.dart';
 import '../../core/providers/exercise_provider.dart';
 import '../../core/providers/active_session_provider.dart';
+import '../../models/session.dart';
 
 class DashboardScreen extends riverpod.ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -222,101 +223,139 @@ class _DashboardScreenState extends riverpod.ConsumerState<DashboardScreen> {
 
   Widget _buildHomeHeroBlock(BuildContext context, String userId, Localization loc) {
     final activeSession = ref.watch(activeSessionNotifierProvider);
+    final firestore = ref.watch(firestoreServiceProvider);
 
     return StreamBuilder<List<WorkoutProgram>>(
-      stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
+      stream: firestore.getUserPrograms(userId),
       builder: (context, programSnap) {
         final programs = programSnap.data ?? [];
         final activeProgram = programs.where((p) => p.isActive).firstOrNull;
 
-        if (activeProgram == null && !activeSession.isActive) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: context.expressive.spacing.lg,
-              right: context.expressive.spacing.lg,
-              top: context.expressive.spacing.lg,
-            ),
-            child: HomeHeroCard(
-              hasActiveProgram: false,
-              onAction: () {},
-              locInProgress: loc.t('home_in_progress'),
-              formattedDay: '',
-              locResume: loc.t('home_resume_workout'),
-              locNoActive: loc.t('home_no_active_program'),
-              locCreatePrompt: loc.t('home_create_program_prompt'),
-              locCreateAction: loc.t('home_create_program_action'),
-              locMin: loc.t('home_min'),
-              locExercises: loc.t('home_exercises'),
-              locExerciseOne: loc.t('home_exercise_one'),
-            ),
-          );
-        }
+        return StreamBuilder<List<WorkoutSession>>(
+          stream: firestore.getUserSessions(userId),
+          builder: (context, sessionSnap) {
+            final sessions = sessionSnap.data ?? [];
 
-        return StreamBuilder<List<WorkoutTemplate>>(
-          stream: ref.watch(firestoreServiceProvider).getUserWorkouts(userId),
-          builder: (context, workoutSnap) {
-            final workouts = workoutSnap.data ?? [];
-            final targetWorkout = activeSession.isActive
-                ? activeSession.workout
-                : workouts
-                    .where((w) => w.id == (activeProgram?.workoutIds.firstOrNull))
-                    .firstOrNull;
+            return StreamBuilder<List<WorkoutTemplate>>(
+              stream: firestore.getUserWorkouts(userId),
+              builder: (context, workoutSnap) {
+                final workouts = workoutSnap.data ?? [];
 
-            return Padding(
-              padding: EdgeInsets.only(
-                left: context.expressive.spacing.lg,
-                right: context.expressive.spacing.lg,
-                top: context.expressive.spacing.lg,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  HomeHeroCard(
-                    hasActiveProgram: true,
-                    programName: activeProgram?.name ?? loc.t('workout_label'),
-                    workoutName: targetWorkout?.name ?? '',
-                    totalDays: activeProgram?.workoutIds.length ?? 1,
-                    exerciseCount: activeSession.isActive
-                        ? activeSession.sessionExercises.length
-                        : (targetWorkout?.exercises.length ?? 0),
-                    onAction: () {
-                      if (targetWorkout != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ActiveSessionScreen(
-                              workout: targetWorkout,
-                              scheduledWorkoutId: activeSession.scheduledWorkoutId,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    locInProgress: activeSession.isActive
-                        ? loc.t('home_in_progress')
-                        : loc.t('home_active_program_tag'),
-                    formattedDay: '',
-                    locResume: activeSession.isActive
-                        ? loc.t('home_resume_workout')
-                        : loc.t('start_workout'),
-                    locNoActive: loc.t('home_no_active_program'),
-                    locCreatePrompt: loc.t('home_create_program_prompt'),
-                    locCreateAction: loc.t('home_create_program_action'),
-                    locMin: loc.t('home_min'),
-                    locExercises: loc.t('home_exercises'),
-                    locExerciseOne: loc.t('home_exercise_one'),
-                  ),
-                  SizedBox(height: context.expressive.spacing.xl),
-                  Text(
-                    loc.t('home_today_in_workout'),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                WorkoutTemplate? targetWorkout;
+                int currentDay = 1;
+                int totalDays = 1;
+
+                if (activeSession.isActive) {
+                  targetWorkout = activeSession.workout;
+                } else if (activeProgram != null && activeProgram.workoutIds.isNotEmpty) {
+                  totalDays = activeProgram.workoutIds.length;
+                  final programSet = activeProgram.workoutIds.toSet();
+                  final lastSession = sessions
+                      .where((s) => programSet.contains(s.workoutTemplateId))
+                      .firstOrNull;
+
+                  int nextIndex = 0;
+                  if (lastSession != null) {
+                    final lastIdx = activeProgram.workoutIds.indexOf(lastSession.workoutTemplateId);
+                    if (lastIdx != -1) {
+                      nextIndex = (lastIdx + 1) % activeProgram.workoutIds.length;
+                    }
+                  }
+                  currentDay = nextIndex + 1;
+                  final targetId = activeProgram.workoutIds[nextIndex];
+                  targetWorkout = workouts.where((w) => w.id == targetId).firstOrNull ?? workouts.firstOrNull;
+                } else {
+                  targetWorkout = workouts.firstOrNull;
+                }
+
+                if (targetWorkout == null && !activeSession.isActive) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      left: context.expressive.spacing.lg,
+                      right: context.expressive.spacing.lg,
+                      top: context.expressive.spacing.lg,
                     ),
+                    child: HomeHeroCard(
+                      hasActiveProgram: false,
+                      onAction: () {},
+                      locInProgress: loc.t('home_in_progress'),
+                      formattedDay: '',
+                      locResume: loc.t('home_resume_workout'),
+                      locNoActive: loc.t('home_no_active_program'),
+                      locCreatePrompt: loc.t('home_create_program_prompt'),
+                      locCreateAction: loc.t('home_create_program_action'),
+                      locMin: loc.t('home_min'),
+                      locExercises: loc.t('home_exercises'),
+                      locExerciseOne: loc.t('home_exercise_one'),
+                    ),
+                  );
+                }
+
+                final formattedDayStr = activeProgram != null
+                    ? loc
+                        .t('home_day_of')
+                        .replaceFirst('%s', '$currentDay')
+                        .replaceFirst('%s', '$totalDays')
+                    : '';
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: context.expressive.spacing.lg,
+                    right: context.expressive.spacing.lg,
+                    top: context.expressive.spacing.lg,
                   ),
-                  SizedBox(height: context.expressive.spacing.md),
-                  if (targetWorkout != null) ..._buildExercisesList(context, targetWorkout),
-                ],
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HomeHeroCard(
+                        hasActiveProgram: true,
+                        programName: activeProgram?.name ?? targetWorkout?.name ?? loc.t('workout_label'),
+                        workoutName: targetWorkout?.name ?? '',
+                        currentDay: currentDay,
+                        totalDays: totalDays,
+                        exerciseCount: activeSession.isActive
+                            ? activeSession.sessionExercises.length
+                            : (targetWorkout?.exercises.length ?? 0),
+                        onAction: () {
+                          if (targetWorkout != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ActiveSessionScreen(
+                                  workout: targetWorkout!,
+                                  scheduledWorkoutId: activeSession.scheduledWorkoutId,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        locInProgress: activeSession.isActive
+                            ? loc.t('home_in_progress')
+                            : loc.t('home_active_program_tag'),
+                        formattedDay: formattedDayStr,
+                        locResume: activeSession.isActive
+                            ? loc.t('home_resume_workout')
+                            : loc.t('start_workout'),
+                        locNoActive: loc.t('home_no_active_program'),
+                        locCreatePrompt: loc.t('home_create_program_prompt'),
+                        locCreateAction: loc.t('home_create_program_action'),
+                        locMin: loc.t('home_min'),
+                        locExercises: loc.t('home_exercises'),
+                        locExerciseOne: loc.t('home_exercise_one'),
+                      ),
+                      SizedBox(height: context.expressive.spacing.xl),
+                      Text(
+                        loc.t('home_today_in_workout'),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: context.expressive.spacing.md),
+                      if (targetWorkout != null) ..._buildExercisesList(context, targetWorkout),
+                    ],
+                  ),
+                );
+              },
             );
           },
         );

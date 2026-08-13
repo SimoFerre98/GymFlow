@@ -3427,5 +3427,29 @@ Aggiornamento più ampio dalla creazione del backlog. Nasce dall'approvazione de
 
 ---
 
+---
+
+### US-110: Redesign completo UI/UX dell'interfaccia utente
+
+- **Epic:** EP-014 (Schermate ridisegnate)
+- **Priority:** LOW (Cose future)
+- **Estimate:** 13 pt
+- **Scope:** Later 🕓
+- **Depends on:** US-037, US-038
+- **Blocks:** None
+
+#### User Story
+Come atleta che usa GymFlow,
+voglio un'interfaccia utente completamente riprogettata con una UX moderna, fluida e coerente con la nuova visual direction,
+affinché l'esperienza complessiva dell'app sia esteticamente impeccabile e senza attriti.
+
+#### Acceptance Criteria
+1. Revisione completa di tutte le viste principali (Dashboard, Allenamento, Statistiche, Profilo) secondo la specifica `docs/DESIGN-SPEC.md`.
+2. Micro-animazioni di transizione fluide su navigazione e modali.
+3. Totale assenza di widget di default Material non stilizzati.
+4. Supporto completo per modalità scura e chiara con palette HSL dinamiche.
+
+---
+
 _Backlog generated via Archetipo — 2026-08-06_
-_[109 storie in 17 epiche — 341 story points totali · 3 storie accantonate in EP-008 · 56 completate]_
+_[110 storie in 17 epiche — 354 story points totali · 4 storie accantonate in EP-008/Later · 56 completate]_

@@ -337,7 +337,7 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
               // nella palette: l'ambra e cio che significa «un dato che
               // conta», qui la quantita di allenamenti in un giorno.
               color: scheme.primary,
-              width: t.sizing.iconLg,
+              width: 16.0,
               borderRadius: t.shape.cornerXs,
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,

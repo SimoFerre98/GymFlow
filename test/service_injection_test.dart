@@ -7,6 +7,7 @@ import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/core/providers/firestore_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/workout_program.dart';
+import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/program_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,9 @@ class _FakeFirestoreService implements FirestoreService {
     getUserProgramsCalled = true;
     return Stream.value([]);
   }
+
+  @override
+  Stream<List<WorkoutSession>> getUserSessions(String userId) => Stream.value([]);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

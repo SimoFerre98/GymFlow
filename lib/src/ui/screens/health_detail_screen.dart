@@ -380,6 +380,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: 28,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
                   if (index < 0 || index >= _data.length) {
@@ -402,9 +403,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                 BarChartRodData(
                   toY: entry.value,
                   color: widget.baseColor,
-                  width: _isWeekly
-                      ? context.expressive.sizing.iconLg
-                      : context.expressive.spacing.sm,
+                  width: _isWeekly ? 14.0 : 4.0,
                   borderRadius: context.expressive.shape.cornerXs,
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
