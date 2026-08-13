@@ -371,6 +371,13 @@ void main() {
       expect(provider, isA<CachedNetworkImageProvider>());
     });
 
+    test('un percorso di asset usa AssetImage, non la rete', () {
+      final provider = ExerciseImage.defaultProviderFactory(
+        'assets/exercises/ex_002.jpg',
+      );
+      expect(provider, isA<AssetImage>());
+    });
+
     testWidgets('senza larghezza dichiarata il provider non viene incartato', (
       tester,
     ) async {

@@ -70,10 +70,17 @@ void main() {
       );
     });
 
-    test('chi ha un video produce una miniatura senza scaricare nulla', () {
+    test('chi ha un video produce sempre una miniatura', () {
+      // Da quando 39 esercizi hanno anche una foto bundlata, la foto vince
+      // sulla miniatura del video — e un asset locale, non richiede rete.
+      // Chi non ha ancora una foto ripiega sulla miniatura YouTube.
       final withVideo = result.exercises.where((e) => e.hasSpecificVideo);
       for (final e in withVideo) {
-        expect(e.thumbnailUrl, contains('img.youtube.com'), reason: e.id);
+        expect(
+          e.thumbnailUrl,
+          anyOf(startsWith('assets/'), contains('img.youtube.com')),
+          reason: e.id,
+        );
       }
     });
   });

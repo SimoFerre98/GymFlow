@@ -6,12 +6,15 @@ part of 'personal_best_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$personalBestsHash() => r'e4d2572118320b925b682613c7a916e107df4ee9';
+String _$personalBestsHash() => r'de7acd3cafb09591af5651588a04ce9341b294e8';
 
-/// See also [PersonalBests].
+/// Espone la mappa exerciseId -> PersonalBest calcolata da tutte le sessioni
+/// caricate in locale da Isar.
+///
+/// Copied from [PersonalBests].
 @ProviderFor(PersonalBests)
-final personalBestsProvider =
-    AutoDisposeNotifierProvider<PersonalBests, Map<String, PersonalBest>>.internal(
+final personalBestsProvider = AutoDisposeNotifierProvider<PersonalBests,
+    Map<String, PersonalBest>>.internal(
   PersonalBests.new,
   name: r'personalBestsProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')

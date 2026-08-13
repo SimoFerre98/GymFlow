@@ -68,9 +68,13 @@ class ExerciseImage extends StatefulWidget {
   /// libreria di cache invece del nostro ripiego.
   final ExerciseImageProviderFactory? imageProviderFactory;
 
-  /// Provider predefinito: cache su disco, condivisa da tutta l'app.
-  static ImageProvider defaultProviderFactory(String url) =>
-      CachedNetworkImageProvider(url);
+  /// Provider predefinito: asset locale se il candidato e bundlato con l'app
+  /// (percorso `assets/...`), altrimenti cache su disco condivisa da tutta
+  /// l'app.
+  static ImageProvider defaultProviderFactory(String url) {
+    if (url.startsWith('assets/')) return AssetImage(url);
+    return CachedNetworkImageProvider(url);
+  }
 
   @override
   State<ExerciseImage> createState() => _ExerciseImageState();

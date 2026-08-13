@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../models/exercise.dart';
 import '../../models/exercise_seed.dart';
+import '../../models/image_credit.dart';
 import 'auth_provider.dart';
 import 'firestore_provider.dart';
 
@@ -10,6 +11,9 @@ part 'exercise_provider.g.dart';
 
 /// Percorso della libreria curata che viaggia dentro l'app.
 const kCuratedLibraryAsset = 'assets/data/exercises_seed.json';
+
+/// Percorso dei crediti delle foto bundlate con la libreria curata.
+const kImageCreditsAsset = 'assets/data/exercise_image_credits.json';
 
 /// I 43 esercizi curati, letti dall'asset.
 ///
@@ -33,6 +37,19 @@ class CuratedExercises extends _$CuratedExercises {
   Future<List<Exercise>> build() async {
     final source = await rootBundle.loadString(kCuratedLibraryAsset);
     return ExerciseSeed.parse(source).exercises;
+  }
+}
+
+/// I crediti delle foto della libreria curata, letti dall'asset.
+///
+/// Stesso ragionamento di [CuratedExercises]: materiale statico, uguale per
+/// tutti, che non ha bisogno di rete per esistere.
+@riverpod
+class ImageCredits extends _$ImageCredits {
+  @override
+  Future<List<ImageCredit>> build() async {
+    final source = await rootBundle.loadString(kImageCreditsAsset);
+    return ImageCreditSeed.parse(source);
   }
 }
 

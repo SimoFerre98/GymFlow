@@ -101,6 +101,7 @@ flutter:
   # Libreria di esercizi curata, importata dalle impostazioni (US-045).
   assets:
     - assets/data/
+    - assets/exercises/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

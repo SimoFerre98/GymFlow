@@ -87,19 +87,20 @@ class Exercise {
   /// Immagine grande per la sessione, primo anello della sua catena.
   String? get heroImageUrl => _firstOrNull(heroCandidates);
 
-  /// Costruisce la catena scartando cio che non si puo chiedere alla rete.
+  /// Costruisce la catena scartando cio che non si puo mostrare.
   ///
-  /// Un candidato che non e un URL `http`/`https` assoluto viene **saltato**,
-  /// non disegnato: un percorso locale richiederebbe un secondo percorso di
-  /// codice e un secondo insieme di errori, per un caso che oggi non esiste
-  /// (nessuno scrive ancora [userImageUrl]).
+  /// Un candidato accettato e un URL `http`/`https` assoluto oppure un
+  /// percorso di asset locale (`assets/...`, registrato in `pubspec.yaml`):
+  /// le foto della libreria curata sono bundlate cosi, non scaricate. Ogni
+  /// altra forma viene **saltata**, non disegnata.
   List<String> _candidates(List<YouTubeThumbQuality> qualities) {
     final out = <String>[];
 
     void add(String? url) {
       if (url == null) return;
       final trimmed = url.trim();
-      if (trimmed.isEmpty || !_isRemote(trimmed)) return;
+      if (trimmed.isEmpty) return;
+      if (!_isRemote(trimmed) && !_isLocalAsset(trimmed)) return;
       // Se la foto dell'utente e la stessa immagine curata, chiederla due
       // volte significherebbe due errori identici prima del segnaposto.
       if (out.contains(trimmed)) return;
@@ -120,6 +121,9 @@ class Exercise {
     final scheme = uri.scheme.toLowerCase();
     return (scheme == 'http' || scheme == 'https') && uri.host.isNotEmpty;
   }
+
+  /// Vero per un percorso di asset bundlato con l'app, non scaricato.
+  static bool _isLocalAsset(String url) => url.startsWith('assets/');
 
   static String? _firstOrNull(List<String> values) =>
       values.isEmpty ? null : values.first;

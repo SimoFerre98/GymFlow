@@ -31,6 +31,7 @@ class Localization {
     'gym_location': 'Gym Location',
     'integrations_section': 'INTEGRATIONS',
     'preferences_section': 'PREFERENCES',
+    'info_section': 'INFO',
     'notifications': 'Notifications',
     'haptic_feedback': 'Vibration on tap',
     'app_theme': 'App Theme',
@@ -224,6 +225,17 @@ class Localization {
     'workout_receipt_avg_rpe': 'Average effort',
     'workout_receipt_calories': 'Calories',
     'workout_receipt_avg_heart_rate': 'Average heart rate',
+
+    // Image credits
+    'image_credits_settings_tile': 'Exercise photo credits',
+    'image_credits_settings_subtitle': 'wger.de, CC BY-SA',
+    'image_credits_title': 'Photo credits',
+    'image_credits_intro':
+        'Exercise photos come from wger.de under a Creative Commons '
+        'Attribution-ShareAlike licence, which requires naming the author '
+        'and licence of each one.',
+    'image_credits_source_cta': 'View source',
+    'image_credits_open_failed': 'Could not open the link',
 
     // Live metrics (US-047)
     'live_metrics_calories': 'CALORIES',
@@ -442,6 +454,7 @@ class Localization {
     'gym_location': 'Posizione Palestra',
     'integrations_section': 'INTEGRAZIONI',
     'preferences_section': 'PREFERENZE',
+    'info_section': 'INFO',
     'notifications': 'Notifiche',
     'haptic_feedback': 'Vibrazione al tocco',
     'app_theme': 'Tema App',
@@ -638,6 +651,17 @@ class Localization {
     'workout_receipt_avg_rpe': 'Sforzo medio',
     'workout_receipt_calories': 'Calorie',
     'workout_receipt_avg_heart_rate': 'Battito medio',
+
+    // Crediti immagini
+    'image_credits_settings_tile': 'Crediti foto esercizi',
+    'image_credits_settings_subtitle': 'wger.de, CC BY-SA',
+    'image_credits_title': 'Crediti foto',
+    'image_credits_intro':
+        'Le foto degli esercizi vengono da wger.de con licenza Creative '
+        'Commons Attribution-ShareAlike, che richiede di nominare autore e '
+        'licenza di ciascuna.',
+    'image_credits_source_cta': 'Vedi la fonte',
+    'image_credits_open_failed': 'Non e stato possibile aprire il link',
 
     // Live metrics (US-047)
     'live_metrics_calories': 'CALORIE',

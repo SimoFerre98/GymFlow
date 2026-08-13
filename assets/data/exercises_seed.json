@@ -23,7 +23,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=nclAIgM4NJE",
       "videoSearchQuery": "panca piana bilanciere",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_002.jpg",
       "isCurated": true,
       "videoNote": "il video e un tutorial di panca piana con bilanciere"
     },
@@ -37,7 +37,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "spinte manubri panca inclinata",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_003.jpg",
       "isCurated": true
     },
     {
@@ -49,7 +49,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "chest press machine",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_004.jpg",
       "isCurated": true
     },
     {
@@ -87,7 +87,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "pectoral fly machine",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_007.jpg",
       "isCurated": true
     },
     {
@@ -99,7 +99,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "push up tutorial",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_008.jpg",
       "isCurated": true
     },
     {
@@ -112,7 +112,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "dips chest",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_009.jpg",
       "isCurated": true
     },
     {
@@ -124,7 +124,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=UO3A0HF2AWw",
       "videoSearchQuery": "lat machine avanti",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_010.jpg",
       "isCurated": true,
       "videoNote": "il video mostra la lat machine avanti a presa larga"
     },
@@ -137,7 +137,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=Ge6UH9kBoPU",
       "videoSearchQuery": "lat machine triangolo",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_011.jpg",
       "isCurated": true,
       "videoNote": "il video confronta lat machine avanti e dietro"
     },
@@ -150,7 +150,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=MUqANYOvthg",
       "videoSearchQuery": "lat machine t-bar",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_012.jpg",
       "isCurated": true,
       "videoNote": "il video mostra la lat machine, movimento affine al T-Bar"
     },
@@ -163,7 +163,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "iliac pull down",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_013.jpg",
       "isCurated": true
     },
     {
@@ -175,7 +175,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "pullover cavo alto",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_014.jpg",
       "isCurated": true
     },
     {
@@ -187,7 +187,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=fgcoj-vxSYw",
       "videoSearchQuery": "rematore con manubrio",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_015.jpg",
       "isCurated": true,
       "videoNote": "Tutorial rematore con due manubri"
     },
@@ -200,7 +200,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=9ibSoJ9q0Y8",
       "videoSearchQuery": "pulley basso",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_016.jpg",
       "isCurated": true,
       "videoNote": "Pulley basso: esecuzione, varianti ed errori"
     },
@@ -214,7 +214,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "upper back manubri",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_017.jpg",
       "isCurated": true
     },
     {
@@ -226,7 +226,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "rowing machine",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_018.jpg",
       "isCurated": true
     },
     {
@@ -238,7 +238,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "pull ups tutorial",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_019.jpg",
       "isCurated": true
     },
     {
@@ -250,7 +250,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=6sT8LVeGVoc",
       "videoSearchQuery": "alzate laterali manubri",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_020.jpg",
       "isCurated": true,
       "videoNote": "Alzate laterali manubri: come eseguirle al meglio"
     },
@@ -263,7 +263,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "alzate frontali manubri",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_021.jpg",
       "isCurated": true
     },
     {
@@ -275,7 +275,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "shoulder press manubri",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_022.jpg",
       "isCurated": true
     },
     {
@@ -287,7 +287,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "arnold press tutorial",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_023.jpg",
       "isCurated": true
     },
     {
@@ -299,7 +299,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=oIdOSCJa6ek",
       "videoSearchQuery": "alzate a 90 gradi",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_024.jpg",
       "isCurated": true,
       "videoNote": "Tutorial alzate posteriori per deltoidi"
     },
@@ -313,7 +313,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "tirate al mento",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_025.jpg",
       "isCurated": true
     },
     {
@@ -325,7 +325,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "face pull elastico",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_026.jpg",
       "isCurated": true
     },
     {
@@ -337,7 +337,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=CmDp-PYeFK8",
       "videoSearchQuery": "curl ez panca scott",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_027.jpg",
       "isCurated": true,
       "videoNote": "Curl bicipiti: esecuzione, errori, programmi"
     },
@@ -350,7 +350,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=QMMsalrCHv0",
       "videoSearchQuery": "curl manubri panca inclinata",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_028.jpg",
       "isCurated": true,
       "videoNote": "Curl con manubri: 7 consigli"
     },
@@ -363,7 +363,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=R_Afr1mMRi8",
       "videoSearchQuery": "hammer curl",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_029.jpg",
       "isCurated": true,
       "videoNote": "Curl hammer manubri: come si esegue"
     },
@@ -376,7 +376,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "curl ai cavi",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_030.jpg",
       "isCurated": true
     },
     {
@@ -388,7 +388,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "curl concentrato",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_031.jpg",
       "isCurated": true
     },
     {
@@ -400,7 +400,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "french press manubri",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_032.jpg",
       "isCurated": true
     },
     {
@@ -412,7 +412,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "push down tricipiti corda",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_033.jpg",
       "isCurated": true
     },
     {
@@ -436,7 +436,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "pressa 45 gambe",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_035.jpg",
       "isCurated": true
     },
     {
@@ -448,7 +448,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "leg extension",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_036.jpg",
       "isCurated": true
     },
     {
@@ -460,7 +460,7 @@
       ],
       "videoUrl": "https://www.youtube.com/watch?v=pDf-2vcWwU4",
       "videoSearchQuery": "hack squat",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_037.jpg",
       "isCurated": true,
       "videoNote": "il video mostra lo squat con bilanciere"
     },
@@ -473,7 +473,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "leg curl sdraiato",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_038.jpg",
       "isCurated": true
     },
     {
@@ -486,7 +486,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "stacchi a gambe tese",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_039.jpg",
       "isCurated": true
     },
     {
@@ -499,7 +499,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "hip thrust",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_040.jpg",
       "isCurated": true
     },
     {
@@ -511,7 +511,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "calf raises",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_041.jpg",
       "isCurated": true
     },
     {
@@ -523,7 +523,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "crunch addominali",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_042.jpg",
       "isCurated": true
     },
     {
@@ -535,7 +535,7 @@
       ],
       "videoUrl": null,
       "videoSearchQuery": "plank exercise",
-      "imageUrl": null,
+      "imageUrl": "assets/exercises/ex_043.jpg",
       "isCurated": true
     }
   ],

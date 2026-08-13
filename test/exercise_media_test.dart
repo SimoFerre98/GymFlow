@@ -248,6 +248,13 @@ void main() {
       expect(e.thumbnailCandidates, isEmpty);
     });
 
+    test('un percorso di asset bundlato e un anello valido', () {
+      // La libreria di foto scaricate da wger e bundlata come asset locale,
+      // non scaricata: deve poter diventare un anello della catena.
+      final e = ex(imageUrl: 'assets/exercises/ex_002.jpg');
+      expect(e.thumbnailCandidates, ['assets/exercises/ex_002.jpg']);
+    });
+
     test('gli spazi ai lati non producono un candidato diverso', () {
       final e = ex(userImageUrl: '  https://storage/mia.jpg  ');
       expect(e.thumbnailCandidates, ['https://storage/mia.jpg']);

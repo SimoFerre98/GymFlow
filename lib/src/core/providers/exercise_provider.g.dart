@@ -39,6 +39,26 @@ final curatedExercisesProvider =
 );
 
 typedef _$CuratedExercises = AutoDisposeAsyncNotifier<List<Exercise>>;
+String _$imageCreditsHash() => r'ba6ec16711a48627eb29cba4019e480d5d9c9ce4';
+
+/// I crediti delle foto della libreria curata, letti dall'asset.
+///
+/// Stesso ragionamento di [CuratedExercises]: materiale statico, uguale per
+/// tutti, che non ha bisogno di rete per esistere.
+///
+/// Copied from [ImageCredits].
+@ProviderFor(ImageCredits)
+final imageCreditsProvider =
+    AutoDisposeAsyncNotifierProvider<ImageCredits, List<ImageCredit>>.internal(
+  ImageCredits.new,
+  name: r'imageCreditsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$imageCreditsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ImageCredits = AutoDisposeAsyncNotifier<List<ImageCredit>>;
 String _$customExercisesHash() => r'3862bde5c5034f4072b146dee2ac284d378e6414';
 
 /// Gli esercizi creati dall'utente, da Firestore.
@@ -57,7 +77,7 @@ final customExercisesProvider =
 );
 
 typedef _$CustomExercises = AutoDisposeStreamNotifier<List<Exercise>>;
-String _$exercisesHash() => r'd7f0fd9d61ff781798fff483ff8cff92b2da82e9';
+String _$exercisesHash() => r'd88d8aa52466b639e71dd16e6931bfd6c0dbdbac';
 
 /// Tutti gli esercizi visibili all'utente: i curati piu i suoi.
 ///
@@ -83,7 +103,7 @@ final exercisesProvider =
 );
 
 typedef _$Exercises = AutoDisposeAsyncNotifier<List<Exercise>>;
-String _$exerciseIndexHash() => r'ca19823beb3664eacef21aff8c0b2f77447ef8b8';
+String _$exerciseIndexHash() => r'37229612542a95f4470b7e7c91b0fc2aaef4ee69';
 
 /// Gli esercizi per identificativo.
 ///
