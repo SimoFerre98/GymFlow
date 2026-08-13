@@ -18,6 +18,7 @@ import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/timer_service.dart';
+import 'package:gymflow/src/core/providers/timer_settings_provider.dart';
 
 /// Avvia il conto alla rovescia sui secondi di una serie a tempo.
 ///
@@ -569,13 +570,48 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               Checkbox(
                 value: set.isCompleted,
                 onChanged: (val) =>
-                    setState(() => set.isCompleted = val ?? false),
+                    _onSetCompleted(exercise, set, val ?? false),
               ),
             ],
           );
         }),
       ],
     );
+  }
+
+  void _onSetCompleted(
+    WorkoutExercise exercise,
+    WorkoutSet set,
+    bool isCompleted,
+  ) {
+    setState(() => set.isCompleted = isCompleted);
+
+    if (!isCompleted) return;
+
+    final timerSettings = ref.read(timerSettingsNotifierProvider);
+    if (!timerSettings.autoRestEnabled) return;
+
+    WorkoutTemplateExercise? templateExercise;
+    for (final e in widget.workout.exercises) {
+      if (e.exerciseId == exercise.exerciseId) {
+        templateExercise = e;
+        break;
+      }
+    }
+
+    final restSeconds =
+        (templateExercise?.restSeconds != null &&
+                templateExercise!.restSeconds! > 0)
+            ? templateExercise.restSeconds!
+            : timerSettings.defaultRestSeconds;
+
+    if (restSeconds > 0) {
+      final timerNotifier = ref.read(timerNotifierProvider.notifier);
+      timerNotifier.setTimerDuration(Duration(seconds: restSeconds));
+      if (!timerNotifier.isTimerRunning) {
+        timerNotifier.toggleTimer();
+      }
+    }
   }
 
   static String _formatWeight(double value) {
@@ -682,7 +718,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               Checkbox(
                 value: set.isCompleted,
                 onChanged: (val) =>
-                    setState(() => set.isCompleted = val ?? false),
+                    _onSetCompleted(exercise, set, val ?? false),
               ),
             ],
           );
@@ -776,7 +812,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
               Checkbox(
                 value: set.isCompleted,
                 onChanged: (val) =>
-                    setState(() => set.isCompleted = val ?? false),
+                    _onSetCompleted(exercise, set, val ?? false),
               ),
             ],
           );

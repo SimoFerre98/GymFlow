@@ -14,6 +14,7 @@ import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart'; // Added
+import 'package:gymflow/src/core/providers/timer_settings_provider.dart';
 
 /// Altezza del dialogo di scelta della posizione: geometria di questo
 /// dialogo, non una spaziatura condivisa.
@@ -54,6 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final loc = ref.watch(localizationNotifierProvider);
     final theme = ref.watch(themeSettingsNotifierProvider);
     final themeNotifier = ref.read(themeSettingsNotifierProvider.notifier);
+    final timerSettings = ref.watch(timerSettingsNotifierProvider);
     final scheme = Theme.of(context).colorScheme;
     final t = context.expressive;
 
@@ -459,6 +461,100 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     value: theme.hapticFeedback,
                     onChanged: (val) => themeNotifier.setHapticFeedback(val),
+                  ),
+                ],
+              ),
+              SizedBox(height: t.spacing.xl),
+
+              // Timer & Rest Section
+              _buildSectionHeader(context, loc.t('timer_settings_section')),
+              _buildSettingsCard(
+                context,
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
+                    ),
+                    secondary: _buildLeadingIcona(
+                      context,
+                      scheme,
+                      t,
+                      Icons.timer_outlined,
+                    ),
+                    title: Text(
+                      loc.t('auto_rest_timer'),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(loc.t('auto_rest_timer_desc')),
+                    value: timerSettings.autoRestEnabled,
+                    onChanged: (val) => ref
+                        .read(timerSettingsNotifierProvider.notifier)
+                        .setAutoRestEnabled(val),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
+                    ),
+                    leading: _buildLeadingIcona(
+                      context,
+                      scheme,
+                      t,
+                      Icons.hourglass_bottom,
+                    ),
+                    title: Text(
+                      loc.t('default_rest_time'),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    trailing: DropdownButton<int>(
+                      value: timerSettings.defaultRestSeconds,
+                      underline: const SizedBox(),
+                      items: const [
+                        DropdownMenuItem(value: 30, child: Text('30s')),
+                        DropdownMenuItem(value: 60, child: Text('60s')),
+                        DropdownMenuItem(value: 90, child: Text('90s')),
+                        DropdownMenuItem(value: 120, child: Text('120s')),
+                        DropdownMenuItem(value: 180, child: Text('180s')),
+                        DropdownMenuItem(value: 300, child: Text('300s')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          ref
+                              .read(timerSettingsNotifierProvider.notifier)
+                              .setDefaultRestSeconds(val);
+                        }
+                      },
+                    ),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.xs,
+                    ),
+                    secondary: _buildLeadingIcona(
+                      context,
+                      scheme,
+                      t,
+                      Icons.vibration_outlined,
+                    ),
+                    title: Text(
+                      loc.t('vibrate_on_timer_end'),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    value: timerSettings.vibrateOnTimerEnd,
+                    onChanged: (val) => ref
+                        .read(timerSettingsNotifierProvider.notifier)
+                        .setVibrateOnTimerEnd(val),
                   ),
                 ],
               ),

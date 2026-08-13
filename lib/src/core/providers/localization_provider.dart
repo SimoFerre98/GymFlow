@@ -441,6 +441,13 @@ class Localization {
     'import_failed': 'Failed to import',
     'statistics_title': 'Statistics',
     'statistics_tab': 'Statistics',
+
+    // Timer settings
+    'timer_settings_section': 'TIMER & REST',
+    'auto_rest_timer': 'Auto Rest Timer',
+    'auto_rest_timer_desc': 'Start timer automatically when completing a set',
+    'default_rest_time': 'Default Rest Duration',
+    'vibrate_on_timer_end': 'Vibrate on Timer End',
   };
 
   static final Map<String, String> _it = {
@@ -867,6 +874,13 @@ class Localization {
     'import_failed': 'Importazione non riuscita',
     'statistics_title': 'Statistiche',
     'statistics_tab': 'Statistiche',
+
+    // Timer settings
+    'timer_settings_section': 'TIMER E RECUPERO',
+    'auto_rest_timer': 'Recupero Automatico',
+    'auto_rest_timer_desc': 'Avvia il timer alla spunta di una serie',
+    'default_rest_time': 'Durata Recupero Predefinita',
+    'vibrate_on_timer_end': 'Vibrazione a Fine Recupero',
   };
 }
 
