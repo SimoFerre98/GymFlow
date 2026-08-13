@@ -4,7 +4,6 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/ui/screens/profile_screen.dart';
 import 'package:gymflow/src/ui/screens/body_measurements_screen.dart';
-import 'package:gymflow/src/ui/screens/image_credits_screen.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
@@ -560,28 +559,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               SizedBox(height: t.spacing.xl),
 
-              // Info Section
-              _buildSectionHeader(context, loc.t('info_section')),
-              _buildSettingsCard(
-                context,
-                children: [
-                  _buildSettingsTile(
-                    context,
-                    title: loc.t('image_credits_settings_tile'),
-                    subtitle: loc.t('image_credits_settings_subtitle'),
-                    icon: Icons.photo_library_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ImageCreditsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xxl - t.spacing.xs),
+
 
               // Logout Button
               SizedBox(
