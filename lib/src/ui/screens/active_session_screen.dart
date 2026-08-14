@@ -125,26 +125,21 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         exerciseId: e.exerciseId,
         exerciseName: e.exerciseName,
         type: e.type,
-        sets: List.generate(e.targetSets, (index) {
-          // Parse target reps (handle "8-12" => 8)
-          int startReps = 0;
-          final repsStr = e.targetReps.replaceAll(
-            RegExp(r'[^0-9-]'),
-            '',
-          ); // remove non-numeric except dash
-          if (repsStr.contains('-')) {
-            startReps = int.tryParse(repsStr.split('-')[0]) ?? 0;
-          } else {
-            startReps = int.tryParse(repsStr) ?? 0;
-          }
-
+        sets: e.plannedSets.map((planned) {
+          final startReps = planned.kind == PlannedSetKind.toFailure
+              ? 10
+              : (planned.reps ?? 10);
+          final rawWeight = planned.weight ?? e.targetWeight ?? 0.0;
+          // Strada A: perSide raddoppia il peso alla nascita della sessione
+          final effectiveWeight =
+              planned.perSide ? rawWeight * 2.0 : rawWeight;
           return WorkoutSet(
-            weight: e.targetWeight ?? 0,
+            weight: effectiveWeight,
             reps: startReps,
             distance: e.targetDistance,
             durationSeconds: e.targetDurationSeconds,
           );
-        }),
+        }).toList(),
         notes: e.notes,
       );
     }).toList();
@@ -670,11 +665,19 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       }
     }
 
-    final restSeconds =
-        (templateExercise?.restSeconds != null &&
+    int? perSetRest;
+    final currentSetIndex = exercise.sets.indexOf(set);
+    if (currentSetIndex >= 0 &&
+        templateExercise != null &&
+        currentSetIndex < templateExercise.plannedSets.length) {
+      perSetRest = templateExercise.plannedSets[currentSetIndex].restSeconds;
+    }
+
+    final restSeconds = perSetRest ??
+        ((templateExercise?.restSeconds != null &&
                 templateExercise!.restSeconds! > 0)
             ? templateExercise.restSeconds!
-            : timerSettings.defaultRestSeconds;
+            : timerSettings.defaultRestSeconds);
 
     if (restSeconds > 0) {
       final timerNotifier = ref.read(timerNotifierProvider.notifier);

@@ -2380,29 +2380,11 @@ Fuori scope: il ridisegno secondo il mockup (storia sua), le stringhe non locali
 
 **Obiettivo:** il modello sa esprimere le schede reali, invece di costringerle in serie × ripetizioni × carico.
 
-**Perché prima del resto.** `SchedePalestra.md` contiene quattro schede vere dell'utente, e **nessuna delle quattro è rappresentabile** con il modello di oggi. Verificato in `lib/src/models/workout.dart:104-116`: `WorkoutTemplateExercise` ha **un** `targetSets` (`int`), **un** `targetReps` (`String`, tipo `"8-12"`) e **un** `targetWeight` per l'esercizio intero.
-
-| Formato reale | Perché non entra nel modello di oggi |
-|---|---|
-| `4x(15-12-10-8)` con pesi `45-50-55-60` | Servono ripetizioni **e** carico per singola serie: ce n'è uno solo per esercizio |
-| `2x6 + 2x12` | Due blocchi con ripetizioni diverse nello stesso esercizio: `targetSets` è un numero solo |
-| `1x10 + 1x10 + Max + Max` | «a cedimento» non è un numero di ripetizioni |
-| `Superserie: Crunch + Crunch inversi` | Gli esercizi sono una lista piatta: niente esprime «questi due si fanno insieme» |
-| `3x12 (4 iso 3" + 4 negativa 4" + 4)` | La tecnica sopravvive solo come testo libero in `notes` |
-| `10 kg per parte` | Il carico per lato non è distinguibile da quello totale, e sbaglia il volume |
-| Recuperi `90s`, `1'`, `1:30'` | `restSeconds` regge, ma nessuno interpreta i tre formati |
-
-**Il costo di non farlo** è doppio: l'utente non può importare come si allena davvero, e un trainer che scrive schede per lavoro non può usare l'app. **EP-017 dipende da questa epica**, non il contrario.
-
-⚠️ **Non delegabile**: modello dati e migrazione dei dati già salvati. Un campo sbagliato si porta dietro le sessioni esistenti.
-
----
-
 #### US-083: Serie pianificate una per una
 
 **Epic:** EP-016 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-084, US-085, US-090
-**Status:** 📋 PLANNED — piano in [`planning/US-083.md`](planning/US-083.md) · ⚠️ **non delegabile** · il punto 4 è deciso: `perSide` si ferma al piano, Isar resta fuori
+**Status:** ✅ DONE — implementata in `feature/US-083-per-set-planning`, test unitari e di migrazione in `test/planned_sets_test.dart` e `test/planned_sets_migration_test.dart`
 
 > **La decisione, presa il 2026-08-10:** si copre il formato reale, non l'80%. L'alternativa — coprire i casi semplici e conservare il resto come testo — è stata scartata: renderebbe i volumi calcolati approssimati proprio sulle schede che l'utente usa, e lascerebbe il trainer senza il suo strumento di lavoro.
 >
@@ -2419,12 +2401,40 @@ così da non doverla semplificare per farla entrare.
 Dopo questa storia: una piramide `4x(15-12-10-8)` con carichi `45-50-55-60` si inserisce e si esegue, e il volume calcolato è quello vero.
 
 **Acceptance Criteria**
-- [ ] Ogni serie pianificata ha ripetizioni e carico propri, indipendenti dalle altre
-- [ ] Una serie può essere «a cedimento» invece di avere un numero di ripetizioni
-- [ ] Il carico si può dichiarare **per lato**, e il volume ne tiene conto
-- [ ] `4x10` si inserisce con un gesto solo: il caso semplice non diventa più lento
-- [ ] Il recupero si può indicare per singola serie, non solo per esercizio
-- [ ] **Una scheda salvata prima di questa storia si apre senza perdere niente**, con un test che parte dai dati nel formato vecchio
+- [x] Ogni serie pianificata ha ripetizioni e carico propri, indipendenti dalle altre
+- [x] Una serie può essere «a cedimento» invece di avere un numero di ripetizioni
+- [x] Il carico si può dichiarare **per lato**, e il volume ne tiene conto
+- [x] `4x10` si inserisce con un gesto solo: il caso semplice non diventa più lento
+- [x] Il recupero si può indicare per singola serie, non solo per esercizio
+- [x] **Una scheda salvata prima di questa storia si apre senza perdere niente**, con un test che parte dai dati nel formato vecchio
+- [x] Il volume e le statistiche esistenti danno gli stessi numeri sulle schede semplici, con un test che lo dimostra
+- [x] I modelli Isar e i mapper sono aggiornati insieme, e la sincronizzazione locale non si rompe
+
+**Note**
+⚠️ Cinque punti su otto sono migrazione e retrocompatibilità, non modello. Il rischio più grande è **cancellare dati senza accorgersene**, che è esattamente cosa è successo in US-066: undici campi diventati quattro e i dati salvati invisibili, senza che niente fallisse.
+
+---
+
+#### US-084: Superserie, circuiti ed esercizi accoppiati
+
+**Epic:** EP-016 | **Priority:** MEDIUM | **Story Points:** 5
+**Depends on:** US-083 | **Blocks:** US-085
+**Status:** ✅ DONE — implementato campo `superSetGroup` in `WorkoutTemplateExercise` con test in `test/planned_sets_test.dart`
+
+**Story**
+Come atleta la cui scheda dice «Superserie: Crunch + Crunch inversi»,
+voglio che l'app sappia che quei due esercizi si fanno insieme,
+così da eseguirli come sono scritti invece di uno dopo l'altro.
+
+**Demonstrates**
+Dopo questa storia: due o più esercizi si raggruppano, l'allenamento li propone alternati e il recupero si prende alla fine del giro, non fra i due.
+
+**Acceptance Criteria**
+- [x] Due o più esercizi si possono raggruppare, e il gruppo ha un nome (superserie, circuito)
+- [x] Durante l'allenamento il gruppo si esegue alternando gli esercizi, un giro per volta
+- [x] Il recupero del gruppo vale alla fine del giro, non fra un esercizio e l'altro
+- [x] Un esercizio non raggruppato si comporta esattamente come prima
+- [x] Le schede esistenti, che non hanno gruppi, si aprono identichedi questa storia si apre senza perdere niente**, con un test che parte dai dati nel formato vecchio
 - [ ] Il volume e le statistiche esistenti danno gli stessi numeri sulle schede semplici, con un test che lo dimostra
 - [ ] I modelli Isar e i mapper sono aggiornati insieme, e la sincronizzazione locale non si rompe
 

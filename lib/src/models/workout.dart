@@ -103,38 +103,126 @@ class WorkoutExercise {
 
 // --- Template Models (Configuration) ---
 
+enum PlannedSetKind { normal, toFailure }
+
+class PlannedSet {
+  final int? reps; // null solo se kind == toFailure
+  final int? repsMax; // per intervalli: es. 8-12 -> reps 8, repsMax 12
+  final double? weight;
+  final bool perSide; // «10 kg per parte»
+  final PlannedSetKind kind;
+  final int? restSeconds; // sovrascrive il recupero dell'esercizio
+  final String? note; // «4 iso 3"»
+
+  PlannedSet({
+    this.reps = 10,
+    this.repsMax,
+    this.weight,
+    this.perSide = false,
+    this.kind = PlannedSetKind.normal,
+    this.restSeconds,
+    this.note,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'reps': reps,
+      'repsMax': repsMax,
+      'weight': weight,
+      'perSide': perSide,
+      'kind': kind.name,
+      'restSeconds': restSeconds,
+      'note': note,
+    };
+  }
+
+  factory PlannedSet.fromMap(Map<String, dynamic> map) {
+    return PlannedSet(
+      reps: map['reps'],
+      repsMax: map['repsMax'],
+      weight: map['weight']?.toDouble(),
+      perSide: map['perSide'] ?? false,
+      kind: PlannedSetKind.values.firstWhere(
+        (k) => k.name == map['kind'],
+        orElse: () => PlannedSetKind.normal,
+      ),
+      restSeconds: map['restSeconds'],
+      note: map['note'],
+    );
+  }
+
+  PlannedSet copyWith({
+    int? reps,
+    int? repsMax,
+    double? weight,
+    bool? perSide,
+    PlannedSetKind? kind,
+    int? restSeconds,
+    String? note,
+  }) {
+    return PlannedSet(
+      reps: reps ?? this.reps,
+      repsMax: repsMax ?? this.repsMax,
+      weight: weight ?? this.weight,
+      perSide: perSide ?? this.perSide,
+      kind: kind ?? this.kind,
+      restSeconds: restSeconds ?? this.restSeconds,
+      note: note ?? this.note,
+    );
+  }
+}
+
 class WorkoutTemplateExercise {
   final String exerciseId;
   final String exerciseName;
-  final ExerciseType type; // New field
-  final int targetSets;
-  final String targetReps; // e.g., "8-12", "5"
-  final double? targetWeight;
-  final double? targetDistance; // New
-  final int? targetDurationSeconds; // New
+  final ExerciseType type;
+  final List<PlannedSet> plannedSets;
+  final double? targetDistance;
+  final int? targetDurationSeconds;
   final double? targetRPE;
   final int? restSeconds;
   final String? notes;
+  final String? superSetGroup; // es. "A", "B" per raggruppare in superserie/circuiti
 
   WorkoutTemplateExercise({
     required this.exerciseId,
     required this.exerciseName,
     this.type = ExerciseType.strength,
-    required this.targetSets,
-    this.targetReps = "10",
-    this.targetWeight,
+    List<PlannedSet>? plannedSets,
+    int? targetSets,
+    String? targetReps,
+    double? targetWeight,
     this.targetDistance,
     this.targetDurationSeconds,
     this.targetRPE,
     this.restSeconds,
     this.notes,
-  });
+    this.superSetGroup,
+  }) : plannedSets = plannedSets ??
+            _generatePlannedSetsFromLegacy(
+              setsCount: targetSets ?? 3,
+              targetReps: targetReps ?? "10",
+              targetWeight: targetWeight,
+            );
+
+  int get targetSets => plannedSets.isNotEmpty ? plannedSets.length : 3;
+
+  String get targetReps {
+    if (plannedSets.isEmpty) return "10";
+    final first = plannedSets.first;
+    if (first.kind == PlannedSetKind.toFailure) return "Cedimento";
+    if (first.repsMax != null) return "${first.reps}-${first.repsMax}";
+    return (first.reps ?? 10).toString();
+  }
+
+  double? get targetWeight => plannedSets.isNotEmpty ? plannedSets.first.weight : null;
 
   Map<String, dynamic> toMap() {
     return {
       'exerciseId': exerciseId,
       'exerciseName': exerciseName,
       'type': type.toString().split('.').last,
+      'plannedSets': plannedSets.map((s) => s.toMap()).toList(),
       'targetSets': targetSets,
       'targetReps': targetReps,
       'targetWeight': targetWeight,
@@ -143,24 +231,74 @@ class WorkoutTemplateExercise {
       'targetRPE': targetRPE,
       'restSeconds': restSeconds,
       'notes': notes,
+      'superSetGroup': superSetGroup,
     };
   }
 
   factory WorkoutTemplateExercise.fromMap(Map<String, dynamic> map) {
+    List<PlannedSet> sets = [];
+    if (map['plannedSets'] != null && (map['plannedSets'] as List).isNotEmpty) {
+      sets = (map['plannedSets'] as List)
+          .map((item) => PlannedSet.fromMap(item as Map<String, dynamic>))
+          .toList();
+    } else {
+      final setsCount = map['targetSets'] ?? 3;
+      final repsStr = (map['targetReps'] ?? "10").toString();
+      final weight = map['targetWeight']?.toDouble();
+      sets = _generatePlannedSetsFromLegacy(
+        setsCount: setsCount,
+        targetReps: repsStr,
+        targetWeight: weight,
+      );
+    }
+
     return WorkoutTemplateExercise(
       exerciseId: map['exerciseId'] ?? '',
       exerciseName: map['exerciseName'] ?? '',
       type: _parseType(map['type']),
-      targetSets: map['targetSets'] ?? 3,
-      targetReps: map['targetReps'] ?? "10",
-      targetWeight: map['targetWeight']?.toDouble(),
+      plannedSets: sets,
       targetDistance: map['targetDistance']?.toDouble(),
       targetDurationSeconds: map['targetDurationSeconds'],
       targetRPE: map['targetRPE']?.toDouble(),
       restSeconds: map['restSeconds'],
       notes: map['notes'],
+      superSetGroup: map['superSetGroup'],
     );
   }
+
+  static List<PlannedSet> _generatePlannedSetsFromLegacy({
+    required int setsCount,
+    required String targetReps,
+    double? targetWeight,
+  }) {
+    final clean = targetReps.trim().toLowerCase();
+    int? reps = 10;
+    int? repsMax;
+    PlannedSetKind kind = PlannedSetKind.normal;
+
+    if (clean == 'max' || clean == 'cedimento' || clean == 'failure') {
+      reps = null;
+      kind = PlannedSetKind.toFailure;
+    } else if (clean.contains('-')) {
+      final parts = clean.split('-');
+      reps = int.tryParse(parts[0].trim()) ?? 8;
+      repsMax = int.tryParse(parts[1].trim()) ?? 12;
+    } else {
+      reps = int.tryParse(clean) ?? 10;
+    }
+
+    final count = setsCount <= 0 ? 3 : setsCount;
+    return List.generate(
+      count,
+      (_) => PlannedSet(
+        reps: reps,
+        repsMax: repsMax,
+        weight: targetWeight,
+        kind: kind,
+      ),
+    );
+  }
+
   static ExerciseType _parseType(String? type) {
     return ExerciseType.values.firstWhere(
       (e) => e.toString().split('.').last == type,
@@ -172,6 +310,7 @@ class WorkoutTemplateExercise {
     String? exerciseId,
     String? exerciseName,
     ExerciseType? type,
+    List<PlannedSet>? plannedSets,
     int? targetSets,
     String? targetReps,
     double? targetWeight,
@@ -180,20 +319,20 @@ class WorkoutTemplateExercise {
     double? targetRPE,
     int? restSeconds,
     String? notes,
+    String? superSetGroup,
   }) {
     return WorkoutTemplateExercise(
       exerciseId: exerciseId ?? this.exerciseId,
       exerciseName: exerciseName ?? this.exerciseName,
       type: type ?? this.type,
-      targetSets: targetSets ?? this.targetSets,
-      targetReps: targetReps ?? this.targetReps,
-      targetWeight: targetWeight ?? this.targetWeight,
+      plannedSets: plannedSets ?? this.plannedSets,
       targetDistance: targetDistance ?? this.targetDistance,
       targetDurationSeconds:
           targetDurationSeconds ?? this.targetDurationSeconds,
       targetRPE: targetRPE ?? this.targetRPE,
       restSeconds: restSeconds ?? this.restSeconds,
       notes: notes ?? this.notes,
+      superSetGroup: superSetGroup ?? this.superSetGroup,
     );
   }
 }
