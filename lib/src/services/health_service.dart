@@ -321,28 +321,70 @@ class HealthService {
     DateTime start,
     DateTime end,
   ) async {
-    // Ensure we fetch generic data points
-    List<HealthDataPoint> data = await _health.getHealthDataFromTypes(
-      startTime: start,
-      endTime: end.add(const Duration(days: 1)), // Add 1 day buffer to be safe
-      types: [type],
-    );
+    // 1. Per i passi: su Android/Health Connect `getTotalStepsInInterval` è il
+    // canale ufficiale e affidabile per calcolare i totali giornalieri.
+    if (type == HealthDataType.STEPS) {
+      final Map<DateTime, double> dailySteps = {};
+      final int days = end.difference(start).inDays + 1;
+      final futures = <Future<void>>[];
 
-    // Filter duplicates via Health library internal logic usually handles it, but verify
-    // data = HealthFactory.removeDuplicates(data); // Removed as HealthFactory is undefined in this version
+      for (int i = 0; i <= days; i++) {
+        final day = start.add(Duration(days: i));
+        final midnight = DateTime(day.year, day.month, day.day);
+        if (midnight.isAfter(end)) break;
+        final nextMidnight = midnight.add(const Duration(days: 1));
+
+        futures.add(() async {
+          try {
+            final steps = await _health.getTotalStepsInInterval(
+              midnight,
+              nextMidnight,
+            );
+            if (steps != null && steps > 0) {
+              dailySteps[midnight] = steps.toDouble();
+            }
+          } catch (_) {}
+        }());
+      }
+
+      await Future.wait(futures);
+      if (dailySteps.isNotEmpty) {
+        return dailySteps;
+      }
+    }
+
+    // 2. Per le calorie: interroga i tipi di calorie aggregabili (_liveCalorieTypes)
+    // per non perdere i dati su orologi/dispositivi che scrivono TOTAL_CALORIES_BURNED.
+    final typesToFetch = (type == HealthDataType.ACTIVE_ENERGY_BURNED)
+        ? _liveCalorieTypes
+        : [type];
+
+    List<HealthDataPoint> data = [];
+    try {
+      data = await _health.getHealthDataFromTypes(
+        startTime: start,
+        endTime: end.add(const Duration(days: 1)), // Add 1 day buffer
+        types: typesToFetch,
+      );
+    } catch (_) {
+      return {};
+    }
 
     Map<DateTime, double> dailyData = {};
     Map<DateTime, int> dailyCounts = {}; // For averaging
+    Map<DateTime, List<HealthDataPoint>> caloriePointsByDay = {};
 
     for (var point in data) {
-      // Normalize to midnight
       DateTime date = point.dateTo;
-      // Use dateTo usually better for "when did it happen"
       DateTime midnight = DateTime(date.year, date.month, date.day);
 
-      // If outside requested range, skip (buffer checking)
       if (midnight.isBefore(DateTime(start.year, start.month, start.day)) ||
           midnight.isAfter(end)) {
+        continue;
+      }
+
+      if (type == HealthDataType.ACTIVE_ENERGY_BURNED) {
+        caloriePointsByDay.putIfAbsent(midnight, () => []).add(point);
         continue;
       }
 
@@ -352,22 +394,26 @@ class HealthService {
       }
 
       if (type == HealthDataType.STEPS ||
-          type == HealthDataType.ACTIVE_ENERGY_BURNED ||
-          type == HealthDataType.BASAL_ENERGY_BURNED ||
           type == HealthDataType.DISTANCE_DELTA ||
           type == HealthDataType.WATER) {
-        // SUM
         dailyData[midnight] = (dailyData[midnight] ?? 0) + value;
       } else if (type == HealthDataType.SLEEP_SESSION) {
-        // SUM minutes
         final duration = point.dateTo.difference(point.dateFrom).inMinutes;
         dailyData[midnight] = (dailyData[midnight] ?? 0) + duration;
       } else if (type == HealthDataType.HEART_RATE ||
           type == HealthDataType.WEIGHT) {
-        // AVERAGE (Accumulate sum and count)
         dailyData[midnight] = (dailyData[midnight] ?? 0) + value;
         dailyCounts[midnight] = (dailyCounts[midnight] ?? 0) + 1;
       }
+    }
+
+    if (type == HealthDataType.ACTIVE_ENERGY_BURNED) {
+      caloriePointsByDay.forEach((midnight, points) {
+        final cal = _calorie(points);
+        if (cal != null && cal > 0) {
+          dailyData[midnight] = cal;
+        }
+      });
     }
 
     // Post-process Average

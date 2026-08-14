@@ -31,11 +31,12 @@ class AuthService {
     }
   }
 
-  // Register with email, password, and display name
+  // Register with email, password, display name, and role
   Future<User?> register({
     required String email,
     required String password,
     required String displayName,
+    UserRole role = UserRole.athlete,
   }) async {
     try {
       // 1. Create Auth User
@@ -62,6 +63,7 @@ class AuthService {
           email: email,
           displayName: displayName,
           friendCode: friendCode,
+          role: role,
           createdAt: DateTime.now(),
         );
 

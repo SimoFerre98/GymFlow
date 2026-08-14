@@ -145,42 +145,8 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
     WorkoutTemplateExercise? existing,
     required Function(WorkoutTemplateExercise) onSave,
   }) async {
-    // Defaults based on Type
-    // If existing, use values. Else, defaults.
-    // However, 'type' comes from 'existing'. When adding new, we pass a temp object with correct type.
-    // `read` e non `watch`: questo non e un `build`, e il foglio vive il tempo
-    // di una configurazione.
-    final loc = ref.read(localizationNotifierProvider);
     final t = context.expressive;
     final scheme = Theme.of(context).colorScheme;
-
-    final type = existing?.type ?? ExerciseType.strength;
-    final isCardio = type == ExerciseType.cardio;
-    final isTimed =
-        type == ExerciseType.timed || type == ExerciseType.isometric;
-
-    // Controllers
-    final setsController = TextEditingController(
-      text: existing?.targetSets.toString() ?? (isCardio ? '1' : '3'),
-    );
-    final repsController = TextEditingController(
-      text: existing?.targetReps ?? '10',
-    );
-    final weightController = TextEditingController(
-      text: existing?.targetWeight?.toString() ?? '',
-    );
-    final distanceController = TextEditingController(
-      text: existing?.targetDistance?.toString() ?? '',
-    );
-    final durationController = TextEditingController(
-      text: existing?.targetDurationSeconds != null
-          ? (existing!.targetDurationSeconds! / 60).toStringAsFixed(0)
-          : '',
-    );
-    final restController = TextEditingController(
-      text: existing?.restSeconds?.toString() ?? '90',
-    );
-    final notesController = TextEditingController(text: existing?.notes ?? '');
 
     await showModalBottomSheet(
       context: context,
@@ -189,269 +155,9 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(t.shape.radiusLg)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + t.spacing.lg,
-          left: t.spacing.lg,
-          right: t.spacing.lg,
-          top: t.spacing.lg,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(t.spacing.sm),
-                    decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isCardio ? Icons.directions_run : Icons.fitness_center,
-                      color: scheme.primary,
-                    ),
-                  ),
-                  SizedBox(width: t.spacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isCardio
-                              ? loc.t('configure_cardio')
-                              : loc.t('configure_strength'),
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          existing?.exerciseName ?? loc.t('new_exercise'),
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: scheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xl),
-
-              // Dynamic Fields
-              if (isCardio) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: distanceController,
-                        label: loc.t('distance_km_label'),
-                        icon: Icons.map_outlined,
-                      ),
-                    ),
-                    SizedBox(width: t.spacing.md),
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: durationController,
-                        label: loc.t('time_min_label'),
-                        icon: Icons.timer_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-                // Hidden Sets input but maybe advanced toggle? For now, imply 1 set or keep hidden.
-                // We kept setsController default to 1.
-              ] else if (isTimed) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: setsController,
-                        label: loc.t('sets_label'),
-                        icon: Icons.repeat,
-                      ),
-                    ),
-                    SizedBox(width: t.spacing.md),
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: durationController,
-                        label: loc.t('duration_sec_label'),
-                        // Plan said min/sec. Let's assume min for consistency with cardio or sec for holds.
-                        // Usually isometric is seconds. Let's label sec.
-                        icon: Icons.timer,
-                      ),
-                    ),
-                  ],
-                ),
-              ] else ...[
-                // Strength default
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: setsController,
-                        label: loc.t('sets_label'),
-                        icon: Icons.repeat,
-                      ),
-                    ),
-                    SizedBox(width: t.spacing.md),
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: repsController,
-                        label: loc.t('reps_label'),
-                        icon: Icons.numbers,
-                      ),
-                    ),
-                    SizedBox(width: t.spacing.md),
-                    Expanded(
-                      child: _buildSheetInput(
-                        controller: weightController,
-                        label: loc.t('weight_kg_label'),
-                        icon: Icons.fitness_center_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              SizedBox(height: t.spacing.md),
-
-              // Common Fields
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSheetInput(
-                      controller: restController,
-                      label: loc.t('rest_sec_label'),
-                      icon: Icons.hourglass_empty,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.md),
-              TextField(
-                controller: notesController,
-                decoration: InputDecoration(
-                  labelText: loc.t('notes_optional'),
-                  filled: true,
-                  fillColor: scheme.surfaceContainerHigh,
-                  border: OutlineInputBorder(
-                    borderRadius: t.shape.cornerSm,
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                maxLines: 2,
-              ),
-              SizedBox(height: t.spacing.xl),
-
-              ElevatedButton(
-                onPressed: () {
-                  final sets =
-                      int.tryParse(setsController.text) ?? (isCardio ? 1 : 3);
-                  final reps = repsController.text.isNotEmpty
-                      ? repsController.text
-                      : "10";
-                  final weight = double.tryParse(
-                    weightController.text.replaceAll(',', '.'),
-                  );
-                  final distance = double.tryParse(
-                    distanceController.text.replaceAll(',', '.'),
-                  );
-
-                  // Handle Duration
-                  int? durationSeconds;
-                  if (durationController.text.isNotEmpty) {
-                    // For Timed/Isometric, maybe interpret as seconds if labeled sec
-                    if (isTimed) {
-                      durationSeconds = int.tryParse(durationController.text);
-                    } else {
-                      // Cardio usually minutes
-                      final mins = double.tryParse(durationController.text);
-                      if (mins != null) durationSeconds = (mins * 60).toInt();
-                    }
-                  }
-
-                  final rest = int.tryParse(restController.text);
-                  final notes = notesController.text.trim().isEmpty
-                      ? null
-                      : notesController.text.trim();
-
-                  if (existing != null) {
-                    onSave(
-                      WorkoutTemplateExercise(
-                        exerciseId: existing.exerciseId,
-                        exerciseName: existing.exerciseName,
-                        type: existing.type,
-                        targetSets: sets,
-                        targetReps: reps,
-                        targetWeight: weight,
-                        targetDistance: distance,
-                        targetDurationSeconds: durationSeconds,
-                        restSeconds: rest,
-                        notes: notes,
-                      ),
-                    );
-                  }
-                  Navigator.pop(ctx);
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: t.spacing.md),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: t.shape.cornerSm,
-                  ),
-                  backgroundColor: scheme.primary,
-                  foregroundColor: scheme.onPrimary,
-                ),
-                child: Text(
-                  loc.t('save_exercise'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: scheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    // Il bottom sheet è chiuso: nessun widget usa più questi controller.
-    setsController.dispose();
-    repsController.dispose();
-    weightController.dispose();
-    distanceController.dispose();
-    durationController.dispose();
-    restController.dispose();
-    notesController.dispose();
-  }
-
-  Widget _buildSheetInput({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-  }) {
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: t.sizing.iconSm),
-        filled: true,
-        fillColor: scheme.surfaceContainerHigh,
-        isDense: true,
-        border: OutlineInputBorder(
-          borderRadius: t.shape.cornerSm,
-          borderSide: BorderSide.none,
-        ),
+      builder: (ctx) => _ExerciseConfigurationSheet(
+        existing: existing,
+        onSave: onSave,
       ),
     );
   }
@@ -738,4 +444,334 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
   }
 }
 
+class _ExerciseConfigurationSheet extends ConsumerStatefulWidget {
+  final WorkoutTemplateExercise? existing;
+  final Function(WorkoutTemplateExercise) onSave;
+
+  const _ExerciseConfigurationSheet({
+    required this.existing,
+    required this.onSave,
+  });
+
+  @override
+  ConsumerState<_ExerciseConfigurationSheet> createState() =>
+      _ExerciseConfigurationSheetState();
+}
+
+class _ExerciseConfigurationSheetState
+    extends ConsumerState<_ExerciseConfigurationSheet> {
+  late final TextEditingController _setsController;
+  late final TextEditingController _repsController;
+  late final TextEditingController _weightController;
+  late final TextEditingController _distanceController;
+  late final TextEditingController _durationController;
+  late final TextEditingController _restController;
+  late final TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    final type = existing?.type ?? ExerciseType.strength;
+    final isCardio = type == ExerciseType.cardio;
+
+    _setsController = TextEditingController(
+      text: existing?.targetSets.toString() ?? (isCardio ? '1' : '3'),
+    );
+    _repsController = TextEditingController(
+      text: existing?.targetReps ?? '10',
+    );
+    _weightController = TextEditingController(
+      text: existing?.targetWeight != null && existing!.targetWeight! > 0
+          ? existing.targetWeight.toString()
+          : '',
+    );
+    _distanceController = TextEditingController(
+      text: existing?.targetDistance?.toString() ?? '',
+    );
+    _durationController = TextEditingController(
+      text: existing?.targetDurationSeconds != null
+          ? (existing!.targetDurationSeconds! / 60).toStringAsFixed(0)
+          : '',
+    );
+    _restController = TextEditingController(
+      text: existing?.restSeconds?.toString() ?? '90',
+    );
+    _notesController = TextEditingController(text: existing?.notes ?? '');
+  }
+
+  @override
+  void dispose() {
+    _setsController.dispose();
+    _repsController.dispose();
+    _weightController.dispose();
+    _distanceController.dispose();
+    _durationController.dispose();
+    _restController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildSheetInput({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+  }) {
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
+    return TextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: t.sizing.iconSm),
+        filled: true,
+        fillColor: scheme.surfaceContainerHigh,
+        isDense: true,
+        border: OutlineInputBorder(
+          borderRadius: t.shape.cornerSm,
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = ref.watch(localizationNotifierProvider);
+    final t = context.expressive;
+    final scheme = Theme.of(context).colorScheme;
+
+    final existing = widget.existing;
+    final type = existing?.type ?? ExerciseType.strength;
+    final isCardio = type == ExerciseType.cardio;
+    final isTimed =
+        type == ExerciseType.timed || type == ExerciseType.isometric;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom + t.spacing.lg,
+        left: t.spacing.lg,
+        right: t.spacing.lg,
+        top: t.spacing.lg,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(t.spacing.sm),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isCardio ? Icons.directions_run : Icons.fitness_center,
+                    color: scheme.primary,
+                  ),
+                ),
+                SizedBox(width: t.spacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isCardio
+                            ? loc.t('configure_cardio')
+                            : loc.t('configure_strength'),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      Text(
+                        existing?.exerciseName ?? loc.t('new_exercise'),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            SizedBox(height: t.spacing.xl),
+
+            // Dynamic Fields
+            if (isCardio) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _distanceController,
+                      label: loc.t('distance_km_label'),
+                      icon: Icons.map_outlined,
+                    ),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _durationController,
+                      label: loc.t('time_min_label'),
+                      icon: Icons.timer_outlined,
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (isTimed) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _setsController,
+                      label: loc.t('sets_label'),
+                      icon: Icons.repeat,
+                    ),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _durationController,
+                      label: loc.t('duration_sec_label'),
+                      icon: Icons.timer,
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              // Strength default
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _setsController,
+                      label: loc.t('sets_label'),
+                      icon: Icons.repeat,
+                    ),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _repsController,
+                      label: loc.t('reps_label'),
+                      icon: Icons.numbers,
+                    ),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: _buildSheetInput(
+                      controller: _weightController,
+                      label: loc.t('weight_kg_label'),
+                      icon: Icons.fitness_center_outlined,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            SizedBox(height: t.spacing.md),
+
+            // Common Fields
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSheetInput(
+                    controller: _restController,
+                    label: loc.t('rest_sec_label'),
+                    icon: Icons.hourglass_empty,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: t.spacing.md),
+            TextField(
+              controller: _notesController,
+              decoration: InputDecoration(
+                labelText: loc.t('notes_optional'),
+                filled: true,
+                fillColor: scheme.surfaceContainerHigh,
+                border: OutlineInputBorder(
+                  borderRadius: t.shape.cornerSm,
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              maxLines: 2,
+            ),
+            SizedBox(height: t.spacing.xl),
+
+            ElevatedButton(
+              onPressed: () {
+                final sets = int.tryParse(_setsController.text) ??
+                    (isCardio ? 1 : 3);
+                final reps = _repsController.text.isNotEmpty
+                    ? _repsController.text
+                    : "10";
+                final weight = double.tryParse(
+                  _weightController.text.replaceAll(',', '.'),
+                );
+                final distance = double.tryParse(
+                  _distanceController.text.replaceAll(',', '.'),
+                );
+
+                int? durationSeconds;
+                if (_durationController.text.isNotEmpty) {
+                  if (isTimed) {
+                    durationSeconds = int.tryParse(_durationController.text);
+                  } else {
+                    final mins = double.tryParse(_durationController.text);
+                    if (mins != null) durationSeconds = (mins * 60).toInt();
+                  }
+                }
+
+                final rest = int.tryParse(_restController.text);
+                final notes = _notesController.text.trim().isEmpty
+                    ? null
+                    : _notesController.text.trim();
+
+                final result = WorkoutTemplateExercise(
+                  exerciseId: existing?.exerciseId ?? '',
+                  exerciseName: existing?.exerciseName ?? '',
+                  type: existing?.type ?? ExerciseType.strength,
+                  targetSets: sets,
+                  targetReps: reps,
+                  targetWeight: weight,
+                  targetDistance: distance,
+                  targetDurationSeconds: durationSeconds,
+                  restSeconds: rest,
+                  notes: notes,
+                );
+
+                Navigator.of(context).pop();
+                widget.onSave(result);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: t.spacing.md),
+                shape: RoundedRectangleBorder(
+                  borderRadius: t.shape.cornerSm,
+                ),
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
+              ),
+              child: Text(
+                loc.t('save_exercise'),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 

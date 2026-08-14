@@ -4,6 +4,8 @@ import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 
+import 'package:gymflow/src/models/user_profile.dart';
+
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -16,6 +18,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  UserRole _selectedRole = UserRole.athlete;
   bool _isLoading = false;
 
   @override
@@ -34,6 +37,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
+          role: _selectedRole,
         );
         if (mounted) {
           Navigator.pop(
@@ -80,7 +84,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                        labelText: loc.t('full_name'),
+                    labelText: loc.t('full_name'),
                     prefixIcon: const Icon(Icons.person_outline),
                   ),
                   validator: (value) => value != null && value.isNotEmpty
@@ -91,7 +95,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                        labelText: loc.t('email_label'),
+                    labelText: loc.t('email_label'),
                     prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
@@ -103,13 +107,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                        labelText: loc.t('password_label'),
+                    labelText: loc.t('password_label'),
                     prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   obscureText: true,
                   validator: (value) => value != null && value.length >= 6
                       ? null
                       : loc.t('password_too_short_min6'),
+                ),
+                SizedBox(height: t.spacing.md),
+                DropdownButtonFormField<UserRole>(
+                  initialValue: _selectedRole,
+                  decoration: InputDecoration(
+                    labelText: loc.t('role_label'),
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                  ),
+                  dropdownColor: scheme.surfaceContainerHigh,
+                  items: [
+                    DropdownMenuItem(
+                      value: UserRole.athlete,
+                      child: Text(loc.t('role_athlete')),
+                    ),
+                    DropdownMenuItem(
+                      value: UserRole.trainer,
+                      child: Text(loc.t('role_trainer')),
+                    ),
+                    DropdownMenuItem(
+                      value: UserRole.both,
+                      child: Text(loc.t('role_both')),
+                    ),
+                  ],
+                  onChanged: (role) {
+                    if (role != null) {
+                      setState(() => _selectedRole = role);
+                    }
+                  },
                 ),
                 SizedBox(height: t.spacing.xl),
                 ElevatedButton(
