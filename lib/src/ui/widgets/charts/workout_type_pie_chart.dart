@@ -44,13 +44,17 @@ const _paletteCategorica = <Color>[
 const _indiceTipoNoto = <String, int>{
   'strength': 0,
   'cardio': 1,
-  'hypertrophy': 2,
-  'flexibility': 3,
+  'mobility': 2,
+  'sport': 3,
+  'hypertrophy': 0,
+  'flexibility': 2,
 };
 
 const _chiaveTipoNoto = <String, String>{
   'strength': 'workout_type_strength',
   'cardio': 'workout_type_cardio',
+  'mobility': 'workout_type_mobility',
+  'sport': 'workout_type_sport',
   'hypertrophy': 'workout_type_hypertrophy',
   'flexibility': 'workout_type_flexibility',
 };

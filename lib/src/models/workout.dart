@@ -1,4 +1,5 @@
 import 'package:gymflow/src/models/exercise.dart';
+import 'package:gymflow/src/models/workout_type.dart';
 
 // --- Session Models (Runtime) ---
 
@@ -12,6 +13,16 @@ class WorkoutSet {
   bool isCompleted;
   double? rpe;
   String? notes;
+
+  /// Ritmo calcolato in minuti al chilometro (min/km) per attività cardio.
+  ///
+  /// Restituisce null se la distanza o la durata sono assenti o non positive.
+  double? get paceMinPerKm {
+    if (distance == null || distance! <= 0 || durationSeconds == null || durationSeconds! <= 0) {
+      return null;
+    }
+    return (durationSeconds! / 60.0) / distance!;
+  }
 
   WorkoutSet({
     this.weight = 0,
@@ -345,6 +356,9 @@ class WorkoutTemplate {
   final String? parentProgramId;
   final List<WorkoutTemplateExercise> exercises;
   final ExerciseType category;
+
+  /// Tipo di allenamento ricavato dalla categoria della scheda.
+  WorkoutType get workoutType => WorkoutType.fromString(category.name);
 
   WorkoutTemplate({
     required this.id,
