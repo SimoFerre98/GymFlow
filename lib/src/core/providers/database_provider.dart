@@ -6,18 +6,21 @@ import '../../models/local/local_workout_session.dart';
 part 'database_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Future<Isar> isarDatabase(IsarDatabaseRef ref) async {
-  final dir = await getApplicationDocumentsDirectory();
+class IsarDatabase extends _$IsarDatabase {
+  @override
+  Future<Isar> build() async {
+    final dir = await getApplicationDocumentsDirectory();
 
-  // Check if default instance is already open
-  final existingInstance = Isar.getInstance('default');
-  if (existingInstance != null) {
-    return existingInstance;
+    // Check if default instance is already open
+    final existingInstance = Isar.getInstance('default');
+    if (existingInstance != null) {
+      return existingInstance;
+    }
+
+    return await Isar.open(
+      [LocalWorkoutSessionSchema],
+      directory: dir.path,
+      inspector: true,
+    );
   }
-
-  return await Isar.open(
-    [LocalWorkoutSessionSchema],
-    directory: dir.path,
-    inspector: true,
-  );
 }

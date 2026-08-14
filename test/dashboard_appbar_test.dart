@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:gymflow/src/ui/screens/dashboard_screen.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/core/providers/firestore_provider.dart';
 import 'package:gymflow/src/core/providers/exercise_provider.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/services/firestore_service.dart' as svc;
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/exercise.dart';
@@ -33,7 +34,7 @@ import 'package:gymflow/src/models/session.dart';
 /// Provano che il ritaglio c'e e che le icone stanno tutte sopra la linea di
 /// taglio; che il risultato si legga bene mentre si scorre resta da confermare
 /// sull'APK.
-class FakeFirestoreService implements FirestoreService {
+class FakeFirestoreService implements svc.FirestoreService {
   @override
   Stream<List<WorkoutProgram>> getUserPrograms(String userId) =>
       Stream.value([]);
@@ -45,6 +46,21 @@ class FakeFirestoreService implements FirestoreService {
       Stream.value([]);
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class FakeCurrentUser extends CurrentUser {
+  @override
+  User? build() => null;
+}
+
+class FakeCurrentUserId extends CurrentUserId {
+  @override
+  String? build() => '123';
+}
+
+class FakeFirestoreNotifier extends FirestoreService {
+  @override
+  svc.FirestoreService build() => FakeFirestoreService();
 }
 
 class FakeLocalization extends Localization {
@@ -73,9 +89,9 @@ class FakeExercises extends Exercises {
 void main() {
   Widget dashboard(String userName) => ProviderScope(
     overrides: [
-      currentUserProvider.overrideWith((ref) => null),
-      currentUserIdProvider.overrideWith((ref) => '123'),
-      firestoreServiceProvider.overrideWithValue(FakeFirestoreService()),
+      currentUserProvider.overrideWith(FakeCurrentUser.new),
+      currentUserIdProvider.overrideWith(FakeCurrentUserId.new),
+      firestoreServiceProvider.overrideWith(FakeFirestoreNotifier.new),
       exercisesProvider.overrideWith(() => FakeExercises()),
       localizationNotifierProvider.overrideWith(
         () => TestLocalizationNotifier(userName),

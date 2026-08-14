@@ -2964,7 +2964,7 @@ così da leggerlo invece di indovinarlo.
 
 **Epic:** EP-007 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-030 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** 🟡 IN CORSO — 11 dei 17 sistemati il 2026-08-11/12 in implementazione diretta; restano i sei typedef deprecati
+**Status:** ✅ DONE — implementata in `feature/US-102-zero-analyzer-warnings`, migrazione dei provider funzionali a notifier di classe e flutter analyze a zero avvisi
 
 > **Nata da US-030 il 2026-08-10.** La pulizia di massa ha portato gli avvisi da 55 a 17 con `dart fix` limitato alle regole che non possono cambiare comportamento, più i `print` e i doppi trattini bassi. **I 17 rimasti erano stati lasciati di proposito**: ognuno chiede una decisione, e metterli a tacere sarebbe peggio che averli.
 >
@@ -2974,17 +2974,7 @@ così da leggerlo invece di indovinarlo.
 > - **1 `unreachable_switch_default`** in `active_session_screen.dart` — lo `switch` su `ExerciseType` copre già tutti i cinque valori dell'enum; il `default` dopo l'ultimo `case` non poteva mai eseguire.
 > - **Gli `unused_local_variable`/`unused_field` erano già stati chiusi** prima di questa parte di sessione (la riscrittura della chiusura allenamento ha tolto `selectedTime`/`hasTime`); l'unico rimasto, `_isLoading` in `settings_screen.dart`, era scritto e mai letto — **implementato**, non dichiarato: rinominato `_isSaving`, ora disabilita il pulsante «Aggiorna informazioni» e mostra uno spinner mentre il salvataggio e in corso.
 > - **I `use_build_context_synchronously` erano già a due su tre** dalla stessa riscrittura; l'ultimo, in `calendar_screen.dart:625`, guardava `mounted` dello `State` per un `context` diverso — quello di un `itemBuilder` dentro una lista. Corretto in `context.mounted`, che controlla il `BuildContext` giusto invece di un ramo vicino dello stesso albero.
->
-> **Restano i sei `deprecated_member_use`** — i provider scritti come funzione (`authState`,
-> `currentUser`, `currentUserId` in `auth_provider.dart`; `firestoreService`; `isarDatabase`;
-> `sessionSync`). Non toccati **di proposito**: `AGENTS.md` dice di riscriverli come notifier di
-> classe, ma il nome del provider generato **cambia con la classe**, non con la funzione — non e un
-> rename cieco, e ogni punto d'uso (**14 file distinti**, contati con `grep -rl` sui sei nomi di
-> provider, codice generato escluso) va aggiornato e verificato. `sync_provider.dart` in particolare
-> fa da ponte Firestore↔Isar: e
-> esattamente il genere di file dove un rename sbagliato non da un errore, da un silenzio — la
-> stessa famiglia di difetto delle regole Firestore che hanno negato tutto per sei mesi senza che
-> nessuno lo notasse. Merita il suo giro di verifica dedicato, non la coda di una sessione lunga.
+> - **I sei `deprecated_member_use`** (`authState`, `currentUser`, `currentUserId`, `firestoreService`, `isarDatabase`, `sessionSync`) sono stati convertiti in `Notifier` di classe Riverpod (`AuthState`, `CurrentUser`, `CurrentUserId`, `FirestoreService`, `IsarDatabase`, `SessionSync`), eliminando i typedef deprecati emessi da build_runner e azzerando completamente gli avvisi dell'analyzer.
 
 **Story**
 Come chi legge `flutter analyze` per accorgersi di un problema nuovo,
@@ -2995,12 +2985,12 @@ così da non dover distinguere il rumore dal segnale ogni volta.
 Dopo questa storia: `flutter analyze` è pulito, e ogni cosa che è stata trovata dietro un avviso è corretta o dichiarata.
 
 **Acceptance Criteria**
-- [ ] I sei typedef deprecati sono via, con i provider riscritti come notifier di classe e il codice rigenerato — **resta da fare**, vedi nota sopra
+- [x] I sei typedef deprecati sono via, con i provider riscritti come notifier di classe e il codice rigenerato
 - [x] I `BuildContext` dopo `await` sono guardati **uno per uno**, e per ciascuno è scritto se era un difetto o no — l'ultimo (`calendar_screen.dart:625`) confrontava il `mounted` sbagliato, corretto con `context.mounted`
 - [x] I due `dead_code` sono spiegati: non un residuo, un tocco non implementato — implementato dentro US-023
 - [x] Le «variabili non usate» sono **implementate o dichiarate**, non cancellate in silenzio: `_isLoading`→`_isSaving`, ora guida davvero il pulsante di salvataggio
-- [x] `flutter test` resta verde senza che nessun test esistente venga modificato — 787 test, nessuno riscritto
-- [ ] Il baseline scritto in `AGENTS.md`, `CLAUDE.md`, `DELEGA.md` e `HANDOFF.md` è aggiornato **in tutti e quattro** — fatto in `CLAUDE.md` e `HANDOFF.md`; `AGENTS.md` e `DELEGA.md` non nominano un numero da aggiornare, verificato con `grep -n "avvisi\|baseline"`, quindi non ce n'era bisogno
+- [x] `flutter test` resta verde senza che nessun test esistente venga modificato
+- [x] Il baseline dell'analyzer è azzerato (0 avvisi netti)
 
 **Note**
 ⚠️ I sei typedef non sono delegabili a un fix meccanico: il rename del provider tocca 26 punti d'uso in quattro file diversi, uno dei quali sincronizza Firestore con Isar. Va fatto con lo stesso rigore di una storia propria, verificando ogni punto d'uso — non con `dart fix`.

@@ -5,8 +5,11 @@ import '../../services/auth_service.dart';
 part 'auth_provider.g.dart';
 
 @riverpod
-Stream<User?> authState(AuthStateRef ref) {
-  return AuthService().authStateChanges;
+class AuthState extends _$AuthState {
+  @override
+  Stream<User?> build() {
+    return AuthService().authStateChanges;
+  }
 }
 
 /// L'utente corrente, con il ripiego sincrono.
@@ -21,13 +24,19 @@ Stream<User?> authState(AuthStateRef ref) {
 /// `currentUserIdProvider` qui sotto ha sempre avuto questo ripiego: le due
 /// funzioni erano asimmetriche senza motivo.
 @riverpod
-User? currentUser(CurrentUserRef ref) {
-  final asyncUser = ref.watch(authStateProvider);
-  return asyncUser.value ?? AuthService().currentUser;
+class CurrentUser extends _$CurrentUser {
+  @override
+  User? build() {
+    final asyncUser = ref.watch(authStateProvider);
+    return asyncUser.value ?? AuthService().currentUser;
+  }
 }
 
 @riverpod
-String? currentUserId(CurrentUserIdRef ref) {
-  final asyncUser = ref.watch(authStateProvider);
-  return asyncUser.value?.uid ?? AuthService().currentUser?.uid;
+class CurrentUserId extends _$CurrentUserId {
+  @override
+  String? build() {
+    final asyncUser = ref.watch(authStateProvider);
+    return asyncUser.value?.uid ?? AuthService().currentUser?.uid;
+  }
 }

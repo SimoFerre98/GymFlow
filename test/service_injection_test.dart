@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
-import 'package:gymflow/src/core/providers/firestore_provider.dart';
+import 'package:gymflow/src/core/providers/firestore_provider.dart' as fp;
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/session.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/services/firestore_service.dart' as svc;
 import 'package:gymflow/src/ui/screens/program_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,7 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// Basta a dimostrare che la schermata riceve il servizio dal provider e non
 /// ne crea uno proprio.
-class _FakeFirestoreService implements FirestoreService {
+class _FakeFirestoreService implements svc.FirestoreService {
   bool getUserProgramsCalled = false;
 
   @override
@@ -36,6 +36,20 @@ class _FakeFirestoreService implements FirestoreService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeFirestoreNotifier extends fp.FirestoreService {
+  _FakeFirestoreNotifier(this._service);
+  final svc.FirestoreService _service;
+  @override
+  svc.FirestoreService build() => _service;
+}
+
+class _FakeCurrentUserId extends CurrentUserId {
+  _FakeCurrentUserId(this._id);
+  final String _id;
+  @override
+  String? build() => _id;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,8 +128,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              firestoreServiceProvider.overrideWithValue(fakeFirestore),
-              currentUserIdProvider.overrideWithValue('test-user'),
+              fp.firestoreServiceProvider.overrideWith(() => _FakeFirestoreNotifier(fakeFirestore)),
+              currentUserIdProvider.overrideWith(() => _FakeCurrentUserId('test-user')),
             ],
             child: MaterialApp(
               theme: ThemeData(

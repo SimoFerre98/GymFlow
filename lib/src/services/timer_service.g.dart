@@ -6,7 +6,7 @@ part of 'timer_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$timerNotifierHash() => r'3d1eb5b401c0c3d047974ab9c12e1dc2f92c1485';
+String _$timerNotifierHash() => r'411205cf24d87068fa432cf07a990e016cae00eb';
 
 /// Cronometro e timer da conto alla rovescia, condivisi da tutta l'app.
 ///

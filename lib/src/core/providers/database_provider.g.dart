@@ -6,12 +6,12 @@ part of 'database_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$isarDatabaseHash() => r'07da274c477e6a3d01a0555249447becf3cb48b4';
+String _$isarDatabaseHash() => r'a62b46d68e0e09689d79c73d6dfedf2e8ba6fad7';
 
-/// See also [isarDatabase].
-@ProviderFor(isarDatabase)
-final isarDatabaseProvider = FutureProvider<Isar>.internal(
-  isarDatabase,
+/// See also [IsarDatabase].
+@ProviderFor(IsarDatabase)
+final isarDatabaseProvider = AsyncNotifierProvider<IsarDatabase, Isar>.internal(
+  IsarDatabase.new,
   name: r'isarDatabaseProvider',
   debugGetCreateSourceHash:
       const bool.fromEnvironment('dart.vm.product') ? null : _$isarDatabaseHash,
@@ -19,6 +19,6 @@ final isarDatabaseProvider = FutureProvider<Isar>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef IsarDatabaseRef = FutureProviderRef<Isar>;
+typedef _$IsarDatabase = AsyncNotifier<Isar>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
