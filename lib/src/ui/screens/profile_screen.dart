@@ -38,6 +38,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   DateTime? _birthDate;
   String? _gender;
+  UserRole _role = UserRole.athlete;
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _lastNameController.text = profile.lastName ?? '';
       _birthDate = profile.birthDate;
       _gender = profile.gender;
+      _role = profile.role;
     }
     setState(() => _isLoading = false);
   }
@@ -177,6 +179,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       photoUrl: photoUrl,
       birthDate: _birthDate,
       gender: _gender,
+      role: _role,
     );
 
     // 3. Save to Firestore
@@ -391,6 +394,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       ),
                     ],
+                  ),
+
+                  SizedBox(height: t.spacing.md),
+
+                  // Role (Athlete, Trainer, Both)
+                  InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: loc.t('role_label'),
+                      border: const OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: t.spacing.sm,
+                        vertical: t.spacing.xs,
+                      ),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<UserRole>(
+                        value: _role,
+                        isDense: true,
+                        isExpanded: true,
+                        onChanged: _isEditing
+                            ? (UserRole? newRole) {
+                                if (newRole != null) {
+                                  setState(() {
+                                    _role = newRole;
+                                  });
+                                }
+                              }
+                            : null,
+                        items: [
+                          DropdownMenuItem(
+                            value: UserRole.athlete,
+                            child: Text(loc.t('role_athlete')),
+                          ),
+                          DropdownMenuItem(
+                            value: UserRole.trainer,
+                            child: Text(loc.t('role_trainer')),
+                          ),
+                          DropdownMenuItem(
+                            value: UserRole.both,
+                            child: Text(loc.t('role_both')),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
 
                   SizedBox(height: t.spacing.md),

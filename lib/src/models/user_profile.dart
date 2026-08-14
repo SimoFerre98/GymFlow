@@ -1,9 +1,32 @@
+enum UserRole {
+  athlete,
+  trainer,
+  both;
+
+  String toMap() => name;
+
+  static UserRole fromMap(dynamic value) {
+    if (value is String) {
+      for (final role in UserRole.values) {
+        if (role.name.toLowerCase() == value.toLowerCase()) {
+          return role;
+        }
+      }
+    }
+    return UserRole.athlete;
+  }
+
+  bool get isTrainer => this == UserRole.trainer || this == UserRole.both;
+  bool get isAthlete => this == UserRole.athlete || this == UserRole.both;
+}
+
 class UserProfile {
   final String id;
   final String email;
   final String displayName;
   final String? firstName;
   final String? lastName;
+  final UserRole role;
 
   final double? weight;
   final double? height; // in cm
@@ -29,6 +52,7 @@ class UserProfile {
     required this.displayName,
     this.firstName,
     this.lastName,
+    this.role = UserRole.athlete,
     this.friendCode,
     this.friends = const [],
     this.calendarSharedWith = const [],
@@ -54,6 +78,7 @@ class UserProfile {
       'displayName': displayName,
       'firstName': firstName,
       'lastName': lastName,
+      'role': role.toMap(),
       'friendCode': friendCode,
       'friends': friends,
       'calendarSharedWith': calendarSharedWith,
@@ -80,6 +105,7 @@ class UserProfile {
       displayName: map['displayName'] ?? 'User',
       firstName: map['firstName'],
       lastName: map['lastName'],
+      role: UserRole.fromMap(map['role']),
       friendCode: map['friendCode'],
       friends: List<String>.from(map['friends'] ?? []),
       calendarSharedWith: List<String>.from(map['calendarSharedWith'] ?? []),
@@ -108,6 +134,7 @@ class UserProfile {
     String? displayName,
     String? firstName,
     String? lastName,
+    UserRole? role,
     double? weight,
     double? height,
     String? photoUrl,
@@ -131,6 +158,7 @@ class UserProfile {
       displayName: displayName ?? this.displayName,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
+      role: role ?? this.role,
       weight: weight ?? this.weight,
       height: height ?? this.height,
       photoUrl: photoUrl ?? this.photoUrl,

@@ -2512,7 +2512,7 @@ Dopo questa storia: le quattro schede reali sono nell'app, complete di piramidi,
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 2
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-087, US-089, US-090, US-091
-**Status:** ⬜ TODO — ⚠️ **non delegabile** (modello dati e regole)
+**Status:** ✅ DONE — implementata in `feature/US-086-user-profile-trainer-role`, test unitari e di compatibilità in `test/user_profile_role_test.dart`
 
 **Story**
 Come professionista che usa l'app per lavoro,
@@ -2523,11 +2523,11 @@ così da vedere gli strumenti che mi servono senza che li veda chi non ne ha bis
 Dopo questa storia: un profilo può essere trainer, e chi non lo è non vede nulla di diverso da oggi.
 
 **Acceptance Criteria**
-- [ ] `UserProfile` porta il ruolo, con `atleta` come valore predefinito
-- [ ] Le regole Firestore **non permettono a un utente di darsi il ruolo di trainer sui dati di un altro**
-- [ ] Un profilo esistente senza il campo si legge come atleta, con un test sui dati vecchi
-- [ ] Chi è atleta vede l'app identica a prima: nessuna voce nuova, nessuna schermata in più
-- [ ] Il ruolo si può essere entrambe le cose: un trainer si allena anche lui
+- [x] `UserProfile` porta il ruolo, con `atleta` come valore predefinito
+- [x] Le regole Firestore **non permettono a un utente di darsi il ruolo di trainer sui dati di un altro**
+- [x] Un profilo esistente senza il campo si legge come atleta, con un test sui dati vecchi
+- [x] Chi è atleta vede l'app identica a prima: nessuna voce nuova, nessuna schermata in più
+- [x] Il ruolo si può essere entrambe le cose: un trainer si allena anche lui
 
 ---
 
