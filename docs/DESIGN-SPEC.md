@@ -46,7 +46,53 @@ documento esiste.
 
 ---
 
-## Colori, e a cosa corrispondono nel `ColorScheme`
+## Stili Visivi dell'Applicazione (4 Temi Completi)
+
+L'applicazione supporta 4 stili visivi complessivi (`AppThemeStyle`), selezionabili dalle Impostazioni, ciascuno con la propria palette di superfici, contrasti e sottocolori di accento:
+
+### 1. GymFlow Classico (Default Indigo)
+Lo stile originario dei mockup di GymFlow, basato su toni indaco caldi, ambra per le azioni e salmone per le metriche vitali.
+- **Sfondo (`darkBackground`):** `#221E3A`
+- **Superficie Card (`darkSurface`):** `#312C51`
+- **Superficie Sollevata (`darkSurfaceHigh`):** `#48426D`
+- **Bordi / Outline (`darkOutline`):** `#5A5384`
+- **Azione Primaria (`defaultAccent`):** `#F0C38E` (Ambra)
+- **Metriche Vitali (`defaultTertiary`):** `#F1AA9B` (Salmone)
+- **Sottocolori / Accenti:** `#F0C38E` (Ambra), `#F1AA9B` (Salmone), `#9FD8C0` (Menta), `#B9AEE8` (Lilla), `#8FC7E8` (Cielo), `#E8C8DC` (Rosa cipria)
+
+### 2. Digital Pulse (Cyberpunk Neon)
+Ispirato a palette ad alto contrasto con toni viola profondo e magenta brillante.
+- **Sfondo (`darkBackground`):** `#0F172A` (Slate dark / navy)
+- **Superficie Card (`darkSurface`):** `#2E1065` (Viola profondo)
+- **Superficie Sollevata (`darkSurfaceHigh`):** `#3B1B7D` (Viola medio)
+- **Bordi / Outline (`darkOutline`):** `#581C87` (Viola vibrante)
+- **Azione Primaria (`defaultAccent`):** `#F472B6` (Magenta / Rosa neon)
+- **Metriche Vitali / Secondario (`defaultTertiary`):** `#DDD6FE` (Lavanda tenue)
+- **Sottocolori / Accenti:** `#F472B6` (Magenta), `#DDD6FE` (Lavanda), `#A855F7` (Viola elettrico), `#38BDF8` (Ciano), `#4ADE80` (Menta neon), `#FB7185` (Rosa corallo)
+
+### 3. Toxic Forest (Neon Bio-Teal & Lime)
+Ispirato a toni scuri teal forestale con accenti giallo fluo e lime elettrico.
+- **Sfondo (`darkBackground`):** `#0B2027` (Teal bosco scurissimo)
+- **Superficie Card (`darkSurface`):** `#143540` (Teal petrolio scuro)
+- **Superficie Sollevata (`darkSurfaceHigh`):** `#1E4B5A` (Teal ardesia)
+- **Bordi / Outline (`darkOutline`):** `#286274` (Teal medio)
+- **Azione Primaria (`defaultAccent`):** `#EEF800` (Giallo neon / Fluo)
+- **Metriche Vitali / Secondario (`defaultTertiary`):** `#80B918` (Verde bosco / Oliva)
+- **Sottocolori / Accenti:** `#EEF800` (Giallo neon), `#AACC00` (Lime), `#80B918` (Verde oliva), `#00F5D4` (Teal fluo), `#57CC99` (Salvia brillante), `#80FFDB` (Acquamarina)
+
+### 4. Deep Sea Neon (Abyss & Cyberpunk Gold)
+Ispirato alla profondità dell'oceano con accenti oro neon e blu cobalto.
+- **Sfondo (`darkBackground`):** `#000814` (Blu abisso quasi nero)
+- **Superficie Card (`darkSurface`):** `#001D3D` (Blu notte)
+- **Superficie Sollevata (`darkSurfaceHigh`):** `#003566` (Blu cobalto oceanico)
+- **Bordi / Outline (`darkOutline`):** `#0A4F8A` (Blu elettrico)
+- **Azione Primaria (`defaultAccent`):** `#FFC300` (Oro Cyberpunk / Giallo caldo)
+- **Metriche Vitali / Secondario (`defaultTertiary`):** `#FFD60A` (Giallo brillante neon)
+- **Sottocolori / Accenti:** `#FFC300` (Oro neon), `#FFD60A` (Giallo neon), `#00B4D8` (Blu cielo), `#06D6A0` (Smeraldo), `#FF5E7E` (Corallo vivo), `#E0AAFF` (Lilla neon)
+
+---
+
+## Colori del tema GymFlow Classico, e a cosa corrispondono nel `ColorScheme`
 
 I mockup usano cinque colori del prodotto. Tutti e cinque esistono già in `app_palette.dart`.
 

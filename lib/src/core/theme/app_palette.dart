@@ -133,3 +133,124 @@ abstract final class AppPalette {
     Color(0xFFE8C8DC), // rosa cipria
   ];
 }
+
+/// I quattro stili visivi completi dell'applicazione:
+/// - [defaultStyle]: GymFlow Classico (Indigo, Ambra, Salmone)
+/// - [digitalPulse]: Digital Pulse (#0F172A, #2E1065, #F472B6, #DDD6FE)
+/// - [toxicForest]: Toxic Forest (#0B2027, #143540, #EEF800, #AACC00, #80B918)
+/// - [deepSeaNeon]: Deep Sea Neon (#000814, #001D3D, #003566, #FFC300, #FFD60A)
+enum AppThemeStyle {
+  defaultStyle,
+  digitalPulse,
+  toxicForest,
+  deepSeaNeon;
+
+  /// Chiave di localizzazione per il nome
+  String get labelKey => switch (this) {
+        AppThemeStyle.defaultStyle => 'theme_style_default',
+        AppThemeStyle.digitalPulse => 'theme_style_digital_pulse',
+        AppThemeStyle.toxicForest => 'theme_style_toxic_forest',
+        AppThemeStyle.deepSeaNeon => 'theme_style_deep_sea_neon',
+      };
+
+  /// Sfondo principale dark mode
+  Color get darkBackground => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.indigo900,
+        AppThemeStyle.digitalPulse => const Color(0xFF0F172A),
+        AppThemeStyle.toxicForest => const Color(0xFF0B2027),
+        AppThemeStyle.deepSeaNeon => const Color(0xFF000814),
+      };
+
+  /// Superficie card dark mode
+  Color get darkSurface => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.indigo800,
+        AppThemeStyle.digitalPulse => const Color(0xFF2E1065),
+        AppThemeStyle.toxicForest => const Color(0xFF143540),
+        AppThemeStyle.deepSeaNeon => const Color(0xFF001D3D),
+      };
+
+  /// Superficie sollevata dark mode
+  Color get darkSurfaceHigh => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.indigo700,
+        AppThemeStyle.digitalPulse => const Color(0xFF3B1B7D),
+        AppThemeStyle.toxicForest => const Color(0xFF1E4B5A),
+        AppThemeStyle.deepSeaNeon => const Color(0xFF003566),
+      };
+
+  /// Bordi e separatori dark mode
+  Color get darkOutline => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.indigo600,
+        AppThemeStyle.digitalPulse => const Color(0xFF581C87),
+        AppThemeStyle.toxicForest => const Color(0xFF286274),
+        AppThemeStyle.deepSeaNeon => const Color(0xFF0A4F8A),
+      };
+
+  /// Accento primario predefinito
+  Color get defaultAccent => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.amber,
+        AppThemeStyle.digitalPulse => const Color(0xFFF472B6),
+        AppThemeStyle.toxicForest => const Color(0xFFEEF800),
+        AppThemeStyle.deepSeaNeon => const Color(0xFFFFC300),
+      };
+
+  /// Dati vitali (tertiary)
+  Color get defaultTertiary => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.salmon,
+        AppThemeStyle.digitalPulse => const Color(0xFFDDD6FE),
+        AppThemeStyle.toxicForest => const Color(0xFF80B918),
+        AppThemeStyle.deepSeaNeon => const Color(0xFFFFD60A),
+      };
+
+  /// Sottocolori / Colori di accento selezionabili per questo stile
+  List<Color> get accentPresets => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.accentPresets,
+        AppThemeStyle.digitalPulse => const <Color>[
+            Color(0xFFF472B6), // Magenta neon (#F472B6)
+            Color(0xFFDDD6FE), // Lavanda (#DDD6FE)
+            Color(0xFFA855F7), // Viola elettrico (#A855F7)
+            Color(0xFF38BDF8), // Ciano brillante (#38BDF8)
+            Color(0xFF4ADE80), // Menta neon (#4ADE80)
+            Color(0xFFFB7185), // Rosa corallo (#FB7185)
+          ],
+        AppThemeStyle.toxicForest => const <Color>[
+            Color(0xFFEEF800), // Giallo neon (#EEF800)
+            Color(0xFFAACC00), // Lime (#AACC00)
+            Color(0xFF80B918), // Verde bosco (#80B918)
+            Color(0xFF00F5D4), // Teal fluor (#00F5D4)
+            Color(0xFF57CC99), // Salvia brillante (#57CC99)
+            Color(0xFF80FFDB), // Acquamarina (#80FFDB)
+          ],
+        AppThemeStyle.deepSeaNeon => const <Color>[
+            Color(0xFFFFC300), // Oro Cyberpunk (#FFC300)
+            Color(0xFFFFD60A), // Giallo neon (#FFD60A)
+            Color(0xFF00B4D8), // Blu oceano (#00B4D8)
+            Color(0xFF06D6A0), // Smeraldo (#06D6A0)
+            Color(0xFFFF5E7E), // Corallo vivo (#FF5E7E)
+            Color(0xFFE0AAFF), // Lilla neon (#E0AAFF)
+          ],
+      };
+
+  /// Sfondo tema chiaro
+  Color get lightBackground => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.lightBackground,
+        AppThemeStyle.digitalPulse => const Color(0xFFF8F5FF),
+        AppThemeStyle.toxicForest => const Color(0xFFF0F7F7),
+        AppThemeStyle.deepSeaNeon => const Color(0xFFF0F4F8),
+      };
+
+  /// Superficie tema chiaro
+  Color get lightSurface => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.lightSurface,
+        AppThemeStyle.digitalPulse => const Color(0xFFFFFFFF),
+        AppThemeStyle.toxicForest => const Color(0xFFFFFFFF),
+        AppThemeStyle.deepSeaNeon => const Color(0xFFFFFFFF),
+      };
+
+  /// Superficie alternativa tema chiaro
+  Color get lightSurfaceAlt => switch (this) {
+        AppThemeStyle.defaultStyle => AppPalette.lightSurfaceAlt,
+        AppThemeStyle.digitalPulse => const Color(0xFFEDE8F8),
+        AppThemeStyle.toxicForest => const Color(0xFFE0ECEF),
+        AppThemeStyle.deepSeaNeon => const Color(0xFFDCE5EE),
+      };
+}

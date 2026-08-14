@@ -251,10 +251,9 @@ class TimerView extends ConsumerWidget {
         height: 250,
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
         child: CupertinoTimerPicker(
-          mode: CupertinoTimerPickerMode.hm,
+          mode: CupertinoTimerPickerMode.ms,
           initialTimerDuration: service.timerDuration,
           onTimerDurationChanged: (Duration newDuration) {
-            // Only allow update if not running handled inside service via check or UI disable
             if (!service.isTimerRunning) {
               service.setTimerDuration(newDuration);
             }
@@ -304,20 +303,54 @@ class TimerView extends ConsumerWidget {
           padding: EdgeInsets.symmetric(
             horizontal: context.expressive.spacing.lg,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: isRunning
-                ? [
-                    _buildAdjustmentButton(context, service, -15, '-15s'),
-                    _buildAdjustmentButton(context, service, 30, '+30s'),
-                    _buildAdjustmentButton(context, service, 60, '+1m'),
-                  ]
-                : [
-                    _buildPresetButton(service, durata, 1, isRunning),
-                    _buildPresetButton(service, durata, 2, isRunning),
-                    _buildPresetButton(service, durata, 3, isRunning),
-                    _buildPresetButton(service, durata, 5, isRunning),
-                  ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: isRunning
+                  ? [
+                      _buildAdjustmentButton(context, service, -15, '-15s'),
+                      _buildAdjustmentButton(context, service, 30, '+30s'),
+                      _buildAdjustmentButton(context, service, 60, '+1m'),
+                    ]
+                  : [
+                      _buildPresetButton(
+                        service,
+                        durata,
+                        const Duration(seconds: 30),
+                        '30s',
+                        isRunning,
+                      ),
+                      _buildPresetButton(
+                        service,
+                        durata,
+                        const Duration(minutes: 1),
+                        '1m',
+                        isRunning,
+                      ),
+                      _buildPresetButton(
+                        service,
+                        durata,
+                        const Duration(seconds: 90),
+                        '1m30',
+                        isRunning,
+                      ),
+                      _buildPresetButton(
+                        service,
+                        durata,
+                        const Duration(minutes: 2),
+                        '2m',
+                        isRunning,
+                      ),
+                      _buildPresetButton(
+                        service,
+                        durata,
+                        const Duration(minutes: 3),
+                        '3m',
+                        isRunning,
+                      ),
+                    ],
+            ),
           ),
         ),
         Padding(
@@ -340,10 +373,11 @@ class TimerView extends ConsumerWidget {
   Widget _buildPresetButton(
     TimerNotifier service,
     Duration durataCorrente,
-    int minutes,
+    Duration presetDuration,
+    String label,
     bool isRunning,
   ) {
-    final isSelected = !isRunning && durataCorrente.inMinutes == minutes;
+    final isSelected = !isRunning && durataCorrente == presetDuration;
     return Builder(
       builder: (context) {
         final t = context.expressive;
@@ -353,7 +387,7 @@ class TimerView extends ConsumerWidget {
           child: TextButton(
             onPressed: isRunning
                 ? null
-                : () => service.setTimerDuration(Duration(minutes: minutes)),
+                : () => service.setTimerDuration(presetDuration),
             style: TextButton.styleFrom(
               shape: const StadiumBorder(),
               // La pillola scelta e in ambra, le altre sono superficie: e la
@@ -369,7 +403,7 @@ class TimerView extends ConsumerWidget {
                 vertical: t.spacing.sm,
               ),
             ),
-            child: Text('${minutes}m'),
+            child: Text(label),
           ),
         );
       },

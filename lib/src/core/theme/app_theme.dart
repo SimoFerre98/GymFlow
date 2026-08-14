@@ -18,54 +18,60 @@ import 'expressive_tokens.dart';
 class AppTheme {
   /// Tema scuro, quello predefinito dell'applicazione.
   ///
-  /// [accent] e il colore delle azioni: ambra per impostazione predefinita,
-  /// modificabile fra i preset di [AppPalette.accentPresets]. [hapticFeedback]
+  /// [accent] e il colore delle azioni. [style] definisce l'atmosfera visiva
+  /// complessiva dell'app fra i quattro stili supportati. [hapticFeedback]
   /// accende la vibrazione al tocco, impostabile da Impostazioni.
-  static ThemeData darkTheme(Color accent, {bool hapticFeedback = true}) {
+  static ThemeData darkTheme(
+    Color accent, {
+    AppThemeStyle style = AppThemeStyle.defaultStyle,
+    bool hapticFeedback = true,
+  }) {
     final scheme = ColorScheme.dark(
       // Azioni. Un solo colore, un solo significato.
       primary: accent,
-      onPrimary: AppPalette.indigo900,
-      primaryContainer: AppPalette.amberMuted,
+      onPrimary: style.darkBackground,
+      primaryContainer: accent.withValues(alpha: 0.3),
       onPrimaryContainer: AppPalette.paper,
 
       // Supporto: elementi che accompagnano, non chiedono di essere premuti.
-      secondary: AppPalette.indigo400,
-      onSecondary: AppPalette.indigo900,
-      secondaryContainer: AppPalette.indigo700,
+      secondary: style == AppThemeStyle.defaultStyle
+          ? AppPalette.indigo400
+          : style.defaultTertiary.withValues(alpha: 0.8),
+      onSecondary: style.darkBackground,
+      secondaryContainer: style.darkSurfaceHigh,
       onSecondaryContainer: AppPalette.paper,
 
       // Dati vitali. Distinto dalle azioni di proposito: una metrica non e un
       // pulsante, e confonderli svuota di significato entrambi.
-      tertiary: AppPalette.salmon,
-      onTertiary: AppPalette.indigo900,
-      tertiaryContainer: AppPalette.salmonMuted,
+      tertiary: style.defaultTertiary,
+      onTertiary: style.darkBackground,
+      tertiaryContainer: style.defaultTertiary.withValues(alpha: 0.3),
       onTertiaryContainer: AppPalette.paper,
 
       // Superfici, dal fondo verso l'alto.
-      surface: AppPalette.indigo800,
+      surface: style.darkSurface,
       onSurface: AppPalette.paper,
       onSurfaceVariant: AppPalette.paperDim,
-      surfaceContainerLowest: AppPalette.indigo900,
-      surfaceContainerLow: AppPalette.indigo900,
-      surfaceContainer: AppPalette.indigo800,
-      surfaceContainerHigh: AppPalette.indigo700,
-      surfaceContainerHighest: AppPalette.indigo700,
+      surfaceContainerLowest: style.darkBackground,
+      surfaceContainerLow: style.darkBackground,
+      surfaceContainer: style.darkSurface,
+      surfaceContainerHigh: style.darkSurfaceHigh,
+      surfaceContainerHighest: style.darkSurfaceHigh,
       inverseSurface: AppPalette.paper,
-      onInverseSurface: AppPalette.indigo900,
+      onInverseSurface: style.darkBackground,
 
-      outline: AppPalette.indigo600,
-      outlineVariant: AppPalette.indigo700,
+      outline: style.darkOutline,
+      outlineVariant: style.darkSurfaceHigh,
       shadow: const Color(0xFF000000),
       scrim: const Color(0xFF000000),
 
       error: AppPalette.danger,
-      onError: AppPalette.indigo900,
+      onError: style.darkBackground,
       errorContainer: const Color(0xFF6E322C),
       onErrorContainer: AppPalette.paper,
     );
 
-    return _build(scheme, AppPalette.indigo900, Brightness.dark, hapticFeedback);
+    return _build(scheme, style.darkBackground, Brightness.dark, hapticFeedback);
   }
 
   /// Tema chiaro, per chi lo preferisce.
@@ -73,38 +79,46 @@ class AppTheme {
   /// Non e un'inversione meccanica: ambra e salmone non hanno contrasto
   /// sufficiente per il testo su fondo chiaro, quindi i ruoli testuali usano le
   /// loro varianti scurite e gli originali finiscono sui contenitori.
-  static ThemeData lightTheme(Color accent, {bool hapticFeedback = true}) {
+  static ThemeData lightTheme(
+    Color accent, {
+    AppThemeStyle style = AppThemeStyle.defaultStyle,
+    bool hapticFeedback = true,
+  }) {
     final scheme = ColorScheme.light(
-      primary: AppPalette.amberOnLight,
+      primary: style == AppThemeStyle.defaultStyle
+          ? AppPalette.amberOnLight
+          : accent,
       onPrimary: AppPalette.paper,
       primaryContainer: accent,
-      onPrimaryContainer: AppPalette.indigo900,
+      onPrimaryContainer: style.darkBackground,
 
-      secondary: AppPalette.indigo700,
+      secondary: style.darkSurfaceHigh,
       onSecondary: AppPalette.paper,
-      secondaryContainer: AppPalette.lightSurfaceAlt,
-      onSecondaryContainer: AppPalette.indigo900,
+      secondaryContainer: style.lightSurfaceAlt,
+      onSecondaryContainer: style.darkBackground,
 
-      tertiary: AppPalette.salmonOnLight,
+      tertiary: style == AppThemeStyle.defaultStyle
+          ? AppPalette.salmonOnLight
+          : style.defaultTertiary,
       onTertiary: AppPalette.paper,
-      tertiaryContainer: AppPalette.salmon,
-      onTertiaryContainer: AppPalette.indigo900,
+      tertiaryContainer: style.defaultTertiary,
+      onTertiaryContainer: style.darkBackground,
 
-      surface: AppPalette.lightSurface,
+      surface: style.lightSurface,
       onSurface: AppPalette.lightOnSurface,
       onSurfaceVariant: AppPalette.lightOnSurfaceDim,
-      surfaceContainerLowest: AppPalette.lightBackground,
-      surfaceContainerLow: AppPalette.lightBackground,
-      surfaceContainer: AppPalette.lightSurface,
-      surfaceContainerHigh: AppPalette.lightSurfaceAlt,
-      surfaceContainerHighest: AppPalette.lightSurfaceAlt,
-      inverseSurface: AppPalette.indigo900,
+      surfaceContainerLowest: style.lightBackground,
+      surfaceContainerLow: style.lightBackground,
+      surfaceContainer: style.lightSurface,
+      surfaceContainerHigh: style.lightSurfaceAlt,
+      surfaceContainerHighest: style.lightSurfaceAlt,
+      inverseSurface: style.darkBackground,
       onInverseSurface: AppPalette.paper,
 
       outline: const Color(0xFFB6AFCC),
       outlineVariant: const Color(0xFFDEDAEA),
-      shadow: AppPalette.indigo900,
-      scrim: AppPalette.indigo900,
+      shadow: style.darkBackground,
+      scrim: style.darkBackground,
 
       error: const Color(0xFFB3261E),
       onError: AppPalette.paper,
@@ -112,7 +126,7 @@ class AppTheme {
       onErrorContainer: const Color(0xFF410E0B),
     );
 
-    return _build(scheme, AppPalette.lightBackground, Brightness.light, hapticFeedback);
+    return _build(scheme, style.lightBackground, Brightness.light, hapticFeedback);
   }
 
   /// Parte comune ai due temi: tutto cio che deriva dai ruoli, invece di

@@ -20,10 +20,12 @@ class GymFlowApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(
         theme.primaryColor,
+        style: theme.themeStyle,
         hapticFeedback: theme.hapticFeedback,
       ),
       darkTheme: AppTheme.darkTheme(
         theme.primaryColor,
+        style: theme.themeStyle,
         hapticFeedback: theme.hapticFeedback,
       ),
       themeMode: theme.themeMode,

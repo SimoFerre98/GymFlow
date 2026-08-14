@@ -61,7 +61,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Preset del colore delle azioni. Ognuno supera WCAG AA sulle superfici
     // scure: la scelta e libera dentro un insieme che non produce testo
     // illeggibile. Verificato da test/contrast_test.dart
-    final List<Color> colorPresets = AppPalette.accentPresets;
+    final List<Color> colorPresets = theme.themeStyle.accentPresets;
 
     return Scaffold(
       appBar: AppBar(
@@ -305,7 +305,139 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
 
-                  // Color Picker
+                  // App Visual Style Selector
+                  ListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: t.spacing.md,
+                      vertical: t.spacing.sm,
+                    ),
+                    leading: Container(
+                      padding: EdgeInsets.all(t.spacing.sm),
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: t.shape.cornerSm,
+                      ),
+                      child: Icon(Icons.palette_outlined, color: theme.primaryColor),
+                    ),
+                    title: Text(
+                      loc.t('theme_style_label'),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: EdgeInsets.only(top: t.spacing.sm),
+                      child: SizedBox(
+                        height: 72,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: AppThemeStyle.values.map((style) {
+                            final isSelected = theme.themeStyle == style;
+                            return GestureDetector(
+                              onTap: () => themeNotifier.setThemeStyle(style),
+                              child: Container(
+                                width: 140,
+                                margin: EdgeInsets.only(
+                                  right: t.spacing.sm,
+                                  bottom: t.spacing.xs,
+                                ),
+                                padding: EdgeInsets.all(t.spacing.sm),
+                                decoration: BoxDecoration(
+                                  color: style.darkSurface,
+                                  borderRadius: t.shape.cornerMd,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? scheme.primary
+                                        : style.darkOutline,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? t.elevation.level1(scheme.primary)
+                                      : null,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            loc.t(style.labelKey),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppPalette.paper,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          Icon(
+                                            Icons.check_circle,
+                                            size: t.sizing.iconSm,
+                                            color: style.defaultAccent,
+                                          ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: BoxDecoration(
+                                            color: style.darkBackground,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: scheme.outlineVariant,
+                                              width: 1,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: t.spacing.xs),
+                                        Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: BoxDecoration(
+                                            color: style.darkSurfaceHigh,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        SizedBox(width: t.spacing.xs),
+                                        Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: BoxDecoration(
+                                            color: style.defaultAccent,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        SizedBox(width: t.spacing.xs),
+                                        Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: BoxDecoration(
+                                            color: style.defaultTertiary,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Subcolor / Accent Color Picker
                   ListTile(
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: t.spacing.md,
@@ -320,7 +452,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: Icon(Icons.color_lens, color: theme.primaryColor),
                     ),
                     title: Text(
-                      loc.t('primary_color'),
+                      loc.t('accent_color_label'),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: scheme.onSurface,
@@ -358,7 +490,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ? Icon(
                                       Icons.check,
                                       size: t.sizing.iconSm,
-                                      color: AppPalette.indigo900,
+                                      color: theme.themeStyle.darkBackground,
                                     )
                                   : null,
                             ),
@@ -517,6 +649,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       underline: const SizedBox(),
                       items: const [
                         DropdownMenuItem(value: 30, child: Text('30s')),
+                        DropdownMenuItem(value: 45, child: Text('45s')),
                         DropdownMenuItem(value: 60, child: Text('60s')),
                         DropdownMenuItem(value: 90, child: Text('90s')),
                         DropdownMenuItem(value: 120, child: Text('120s')),
