@@ -6,12 +6,13 @@ part of 'firestore_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$firestoreServiceHash() => r'0f8fc3ed9acdb2d77cdfb4f0d713961c9a50352e';
+String _$firestoreServiceHash() => r'535ec7807a290c95179678bcd66853f1dceaffb4';
 
-/// See also [firestoreService].
-@ProviderFor(firestoreService)
-final firestoreServiceProvider = AutoDisposeProvider<FirestoreService>.internal(
-  firestoreService,
+/// See also [FirestoreService].
+@ProviderFor(FirestoreService)
+final firestoreServiceProvider = AutoDisposeNotifierProvider<FirestoreService,
+    svc.FirestoreService>.internal(
+  FirestoreService.new,
   name: r'firestoreServiceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
@@ -20,6 +21,6 @@ final firestoreServiceProvider = AutoDisposeProvider<FirestoreService>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef FirestoreServiceRef = AutoDisposeProviderRef<FirestoreService>;
+typedef _$FirestoreService = AutoDisposeNotifier<svc.FirestoreService>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
