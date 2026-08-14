@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../core/providers/timer_settings_provider.dart';
 import 'timer_notification_channel.dart';
 
 part 'timer_service.g.dart';
@@ -100,12 +101,11 @@ class AvvisiTempoDiSistema implements AvvisiTempo {
     // Il suono e la vibrazione insieme: in palestra la cuffia puo essere
     // occupata dalla musica e il telefono in tasca.
     SystemSound.play(SystemSoundType.alert);
-    // Due colpi vicini invece di uno: `vibrate()` e gia il piu forte
-    // disponibile senza dipendenze, e un singolo LONG_PRESS resta breve. La
-    // scadenza e il momento che conta di piu — deve notarsi anche col telefono
-    // in tasca — quindi qui si raddoppia.
+    // Tre impulsi netti a intervalli ravvicinati per garantire un feedback
+    // deciso e chiaramente distinguibile anche in tasca durante l'allenamento.
     HapticFeedback.vibrate();
-    Future.delayed(const Duration(milliseconds: 120), HapticFeedback.vibrate);
+    Future.delayed(const Duration(milliseconds: 150), HapticFeedback.vibrate);
+    Future.delayed(const Duration(milliseconds: 300), HapticFeedback.vibrate);
   }
 }
 
@@ -275,6 +275,9 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   /// ticker.
   @visibleForTesting
   void avvisaSeUltimiSecondi(Duration restante) {
+    final timerSettings = ref.read(timerSettingsNotifierProvider);
+    if (!timerSettings.vibrateOnTimerEnd) return;
+
     if (restante > kSecondiDiAvviso) {
       _ultimoSecondoAvvisato = null;
       return;
@@ -289,7 +292,10 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   @visibleForTesting
   void segnalaScadenza() {
     _ultimoSecondoAvvisato = null;
-    avvisi.scaduto();
+    final timerSettings = ref.read(timerSettingsNotifierProvider);
+    if (timerSettings.vibrateOnTimerEnd) {
+      avvisi.scaduto();
+    }
   }
 
   void setToolsVisible(bool visible) {

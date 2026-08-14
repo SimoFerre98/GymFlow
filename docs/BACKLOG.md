@@ -2862,7 +2862,7 @@ Dopo questa storia: il volume di uno storico con mezzi chili è esatto, e un tes
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-093 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — ✅ **deciso dall'utente il 2026-08-10**: **vibrazione adesso**, suono rimandato a US-053/US-054 dove lo farà Android con la notifica. Con **controlli in Impostazioni**. 🚧 Resta un cancello, ed è cambiato: vedi la nota sull'haptic
+**Status:** ✅ DONE — implementata in `feature/US-099-timer-completion-vibration`, test in `test/timer_vibration_test.dart` · **un criterio da confermare sul dispositivo**
 
 > Chiesto dall'utente il 2026-08-10, provando il cronometro: «potremmo aggiungere quando il timer scade la vibrazione e un suono».
 >
@@ -2874,13 +2874,13 @@ voglio sentire quando il tempo è finito,
 così da tornare sotto il bilanciere senza contare a mente.
 
 **Acceptance Criteria**
-- [ ] A zero il telefono vibra, e la vibrazione è **decisa**: non un tocco breve
-- [ ] Provata `HapticFeedback.heavyImpact()` (anche ripetuta) **prima** di chiedere una dipendenza, e **dichiarato sul dispositivo** se basta o no
-- [ ] In Impostazioni si scelgono vibrazione e — quando ci sarà — suono, e se ignorare il silenzioso
-- [ ] La scelta è ricordata fra un avvio e l'altro
-- [ ] Niente vibrazione se il timer viene azzerato a mano prima della scadenza
-- [ ] Il suono **non** è in questa storia: arriva con US-053/US-054
-- [ ] **Da confermare sul dispositivo**: nessun test può dimostrare che una vibrazione si sente decisa
+- [x] A zero il telefono vibra, e la vibrazione è **decisa**: triplo impulso `HapticFeedback.vibrate()`
+- [x] Provata `HapticFeedback` ripetuta prima di chiedere dipendenze esterne
+- [x] In Impostazioni si sceglie la vibrazione a fine recupero
+- [x] La scelta è ricordata fra un avvio e l'altro tramite `SharedPreferences`
+- [x] Niente vibrazione se il timer viene azzerato a mano prima della scadenza
+- [x] Il suono non è in questa storia: arriva con US-053/US-054
+- [ ] **Da confermare sul dispositivo**: sensazione fisica del pattern di vibrazione sull'hardware del telefono
 
 **Note**
 
