@@ -1675,7 +1675,7 @@ Dopo questa storia: la schermata dei traguardi apre con la serie in corso, poi l
 
 **Epic:** EP-013 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-041 | **Blocks:** US-060, US-061, US-063, US-064
-**Status:** ⬜ TODO
+**Status:** ✅ DONE — implementato l'enum `WorkoutType` (strength, cardio, mobility, sport), campi specifici (ritmo min/km, volume pesi isolato, distanza, durata), retrocompatibilità sessioni storiche e test di conversione Firestore in `test/workout_types_test.dart`
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -1686,13 +1686,13 @@ così da non dover forzare una corsa nello schema di serie, ripetizioni e carico
 Dopo questa storia: scegliendo il tipo di allenamento, i campi da compilare cambiano di conseguenza.
 
 **Acceptance Criteria**
-- [ ] I tipi supportati sono almeno: palestra, cardio, mobilità, sport
-- [ ] Ogni tipo dichiara i propri campi: la palestra ha carico e ripetizioni, il cardio distanza e ritmo
-- [ ] Il tipo si scegli alla creazione della scheda e determina la schermata di sessione
-- [ ] Le sessioni esistenti restano valide e vengono lette come palestra
-- [ ] Le statistiche aggregano per tipo, senza sommare grandezze diverse
-- [ ] Una scheda può contenere giorni di tipi diversi
-- [ ] La conversione fra modello e Firestore è coperta da test per ogni tipo
+- [x] I tipi supportati sono almeno: palestra, cardio, mobilità, sport
+- [x] Ogni tipo dichiara i propri campi: la palestra ha carico e ripetizioni, il cardio distanza e ritmo
+- [x] Il tipo si sceglie alla creazione della scheda e determina la schermata di sessione
+- [x] Le sessioni esistenti restano valide e vengono lette come palestra
+- [x] Le statistiche aggregano per tipo, senza sommare grandezze diverse
+- [x] Una scheda può contenere giorni di tipi diversi
+- [x] La conversione fra modello e Firestore è coperta da test per ogni tipo
 
 ---
 

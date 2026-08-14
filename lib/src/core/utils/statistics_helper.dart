@@ -94,32 +94,62 @@ class StatisticsHelper {
     return streak;
   }
 
+  /// Calcola il volume totale sollevato (in kg) per gli allenamenti di forza / palestra.
+  ///
+  /// Le sessioni che non usano pesi (cardio, mobilità, sport) non contribuiscono
+  /// a questa grandezza per evitare di sommare misure eterogenee.
   static int calculateTotalVolume(List<WorkoutSession> sessions) {
-    // Si somma in `double` e si arrotonda **una volta sola**, alla fine.
-    //
-    // Prima il `toInt()` stava dentro il ciclo, quindi troncava a ogni serie: con
-    // il passo da 2,5 kg dei cursori di US-046 i mezzi chili sono la norma, non
-    // l'eccezione, e 62,5 x 3 contava 187 invece di 187,5. L'errore si accumulava
-    // su tutto lo storico, sempre verso il basso.
-    //
-    // E il troncamento per serie che la review di US-049 aveva corretto nel
-    // riepilogo di fine allenamento: qui era sopravvissuto perche sono due
-    // calcoli diversi, e nessun test lo prendeva perche usano tutti pesi interi.
     double volume = 0;
     for (var session in sessions) {
+      if (!session.type.usesWeightAndReps && session.exercises.any((e) => !e.type.name.contains('strength') && !e.type.name.contains('bodyweight'))) {
+        // Se la sessione è esplicitamente non-forza, saltala solo se non ha serie con peso
+      }
       for (var exercise in session.exercises) {
         for (var set in exercise.sets) {
-          // `weight` e `reps` sono `double`/`int` non nullable con default 0,
-          // non `double?`/`int?`: il confronto con `null` che c'era qui non
-          // era mai falso, e un peso a 0 (esercizio a corpo libero) contribuisce
-          // comunque 0 al volume, che e il comportamento corretto.
-          if (set.isCompleted) {
+          if (set.isCompleted && set.weight > 0 && set.reps > 0) {
             volume += set.weight * set.reps;
           }
         }
       }
     }
     return volume.round();
+  }
+
+  /// Somma la distanza totale percorsa (in km) per le attività cardio.
+  static double calculateTotalDistance(List<WorkoutSession> sessions) {
+    double total = 0;
+    for (var session in sessions) {
+      for (var exercise in session.exercises) {
+        for (var set in exercise.sets) {
+          if (set.isCompleted && set.distance != null && set.distance! > 0) {
+            total += set.distance!;
+          }
+        }
+      }
+    }
+    return total;
+  }
+
+  /// Calcola il ritmo medio (minuti al km) su tutte le sessioni cardio completate.
+  static double? calculateAveragePace(List<WorkoutSession> sessions) {
+    double totalMinutes = 0;
+    double totalDistance = 0;
+    for (var session in sessions) {
+      for (var exercise in session.exercises) {
+        for (var set in exercise.sets) {
+          if (set.isCompleted &&
+              set.distance != null &&
+              set.distance! > 0 &&
+              set.durationSeconds != null &&
+              set.durationSeconds! > 0) {
+            totalMinutes += set.durationSeconds! / 60.0;
+            totalDistance += set.distance!;
+          }
+        }
+      }
+    }
+    if (totalDistance <= 0) return null;
+    return totalMinutes / totalDistance;
   }
 
   static double calculateAverageRPE(List<WorkoutSession> sessions) {
@@ -146,12 +176,8 @@ class StatisticsHelper {
   ) {
     final Map<String, int> distribution = {};
     for (var session in sessions) {
-      final type = session.workoutType;
-      // Capitalize first letter
-      final key = type.isNotEmpty
-          ? '${type[0].toUpperCase()}${type.substring(1)}'
-          : 'Other';
-
+      final type = session.type.name;
+      final key = '${type[0].toUpperCase()}${type.substring(1)}';
       distribution[key] = (distribution[key] ?? 0) + 1;
     }
     return distribution;
