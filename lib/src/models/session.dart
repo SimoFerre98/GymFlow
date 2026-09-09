@@ -10,6 +10,14 @@ class WorkoutSession {
   final List<WorkoutExercise> exercises;
   final String? notes;
   final String workoutType; // 'strength', 'cardio', etc.
+  /// Il nome della palestra dell'utente **al momento in cui questa sessione e
+  /// stata salvata** (`UserProfile.gymName`), non un riferimento vivo: se
+  /// l'utente cambia palestra, le sessioni vecchie restano con il nome di
+  /// allora. Assente per ogni sessione registrata prima di questo campo — non
+  /// va dedotto ne attribuito a posteriori, resta semplicemente fuori dal
+  /// conteggio "sessioni qui" (vedi `gym_settings_screen.dart`): un numero
+  /// mancante e onesto, uno inventato non lo sarebbe.
+  final String? gymName;
   /// Tipo tipizzato dell'allenamento.
   WorkoutType get type => WorkoutType.fromString(workoutType);
   int get durationSeconds {
@@ -26,6 +34,7 @@ class WorkoutSession {
     required this.exercises,
     this.notes,
     this.workoutType = 'strength', // Default
+    this.gymName,
   });
   WorkoutSession copyWith({
     String? id,
@@ -37,6 +46,7 @@ class WorkoutSession {
     List<WorkoutExercise>? exercises,
     String? notes,
     String? workoutType,
+    String? gymName,
   }) {
     return WorkoutSession(
       id: id ?? this.id,
@@ -46,6 +56,7 @@ class WorkoutSession {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       exercises: exercises ?? this.exercises,
+      gymName: gymName ?? this.gymName,
       notes: notes ?? this.notes,
       workoutType: workoutType ?? this.workoutType,
     );
@@ -61,6 +72,7 @@ class WorkoutSession {
       'exercises': exercises.map((e) => e.toMap()).toList(),
       'notes': notes,
       'workoutType': workoutType,
+      'gymName': gymName,
     };
   }
   factory WorkoutSession.fromMap(Map<String, dynamic> map, String id) {
@@ -80,6 +92,7 @@ class WorkoutSession {
           [],
       notes: map['notes'],
       workoutType: map['workoutType'] ?? 'strength',
+      gymName: map['gymName'],
     );
   }
 }

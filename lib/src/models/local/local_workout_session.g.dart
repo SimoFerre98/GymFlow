@@ -34,33 +34,38 @@ const LocalWorkoutSessionSchema = CollectionSchema(
       name: r'firestoreId',
       type: IsarType.string,
     ),
-    r'notes': PropertySchema(
+    r'gymName': PropertySchema(
       id: 3,
+      name: r'gymName',
+      type: IsarType.string,
+    ),
+    r'notes': PropertySchema(
+      id: 4,
       name: r'notes',
       type: IsarType.string,
     ),
     r'startTime': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'startTime',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'userId',
       type: IsarType.string,
     ),
     r'workoutName': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'workoutName',
       type: IsarType.string,
     ),
     r'workoutTemplateId': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'workoutTemplateId',
       type: IsarType.string,
     ),
     r'workoutType': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'workoutType',
       type: IsarType.string,
     )
@@ -131,6 +136,12 @@ int _localWorkoutSessionEstimateSize(
     }
   }
   {
+    final value = object.gymName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.notes;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -162,12 +173,13 @@ void _localWorkoutSessionSerialize(
     object.exercises,
   );
   writer.writeString(offsets[2], object.firestoreId);
-  writer.writeString(offsets[3], object.notes);
-  writer.writeDateTime(offsets[4], object.startTime);
-  writer.writeString(offsets[5], object.userId);
-  writer.writeString(offsets[6], object.workoutName);
-  writer.writeString(offsets[7], object.workoutTemplateId);
-  writer.writeString(offsets[8], object.workoutType);
+  writer.writeString(offsets[3], object.gymName);
+  writer.writeString(offsets[4], object.notes);
+  writer.writeDateTime(offsets[5], object.startTime);
+  writer.writeString(offsets[6], object.userId);
+  writer.writeString(offsets[7], object.workoutName);
+  writer.writeString(offsets[8], object.workoutTemplateId);
+  writer.writeString(offsets[9], object.workoutType);
 }
 
 LocalWorkoutSession _localWorkoutSessionDeserialize(
@@ -186,13 +198,14 @@ LocalWorkoutSession _localWorkoutSessionDeserialize(
       ) ??
       [];
   object.firestoreId = reader.readStringOrNull(offsets[2]);
+  object.gymName = reader.readStringOrNull(offsets[3]);
   object.id = id;
-  object.notes = reader.readStringOrNull(offsets[3]);
-  object.startTime = reader.readDateTime(offsets[4]);
-  object.userId = reader.readString(offsets[5]);
-  object.workoutName = reader.readString(offsets[6]);
-  object.workoutTemplateId = reader.readString(offsets[7]);
-  object.workoutType = reader.readStringOrNull(offsets[8]);
+  object.notes = reader.readStringOrNull(offsets[4]);
+  object.startTime = reader.readDateTime(offsets[5]);
+  object.userId = reader.readString(offsets[6]);
+  object.workoutName = reader.readString(offsets[7]);
+  object.workoutTemplateId = reader.readString(offsets[8]);
+  object.workoutType = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -218,14 +231,16 @@ P _localWorkoutSessionDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 6:
       return (reader.readString(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -809,6 +824,160 @@ extension LocalWorkoutSessionQueryFilter on QueryBuilder<LocalWorkoutSession,
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'firestoreId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'gymName',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'gymName',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'gymName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'gymName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'gymName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'gymName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'gymName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'gymName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'gymName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'gymName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'gymName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterFilterCondition>
+      gymNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'gymName',
         value: '',
       ));
     });
@@ -1687,6 +1856,20 @@ extension LocalWorkoutSessionQuerySortBy
   }
 
   QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterSortBy>
+      sortByGymName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'gymName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterSortBy>
+      sortByGymNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'gymName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterSortBy>
       sortByNotes() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notes', Sort.asc);
@@ -1798,6 +1981,20 @@ extension LocalWorkoutSessionQuerySortThenBy
       thenByFirestoreIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firestoreId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterSortBy>
+      thenByGymName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'gymName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QAfterSortBy>
+      thenByGymNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'gymName', Sort.desc);
     });
   }
 
@@ -1917,6 +2114,13 @@ extension LocalWorkoutSessionQueryWhereDistinct
   }
 
   QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QDistinct>
+      distinctByGymName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'gymName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, LocalWorkoutSession, QDistinct>
       distinctByNotes({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'notes', caseSensitive: caseSensitive);
@@ -1986,6 +2190,13 @@ extension LocalWorkoutSessionQueryProperty
       firestoreIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'firestoreId');
+    });
+  }
+
+  QueryBuilder<LocalWorkoutSession, String?, QQueryOperations>
+      gymNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'gymName');
     });
   }
 

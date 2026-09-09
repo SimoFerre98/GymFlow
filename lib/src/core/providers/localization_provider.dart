@@ -81,6 +81,9 @@ class Localization {
     'default_loaded': 'Default exercises loaded!',
     'gym_info_saved': 'Gym Info Saved!',
     'friends_at_gym': 'Friends at this gym',
+    'gym_stat_sessions': 'Sessions here',
+    'gym_stat_hours': 'Total hours',
+    'gym_stat_since': 'Since',
     'friend_singular': 'friend',
     'friends_plural': 'friends',
     'system': 'System',
@@ -535,6 +538,10 @@ class Localization {
     'rest_type_strength': 'Strength · 1-5 reps',
     'rest_type_hypertrophy': 'Hypertrophy · 6-12 reps',
     'rest_type_endurance': 'Endurance · 13+ reps',
+    'voice_countdown_enabled': 'Voice Countdown',
+    'voice_countdown_enabled_desc': 'Speaks the last 3 seconds of rest out loud',
+    'keep_screen_on': 'Keep Screen On',
+    'keep_screen_on_desc': 'Stays on for the whole workout session',
   };
   static final Map<String, String> _it = {
     'settings_title': 'Impostazioni',
@@ -602,6 +609,9 @@ class Localization {
     'default_loaded': 'Esercizi caricati!',
     'gym_info_saved': 'Info Palestra Salvate!',
     'friends_at_gym': 'Amici in questa palestra',
+    'gym_stat_sessions': 'Sessioni qui',
+    'gym_stat_hours': 'Ore totali',
+    'gym_stat_since': 'Dal',
     'friend_singular': 'amico',
     'friends_plural': 'amici',
     'system': 'Sistema',
@@ -1059,6 +1069,10 @@ class Localization {
     'rest_type_strength': 'Forza · 1-5 rip',
     'rest_type_hypertrophy': 'Ipertrofia · 6-12 rip',
     'rest_type_endurance': 'Resistenza · 13+ rip',
+    'voice_countdown_enabled': 'Conto alla Rovescia Vocale',
+    'voice_countdown_enabled_desc': 'Pronuncia a voce gli ultimi 3 secondi di recupero',
+    'keep_screen_on': 'Schermo Sempre Acceso',
+    'keep_screen_on_desc': 'Resta acceso per tutta la sessione di allenamento',
   };
 }
 /// Espone la lingua corrente e le sue traduzioni, persistendo la scelta.

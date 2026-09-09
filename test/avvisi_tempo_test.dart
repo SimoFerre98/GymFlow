@@ -19,7 +19,8 @@ class AvvisiFinti implements AvvisiTempo {
   int scadenze = 0;
 
   @override
-  void secondoFinale() => secondi++;
+  void secondoFinale(int secondiRestanti, {required bool vibra, required bool parla}) =>
+      secondi++;
 
   @override
   void scaduto({required bool vibra, required bool suona}) => scadenze++;

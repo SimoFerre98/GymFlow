@@ -73,6 +73,8 @@ dependencies:
   youtube_player_flutter: ^10.0.1
   url_launcher: ^6.3.2
   motor: ^1.1.0
+  wakelock_plus: ^1.5.2
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:

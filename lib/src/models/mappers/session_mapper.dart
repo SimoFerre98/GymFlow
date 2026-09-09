@@ -12,7 +12,8 @@ extension WorkoutSessionToLocal on WorkoutSession {
       ..startTime = startTime
       ..endTime = endTime
       ..notes = notes
-      ..workoutType = workoutType;
+      ..workoutType = workoutType
+      ..gymName = gymName;
     local.exercises = exercises.map((e) => e.toLocal()).toList();
     return local;
   }
@@ -55,6 +56,7 @@ extension LocalWorkoutSessionToDomain on LocalWorkoutSession {
       exercises: exercises.map((e) => e.toDomain()).toList(),
       notes: notes,
       workoutType: workoutType ?? 'strength',
+      gymName: gymName,
     );
   }
 }

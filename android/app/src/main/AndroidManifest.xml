@@ -71,6 +71,12 @@
             <data android:mimeType="text/plain"/>
         </intent>
         <package android:name="com.google.android.apps.healthdata" />
+        <!-- Il conto alla rovescia vocale (flutter_tts) deve poter trovare un
+             motore di sintesi vocale: senza questa voce, Android 11+ nasconde
+             i motori installati dietro le regole di visibilita dei pacchetti. -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
     </queries>
 
     <uses-permission android:name="android.permission.health.READ_STEPS"/>
@@ -97,5 +103,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+
+    <!-- Impostazioni > Recupero > Schermo sempre acceso (wakelock_plus).
+         Permesso "normale": concesso all'installazione, nessun prompt. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
 </manifest>

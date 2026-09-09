@@ -13,6 +13,7 @@ class LocalWorkoutSession {
   DateTime? endTime;
   String? notes;
   String? workoutType;
+  String? gymName;
   List<LocalWorkoutExercise> exercises = [];
 }
 @Embedded()

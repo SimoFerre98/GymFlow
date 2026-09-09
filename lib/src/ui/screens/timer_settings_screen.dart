@@ -11,14 +11,10 @@ const double _kDefaultTimeFontSize = 66;
 /// I preset di recupero predefinito del mockup, in secondi. Uguali alle
 /// opzioni gia esposte da `TimerSettingsNotifier.setDefaultRestSeconds`.
 const _kRestPresets = <int>[30, 45, 60, 90, 120, 180, 300];
-/// Timer e recupero.
-///
-/// Il mockup mostra anche schermo sempre acceso e conto alla rovescia vocale:
-/// richiedono una dipendenza nuova (rispettivamente per tenere lo schermo
-/// acceso e per la sintesi vocale) che il progetto non ha ancora scelto —
-/// decisione da prendere con l'utente, non da anticipare qui. Suono a fine
-/// recupero e recupero per tipo di serie invece non richiedono nulla di
-/// nuovo: `TimerSettingsNotifier` li gestisce davvero.
+/// Timer e recupero: tutte le voci del mockup "Turno 3" tranne il
+/// promemoria d'arrivo in palestra (geolocalizzazione in background, lasciato
+/// fuori per scelta esplicita — troppo grande per questa passata, quasi una
+/// storia a se).
 class TimerSettingsScreen extends ConsumerWidget {
   const TimerSettingsScreen({super.key});
   String _formatRest(int seconds) {
@@ -92,6 +88,26 @@ class TimerSettingsScreen extends ConsumerWidget {
                       title: loc.t('sound_on_timer_end'),
                       value: settings.soundOnTimerEnd,
                       onChanged: notifier.setSoundOnTimerEnd,
+                    ),
+                    _buildToggle(
+                      context,
+                      t,
+                      scheme,
+                      icon: Icons.record_voice_over_outlined,
+                      title: loc.t('voice_countdown_enabled'),
+                      subtitle: loc.t('voice_countdown_enabled_desc'),
+                      value: settings.voiceCountdownEnabled,
+                      onChanged: notifier.setVoiceCountdownEnabled,
+                    ),
+                    _buildToggle(
+                      context,
+                      t,
+                      scheme,
+                      icon: Icons.brightness_high_outlined,
+                      title: loc.t('keep_screen_on'),
+                      subtitle: loc.t('keep_screen_on_desc'),
+                      value: settings.keepScreenOnDuringSession,
+                      onChanged: notifier.setKeepScreenOnDuringSession,
                     ),
                     _buildRestByType(context, loc, t, scheme, settings, notifier),
                     SizedBox(height: t.spacing.xl),

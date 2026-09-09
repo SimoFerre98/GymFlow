@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/immersivo_tokens.dart';
+import '../../models/session.dart';
 import '../../models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
@@ -213,8 +215,10 @@ class _GymSettingsScreenState extends ConsumerState<GymSettingsScreen> {
                           accent: scheme.outline,
                         ),
                         SizedBox(height: t.spacing.lg),
-                        if (profile != null)
+                        if (profile != null) ...[
+                          _GymStats(profile: profile, loc: loc),
                           _FriendsAtGym(profile: profile, loc: loc),
+                        ],
                         SizedBox(height: t.spacing.xl),
                         _buildSaveCta(context, loc, t, scheme),
                         SizedBox(height: t.spacing.xl),
@@ -373,6 +377,84 @@ class _GymSettingsScreenState extends ConsumerState<GymSettingsScreen> {
               SizedBox(width: t.spacing.sm),
               Icon(Icons.check, color: scheme.onPrimary),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+/// Sessioni/ore/anno di inizio per questa palestra: reali, calcolate dalle
+/// sessioni il cui `gymName` (fissato al momento del salvataggio, vedi
+/// `WorkoutSession.gymName`) coincide con quello attuale. **Non nasce con lo
+/// storico**: le sessioni registrate prima di questo campo non hanno un
+/// `gymName`, quindi non compaiono nel conteggio — il riquadro resta nascosto
+/// finche non ce n'e almeno una tracciata, invece di mostrare zeri che
+/// sembrerebbero un dato reale e non lo sono.
+class _GymStats extends ConsumerWidget {
+  const _GymStats({required this.profile, required this.loc});
+  final UserProfile profile;
+  final Localization loc;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
+    final gymName = profile.gymName?.trim();
+    if (gymName == null || gymName.isEmpty) return const SizedBox.shrink();
+    final sessions = ref.watch(dashboardSessionsProvider).value ??
+        const <WorkoutSession>[];
+    final matching = sessions
+        .where((s) => s.gymName?.trim().toLowerCase() == gymName.toLowerCase())
+        .toList();
+    if (matching.isEmpty) return const SizedBox.shrink();
+    final totalSeconds = matching.fold<int>(
+      0,
+      (sum, s) => sum + s.durationSeconds,
+    );
+    final totalHours = totalSeconds / 3600;
+    final earliestYear = matching
+        .map((s) => s.startTime.year)
+        .reduce((a, b) => a < b ? a : b);
+    final stats = <(String, String)>[
+      (loc.t('gym_stat_sessions'), '${matching.length}'),
+      (loc.t('gym_stat_hours'), totalHours.toStringAsFixed(1)),
+      (loc.t('gym_stat_since'), '$earliestYear'),
+    ];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: scheme.outline)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: t.spacing.md),
+        child: Row(
+          children: [
+            for (var i = 0; i < stats.length; i++)
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.only(left: i > 0 ? t.spacing.md : 0),
+                  decoration: BoxDecoration(
+                    border: i > 0
+                        ? Border(left: BorderSide(color: scheme.outline))
+                        : null,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        stats[i].$1.toUpperCase(),
+                        style: t.typography.eyebrow?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        stats[i].$2,
+                        style: t.typography.metricMedium?.copyWith(
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../core/providers/timer_settings_provider.dart';
@@ -61,8 +62,14 @@ const Duration kSecondiDiAvviso = Duration(seconds: 3);
 /// secondi» non sarebbe dimostrabile — resterebbe una cosa da provare a mano
 /// ogni volta.
 abstract class AvvisiTempo {
-  /// Uno degli ultimi secondi e passato.
-  void secondoFinale();
+  /// Uno degli ultimi secondi e passato. [secondiRestanti] e il numero da
+  /// pronunciare quando [parla] e vero (il conto alla rovescia vocale del
+  /// mockup "Turno 3" Recupero); [vibra] governa la vibrazione come sempre.
+  void secondoFinale(
+    int secondiRestanti, {
+    required bool vibra,
+    required bool parla,
+  });
   /// Il tempo e scaduto. Vibrazione e suono sono due preferenze indipendenti
   /// nelle impostazioni (`vibrateOnTimerEnd`/`soundOnTimerEnd`): chi chiama
   /// decide quali dei due sono attivi, non e implicito nel metodo.
@@ -70,18 +77,45 @@ abstract class AvvisiTempo {
 }
 /// Quello vero: la vibrazione e il suono del sistema.
 ///
-/// Nessuna dipendenza nuova. `HapticFeedback.vibrate()` e non `heavyImpact()`:
-/// verificato nel sorgente di Flutter (`haptic_feedback.dart`), su Android
-/// `heavyImpact` diventa `HapticFeedbackConstants.CONTEXT_CLICK` — pensato per
-/// il click destro del mouse, quasi impercettibile su un telefono — mentre
-/// `vibrate()` diventa `LONG_PRESS`, un impulso piu lungo e piu netto. Sono
-/// comunque due colpi brevi tarati dal produttore, non un'ampiezza
-/// controllabile: se anche `vibrate()` risulta moscio, l'unica strada resta una
-/// dipendenza che comandi il motore di vibrazione direttamente.
+/// `HapticFeedback.vibrate()` e non `heavyImpact()`: verificato nel sorgente
+/// di Flutter (`haptic_feedback.dart`), su Android `heavyImpact` diventa
+/// `HapticFeedbackConstants.CONTEXT_CLICK` — pensato per il click destro del
+/// mouse, quasi impercettibile su un telefono — mentre `vibrate()` diventa
+/// `LONG_PRESS`, un impulso piu lungo e piu netto. Il conto alla rovescia
+/// vocale invece e l'unica dipendenza nuova di questa classe (`flutter_tts`):
+/// nessuna delle API di sistema gia in uso parla.
 class AvvisiTempoDiSistema implements AvvisiTempo {
-  const AvvisiTempoDiSistema();
+  AvvisiTempoDiSistema();
+  /// Un solo motore vocale per tutta la vita del servizio, creato alla prima
+  /// vera necessita e non nel costruttore: `FlutterTts()` apre un canale di
+  /// piattaforma gia alla costruzione, e molti test istanziano `TimerNotifier`
+  /// (quindi questa classe) senza aver inizializzato il binding di Flutter —
+  /// crearlo a occhi chiusi romperebbe ogni test che non tocca la voce.
+  FlutterTts? _tts;
+  String? _linguaImpostata;
   @override
-  void secondoFinale() => HapticFeedback.vibrate();
+  void secondoFinale(
+    int secondiRestanti, {
+    required bool vibra,
+    required bool parla,
+    String linguaVoce = 'it-IT',
+  }) {
+    if (vibra) HapticFeedback.vibrate();
+    if (parla) _pronuncia(secondiRestanti, linguaVoce);
+  }
+  /// `await` di proposito assente: il chiamante e sincrono (il ticker), e
+  /// aspettare la sintesi vocale bloccherebbe il conto alla rovescia sullo
+  /// schermo per il tempo del parlato.
+  void _pronuncia(int numero, String lingua) {
+    unawaited(() async {
+      final tts = _tts ??= FlutterTts();
+      if (_linguaImpostata != lingua) {
+        await tts.setLanguage(lingua);
+        _linguaImpostata = lingua;
+      }
+      await tts.speak('$numero');
+    }());
+  }
   @override
   void scaduto({required bool vibra, required bool suona}) {
     // Il suono e la vibrazione erano insieme, senza scelta: in palestra la
@@ -188,7 +222,7 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   /// `build()`, senza questo getter la suite restava verde.
   bool get isTickerActive => _ticker != null;
   /// Chi vibra e chi suona. Sostituibile nei test.
-  AvvisiTempo avvisi = const AvvisiTempoDiSistema();
+  AvvisiTempo avvisi = AvvisiTempoDiSistema();
   /// L'ultimo secondo per cui si e gia vibrato.
   ///
   /// Il ticker batte molto piu spesso di una volta al secondo: senza ricordare
@@ -246,15 +280,23 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   @visibleForTesting
   void avvisaSeUltimiSecondi(Duration restante) {
     final timerSettings = ref.read(timerSettingsNotifierProvider);
-    if (!timerSettings.vibrateOnTimerEnd) return;
     if (restante > kSecondiDiAvviso) {
       _ultimoSecondoAvvisato = null;
+      return;
+    }
+    // Vibrazione e voce sono due preferenze indipendenti (stesso principio di
+    // segnalaScadenza): niente da fare solo se entrambe sono spente.
+    if (!timerSettings.vibrateOnTimerEnd && !timerSettings.voiceCountdownEnabled) {
       return;
     }
     final secondo = restante.inSeconds;
     if (_ultimoSecondoAvvisato == secondo) return;
     _ultimoSecondoAvvisato = secondo;
-    avvisi.secondoFinale();
+    avvisi.secondoFinale(
+      secondo,
+      vibra: timerSettings.vibrateOnTimerEnd,
+      parla: timerSettings.voiceCountdownEnabled,
+    );
   }
   /// Il tempo e finito: si suona, e il conto delle vibrazioni riparte.
   @visibleForTesting

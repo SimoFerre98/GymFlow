@@ -13,6 +13,8 @@ class TimerSettings {
     this.restSecondsStrength = 180,
     this.restSecondsHypertrophy = 90,
     this.restSecondsEndurance = 45,
+    this.voiceCountdownEnabled = false,
+    this.keepScreenOnDuringSession = false,
   });
   /// Avvia automaticamente il timer di recupero alla spunta di una serie.
   final bool autoRestEnabled;
@@ -29,6 +31,14 @@ class TimerSettings {
   final int restSecondsHypertrophy;
   /// Recupero per serie di resistenza (13+ ripetizioni), in secondi.
   final int restSecondsEndurance;
+  /// Annuncia a voce gli ultimi tre secondi del recupero. Spento per
+  /// default: e una novita' rispetto a prima, non un comportamento che chi
+  /// aggiorna l'app si aspetta gia' acceso.
+  final bool voiceCountdownEnabled;
+  /// Tiene lo schermo acceso per tutta la sessione di allenamento attiva
+  /// (`active_session_screen.dart`), non solo durante il recupero. Spento per
+  /// default per lo stesso motivo di [voiceCountdownEnabled].
+  final bool keepScreenOnDuringSession;
   /// Il recupero per il numero di ripetizioni della serie appena chiusa, in
   /// base alle tre fasce del mockup. `reps <= 0` (serie a cedimento, o dato
   /// assente) non e classificabile: usa [defaultRestSeconds], non una fascia
@@ -47,6 +57,8 @@ class TimerSettings {
     int? restSecondsStrength,
     int? restSecondsHypertrophy,
     int? restSecondsEndurance,
+    bool? voiceCountdownEnabled,
+    bool? keepScreenOnDuringSession,
   }) {
     return TimerSettings(
       autoRestEnabled: autoRestEnabled ?? this.autoRestEnabled,
@@ -57,6 +69,10 @@ class TimerSettings {
       restSecondsHypertrophy:
           restSecondsHypertrophy ?? this.restSecondsHypertrophy,
       restSecondsEndurance: restSecondsEndurance ?? this.restSecondsEndurance,
+      voiceCountdownEnabled:
+          voiceCountdownEnabled ?? this.voiceCountdownEnabled,
+      keepScreenOnDuringSession:
+          keepScreenOnDuringSession ?? this.keepScreenOnDuringSession,
     );
   }
 }
@@ -70,6 +86,8 @@ class TimerSettingsNotifier extends _$TimerSettingsNotifier {
   static const _restStrengthKey = 'timer_rest_strength_seconds';
   static const _restHypertrophyKey = 'timer_rest_hypertrophy_seconds';
   static const _restEnduranceKey = 'timer_rest_endurance_seconds';
+  static const _voiceCountdownKey = 'timer_voice_countdown_enabled';
+  static const _keepScreenOnKey = 'timer_keep_screen_on_session';
   @override
   TimerSettings build() {
     _restore();
@@ -85,6 +103,8 @@ class TimerSettingsNotifier extends _$TimerSettingsNotifier {
       final restStrength = prefs.getInt(_restStrengthKey);
       final restHypertrophy = prefs.getInt(_restHypertrophyKey);
       final restEndurance = prefs.getInt(_restEnduranceKey);
+      final voiceCountdown = prefs.getBool(_voiceCountdownKey);
+      final keepScreenOn = prefs.getBool(_keepScreenOnKey);
       state = state.copyWith(
         autoRestEnabled: autoRest,
         defaultRestSeconds: defaultRest,
@@ -93,6 +113,8 @@ class TimerSettingsNotifier extends _$TimerSettingsNotifier {
         restSecondsStrength: restStrength,
         restSecondsHypertrophy: restHypertrophy,
         restSecondsEndurance: restEndurance,
+        voiceCountdownEnabled: voiceCountdown,
+        keepScreenOnDuringSession: keepScreenOn,
       );
     } catch (_) {
       // In contesti di test dove il canale SharedPreferences non e mockato,
@@ -133,5 +155,15 @@ class TimerSettingsNotifier extends _$TimerSettingsNotifier {
     state = state.copyWith(restSecondsEndurance: seconds);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_restEnduranceKey, seconds);
+  }
+  Future<void> setVoiceCountdownEnabled(bool enabled) async {
+    state = state.copyWith(voiceCountdownEnabled: enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_voiceCountdownKey, enabled);
+  }
+  Future<void> setKeepScreenOnDuringSession(bool enabled) async {
+    state = state.copyWith(keepScreenOnDuringSession: enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keepScreenOnKey, enabled);
   }
 }

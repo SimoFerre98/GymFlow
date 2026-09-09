@@ -21,6 +21,7 @@ import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/core/providers/timer_settings_provider.dart';
 import 'package:gymflow/src/core/providers/active_session_provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 const double _kTitleFontSize = 22;
 /// Avvia il conto alla rovescia sui secondi di una serie a tempo.
 ///
@@ -99,6 +100,12 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           _sessionExercises = sessionState.sessionExercises;
           _updateElapsedDisplay();
         });
+      }
+      // Letto qui e non nel corpo sincrono di initState: il provider
+      // restituisce il default prima che il ripristino da SharedPreferences
+      // sia finito, e il post-frame callback lascia il tempo di completarlo.
+      if (ref.read(timerSettingsNotifierProvider).keepScreenOnDuringSession) {
+        WakelockPlus.enable();
       }
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -185,6 +192,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    // Innocuo anche se non era mai stato acceso: WakelockPlus.disable() su
+    // uno spento e un no-op documentato del package.
+    WakelockPlus.disable();
     super.dispose();
   }
   String _formatTime(int milliseconds) {
@@ -264,6 +274,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     final elapsed = activeSession.elapsedDuration;
     final startTime = finalDateTime.subtract(elapsed);
     setState(() => _isSaving = true);
+    // Il nome della palestra al momento del salvataggio, non un riferimento
+    // vivo al profilo: vedi il commento su WorkoutSession.gymName.
+    final profile = await AuthService().getUserProfile();
     final session = WorkoutSession(
       id: const Uuid().v4(),
       userId: user.uid,
@@ -273,6 +286,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       endTime: finalDateTime,
       exercises: _sessionExercises,
       workoutType: widget.workout.category.name,
+      gymName: profile?.gymName,
     );
     // Fire and forget save
     try {

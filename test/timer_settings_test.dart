@@ -155,5 +155,47 @@ void main() {
       expect(prefs.getInt('timer_rest_hypertrophy_seconds'), equals(75));
       expect(prefs.getInt('timer_rest_endurance_seconds'), equals(30));
     });
+
+    test('aggiorna voiceCountdownEnabled e lo persiste', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(timerSettingsNotifierProvider.notifier);
+      expect(
+        container.read(timerSettingsNotifierProvider).voiceCountdownEnabled,
+        isFalse,
+        reason: 'spento per default, e una novita',
+      );
+
+      await notifier.setVoiceCountdownEnabled(true);
+      expect(
+        container.read(timerSettingsNotifierProvider).voiceCountdownEnabled,
+        isTrue,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('timer_voice_countdown_enabled'), isTrue);
+    });
+
+    test('aggiorna keepScreenOnDuringSession e lo persiste', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(timerSettingsNotifierProvider.notifier);
+      expect(
+        container.read(timerSettingsNotifierProvider).keepScreenOnDuringSession,
+        isFalse,
+        reason: 'spento per default, e una novita',
+      );
+
+      await notifier.setKeepScreenOnDuringSession(true);
+      expect(
+        container.read(timerSettingsNotifierProvider).keepScreenOnDuringSession,
+        isTrue,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('timer_keep_screen_on_session'), isTrue);
+    });
   });
 }

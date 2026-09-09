@@ -10,9 +10,16 @@ class MockAvvisiTempo implements AvvisiTempo {
   bool? ultimaVibra;
   bool? ultimaSuona;
 
+  int? ultimoSecondo;
+  bool? ultimaVibraSecondo;
+  bool? ultimaParla;
+
   @override
-  void secondoFinale() {
+  void secondoFinale(int secondiRestanti, {required bool vibra, required bool parla}) {
     chiamateSecondoFinale++;
+    ultimoSecondo = secondiRestanti;
+    ultimaVibraSecondo = vibra;
+    ultimaParla = parla;
   }
 
   @override
@@ -104,6 +111,30 @@ void main() {
       notifier.avvisaSeUltimiSecondi(const Duration(seconds: 1));
       expect(mock.chiamateSecondoFinale, 1, reason: 'non deve incrementare quando disabilitato');
     });
+
+    test(
+      'con la sola voce abilitata, secondoFinale e chiamato senza vibrare',
+      () {
+        // Vibrazione e conto vocale sono due preferenze indipendenti, stesso
+        // principio gia' verificato per scaduto()/vibra+suona.
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final settingsNotifier = container.read(timerSettingsNotifierProvider.notifier);
+        settingsNotifier.setVibrateOnTimerEnd(false);
+        settingsNotifier.setVoiceCountdownEnabled(true);
+
+        final notifier = container.read(timerNotifierProvider.notifier);
+        final mock = MockAvvisiTempo();
+        notifier.avvisi = mock;
+
+        notifier.avvisaSeUltimiSecondi(const Duration(seconds: 2));
+        expect(mock.chiamateSecondoFinale, 1);
+        expect(mock.ultimoSecondo, 2);
+        expect(mock.ultimaVibraSecondo, isFalse);
+        expect(mock.ultimaParla, isTrue);
+      },
+    );
 
     test('resetTimer azzera il conto senza chiamare scaduto()', () {
       final container = ProviderContainer();
