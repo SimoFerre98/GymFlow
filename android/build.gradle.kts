@@ -50,6 +50,35 @@ subprojects {
     }
 }
 
+// Imposta il `namespace` per i plugin che non lo dichiarano nel proprio
+// build.gradle (lo davano per scontato dal `package` dell'AndroidManifest,
+// come si usava prima di Android Gradle Plugin 8): senza, AGP 8+ rifiuta di
+// configurare il modulo con "Namespace not specified" — trovato su
+// isar_flutter_libs 3.1.0+1 con AGP 8.11.1, ma il blocco resta generico e non
+// nominato a quel plugin solo, per lo stesso motivo del blocco sul compileSdk
+// sopra: si applica a chiunque abbia lo stesso problema, oggi o in futuro, e
+// diventa inerte da solo se un aggiornamento del plugin aggiunge il suo.
+subprojects {
+    afterEvaluate {
+        val android = extensions.findByName("android") ?: return@afterEvaluate
+        if (android !is com.android.build.gradle.BaseExtension) return@afterEvaluate
+        if (android.namespace != null) return@afterEvaluate
+
+        val manifest = android.sourceSets.getByName("main").manifest.srcFile
+        if (!manifest.exists()) return@afterEvaluate
+        val pacchetto = Regex("package=\"([^\"]+)\"")
+            .find(manifest.readText())
+            ?.groupValues
+            ?.get(1)
+            ?: return@afterEvaluate
+
+        logger.lifecycle(
+            "namespace mancante: ${project.name} lo eredita da AndroidManifest.xml ($pacchetto)"
+        )
+        android.namespace = pacchetto
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
