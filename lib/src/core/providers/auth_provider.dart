@@ -1,9 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
-
 part 'auth_provider.g.dart';
-
 @riverpod
 class AuthState extends _$AuthState {
   @override
@@ -11,7 +9,6 @@ class AuthState extends _$AuthState {
     return AuthService().authStateChanges;
   }
 }
-
 /// L'utente corrente, con il ripiego sincrono.
 ///
 /// `authStateProvider` e uno stream: al primo build non ha ancora emesso, e
@@ -31,7 +28,6 @@ class CurrentUser extends _$CurrentUser {
     return asyncUser.value ?? AuthService().currentUser;
   }
 }
-
 @riverpod
 class CurrentUserId extends _$CurrentUserId {
   @override

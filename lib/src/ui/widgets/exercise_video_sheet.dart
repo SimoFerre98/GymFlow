@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
 import '../../core/providers/localization_provider.dart';
-import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/immersivo_tokens.dart';
 import '../../models/exercise.dart';
 import '../../models/exercise_media.dart';
 import '../../services/video_availability.dart';
 import 'toast_utils.dart';
-
 /// L'esecuzione di un esercizio, senza lasciare la schermata da cui si arriva.
 ///
 /// E un foglio modale e non una rotta nuova per la ragione che da il titolo
@@ -19,12 +17,9 @@ import 'toast_utils.dart';
 /// `ActiveSessionScreen` resta esattamente dov'era.
 class ExerciseVideoSheet extends ConsumerStatefulWidget {
   const ExerciseVideoSheet({super.key, required this.exercise, this.probe});
-
   final Exercise exercise;
-
   /// Interrogazione di disponibilita, sostituibile nei test.
   final VideoProbe? probe;
-
   /// Apre il foglio per [exercise].
   static Future<void> show(
     BuildContext context,
@@ -38,17 +33,13 @@ class ExerciseVideoSheet extends ConsumerStatefulWidget {
       builder: (_) => ExerciseVideoSheet(exercise: exercise, probe: probe),
     );
   }
-
   @override
   ConsumerState<ExerciseVideoSheet> createState() => _ExerciseVideoSheetState();
 }
-
 class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
   YoutubePlayerController? _controller;
   VideoAvailability? _availability;
-
   bool get _hasVideo => widget.exercise.hasSpecificVideo;
-
   @override
   void initState() {
     super.initState();
@@ -56,14 +47,12 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
     // di cui chiedere l'esistenza.
     if (_hasVideo) _check();
   }
-
   Future<void> _check() async {
     final result = await VideoAvailabilityCheck.of(
       widget.exercise.videoUrl,
       probe: widget.probe,
     );
     if (!mounted) return;
-
     setState(() {
       _availability = result;
       if (result == VideoAvailability.available) {
@@ -76,7 +65,6 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
       }
     });
   }
-
   @override
   void dispose() {
     // Senza questo, l'audio continuerebbe a suonare dopo la chiusura del
@@ -84,7 +72,6 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
     _controller?.close();
     super.dispose();
   }
-
   Future<void> _openExternally(String url) async {
     final loc = ref.read(localizationNotifierProvider);
     final opened = await launchUrl(
@@ -95,12 +82,10 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
       ToastUtils.showError(context, loc.t('video_open_failed'));
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final loc = ref.watch(localizationNotifierProvider);
-
     return Padding(
       padding: EdgeInsets.fromLTRB(
         t.spacing.xl,
@@ -124,7 +109,6 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
       ),
     );
   }
-
   Widget _body(Localization loc) {
     // Nessun video scelto: si dice com'e, invece di aprire un riproduttore
     // vuoto o di saltare fuori dall'app senza preavviso.
@@ -143,7 +127,7 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
             icon: Icons.search_outlined,
             text: loc.t('video_search_only'),
           ),
-          SizedBox(height: context.expressive.spacing.md),
+          SizedBox(height: context.immersivo.spacing.md),
           FilledButton.icon(
             onPressed: () => _openExternally(YouTubeVideo.searchUrl(query)),
             icon: const Icon(Icons.open_in_new),
@@ -152,7 +136,6 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
         ],
       );
     }
-
     return switch (_availability) {
       null => const _Waiting(),
       VideoAvailability.offline => _Message(
@@ -167,12 +150,10 @@ class _ExerciseVideoSheetState extends ConsumerState<ExerciseVideoSheet> {
     };
   }
 }
-
 /// Attesa dell'interrogazione: il foglio si apre subito e mostra questo, invece
 /// di far aspettare l'utente davanti a niente.
 class _Waiting extends StatelessWidget {
   const _Waiting();
-
   @override
   Widget build(BuildContext context) {
     return const AspectRatio(
@@ -181,19 +162,15 @@ class _Waiting extends StatelessWidget {
     );
   }
 }
-
 /// Un messaggio al posto del video: mai una schermata bianca.
 class _Message extends StatelessWidget {
   const _Message({required this.icon, required this.text});
-
   final IconData icon;
   final String text;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Container(
       padding: EdgeInsets.all(t.spacing.xl),
       decoration: BoxDecoration(

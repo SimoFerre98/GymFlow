@@ -4,80 +4,112 @@ import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/core/providers/firestore_provider.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
-import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/widgets/expressive_card.dart';
-
+import 'package:gymflow/src/ui/widgets/ticker_marquee.dart';
 class ProgramListScreen extends ConsumerWidget {
   const ProgramListScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(currentUserIdProvider);
     final loc = ref.watch(localizationNotifierProvider);
-
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
     if (userId == null) {
       return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.t('my_programs_title')),
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: const AppDrawer(),
-      body: StreamBuilder<List<WorkoutProgram>>(
-        stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(context.expressive.spacing.md),
-                child: Text(
-                  '${loc.t('error_loading_programs')}: ${snapshot.error}', // Technical error message usually kept in English or generic error key
-                  textAlign: TextAlign.center,
-                  // `error` e il ruolo che significa «qualcosa non ha
-                  // funzionato», e nel tema scuro non e il rosso acceso che
-                  // era scritto qui.
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(t.spacing.lg, t.spacing.sm, t.spacing.lg, 0),
+              child: _buildHeader(context, loc, t, scheme),
+            ),
+            Expanded(
+              child: StreamBuilder<List<WorkoutProgram>>(
+                stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(context.immersivo.spacing.md),
+                        child: Text(
+                          '${loc.t('error_loading_programs')}: ${snapshot.error}', // Technical error message usually kept in English or generic error key
+                          textAlign: TextAlign.center,
+                          // `error` e il ruolo che significa «qualcosa non ha
+                          // funzionato», e nel tema scuro non e il rosso acceso che
+                          // era scritto qui.
+                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        ),
+                      ),
+                    );
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptyState(context, loc);
+                  }
+                  final programs = snapshot.data!;
+                  final attivi = programs.where((p) => p.isActive).length;
+                  return Column(
+                    children: [
+                      // La striscia del mockup ("TOTALE N PROGRAMMI / ..."), con
+                      // i dati che questa schermata gia interroga.
+                      TickerMarquee(
+                        text:
+                            '${loc.t('total_programs_ticker').replaceFirst('%s', '${programs.length}')}'
+                            '   /   '
+                            '${loc.t('active_programs_ticker').replaceFirst('%s', '$attivi')}',
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          padding: EdgeInsets.all(context.immersivo.spacing.md),
+                          itemCount: programs.length,
+                          itemBuilder: (context, index) {
+                            final program = programs[index];
+                            return _buildProgramCard(context, ref, program, loc);
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
-            );
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return _buildEmptyState(context, loc);
-          }
-
-          final programs = snapshot.data!;
-          return ListView.builder(
-            padding: EdgeInsets.all(context.expressive.spacing.md),
-            itemCount: programs.length,
-            itemBuilder: (context, index) {
-              final program = programs[index];
-              return _buildProgramCard(context, ref, program, loc);
-            },
-          );
-        },
+            ),
+          ],
+        ),
       ),
     );
   }
-
+  Widget _buildHeader(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+  ) {
+    return Row(
+      children: [
+        Text(
+          loc.t('programs_tab').toUpperCase(),
+          style: t.typography.title?.copyWith(color: scheme.onSurface),
+        ),
+        SizedBox(width: t.spacing.md),
+        Expanded(
+          child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+        ),
+      ],
+    );
+  }
   Widget _buildEmptyState(BuildContext context, Localization loc) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +125,7 @@ class ProgramListScreen extends ConsumerWidget {
           SizedBox(height: t.spacing.md),
           Text(
             loc.t('no_programs_yet'),
-            style: t.typography.titleEmphasized?.copyWith(
+            style: t.typography.title?.copyWith(
               color: scheme.onSurface,
             ),
           ),
@@ -109,7 +141,6 @@ class ProgramListScreen extends ConsumerWidget {
       ),
     );
   }
-
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
@@ -138,7 +169,6 @@ class ProgramListScreen extends ConsumerWidget {
         ],
       ),
     );
-
     if (confirmed == true) {
       // ignore: use_build_context_synchronously
       try {
@@ -153,16 +183,14 @@ class ProgramListScreen extends ConsumerWidget {
       }
     }
   }
-
   Widget _buildProgramCard(
     BuildContext context,
     WidgetRef ref,
     WorkoutProgram program,
     Localization loc,
   ) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Padding(
       padding: EdgeInsets.only(bottom: t.spacing.md),
       // La card condivisa porta con se fondo, raggio, ombra e padding: quello
@@ -185,7 +213,7 @@ class ProgramListScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       program.name,
-                      style: t.typography.titleEmphasized?.copyWith(
+                      style: t.typography.title?.copyWith(
                         color: scheme.onSurface,
                       ),
                     ),
@@ -210,7 +238,7 @@ class ProgramListScreen extends ConsumerWidget {
                           ),
                           decoration: BoxDecoration(
                             color: scheme.primary.withValues(alpha: 0.20),
-                            borderRadius: t.shape.cornerFull,
+                            borderRadius: t.shape.cornerXs,
                             border: Border.all(color: scheme.primary),
                           ),
                           child: Text(

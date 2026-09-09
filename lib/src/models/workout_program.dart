@@ -1,4 +1,3 @@
-
 class WorkoutProgram {
   final String id;
   final String userId;
@@ -10,7 +9,6 @@ class WorkoutProgram {
   final DateTime? startDate;
   final DateTime? endDate;
   final int color; // Color value
-
   WorkoutProgram({
     required this.id,
     required this.userId,
@@ -23,7 +21,6 @@ class WorkoutProgram {
     this.endDate,
     this.color = 0xFF2196F3, // Default Blue
   });
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -38,7 +35,6 @@ class WorkoutProgram {
       'color': color,
     };
   }
-
   factory WorkoutProgram.fromMap(Map<String, dynamic> map, String id) {
     return WorkoutProgram(
       id: id,
@@ -57,7 +53,6 @@ class WorkoutProgram {
       color: map['color'] ?? 0xFF2196F3,
     );
   }
-
   WorkoutProgram copyWith({
     String? id,
     String? userId,

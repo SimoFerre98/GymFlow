@@ -1,28 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
-
 /// Il permesso per leggere i dati di salute manca, e si sa **quali** tipi.
 ///
 /// Un'eccezione con dentro l'elenco, invece di una stringa: chi la riceve puo
 /// dire all'utente che cosa non e leggibile, che e il punto di US-100.
 class PermessiSaluteMancanti implements Exception {
   const PermessiSaluteMancanti(this.tipi);
-
   final List<HealthDataType> tipi;
-
   @override
   String toString() => 'PermessiSaluteMancanti($tipi)';
 }
-
 class HealthService {
   /// Il plugin si passa da fuori **solo nei test**: in produzione resta quello
   /// vero. Senza questo aggancio la logica dei permessi non e provabile, perche
   /// `Health` parla con un method channel che in un test non esiste — ed e il
   /// motivo per cui il test consegnato con US-100 era un `expect(true, isTrue)`.
   HealthService({Health? health}) : _health = health ?? Health();
-
   final Health _health;
-
   // Define data types to access
   static final List<HealthDataType> _dataTypes = [
     HealthDataType.STEPS,
@@ -36,7 +30,6 @@ class HealthService {
     HealthDataType.WEIGHT,
     HealthDataType.WATER,
   ];
-
   /// `configure()` e stata chiamata almeno una volta.
   ///
   /// Il plugin va inizializzato prima di qualunque altra chiamata, e senza
@@ -50,13 +43,11 @@ class HealthService {
   /// impostazioni chiedevano i permessi senza averla mai chiamata. Con la
   /// garanzia qui dentro, un chiamante non puo piu dimenticarsene.
   bool _configurato = false;
-
   Future<void> configure() async {
     if (_configurato) return;
     await _health.configure();
     _configurato = true;
   }
-
   Future<bool> requestPermissions() async {
     await configure();
     final concessi = await _health.requestAuthorization(_dataTypes);
@@ -73,7 +64,6 @@ class HealthService {
     }
     return concessi;
   }
-
   /// I tipi della sintesi giornaliera che oggi **non** sono leggibili.
   ///
   /// Lista vuota: si legge tutto. `null`: lo stato **non e determinabile**, e
@@ -91,7 +81,6 @@ class HealthService {
       final tutti = await _health.hasPermissions(tipi);
       if (tutti == null) return null;
       if (tutti) return const [];
-
       final mancanti = <HealthDataType>[];
       for (final tipo in tipi) {
         // Uno per uno solo ora che si sa che qualcosa manca: serve a dire
@@ -105,14 +94,12 @@ class HealthService {
       return null;
     }
   }
-
   /// I tipi che servono al pannello della sessione, calorie a parte il battito.
   static final List<HealthDataType> _liveCalorieTypes = [
     HealthDataType.ACTIVE_ENERGY_BURNED,
     HealthDataType.BASAL_ENERGY_BURNED,
     HealthDataType.TOTAL_CALORIES_BURNED,
   ];
-
   /// Le calorie di un insieme di punti, senza contarle due volte.
   ///
   /// Health Connect ha tre grandezze che si sovrappongono: le **attive**, le
@@ -132,12 +119,10 @@ class HealthService {
   static double? _calorie(Iterable<HealthDataPoint> punti) {
     double totale = 0;
     double attiveEBasali = 0;
-
     for (final punto in punti) {
       if (punto.value is! NumericHealthValue) continue;
       final valore =
           (punto.value as NumericHealthValue).numericValue.toDouble();
-
       if (punto.type == HealthDataType.TOTAL_CALORIES_BURNED) {
         totale += valore;
       } else if (punto.type == HealthDataType.ACTIVE_ENERGY_BURNED ||
@@ -145,12 +130,10 @@ class HealthService {
         attiveEBasali += valore;
       }
     }
-
     if (totale > 0) return totale;
     if (attiveEBasali > 0) return attiveEBasali;
     return null;
   }
-
   /// Se le calorie sono leggibili, cioe se il pannello dal vivo ha qualcosa da
   /// mostrare.
   ///
@@ -165,7 +148,6 @@ class HealthService {
       return false;
     }
   }
-
   /// Se il battito e leggibile.
   ///
   /// **Non dice se il dispositivo ha un sensore di battito**, e non e un
@@ -186,7 +168,6 @@ class HealthService {
       return false;
     }
   }
-
   /// Legge i campioni di calorie e battito cardiaco nell'intervallo specificato.
   Future<Map<String, dynamic>> fetchLiveMetrics({
     required DateTime startTime,
@@ -203,10 +184,8 @@ class HealthService {
           HealthDataType.HEART_RATE,
         ],
       );
-
       final double? calories = _calorie(healthData);
       int? lastHeartRate;
-
       for (var point in healthData) {
         if (point.type == HealthDataType.HEART_RATE) {
           if (point.value is NumericHealthValue) {
@@ -215,7 +194,6 @@ class HealthService {
           }
         }
       }
-
       return {
         'calories': calories,
         'heartRate': lastHeartRate,
@@ -227,16 +205,12 @@ class HealthService {
       };
     }
   }
-
   Future<Map<String, dynamic>> fetchDailySummary() async {
     final now = DateTime.now();
     final midnight = DateTime(now.year, now.month, now.day);
-
     // Fetch data
-
     // 1. Steps (Cumulative for today)
     int? steps = await _health.getTotalStepsInInterval(midnight, now);
-
     // Others
     List<HealthDataPoint> healthData = await _health.getHealthDataFromTypes(
       startTime: midnight,
@@ -250,14 +224,12 @@ class HealthService {
         HealthDataType.HEART_RATE,
       ],
     );
-
     final double calories = _calorie(healthData) ?? 0;
     double distance = 0;
     double water = 0;
     int heartRateSum = 0;
     int heartRateCount = 0;
     int lastHeartRate = 0;
-
     for (var point in healthData) {
       if (point.type == HealthDataType.DISTANCE_DELTA) {
         final val = point.value as NumericHealthValue;
@@ -272,7 +244,6 @@ class HealthService {
         lastHeartRate = val.numericValue.toInt();
       }
     }
-
     // Weight (Fetch latest available)
     List<HealthDataPoint> weightData = await _health.getHealthDataFromTypes(
       startTime: now.subtract(const Duration(days: 30)),
@@ -285,7 +256,6 @@ class HealthService {
       lastWeight = (weightData.first.value as NumericHealthValue).numericValue
           .toDouble();
     }
-
     // Sleep
     final sleepStart = now.subtract(const Duration(hours: 24));
     List<HealthDataPoint> sleepData = await _health.getHealthDataFromTypes(
@@ -293,13 +263,11 @@ class HealthService {
       endTime: now,
       types: [HealthDataType.SLEEP_SESSION],
     );
-
     int sleepMinutes = 0;
     for (var point in sleepData) {
       final duration = point.dateTo.difference(point.dateFrom).inMinutes;
       sleepMinutes += duration;
     }
-
     return {
       'steps': steps ?? 0,
       'calories': calories,
@@ -313,7 +281,6 @@ class HealthService {
       'sleepMinutes': sleepMinutes,
     };
   }
-
   /// Fetches historical data for a specific type and range, aggregated by day.
   /// Returns a Map where key is DateTime (midnight) and value is the aggregated value (double).
   Future<Map<DateTime, double>> fetchHistoricalData(
@@ -327,13 +294,11 @@ class HealthService {
       final Map<DateTime, double> dailySteps = {};
       final int days = end.difference(start).inDays + 1;
       final futures = <Future<void>>[];
-
       for (int i = 0; i <= days; i++) {
         final day = start.add(Duration(days: i));
         final midnight = DateTime(day.year, day.month, day.day);
         if (midnight.isAfter(end)) break;
         final nextMidnight = midnight.add(const Duration(days: 1));
-
         futures.add(() async {
           try {
             final steps = await _health.getTotalStepsInInterval(
@@ -346,19 +311,16 @@ class HealthService {
           } catch (_) {}
         }());
       }
-
       await Future.wait(futures);
       if (dailySteps.isNotEmpty) {
         return dailySteps;
       }
     }
-
     // 2. Per le calorie: interroga i tipi di calorie aggregabili (_liveCalorieTypes)
     // per non perdere i dati su orologi/dispositivi che scrivono TOTAL_CALORIES_BURNED.
     final typesToFetch = (type == HealthDataType.ACTIVE_ENERGY_BURNED)
         ? _liveCalorieTypes
         : [type];
-
     List<HealthDataPoint> data = [];
     try {
       data = await _health.getHealthDataFromTypes(
@@ -369,30 +331,24 @@ class HealthService {
     } catch (_) {
       return {};
     }
-
     Map<DateTime, double> dailyData = {};
     Map<DateTime, int> dailyCounts = {}; // For averaging
     Map<DateTime, List<HealthDataPoint>> caloriePointsByDay = {};
-
     for (var point in data) {
       DateTime date = point.dateTo;
       DateTime midnight = DateTime(date.year, date.month, date.day);
-
       if (midnight.isBefore(DateTime(start.year, start.month, start.day)) ||
           midnight.isAfter(end)) {
         continue;
       }
-
       if (type == HealthDataType.ACTIVE_ENERGY_BURNED) {
         caloriePointsByDay.putIfAbsent(midnight, () => []).add(point);
         continue;
       }
-
       double value = 0.0;
       if (point.value is NumericHealthValue) {
         value = (point.value as NumericHealthValue).numericValue.toDouble();
       }
-
       if (type == HealthDataType.STEPS ||
           type == HealthDataType.DISTANCE_DELTA ||
           type == HealthDataType.WATER) {
@@ -406,7 +362,6 @@ class HealthService {
         dailyCounts[midnight] = (dailyCounts[midnight] ?? 0) + 1;
       }
     }
-
     if (type == HealthDataType.ACTIVE_ENERGY_BURNED) {
       caloriePointsByDay.forEach((midnight, points) {
         final cal = _calorie(points);
@@ -415,7 +370,6 @@ class HealthService {
         }
       });
     }
-
     // Post-process Average
     if (type == HealthDataType.HEART_RATE || type == HealthDataType.WEIGHT) {
       dailyData.forEach((key, value) {
@@ -424,7 +378,6 @@ class HealthService {
         }
       });
     }
-
     return dailyData;
   }
 }

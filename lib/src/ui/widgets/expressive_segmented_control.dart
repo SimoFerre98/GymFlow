@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
-
+import '../../core/theme/immersivo_tokens.dart';
 /// Il segmentato del mockup 03 (`.seg`): un cursore ambra che **scivola** sotto
 /// l'etichetta scelta, invece di un `TabBar` con l'indicatore predefinito di
 /// Material.
@@ -23,21 +21,17 @@ class ExpressiveSegmentedControl extends StatelessWidget {
     required this.selectedIndex,
     required this.onChanged,
   }) : assert(labels.length >= 2, 'un segmentato con una voce sola non serve');
-
   final List<String> labels;
   final int selectedIndex;
   final ValueChanged<int> onChanged;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     final n = labels.length;
-
     // Il traguardo del cursore: da -1 (prima voce) a 1 (ultima), passo
     // regolare. Per due voci e esattamente lo `translateX(100%)` del mockup.
     final traguardo = -1.0 + (2.0 * selectedIndex / (n - 1));
-
     return Semantics(
       container: true,
       child: Container(
@@ -45,7 +39,7 @@ class ExpressiveSegmentedControl extends StatelessWidget {
         padding: EdgeInsets.all(t.spacing.xs),
         decoration: BoxDecoration(
           color: scheme.onSurface.withValues(alpha: 0.09),
-          borderRadius: t.shape.cornerFull,
+          borderRadius: t.shape.cornerXs,
         ),
         child: Stack(
           children: [
@@ -71,7 +65,7 @@ class ExpressiveSegmentedControl extends StatelessWidget {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: scheme.primary,
-                      borderRadius: t.shape.cornerFull,
+                      borderRadius: t.shape.cornerXs,
                     ),
                   ),
                 ),
@@ -87,7 +81,7 @@ class ExpressiveSegmentedControl extends StatelessWidget {
                       label: labels[i],
                       child: InkWell(
                         onTap: () => onChanged(i),
-                        borderRadius: t.shape.cornerFull,
+                        borderRadius: t.shape.cornerXs,
                         child: Padding(
                           padding: EdgeInsets.symmetric(
                             vertical: t.spacing.sm,

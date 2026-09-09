@@ -6,50 +6,43 @@ import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/badge_model.dart';
 import 'package:gymflow/src/services/gamification_service.dart';
-
 import 'package:gymflow/src/services/health_service.dart';
 import 'package:health/health.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/theme/app_palette.dart';
-import '../../core/theme/expressive_tokens.dart';
-import '../widgets/app_drawer.dart';
-
-/// Lato del cerchio di avanzamento delle calorie: geometria di questa
-/// card, non una misura condivisa.
-const double _kDiametroAnelloCalorie = 80;
-
+import '../../core/theme/immersivo_tokens.dart';
+import '../../core/utils/statistics_helper.dart';
+import '../widgets/timer_aurora.dart';
 /// Lato del cerchio e dell'icona dentro una card di traguardo.
 const double _kDiametroIconaBadge = 50;
 const double _kLatoIconaBadge = 28;
-
+/// 52px del mockup 2c: il numero della streak prende lo stesso posto che il
+/// mockup dava a "2 400 punti" — non esiste un sistema a punti/livelli, e
+/// mostrarne uno sarebbe un dato inventato, ma la resa (badge sopra, numero
+/// enorme sotto) e la stessa.
+const double _kStreakHeroFontSize = 52;
 class GamificationScreen extends ConsumerStatefulWidget {
   const GamificationScreen({super.key});
-
   @override
   ConsumerState<GamificationScreen> createState() => _GamificationScreenState();
 }
-
 class _GamificationScreenState extends ConsumerState<GamificationScreen> {
   int _monthlySteps = 0;
   double _monthlyCalories = 0;
   double _monthlyDistance = 0;
   bool _isLoading = true;
-
   final int _monthlyStepGoal = 180000;
   final int _monthlyCalorieGoal = 15000; // 500 kcal * 30 days
   final int _monthlyDistanceGoal = 50000; // 50km in meters
-
   @override
   void initState() {
     super.initState();
     _fetchMonthlyChallenges();
   }
-
   Future<void> _fetchMonthlyChallenges() async {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     final healthService = HealthService();
-
     try {
       // 1. Steps
       final stepsData = await healthService.fetchHistoricalData(
@@ -59,7 +52,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
       );
       int stepsTotal = 0;
       stepsData.forEach((_, value) => stepsTotal += value.toInt());
-
       // 2. Calories
       final caloriesData = await healthService.fetchHistoricalData(
         HealthDataType.ACTIVE_ENERGY_BURNED,
@@ -68,7 +60,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
       );
       double caloriesTotal = 0;
       caloriesData.forEach((_, value) => caloriesTotal += value);
-
       // 3. Distance
       final distanceData = await healthService.fetchHistoricalData(
         HealthDataType.DISTANCE_DELTA,
@@ -77,7 +68,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
       );
       double distanceTotal = 0;
       distanceData.forEach((_, value) => distanceTotal += value);
-
       if (mounted) {
         setState(() {
           _monthlySteps = stepsTotal;
@@ -93,26 +83,100 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final firestore = ref.read(firestoreServiceProvider);
     final loc = ref.watch(localizationNotifierProvider);
     final userId = AuthService().currentUser?.uid ?? '';
-    final t = context.expressive;
-
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: Text(loc.t('achievements_title')),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+      // Il bagliore ambientale del mockup 2c: le stesse masse della
+      // schermata del tempo, dietro al contenuto invece che sotto un tema
+      // spento.
+      body: Stack(
+        children: [
+          const Positioned.fill(child: TimerAurora()),
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Raggiunta da un riquadro della Home (Parte 3), non da uno
+                // spingimento sentito come tale: stesso trattamento senza
+                // BackPill delle altre destinazioni raggiunte cosi.
+                Padding(
+                  padding: EdgeInsets.fromLTRB(t.spacing.lg, t.spacing.sm, t.spacing.lg, 0),
+                  child: _buildHeader(context, loc, t, scheme),
+                ),
+                Expanded(child: _buildBody(context, loc, userId, firestore, t)),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
-      body: StreamBuilder<UserProfile?>(
+    );
+  }
+  Widget _buildHeader(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+  ) {
+    return Row(
+      children: [
+        Text(
+          loc.t('achievements_title').toUpperCase(),
+          style: t.typography.title?.copyWith(color: scheme.onSurface),
+        ),
+        SizedBox(width: t.spacing.md),
+        Expanded(
+          child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+        ),
+      ],
+    );
+  }
+  /// Il rimpiazzo reale di "LIVELLO 7 · 2 400 PUNTI" del mockup 2c: qui non
+  /// esiste un sistema a punti/livelli, e mostrarne uno sarebbe un dato
+  /// inventato. La streak e reale (stesso calcolo di [DashboardScreen] sugli
+  /// stessi allenamenti), e prende la stessa resa — badge sopra, numero
+  /// enorme sotto.
+  Widget _buildStreakHero(BuildContext context, Localization loc, ImmersivoTokens t, int streak) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(t.spacing.lg, t.spacing.lg, t.spacing.lg, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (streak > 0)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: t.spacing.sm, vertical: t.spacing.xs),
+              color: scheme.primary,
+              child: Text(
+                loc.t('gamification_streak_badge').toUpperCase(),
+                style: t.typography.eyebrow?.copyWith(color: scheme.onPrimary),
+              ),
+            ),
+          SizedBox(height: t.spacing.sm),
+          Text(
+            '$streak\n${loc.t('days_label').toUpperCase()}',
+            style: t.typography.display?.copyWith(
+              fontSize: _kStreakHeroFontSize,
+              height: 0.9,
+              color: scheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildBody(
+    BuildContext context,
+    Localization loc,
+    String userId,
+    dynamic firestore,
+    ImmersivoTokens t,
+  ) {
+    return StreamBuilder<UserProfile?>(
         stream: AuthService().getUserProfileStream(),
         builder: (context, userSnapshot) {
           if (!userSnapshot.hasData) {
@@ -122,7 +186,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
           }
           final userProfile = userSnapshot.data;
           final friendCount = userProfile?.friends.length ?? 0;
-
           return StreamBuilder<List<WorkoutSession>>(
             stream: firestore.getUserSessions(userId),
             builder: (context, snapshot) {
@@ -130,56 +193,93 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               final sessions = snapshot.data ?? [];
+              final streak = StatisticsHelper.calculateCurrentStreak(sessions);
               final unlockedBadges = GamificationService.getUnlockedBadges(
                 sessions,
                 friendCount: friendCount,
               );
               final unlockedIds = unlockedBadges.map((e) => e.id).toSet();
-
               return SingleChildScrollView(
-                padding: EdgeInsets.all(t.spacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Monthly Challenge Section
-                    _buildSectionHeader(context, loc.t('monthly_challenges')),
-                    SizedBox(height: t.spacing.sm),
-
-                    // 1. Steps (Linear)
-                    _buildStepChallengeCard(loc),
-                    SizedBox(height: t.spacing.md),
-
-                    // 2. Calories & Distance (Row)
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                    _buildStreakHero(context, loc, t, streak),
+                    Padding(
+                      padding: EdgeInsets.all(t.spacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: _buildCaloriesChallengeCard(loc)),
-                          SizedBox(width: t.spacing.sm),
-                          Expanded(child: _buildDistanceChallengeCard(loc)),
+                          // Le tre sfide del mese, nel linguaggio del mockup
+                          // 2c: riga con numero, titolo, valore e un filetto
+                          // sottile invece di tre card scollegate (una
+                          // lineare, una ad anello).
+                          _buildSectionHeader(
+                            context,
+                            loc.t('monthly_challenges'),
+                            trailing: '3',
+                          ),
+                          SizedBox(height: t.spacing.sm),
+                          _buildChallengeRow(
+                            context,
+                            loc,
+                            numero: '01',
+                            icona: Icons.directions_walk,
+                            titolo: loc.t('step_master'),
+                            valore: '$_monthlySteps / $_monthlyStepGoal',
+                            frazione: (_monthlySteps / _monthlyStepGoal).clamp(0.0, 1.0),
+                            colore: Theme.of(context).colorScheme.primary,
+                          ),
+                          _buildChallengeRow(
+                            context,
+                            loc,
+                            numero: '02',
+                            icona: Icons.local_fire_department,
+                            titolo: loc.t('calorie_burn'),
+                            valore:
+                                '${_monthlyCalories.toInt()} / $_monthlyCalorieGoal kcal',
+                            frazione:
+                                (_monthlyCalories / _monthlyCalorieGoal).clamp(0.0, 1.0),
+                            colore: Theme.of(context).colorScheme.tertiary,
+                          ),
+                          _buildChallengeRow(
+                            context,
+                            loc,
+                            numero: '03',
+                            icona: Icons.map_outlined,
+                            titolo: loc.t('distance_label'),
+                            valore:
+                                '${(_monthlyDistance / 1000).toStringAsFixed(1)} / '
+                                '${_monthlyDistanceGoal ~/ 1000} km',
+                            frazione:
+                                (_monthlyDistance / _monthlyDistanceGoal).clamp(0.0, 1.0),
+                            colore: Theme.of(context).colorScheme.secondary,
+                          ),
+                          SizedBox(height: t.spacing.xl),
+                          // Achievements Section
+                          _buildSectionHeader(
+                            context,
+                            loc.t('badges_section'),
+                            trailing: '${unlockedIds.length} / ${allBadges.length}',
+                          ),
+                          SizedBox(height: t.spacing.sm),
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              childAspectRatio: 0.75,
+                              crossAxisSpacing: t.spacing.sm,
+                              mainAxisSpacing: t.spacing.sm,
+                            ),
+                            itemCount: allBadges.length,
+                            itemBuilder: (context, index) {
+                              final badge = allBadges[index];
+                              final isUnlocked = unlockedIds.contains(badge.id);
+                              return _buildBadgeCard(context, badge, isUnlocked, loc);
+                            },
+                          ),
                         ],
                       ),
-                    ),
-                    SizedBox(height: t.spacing.xxl),
-
-                    // Achievements Section
-                    _buildSectionHeader(context, loc.t('badges_section')),
-                    SizedBox(height: t.spacing.sm),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 0.75,
-                        crossAxisSpacing: t.spacing.sm,
-                        mainAxisSpacing: t.spacing.sm,
-                      ),
-                      itemCount: allBadges.length,
-                      itemBuilder: (context, index) {
-                        final badge = allBadges[index];
-                        final isUnlocked = unlockedIds.contains(badge.id);
-                        return _buildBadgeCard(context, badge, isUnlocked, loc);
-                      },
                     ),
                   ],
                 ),
@@ -187,279 +287,120 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
             },
           );
         },
-      ),
-    );
+      );
   }
-
-  Widget _buildSectionHeader(BuildContext context, String title) {
+  Widget _buildSectionHeader(BuildContext context, String title, {String? trailing}) {
     final scheme = Theme.of(context).colorScheme;
-    return Text(
-      title.toUpperCase(),
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.2,
-        color: scheme.onSurfaceVariant,
-      ),
+    if (trailing == null) {
+      return Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+          color: scheme.onSurfaceVariant,
+        ),
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title.toUpperCase(),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          trailing,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: scheme.primary,
+          ),
+        ),
+      ],
     );
   }
-
-  Widget _buildStepChallengeCard(Localization loc) {
-    final t = context.expressive;
-    final progress = (_monthlySteps / _monthlyStepGoal).clamp(0.0, 1.0);
-    final percentage = (progress * 100).toInt();
-    // Il testo sopra questa card e sempre indigo900, non bianco: e la tinta
-    // che vince il contrasto contro categoryBlue, verificato con la stessa
-    // formula WCAG usata per le fette della torta dei tipi di allenamento.
-    const inchiostro = AppPalette.indigo900;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(t.spacing.lg),
+  /// Una sfida del mese nel linguaggio del mockup 2c: numero, icona, titolo,
+  /// valore a destra, barra sottile — la stessa riga per tutte e tre, invece
+  /// di una card lineare e due ad anello scollegate fra loro.
+  Widget _buildChallengeRow(
+    BuildContext context,
+    Localization loc, {
+    required String numero,
+    required IconData icona,
+    required String titolo,
+    required String valore,
+    required double frazione,
+    required Color colore,
+  }) {
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppPalette.categoryBlue,
-        borderRadius: t.shape.cornerLg,
-        boxShadow: t.elevation.level2(AppPalette.categoryBlue),
+        border: Border(top: BorderSide(color: scheme.outline)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(t.spacing.sm),
-                decoration: BoxDecoration(
-                  color: inchiostro.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.directions_walk, color: inchiostro),
-              ),
-              SizedBox(width: t.spacing.sm),
-              Column(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: t.spacing.md),
+        child: Row(
+          children: [
+            Text(numero, style: t.typography.eyebrow?.copyWith(color: colore)),
+            SizedBox(width: t.spacing.sm),
+            Icon(icona, color: colore, size: t.sizing.iconSm),
+            SizedBox(width: t.spacing.sm),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    loc.t('step_master'),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: inchiostro,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    loc.t('reach_steps_goal'),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: inchiostro.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: t.spacing.lg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '$_monthlySteps / $_monthlyStepGoal',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: inchiostro,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '$percentage%',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: inchiostro,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: t.spacing.sm),
-          ClipRRect(
-            borderRadius: t.shape.cornerSm,
-            child: LinearProgressIndicator(
-              value: _isLoading ? null : progress,
-              minHeight: t.spacing.sm,
-              backgroundColor: inchiostro.withValues(alpha: 0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(inchiostro),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCaloriesChallengeCard(Localization loc) {
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-    final progress = (_monthlyCalories / _monthlyCalorieGoal).clamp(0.0, 1.0);
-    final percentage = (progress * 100).toInt();
-
-    return Container(
-      padding: EdgeInsets.all(t.spacing.md),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: t.shape.cornerLg,
-        boxShadow: t.elevation.level2(AppPalette.categoryOrange),
-        border: Border.all(color: AppPalette.categoryOrange.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            loc.t('calorie_burn'),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: scheme.onSurface,
-            ),
-          ),
-          SizedBox(height: t.spacing.xs),
-          Text(
-            '${loc.t('goal_label')} ${_monthlyCalorieGoal ~/ 1000}k kcal',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          SizedBox(height: t.spacing.md),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                height: _kDiametroAnelloCalorie,
-                width: _kDiametroAnelloCalorie,
-                child: _isLoading
-                    ? const CircularProgressIndicator(strokeWidth: 4)
-                    : CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 8,
-                        backgroundColor: AppPalette.categoryOrange.withValues(
-                          alpha: 0.1,
-                        ),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppPalette.categoryOrange,
-                        ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        titolo,
+                        style: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.local_fire_department,
-                    color: AppPalette.categoryOrange,
-                    size: t.sizing.iconMd,
+                      Text(
+                        valore,
+                        style: t.typography.eyebrow?.copyWith(color: colore),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '$percentage%',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: scheme.onSurface,
+                  SizedBox(height: t.spacing.xs),
+                  SizedBox(
+                    height: 5,
+                    // `ColoredBox` qui non disegnava nulla — stesso difetto
+                    // isolato e corretto in `statistics_screen.dart` durante
+                    // la story Immersivo (2026-08-21): `Container` funziona.
+                    child: Stack(
+                      children: [
+                        Container(
+                          color: scheme.onSurface.withValues(alpha: 0.12),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: _isLoading ? 0 : frazione,
+                          child: Container(color: colore),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          SizedBox(height: t.spacing.sm),
-          Text(
-            '${_monthlyCalories.toInt()} kcal',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: scheme.onSurface,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-  Widget _buildDistanceChallengeCard(Localization loc) {
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-    final progress = (_monthlyDistance / _monthlyDistanceGoal).clamp(0.0, 1.0);
-    // Convert to km
-    final currentKm = (_monthlyDistance / 1000).toStringAsFixed(1);
-    final goalKm = _monthlyDistanceGoal ~/ 1000;
-
-    return Container(
-      padding: EdgeInsets.all(t.spacing.md),
-      decoration: BoxDecoration(
-        color: AppPalette.categoryAqua.withValues(alpha: 0.1),
-        borderRadius: t.shape.cornerLg,
-        border: Border.all(color: AppPalette.categoryAqua.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.map_outlined,
-                color: AppPalette.categoryAqua,
-                size: t.sizing.iconMd,
-              ),
-              SizedBox(width: t.spacing.sm),
-              Expanded(
-                child: Text(
-                  loc.t('distance_label'),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: scheme.onSurface,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: t.spacing.xs),
-          Text(
-            '${loc.t('goal_label')} ${goalKm}km',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          SizedBox(height: t.spacing.lg),
-          Text(
-            '$currentKm km',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: scheme.onSurface,
-            ),
-          ),
-          SizedBox(height: t.spacing.sm),
-          ClipRRect(
-            borderRadius: t.shape.cornerXs,
-            child: LinearProgressIndicator(
-              value: _isLoading ? null : progress,
-              minHeight: 6,
-              backgroundColor: AppPalette.categoryAqua.withValues(alpha: 0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppPalette.categoryAqua,
-              ),
-            ),
-          ),
-          SizedBox(height: t.spacing.xs),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              '${(progress * 100).toInt()}%',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBadgeCard(
     BuildContext context,
     BadgeModel badge,
     bool isUnlocked,
     Localization loc,
   ) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Container(
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHigh,
@@ -476,7 +417,7 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
             width: _kDiametroIconaBadge,
             height: _kDiametroIconaBadge,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: t.shape.cornerXs,
               color: isUnlocked
                   ? AppPalette.success.withValues(alpha: 0.15)
                   : scheme.onSurface.withValues(alpha: 0.08),

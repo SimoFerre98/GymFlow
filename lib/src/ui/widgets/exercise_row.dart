@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/immersivo_tokens.dart';
 import '../../models/exercise.dart';
 import 'exercise_thumbnail.dart';
-
 /// Riga standard per visualizzare un esercizio nelle liste.
 ///
 /// Comprende la miniatura da 56 dp a sinistra, il titolo in grassetto
@@ -19,20 +17,17 @@ class ExerciseRow extends StatelessWidget {
     this.onThumbnailTap,
     this.transparentBackground = false,
   });
-
   final Exercise exercise;
   final Widget? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
   final VoidCallback? onThumbnailTap;
   final bool transparentBackground;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-
     return Material(
       color: transparentBackground
           ? Colors.transparent

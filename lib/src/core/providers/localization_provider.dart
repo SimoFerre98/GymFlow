@@ -1,34 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 part 'localization_provider.g.dart';
-
 /// Traduzioni per la lingua corrente.
 ///
 /// Immutabile: cambiare lingua produce una nuova istanza, non muta questa.
 @immutable
 class Localization {
   const Localization(this.locale);
-
   final Locale locale;
-
   /// Traduce [key]. Se manca nel dizionario restituisce la chiave stessa,
   /// cosi la stringa non tradotta e visibile invece di sparire.
   String t(String key) {
     final table = locale.languageCode == 'it' ? _it : _en;
     return table[key] ?? key;
   }
-
   static final Map<String, String> _en = {
     'settings_title': 'Settings',
     'account_section': 'ACCOUNT',
     'my_profile': 'My Profile',
+    'member_since_label': 'Member since',
+    'member_since_recent': 'New member',
+    'month_singular': 'month',
+    'months_plural': 'months',
+    'weight_stat_label': 'WEIGHT',
+    'height_stat_label': 'HEIGHT',
+    'body_fat_stat_label': 'BODY FAT',
+    'weight_trend_label': 'WEIGHT · 12 WEEKS',
+    'circumferences_label': 'Circumferences',
+    'measurements_count_label': 'MEASURES',
+    'edit_name_dialog_title': 'Edit name',
+    'not_set_value': 'Set',
     'role_label': 'Role',
     'role_athlete': 'Athlete',
     'role_trainer': 'Personal Trainer',
     'role_both': 'Athlete & Trainer',
     'body_measurements': 'Body Measurements',
+    'body_measurements_title': 'Measures',
     'subscription': 'Subscription',
     'gym_settings_section': 'GYM SETTINGS',
     'gym_details': 'Gym Details',
@@ -36,11 +44,23 @@ class Localization {
     'integrations_section': 'INTEGRATIONS',
     'preferences_section': 'PREFERENCES',
     'info_section': 'INFO',
+    'app_section': 'APP',
+    'gym_settings_title': 'Gym',
+    'timer_settings_title': 'Rest',
+    'appearance_index_subtitle': 'Theme and accent color',
+    'timer_settings_section_title': 'Timer and rest',
+    'general_settings_section_title': 'Language and info',
+    'auto_label': 'Auto',
+    'manual_label': 'Manual',
+    'language_name_it': 'Italiano',
+    'language_name_en': 'English',
     'notifications': 'Notifications',
     'haptic_feedback': 'Vibration on tap',
     'app_theme': 'App Theme',
-    'theme_style_label': 'App Visual Style',
-    'theme_style_default': 'GymFlow Classic',
+    'appearance_title': 'Appearance',
+    'preview_label': 'Preview',
+    'palette_label': 'Palette',
+    'theme_style_classico': 'GymFlow Classic',
     'theme_style_digital_pulse': 'Digital Pulse',
     'theme_style_toxic_forest': 'Toxic Forest',
     'theme_style_deep_sea_neon': 'Deep Sea Neon',
@@ -60,6 +80,9 @@ class Localization {
     'permissions_granted': 'Permissions granted!',
     'default_loaded': 'Default exercises loaded!',
     'gym_info_saved': 'Gym Info Saved!',
+    'friends_at_gym': 'Friends at this gym',
+    'friend_singular': 'friend',
+    'friends_plural': 'friends',
     'system': 'System',
     'light': 'Light',
     'dark': 'Dark',
@@ -75,7 +98,6 @@ class Localization {
     'pause': 'Pause',
     'start': 'Start',
     'tap_to_edit': 'Tap to edit',
-
     // Calendar
     'calendar_title': 'Calendar',
     'select_day': 'Select a day',
@@ -89,7 +111,6 @@ class Localization {
     'scheduled_using': 'Scheduled using GymFlow',
     'select_workout_schedule': 'Select Workout to Schedule',
     'no_workouts_found': 'No workouts found. Create one first!',
-
     // Connect Friend
     'connect_friends_title': 'Connect with Friends',
     'your_friend_code': 'Your Friend Code',
@@ -108,11 +129,12 @@ class Localization {
     'cant_add_self': "You can't add yourself!",
     'friend_connected': 'Friend connected successfully!',
     'friend_not_found': 'Friend not found with code:',
-
     // Program List
     'my_programs_title': 'My Programs',
     'no_programs_yet': 'No Programs Yet',
     'create_program_msg': 'Create a workout program (Scheda) to get started',
+    'total_programs_ticker': 'TOTAL %s PROGRAMS',
+    'active_programs_ticker': '%s ACTIVE PROGRAMS',
     'delete': 'Delete',
     'delete_program_title': 'Delete Program?',
     'delete_program_body_prefix': 'Are you sure you want to delete',
@@ -121,13 +143,18 @@ class Localization {
     'ongoing': 'Ongoing',
     'no_dates': 'No dates set',
     'days_label': 'Days',
-
+    'exercises_label': 'exercises',
     // Dashboard
     'dashboard_title': 'Dashboard',
     'overview_tab': 'Overview',
     'history_tab': 'History',
     'workouts_label': 'Workouts',
     'streak_label': 'Streak',
+    'stats_period_4w': '4 weeks',
+    'stats_period_12w': '12 weeks',
+    'stats_period_1y': '1 year',
+    'weekly_volume_label': 'Weekly volume',
+    'breakdown_label': 'Breakdown',
     'steps_label': 'Steps',
     'active_cal_label': 'Active Cal',
     'heart_rate_label': 'Heart Rate',
@@ -147,9 +174,9 @@ class Localization {
     'no_workouts_history': 'No workouts yet',
     'start_training_msg': 'Start training to see your history here.',
     'quick_start': 'Quick Start',
-
     // Gamification
     'achievements_title': 'Achievements',
+    'gamification_streak_badge': 'Active Streak',
     'monthly_challenges': 'Monthly Challenges',
     'step_master': 'Step Master',
     'reach_steps_goal': 'Reach 180k steps',
@@ -157,7 +184,6 @@ class Localization {
     'goal_label': 'Goal:',
     'distance_label': 'Distance',
     'badges_section': 'Badges',
-
     // Badge Details
     'badge_name_first_step': 'First Step',
     'badge_desc_first_step': 'Complete your first workout',
@@ -171,15 +197,15 @@ class Localization {
     'badge_desc_unstoppable': 'Reach a 7-day streak',
     'badge_name_social_butterfly': 'Social Butterfly',
     'badge_desc_social_butterfly': 'Connect with a friend',
-
     // Set editor (US-046)
     'set_label': 'Set',
     'previous_set': 'Previous set',
     'load_label': 'Load',
     'reps_label': 'Reps',
+    'exercise_label_short': 'Exercise',
+    'set_done_label': 'Done',
     'rpe_full_label': 'Perceived effort',
     'close_set': 'Close the set',
-
     // Missing strings found on screen: `t` returns the key when it is absent,
     // so these were being displayed as `rpe_label`, `cancel`, and so on.
     'cancel': 'Cancel',
@@ -187,13 +213,20 @@ class Localization {
     'completed_at': 'Completed at',
     'scheduled_for': 'Scheduled for',
     'friend_label': '(friend)',
+    'today_label': 'today',
+    'duration_min_short': 'min',
+    'calendar_legend_done': 'Done',
+    'calendar_legend_today': 'Today',
+    'calendar_legend_planned': 'Planned',
+    'calendar_this_week': 'This week',
+    'calendar_free_day': 'Free',
+    'calendar_tap_to_plan': 'Tap to plan',
     'event_deleted': 'Event deleted',
     'no_workouts_create_first': 'No workouts yet. Create one first!',
     'error_connecting': 'Error while connecting',
     'error_deleting': 'Error while deleting',
     'gymflow_user': 'GymFlow user',
     'rpe_label': 'Avg Effort',
-
     // Exercises
     'exercises_menu': 'Exercises',
     'exercises_title': 'Exercise library',
@@ -203,6 +236,7 @@ class Localization {
     'exercises_recent_empty': 'No history yet',
     'exercises_no_match': 'No exercise matches these filters.',
     'exercises_new_btn': 'New exercise',
+    'library_browse_by_group': 'Browse by group',
     'exercise_filter_all': 'All',
     'exercise_filter_mine': 'Mine',
     'exercise_filter_recent': 'Recent',
@@ -213,7 +247,6 @@ class Localization {
     'add_exercise_name_label': 'Exercise Name',
     'add_exercise_name_empty': 'Please enter an exercise name',
     'add_exercise_error_saving': 'Error saving exercise',
-
     // Execution video
     'video_none': 'No execution video for this exercise yet.',
     'video_search_only':
@@ -224,11 +257,14 @@ class Localization {
     'video_offline':
         'Watching the video needs a connection. Check your network and try again.',
     'video_open_failed': 'Could not open YouTube',
-
     // Workout summary & receipt
     'workout_summary_title': 'Workout Summary',
     'workout_summary_completed_pill': 'Workout completed',
     'workout_summary_close_cta': 'Close',
+    'workout_summary_done_headline': 'Done.',
+    'workout_summary_sets_closed_suffix': 'sets closed',
+    'workout_summary_one_record': 'one personal record',
+    'workout_summary_records_plural': 'personal records',
     'workout_untitled': 'Workout',
     'workout_receipt_header': 'WORKOUT',
     'workout_receipt_exercises': 'EXERCISES',
@@ -237,7 +273,6 @@ class Localization {
     'workout_receipt_avg_rpe': 'Average effort',
     'workout_receipt_calories': 'Calories',
     'workout_receipt_avg_heart_rate': 'Average heart rate',
-
     // Image credits
     'image_credits_settings_tile': 'Exercise photo credits',
     'image_credits_settings_subtitle': 'wger.de, CC BY-SA',
@@ -248,14 +283,12 @@ class Localization {
         'and licence of each one.',
     'image_credits_source_cta': 'View source',
     'image_credits_open_failed': 'Could not open the link',
-
     // Live metrics (US-047)
     'live_metrics_calories': 'CALORIES',
     'live_metrics_heart_rate': 'HEART RATE',
     'live_metrics_permission_prompt':
         'Enable Health to see live calories and heart rate.',
     'live_metrics_grant_permission': 'Enable Health',
-
     // US-100: la sintesi salute delle statistiche. Non riusa le chiavi del
     // pannello dal vivo: quelle parlano di calorie e battito, qui si tratta di
     // passi e calorie, e un messaggio che nomina la cosa sbagliata e peggio di
@@ -266,13 +299,11 @@ class Localization {
     'live_metrics_in_progress': 'In progress',
     'live_metrics_kcal': 'kcal',
     'live_metrics_bpm': 'bpm',
-
     // Personal records (US-050)
     'record_pill': 'Record',
     'record_over_max': 'over your max',
     'previous_max_was': 'Previous max was',
     'on_date': 'on',
-
     // Main screens & Active Session (US-026)
     'athlete': 'Athlete',
     'welcome_back': 'Welcome back,',
@@ -296,7 +327,6 @@ class Localization {
     'time_min_label': 'Time (min)',
     'duration_sec_label': 'Duration (sec)',
     'timer_started_msg': 'Timer started',
-
     // Exercise detail & progression (US-068)
     'exercise_detail_title': 'Exercise Details',
     'exercise_progression_title': 'Weight progression',
@@ -310,6 +340,13 @@ class Localization {
     'exercise_set_label': 'Set',
     'exercise_completed_label': 'Completed',
     'exercise_not_completed_label': 'Not completed',
+    'exercise_tab_technique': 'Technique',
+    'exercise_tab_history': 'History',
+    'exercise_tab_record': 'Record',
+    'exercise_no_description': 'No technique notes for this exercise yet.',
+    'exercise_stat_max': 'Max load',
+    'exercise_stat_volume': 'Total volume',
+    'exercise_stat_sessions': 'Sessions',
     // Body measurements (US-066)
     'current_weight': 'Current weight',
     'weight_history': 'Weight history',
@@ -339,6 +376,7 @@ class Localization {
     'keep_in_background': 'Keep in background',
     'home_day_of': 'Day %s / %s',
     'goals_title': 'User Goals',
+    'goals_title_short': 'Goals',
     'goals_subtitle': 'Track your fitness targets',
     'goals_add_cta': 'Add Goal',
     'goals_new_title': 'New Goal',
@@ -352,7 +390,10 @@ class Localization {
     'home_no_active_program': 'No active program',
     'home_create_program_prompt': 'Create a workout program to get started.',
     'home_create_program_action': 'Create program',
-    'home_today_in_workout': 'Today in workout',
+    'home_today_badge_prefix': 'Today',
+    'home_next_workout_label': 'Next',
+    'home_ticker_sessions': '%s sessions logged',
+    'home_ticker_goals': '%s/%s goals achieved',
     'home_min': 'min',
     'home_exercises': 'exercises',
     'home_exercise_one': 'exercise',
@@ -365,6 +406,8 @@ class Localization {
       'profile_tab': 'Profile',
     'calendar_tab': 'Calendar',
     'programs_tab': 'Programs',
+    'create_tab': 'Create',
+    'data_tab': 'Data',
     'import_program_tooltip': 'Import Program',
     'import_program_title': 'Import Program?',
     'cancel_caps': 'CANCEL',
@@ -426,7 +469,6 @@ class Localization {
     'no_programs_shared': 'No programs shared.',
     'friend_no_shared_content': "%s hasn't shared any content yet.",
     'error_loading_programs': 'Error loading programs',
-
     // Il secondo giro di US-027: le stringhe che il primo test non vedeva
     // perche stavano sulla riga sotto `Text(` o dentro un widget interno.
     'login_welcome_back': 'Welcome Back',
@@ -456,6 +498,16 @@ class Localization {
     'edit_day': 'Edit Day',
     'exercises_section': 'Exercises',
     'no_exercises_added': 'No exercises added yet',
+    'save_day_cta': 'Save workout',
+    'quick_start_label': 'Start from a template',
+    'quick_start_blank': 'Blank',
+    'quick_start_blank_hint': 'From scratch',
+    'duplicate_suffix': '(copy)',
+    'workout_duplicated': 'Workout duplicated',
+    'drag_to_reorder': 'Drag',
+    'estimated_duration_label': 'Estimated time',
+    'total_sets_label': 'Total sets',
+    'estimated_volume_label': 'Volume',
     'subscription_active': 'ACTIVE',
     'subscription_expired': 'EXPIRED',
     'default_user_name': 'User',
@@ -468,7 +520,9 @@ class Localization {
     'import_failed': 'Failed to import',
     'statistics_title': 'Statistics',
     'statistics_tab': 'Statistics',
-
+    // General settings
+    'general_settings_section': 'GENERAL',
+    'app_version_label': 'Version',
     // Timer settings
     'timer_settings_section': 'TIMER & REST',
     'auto_rest_timer': 'Auto Rest Timer',
@@ -476,19 +530,41 @@ class Localization {
     'default_rest_time': 'Default Rest Duration',
     'vibrate_on_timer_end': 'Vibrate on Timer End',
   };
-
   static final Map<String, String> _it = {
     'settings_title': 'Impostazioni',
     'account_section': 'ACCOUNT',
     'my_profile': 'Il Mio Profilo',
+    'member_since_label': 'Membro da',
+    'member_since_recent': 'Membro da poco',
+    'month_singular': 'mese',
+    'months_plural': 'mesi',
+    'weight_stat_label': 'PESO',
+    'height_stat_label': 'ALTEZZA',
+    'body_fat_stat_label': 'MASSA GRASSA',
+    'weight_trend_label': 'PESO · 12 SETTIMANE',
+    'circumferences_label': 'Circonferenze',
+    'measurements_count_label': 'MISURE',
+    'edit_name_dialog_title': 'Modifica nome',
+    'not_set_value': 'Imposta',
     'role_label': 'Ruolo',
     'role_athlete': 'Atleta',
     'role_trainer': 'Personal Trainer',
     'role_both': 'Atleta e Trainer',
     'body_measurements': 'Misure Corporee',
+    'body_measurements_title': 'Misure',
     'subscription': 'Abbonamento',
     'gym_settings_section': 'IMPOSTAZIONI PALESTRA',
     'gym_details': 'Dettagli Palestra',
+    'app_section': 'APP',
+    'gym_settings_title': 'Palestra',
+    'timer_settings_title': 'Recupero',
+    'appearance_index_subtitle': 'Tema e colore degli accenti',
+    'timer_settings_section_title': 'Timer e recupero',
+    'general_settings_section_title': 'Lingua e info',
+    'auto_label': 'Automatico',
+    'manual_label': 'Manuale',
+    'language_name_it': 'Italiano',
+    'language_name_en': 'English',
     'gym_location': 'Posizione Palestra',
     'integrations_section': 'INTEGRAZIONI',
     'preferences_section': 'PREFERENZE',
@@ -496,8 +572,10 @@ class Localization {
     'notifications': 'Notifiche',
     'haptic_feedback': 'Vibrazione al tocco',
     'app_theme': 'Tema App',
-    'theme_style_label': 'Stile Visivo App',
-    'theme_style_default': 'GymFlow Classico',
+    'appearance_title': 'Aspetto',
+    'preview_label': 'Anteprima',
+    'palette_label': 'Palette',
+    'theme_style_classico': 'GymFlow Classico',
     'theme_style_digital_pulse': 'Digital Pulse',
     'theme_style_toxic_forest': 'Toxic Forest',
     'theme_style_deep_sea_neon': 'Deep Sea Neon',
@@ -517,6 +595,9 @@ class Localization {
     'permissions_granted': 'Permessi concessi!',
     'default_loaded': 'Esercizi caricati!',
     'gym_info_saved': 'Info Palestra Salvate!',
+    'friends_at_gym': 'Amici in questa palestra',
+    'friend_singular': 'amico',
+    'friends_plural': 'amici',
     'system': 'Sistema',
     'light': 'Chiaro',
     'dark': 'Scuro',
@@ -532,7 +613,6 @@ class Localization {
     'pause': 'Pausa',
     'start': 'Avvia',
     'tap_to_edit': 'Tocca per modificare',
-
     // Calendar
     'calendar_title': 'Calendario',
     'select_day': 'Seleziona un giorno',
@@ -546,7 +626,6 @@ class Localization {
     'scheduled_using': 'Programmato con GymFlow',
     'select_workout_schedule': 'Seleziona Allenamento da Programmare',
     'no_workouts_found': 'Nessun allenamento trovato. Creane uno prima!',
-
     // Connect Friend
     'connect_friends_title': 'Connetti Amici',
     'your_friend_code': 'Il tuo Codice Amico',
@@ -566,11 +645,12 @@ class Localization {
     'cant_add_self': 'Non puoi aggiungere te stesso!',
     'friend_connected': 'Amico connesso con successo!',
     'friend_not_found': 'Amico non trovato con codice:',
-
     // Program List
     'my_programs_title': 'Le mie Schede',
     'no_programs_yet': 'Nessuna Scheda',
     'create_program_msg': 'Crea una scheda di allenamento per iniziare',
+    'total_programs_ticker': 'TOTALE %s SCHEDE',
+    'active_programs_ticker': '%s SCHEDE ATTIVE',
     'delete': 'Elimina',
     'delete_program_title': 'Elimina Scheda?',
     'delete_program_body_prefix': 'Sei sicuro di voler eliminare',
@@ -579,13 +659,18 @@ class Localization {
     'ongoing': 'In corso',
     'no_dates': 'Nessuna data',
     'days_label': 'Giorni',
-
+    'exercises_label': 'esercizi',
     // Dashboard
     'dashboard_title': 'Dashboard',
     'overview_tab': 'Panoramica',
     'history_tab': 'Storico',
     'workouts_label': 'Allenamenti',
     'streak_label': 'Streak',
+    'stats_period_4w': '4 sett',
+    'stats_period_12w': '12 sett',
+    'stats_period_1y': '1 anno',
+    'weekly_volume_label': 'Volume settimanale',
+    'breakdown_label': 'Ripartizione',
     'steps_label': 'Passi',
     'active_cal_label': 'Calorie Attive',
     'heart_rate_label': 'Battito Card.',
@@ -605,9 +690,9 @@ class Localization {
     'no_workouts_history': 'Nessun allenamento ancora',
     'start_training_msg': 'Inizia ad allenarti per vedere il tuo storico qui.',
     'quick_start': 'Avvio Rapido',
-
     // Gamification
     'achievements_title': 'Obiettivi',
+    'gamification_streak_badge': 'Streak Attiva',
     'monthly_challenges': 'Sfide Mensili',
     'step_master': 'Signore dei Passi',
     'reach_steps_goal': 'Raggiungi 180k passi',
@@ -615,7 +700,6 @@ class Localization {
     'goal_label': 'Obiettivo:',
     'distance_label': 'Distanza',
     'badges_section': 'Badge',
-
     // Badge Details
     'badge_name_first_step': 'Primo Passo',
     'badge_desc_first_step': 'Completa il tuo primo allenamento',
@@ -629,15 +713,15 @@ class Localization {
     'badge_desc_unstoppable': 'Raggiungi una serie di 7 giorni',
     'badge_name_social_butterfly': 'Animale Sociale',
     'badge_desc_social_butterfly': 'Connettiti con un amico',
-
     // Editor della serie (US-046)
     'set_label': 'Serie',
     'previous_set': 'Serie precedente',
     'load_label': 'Carico',
     'reps_label': 'Ripetizioni',
+    'exercise_label_short': 'Esercizio',
+    'set_done_label': 'Fatta',
     'rpe_full_label': 'Sforzo percepito',
     'close_set': 'Chiudi la serie',
-
     // Stringhe mancanti trovate a schermo: `t` restituisce la chiave quando
     // manca, quindi al loro posto si leggeva `rpe_label`, `cancel`, e cosi via.
     'cancel': 'Annulla',
@@ -645,6 +729,14 @@ class Localization {
     'completed_at': 'Completato alle',
     'scheduled_for': 'Programmato per le',
     'friend_label': '(amico)',
+    'today_label': 'oggi',
+    'duration_min_short': 'min',
+    'calendar_legend_done': 'Fatto',
+    'calendar_legend_today': 'Oggi',
+    'calendar_legend_planned': 'Pianificato',
+    'calendar_this_week': 'Questa settimana',
+    'calendar_free_day': 'Libero',
+    'calendar_tap_to_plan': 'Tocca per pianificare',
     'event_deleted': 'Evento eliminato',
     'no_workouts_create_first': 'Nessun allenamento. Creane uno prima!',
     'error_connecting': 'Errore durante la connessione',
@@ -653,7 +745,6 @@ class Localization {
     // Il valore che accompagna viene da calculateAverageRPE: e lo sforzo
     // percepito, non l'intensita, che e gia un'altra voce.
     'rpe_label': 'Sforzo medio',
-
     // Esercizi
     'exercises_menu': 'Esercizi',
     'exercises_title': 'Libreria esercizi',
@@ -663,6 +754,7 @@ class Localization {
     'exercises_recent_empty': 'Ancora nessuno storico',
     'exercises_no_match': 'Nessun esercizio corrisponde a questi filtri.',
     'exercises_new_btn': 'Nuovo esercizio',
+    'library_browse_by_group': 'Sfoglia per gruppo',
     'exercise_filter_all': 'Tutti',
     'exercise_filter_mine': 'Miei',
     'exercise_filter_recent': 'Recenti',
@@ -673,7 +765,6 @@ class Localization {
     'add_exercise_name_label': 'Nome esercizio',
     'add_exercise_name_empty': "Inserisci un nome per l'esercizio",
     'add_exercise_error_saving': "Errore durante il salvataggio dell'esercizio",
-
     // Video dell'esecuzione
     'video_none': "Per questo esercizio non c'e ancora un video.",
     'video_search_only':
@@ -684,11 +775,14 @@ class Localization {
     'video_offline':
         'Per vedere il video serve una connessione. Controlla la rete e riprova.',
     'video_open_failed': 'Non e stato possibile aprire YouTube',
-
     // Workout summary & receipt
     'workout_summary_title': 'Riepilogo allenamento',
     'workout_summary_completed_pill': 'Allenamento chiuso',
     'workout_summary_close_cta': 'Chiudi',
+    'workout_summary_done_headline': 'Fatto.',
+    'workout_summary_sets_closed_suffix': 'serie chiuse',
+    'workout_summary_one_record': 'un record personale',
+    'workout_summary_records_plural': 'record personali',
     'workout_untitled': 'Allenamento',
     'workout_receipt_header': 'SCHEDA',
     'workout_receipt_exercises': 'ESERCIZI',
@@ -697,7 +791,6 @@ class Localization {
     'workout_receipt_avg_rpe': 'Sforzo medio',
     'workout_receipt_calories': 'Calorie',
     'workout_receipt_avg_heart_rate': 'Battito medio',
-
     // Crediti immagini
     'image_credits_settings_tile': 'Crediti foto esercizi',
     'image_credits_settings_subtitle': 'wger.de, CC BY-SA',
@@ -708,14 +801,12 @@ class Localization {
         'licenza di ciascuna.',
     'image_credits_source_cta': 'Vedi la fonte',
     'image_credits_open_failed': 'Non e stato possibile aprire il link',
-
     // Live metrics (US-047)
     'live_metrics_calories': 'CALORIE',
     'live_metrics_heart_rate': 'BATTITO',
     'live_metrics_permission_prompt':
         'Attiva Salute per vedere calorie e battito dal vivo.',
     'live_metrics_grant_permission': 'Attiva Salute',
-
     // US-100: la sintesi salute delle statistiche. Non riusa le chiavi del
     // pannello dal vivo: quelle parlano di calorie e battito, qui si tratta di
     // passi e calorie, e un messaggio che nomina la cosa sbagliata e peggio di
@@ -726,13 +817,11 @@ class Localization {
     'live_metrics_in_progress': 'In corso',
     'live_metrics_kcal': 'kcal',
     'live_metrics_bpm': 'bpm',
-
     // Record personali (US-050)
     'record_pill': 'Record',
     'record_over_max': 'sul tuo massimo',
     'previous_max_was': 'Il massimo precedente era',
     'on_date': 'il',
-
     // Main screens & Active Session (US-026)
     'athlete': 'Atleta',
     'welcome_back': 'Bentornato,',
@@ -756,7 +845,6 @@ class Localization {
     'time_min_label': 'Tempo (min)',
     'duration_sec_label': 'Durata (sec)',
     'timer_started_msg': 'Timer avviato',
-
     // Exercise detail & progression (US-068)
     'exercise_detail_title': 'Dettagli esercizio',
     'exercise_progression_title': 'Progressione carico',
@@ -770,6 +858,13 @@ class Localization {
     'exercise_set_label': 'Serie',
     'exercise_completed_label': 'Completata',
     'exercise_not_completed_label': 'Non completata',
+    'exercise_tab_technique': 'Tecnica',
+    'exercise_tab_history': 'Storico',
+    'exercise_tab_record': 'Record',
+    'exercise_no_description': 'Ancora nessuna nota tecnica per questo esercizio.',
+    'exercise_stat_max': 'Massimale',
+    'exercise_stat_volume': 'Volume totale',
+    'exercise_stat_sessions': 'Sessioni',
     // Peso e misure (US-066)
     'current_weight': 'Peso attuale',
     'weight_history': 'Storico pesi',
@@ -799,6 +894,7 @@ class Localization {
     'keep_in_background': 'Lascia in corso',
     'home_day_of': 'Giorno %s / %s',
     'goals_title': 'Obiettivi Utente',
+    'goals_title_short': 'Obiettivi',
     'goals_subtitle': 'Traccia i tuoi traguardi',
     'goals_add_cta': 'Aggiungi obiettivo',
     'goals_new_title': 'Nuovo Obiettivo',
@@ -812,7 +908,10 @@ class Localization {
     'home_no_active_program': 'Nessuna scheda attiva',
     'home_create_program_prompt': 'Crea una scheda di allenamento per iniziare.',
     'home_create_program_action': 'Crea scheda',
-    'home_today_in_workout': 'Oggi in scheda',
+    'home_today_badge_prefix': 'Oggi',
+    'home_next_workout_label': 'Prossima',
+    'home_ticker_sessions': '%s sessioni registrate',
+    'home_ticker_goals': '%s/%s obiettivi raggiunti',
     'home_min': 'min',
     'home_exercises': 'esercizi',
     'home_exercise_one': 'esercizio',
@@ -824,7 +923,9 @@ class Localization {
     'time_paused': 'In pausa',
       'profile_tab': 'Profilo',
     'calendar_tab': 'Calendario',
-    'programs_tab': 'Programmi',
+    'programs_tab': 'Schede',
+    'create_tab': 'Crea',
+    'data_tab': 'Dati',
     'import_program_tooltip': 'Importa Programma',
     'import_program_title': 'Importare Programma?',
     'cancel_caps': 'ANNULLA',
@@ -886,7 +987,6 @@ class Localization {
     'no_programs_shared': 'Nessuna scheda condivisa.',
     'friend_no_shared_content': '%s non ha ancora condiviso nulla.',
     'error_loading_programs': 'Errore caricamento schede',
-
     // Il secondo giro di US-027: le stringhe che il primo test non vedeva
     // perche stavano sulla riga sotto `Text(` o dentro un widget interno.
     'login_welcome_back': 'Bentornato',
@@ -916,6 +1016,16 @@ class Localization {
     'edit_day': 'Modifica giorno',
     'exercises_section': 'Esercizi',
     'no_exercises_added': 'Nessun esercizio aggiunto',
+    'save_day_cta': 'Salva scheda',
+    'quick_start_label': 'Parti da un modello',
+    'quick_start_blank': 'Vuota',
+    'quick_start_blank_hint': 'Da zero',
+    'duplicate_suffix': '(copia)',
+    'workout_duplicated': 'Scheda duplicata',
+    'drag_to_reorder': 'Trascina',
+    'estimated_duration_label': 'Durata stimata',
+    'total_sets_label': 'Serie tot',
+    'estimated_volume_label': 'Volume',
     'subscription_active': 'ATTIVO',
     'subscription_expired': 'SCADUTO',
     'default_user_name': 'Utente',
@@ -928,7 +1038,9 @@ class Localization {
     'import_failed': 'Importazione non riuscita',
     'statistics_title': 'Statistiche',
     'statistics_tab': 'Statistiche',
-
+    // General settings
+    'general_settings_section': 'GENERALI',
+    'app_version_label': 'Versione',
     // Timer settings
     'timer_settings_section': 'TIMER E RECUPERO',
     'auto_rest_timer': 'Recupero Automatico',
@@ -937,7 +1049,6 @@ class Localization {
     'vibrate_on_timer_end': 'Vibrazione a Fine Recupero',
   };
 }
-
 /// Espone la lingua corrente e le sue traduzioni, persistendo la scelta.
 ///
 /// Come per il tema, [build] restituisce subito il default e avvia la lettura
@@ -946,13 +1057,11 @@ class Localization {
 class LocalizationNotifier extends _$LocalizationNotifier {
   static const _languageKey = 'language_code';
   static const _defaultLocale = Locale('it');
-
   @override
   Localization build() {
     _restore();
     return const Localization(_defaultLocale);
   }
-
   Future<void> _restore() async {
     final prefs = await SharedPreferences.getInstance();
     final savedCode = prefs.getString(_languageKey);
@@ -960,7 +1069,6 @@ class LocalizationNotifier extends _$LocalizationNotifier {
       state = Localization(Locale(savedCode));
     }
   }
-
   Future<void> setLocale(Locale locale) async {
     state = Localization(locale);
     final prefs = await SharedPreferences.getInstance();

@@ -8,9 +8,10 @@ import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:gymflow/src/core/providers/personal_best_provider.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/providers/exercise_provider.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/widgets/back_pill.dart';
-import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
+import 'package:gymflow/src/ui/widgets/exercise_image.dart';
 import 'package:gymflow/src/ui/widgets/exercise_video_sheet.dart';
 import 'package:gymflow/src/ui/widgets/live_metrics_panel.dart';
 import 'package:gymflow/src/ui/widgets/set_editor_sheet.dart';
@@ -20,7 +21,7 @@ import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/services/timer_service.dart';
 import 'package:gymflow/src/core/providers/timer_settings_provider.dart';
 import 'package:gymflow/src/core/providers/active_session_provider.dart';
-
+const double _kTitleFontSize = 22;
 /// Avvia il conto alla rovescia sui secondi di una serie a tempo.
 ///
 /// Restituisce `true` se il timer e partito. Chi chiama mostra la conferma solo
@@ -46,17 +47,13 @@ import 'package:gymflow/src/core/providers/active_session_provider.dart';
 bool startSetTimer(TimerNotifier notifier, int? seconds) {
   if (seconds == null || seconds <= 0) return false;
   if (notifier.isTimerRunning) return false;
-
   notifier.setTimerDuration(Duration(seconds: seconds));
   notifier.toggleTimer();
   return true;
 }
-
 /// Come si chiude un allenamento: adesso, in un altro momento, o non si chiude.
 enum _FineAllenamento { adesso, altraData, annulla }
-
 enum _ExitAction { discard, keepActive }
-
 /// Un esercizio e finito quando **tutte** le sue serie sono spuntate.
 ///
 /// Un esercizio senza serie non e finito: non e stato fatto niente, e mostrarlo
@@ -70,40 +67,32 @@ bool esercizioFinito(WorkoutExercise esercizio) {
   if (esercizio.sets.isEmpty) return false;
   return esercizio.sets.every((serie) => serie.isCompleted);
 }
-
 class ActiveSessionScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate workout;
   final String? scheduledWorkoutId;
-
   const ActiveSessionScreen({
     super.key,
     required this.workout,
     this.scheduledWorkoutId,
   });
-
   @override
   ConsumerState<ActiveSessionScreen> createState() =>
       _ActiveSessionScreenState();
 }
-
 class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
   late Timer _timer;
   String _formattedTime = "00:00:00";
-
   // We clone the exercises to track progress without modifying the template immediately
   // Ideally, use a deep copy or map to a new Session object state
   late List<WorkoutExercise> _sessionExercises;
-
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(activeSessionNotifierProvider.notifier).startOrResumeSession(
             widget.workout,
             scheduledWorkoutId: widget.scheduledWorkoutId,
           );
-
       final sessionState = ref.read(activeSessionNotifierProvider);
       if (mounted) {
         setState(() {
@@ -112,13 +101,11 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         });
       }
     });
-
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         _updateElapsedDisplay();
       }
     });
-
     // Initialize with template values as fallback before post frame
     _sessionExercises = widget.workout.exercises.map((e) {
       return WorkoutExercise(
@@ -143,11 +130,9 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         notes: e.notes,
       );
     }).toList();
-
     // Try to load last session data
     _loadLastSessionData();
   }
-
   void _updateElapsedDisplay() {
     final activeSession = ref.read(activeSessionNotifierProvider);
     final elapsed = activeSession.elapsedDuration;
@@ -155,16 +140,13 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       _formattedTime = _formatTime(elapsed.inMilliseconds);
     });
   }
-
   Future<void> _loadLastSessionData() async {
     final user = AuthService().currentUser;
     if (user == null) return;
-
     final lastSession = await FirestoreService().getLastSession(
       user.uid,
       widget.workout.id,
     );
-
     if (lastSession != null && mounted) {
       setState(() {
         for (var i = 0; i < _sessionExercises.length; i++) {
@@ -175,7 +157,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
             orElse: () =>
                 WorkoutExercise(exerciseId: '', exerciseName: '', sets: []),
           );
-
           if (lastEx.sets.isNotEmpty) {
             // Update weights/reps but keep isCompleted false
             // We try to match set counts, or take the last set's weight if we have more sets now
@@ -192,7 +173,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           }
         }
       });
-
       final loc = ref.read(localizationNotifierProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -202,13 +182,11 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       );
     }
   }
-
   @override
   void dispose() {
     _timer.cancel();
     super.dispose();
   }
-
   String _formatTime(int milliseconds) {
     var secs = milliseconds ~/ 1000;
     var hours = (secs ~/ 3600).toString().padLeft(2, '0');
@@ -216,14 +194,11 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     var seconds = (secs % 60).toString().padLeft(2, '0');
     return "$hours:$minutes:$seconds";
   }
-
   bool _isSaving = false;
-
   Future<void> _finishWorkout() async {
     final user = AuthService().currentUser;
     if (user == null) return;
     final loc = ref.read(localizationNotifierProvider);
-
     // Una domanda sola, e la risposta piu probabile e gia pronta.
     //
     // Prima erano tre: un dialogo con un selettore di data che **non faceva
@@ -258,11 +233,8 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         ],
       ),
     );
-
     if (scelta == null || scelta == _FineAllenamento.annulla) return;
-
     DateTime finalDateTime = DateTime.now();
-
     if (scelta == _FineAllenamento.altraData) {
       if (!mounted) return;
       final pickedDate = await showDatePicker(
@@ -273,7 +245,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         helpText: loc.t('confirm_date'),
       );
       if (pickedDate == null) return;
-
       if (!mounted) return;
       final pickedTime = await showTimePicker(
         context: context,
@@ -281,7 +252,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         helpText: loc.t('confirm_end_time'),
       );
       if (pickedTime == null) return;
-
       finalDateTime = DateTime(
         pickedDate.year,
         pickedDate.month,
@@ -290,13 +260,10 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         pickedTime.minute,
       );
     }
-
     final activeSession = ref.read(activeSessionNotifierProvider);
     final elapsed = activeSession.elapsedDuration;
     final startTime = finalDateTime.subtract(elapsed);
-
     setState(() => _isSaving = true);
-
     final session = WorkoutSession(
       id: const Uuid().v4(),
       userId: user.uid,
@@ -307,12 +274,10 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       exercises: _sessionExercises,
       workoutType: widget.workout.category.name,
     );
-
     // Fire and forget save
     try {
       final service = FirestoreService();
       await service.saveSession(session);
-
       // If this was a scheduled workout, remove the schedule now that it's done
       if (widget.scheduledWorkoutId != null) {
         await service.deleteScheduledWorkout(widget.scheduledWorkoutId!);
@@ -320,7 +285,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     } finally {
       ref.read(activeSessionNotifierProvider.notifier).endSession();
     }
-
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -329,7 +293,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       );
     }
   }
-
   Future<void> _confirmExitSession(BuildContext context) async {
     final loc = ref.read(localizationNotifierProvider);
     final navigator = Navigator.of(context);
@@ -353,7 +316,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         ],
       ),
     );
-
     if (action == _ExitAction.discard) {
       ref.read(activeSessionNotifierProvider.notifier).endSession();
       navigator.pop();
@@ -361,12 +323,10 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       navigator.pop();
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    final expressive = context.expressive;
+    final expressive = context.immersivo;
     final loc = ref.watch(localizationNotifierProvider);
-
     // Tiene vivi i massimi storici per tutta la durata della schermata.
     // `personalBestsProvider` e autoDispose e legge le sessioni da uno stream
     // di Isar: la sola `ref.read` all'apertura del foglio della serie lo
@@ -374,7 +334,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     // ancora emetto. Funzionerebbe soltanto per il caso fortunato in cui la
     // dashboard, restando montata sotto, lo tiene gia caldo.
     ref.watch(personalBestsProvider);
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -383,280 +342,152 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.workout.name,
-            style: expressive.typography.titleEmphasized,
+        // Il pannello sta in fondo e fuori dalla lista, non ne e il primo
+        // elemento: dentro il ListView verrebbe smontato scorrendo, e con lui
+        // morirebbe il provider autoDispose che tiene la finestra recente delle
+        // sparkline. Ancorato qui riserva la propria altezza, quindi non copre
+        // mai l'ultimo esercizio.
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(expressive.spacing.sm),
+            child: LiveMetricsPanel(formattedTime: _formattedTime),
           ),
-          centerTitle: true,
-          leading: BackPill(
-            label: loc.t('cancel'),
-            onTap: () => _confirmExitSession(context),
-          ),
-          leadingWidth: BackPill.leadingWidth,
-        actions: [
-          _isSaving
-              ? Padding(
-                  padding: EdgeInsets.only(right: expressive.spacing.md),
-                  child: Center(
-                    child: SizedBox(
-                      width: expressive.sizing.iconMd,
-                      height: expressive.sizing.iconMd,
-                      child: CircularProgressIndicator(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                )
-              : TextButton(
-                  onPressed: _finishWorkout,
-                  child: Text(
-                    loc.t('finish_btn'),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-        ],
-      ),
-      // Il pannello sta in fondo e fuori dalla lista, non ne e il primo
-      // elemento: dentro il ListView verrebbe smontato scorrendo, e con lui
-      // morirebbe il provider autoDispose che tiene la finestra recente delle
-      // sparkline. Ancorato qui riserva la propria altezza, quindi non copre
-      // mai l'ultimo esercizio: un pannello sovrapposto renderebbe irrag-
-      // giungibile il suo pulsante «Add Set». La sovrapposizione alla foto
-      // dell'esercizio del mockup arriva con la foto stessa, in US-062.
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(expressive.spacing.sm),
-          child: LiveMetricsPanel(formattedTime: _formattedTime),
         ),
-      ),
-      body: ListView.builder(
-        padding: EdgeInsets.only(
-          left: expressive.spacing.sm,
-          right: expressive.spacing.sm,
-          top: expressive.spacing.sm,
-          bottom: expressive.spacing.md,
-        ),
-        itemCount: _sessionExercises.length,
-        itemBuilder: (context, index) {
-          final exercise = _sessionExercises[index];
-          return Card(
-            margin: EdgeInsets.all(expressive.spacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  // I 12 di prima erano i pixel del mockup, e il padding di una
-                  // card convertito in dp e 16: `spacing.md`. Sommare due token
-                  // per riottenere 12 avrebbe conservato il valore sbagliato
-                  // passando la guardia — vedi DESIGN-SPEC, riga «Padding card».
-                  padding: EdgeInsets.all(expressive.spacing.md),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ExerciseThumbnailById(
-                        exerciseId: exercise.exerciseId,
-                        exerciseName: exercise.exerciseName,
-                        // Il foglio non smonta questa schermata: alla chiusura
-                        // la sessione e dov'era e il cronometro non ha smesso.
-                        onTap: (resolved) =>
-                            ExerciseVideoSheet.show(context, resolved),
-                      ),
-                      SizedBox(width: context.expressive.spacing.md),
-                      Expanded(
-                        child: Text(
-                          exercise.exerciseName,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                // Barrato quando e finito: si legge senza
-                                // contare le spunte una per una.
-                                decoration: esercizioFinito(exercise)
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: esercizioFinito(exercise)
-                                    ? Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant
-                                    : null,
-                              ),
-                        ),
-                      ),
-                      if (esercizioFinito(exercise)) ...[
-                        Icon(
-                          Icons.check_circle,
-                          // Ne ambra ne salmone. L'ambra significa «cosa fare
-                          // adesso», e un esercizio finito e l'opposto; il
-                          // salmone e riservato ai dati vitali, e questo non lo
-                          // e. Resta il grigio del testo secondario, che e
-                          // coerente col nome barrato accanto.
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          semanticLabel: loc.t('exercise_done'),
-                        ),
-                        SizedBox(width: context.expressive.spacing.sm),
-                      ],
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        onPressed: () {
-                          // Confirm deletion
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: Text(loc.t('remove_exercise_title')),
-                              content: Text(
-                                loc.t('remove_exercise_body'),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx),
-                                  child: Text(loc.t('cancel')),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(ctx);
-                                    setState(() {
-                                      _sessionExercises.removeAt(index);
-                                    });
-                                  },
-                                  child: Text(
-                                    loc.t('remove_btn'),
-                                    style: TextStyle(
-                                      color: Theme.of(context).colorScheme.error,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                // Dynamic Table Header
-                Padding(
-                  padding: EdgeInsets.zero,
-                  child: _buildExerciseTable(exercise, context, loc),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(expressive.spacing.sm),
-                  child: TextButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: Text(loc.t('add_set')),
-                    onPressed: () {
-                      setState(() {
-                        // Add set with appropriate defaults based on type?
-                        exercise.sets.add(WorkoutSet(weight: 0, reps: 0));
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    ),
-  );
-}
-
-  // Helper to build the table based on type
-  Widget _buildExerciseTable(
-    WorkoutExercise exercise,
-    BuildContext context,
-    Localization loc,
-  ) {
-    switch (exercise.type) {
-      case ExerciseType.cardio:
-        return _buildCardioTable(exercise, loc);
-      case ExerciseType.timed:
-      case ExerciseType.isometric:
-        return _buildDurationTable(exercise, loc);
-      case ExerciseType.bodyweight:
-        return _buildStrengthTable(exercise, loc, showWeight: false);
-      case ExerciseType.strength:
-        return _buildStrengthTable(exercise, loc, showWeight: true);
-    }
-  }
-
-  Widget _buildStrengthTable(
-    WorkoutExercise exercise,
-    Localization loc, {
-    required bool showWeight,
-  }) {
-    return Table(
-      columnWidths: {
-        0: const FlexColumnWidth(1), // Set #
-        if (showWeight) 1: const FlexColumnWidth(2), // Weight
-        2: const FlexColumnWidth(2), // Reps
-        3: const FlexColumnWidth(1), // Check
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        TableRow(
-          children: [
-            Center(
-              child: Text('#', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ),
-            if (showWeight)
-              Center(
-                child: Text('Kg', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              ),
-            Center(
-              child: Text(loc.t('reps_label'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ),
-            const SizedBox(),
-          ],
-        ),
-        ...exercise.sets.asMap().entries.map((entry) {
-          final setIndex = entry.key;
-          final set = entry.value;
-          return TableRow(
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(child: Text('${setIndex + 1}')),
-              // I tre valori si impostano nel foglio, con i cursori: con le
-              // mani sudate fra due serie, tre campi numerici larghi poche
-              // decine di pixel costavano piu tempo di quanto ne facessero
-              // risparmiare (US-046).
-              if (showWeight)
-                _SetValueCell(
-                  text: _formatWeight(set.weight),
-                  onTap: () => _editSet(exercise, setIndex, showWeight: true),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  expressive.spacing.md,
+                  expressive.spacing.sm,
+                  expressive.spacing.md,
+                  0,
                 ),
-              _SetValueCell(
-                text: '${set.reps}',
-                onTap: () => _editSet(exercise, setIndex, showWeight: showWeight),
+                child: Row(
+                  children: [
+                    BackPill(
+                      label: loc.t('cancel'),
+                      onTap: () => _confirmExitSession(context),
+                    ),
+                    SizedBox(width: expressive.spacing.md),
+                    Expanded(
+                      child: Text(
+                        widget.workout.name.toUpperCase(),
+                        style: expressive.typography.headline?.copyWith(
+                          fontSize: _kTitleFontSize,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: expressive.spacing.md),
+                    _isSaving
+                        ? SizedBox(
+                            width: expressive.sizing.iconMd,
+                            height: expressive.sizing.iconMd,
+                            child: CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : TextButton(
+                            onPressed: _finishWorkout,
+                            child: Text(
+                              loc.t('finish_btn'),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                  ],
+                ),
               ),
-              Checkbox(
-                value: set.isCompleted,
-                onChanged: (val) =>
-                    _onSetCompleted(exercise, set, val ?? false),
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.only(
+                    left: expressive.spacing.sm,
+                    right: expressive.spacing.sm,
+                    top: expressive.spacing.sm,
+                    bottom: expressive.spacing.md,
+                  ),
+                  itemCount: _sessionExercises.length,
+                  itemBuilder: (context, index) {
+            final exercise = _sessionExercises[index];
+            return Padding(
+              padding: EdgeInsets.all(expressive.spacing.sm),
+              child: _ExerciseSessionCard(
+                exercise: exercise,
+                index: index,
+                total: _sessionExercises.length,
+                finito: esercizioFinito(exercise),
+                onTapPhoto: (resolved) =>
+                    ExerciseVideoSheet.show(context, resolved),
+                onDelete: () => _confirmRemove(context, loc, index),
+                onAddSet: () => setState(() {
+                  exercise.sets.add(WorkoutSet(weight: 0, reps: 0));
+                }),
+                onSetTap: (setIndex) =>
+                    _openSetEditor(exercise, setIndex),
+                onSetToggled: (set, value) =>
+                    _onSetCompleted(exercise, set, value),
+                onStartSetTimer: (seconds) {
+                  final avviato = startSetTimer(
+                    ref.read(timerNotifierProvider.notifier),
+                    seconds,
+                  );
+                  if (!avviato) return;
+                  ToastUtils.showInfo(context, loc.t('timer_started_msg'));
+                },
+                loc: loc,
+              ),
+            );
+                  },
+                ),
               ),
             ],
-          );
-        }),
-      ],
+          ),
+        ),
+      ),
     );
   }
-
+  void _confirmRemove(BuildContext context, Localization loc, int index) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.t('remove_exercise_title')),
+        content: Text(loc.t('remove_exercise_body')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(loc.t('cancel')),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() => _sessionExercises.removeAt(index));
+            },
+            child: Text(
+              loc.t('remove_btn'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   void _onSetCompleted(
     WorkoutExercise exercise,
     WorkoutSet set,
     bool isCompleted,
   ) {
     setState(() => set.isCompleted = isCompleted);
-
     if (!isCompleted) return;
-
     final timerSettings = ref.read(timerSettingsNotifierProvider);
     if (!timerSettings.autoRestEnabled) return;
-
     WorkoutTemplateExercise? templateExercise;
     for (final e in widget.workout.exercises) {
       if (e.exerciseId == exercise.exerciseId) {
@@ -664,7 +495,6 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         break;
       }
     }
-
     int? perSetRest;
     final currentSetIndex = exercise.sets.indexOf(set);
     if (currentSetIndex >= 0 &&
@@ -672,26 +502,16 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         currentSetIndex < templateExercise.plannedSets.length) {
       perSetRest = templateExercise.plannedSets[currentSetIndex].restSeconds;
     }
-
     final restSeconds = perSetRest ??
         ((templateExercise?.restSeconds != null &&
                 templateExercise!.restSeconds! > 0)
             ? templateExercise.restSeconds!
             : timerSettings.defaultRestSeconds);
-
     if (restSeconds > 0) {
       final timerNotifier = ref.read(timerNotifierProvider.notifier);
       timerNotifier.startTimerWithDuration(Duration(seconds: restSeconds));
     }
   }
-
-  static String _formatWeight(double value) {
-    final text = value == value.roundToDouble()
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(1);
-    return text.replaceAll('.', ',');
-  }
-
   /// Apre il foglio dei cursori per una serie.
   ///
   /// Il valore di partenza viene dalla serie precedente **dello stesso
@@ -716,204 +536,449 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
       showWeight: showWeight,
     );
     if (result == null) return;
-
     setState(() {
       set.weight = result.weight;
       set.reps = result.reps;
       set.rpe = result.rpe;
     });
   }
-
-  Widget _buildCardioTable(WorkoutExercise exercise, Localization loc) {
-    return Table(
-      columnWidths: const {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(2), // Distance
-        2: FlexColumnWidth(2), // Time
-        3: FlexColumnWidth(1),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        TableRow(
-          children: [
-            Center(
-              child: Text('#', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ),
-            Center(
-              child: Text('Km', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ),
-            Center(
-              child: Text(loc.t('time_min_label'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ),
-            const SizedBox(),
-          ],
-        ),
-        ...exercise.sets.asMap().entries.map((entry) {
-          final setIndex = entry.key;
-          final set = entry.value;
-          return TableRow(
-            children: [
-              Center(child: Text('${setIndex + 1}')),
-              Padding(
-                padding: EdgeInsets.all(context.expressive.spacing.sm),
-                child: TextFormField(
-                  initialValue: (set.distance ?? 0).toString(),
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    hintText: '0',
-                  ),
-                  onChanged: (val) => set.distance =
-                      double.tryParse(val.replaceAll(',', '.')) ?? 0,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(context.expressive.spacing.sm),
-                child: TextFormField(
-                  // We might store seconds but show minutes for edit
-                  initialValue: ((set.durationSeconds ?? 0) / 60)
-                      .toStringAsFixed(0),
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    hintText: '0',
-                  ),
-                  onChanged: (val) {
-                    final min = int.tryParse(val) ?? 0;
-                    set.durationSeconds = min * 60;
-                  },
-                ),
-              ),
-              Checkbox(
-                value: set.isCompleted,
-                onChanged: (val) =>
-                    _onSetCompleted(exercise, set, val ?? false),
-              ),
-            ],
-          );
-        }),
-      ],
-    );
+  /// Il riquadro della serie apre l'editor giusto per il tipo di esercizio.
+  ///
+  /// `SetEditorSheet` sa solo di peso/ripetizioni/sforzo: cardio e le serie a
+  /// tempo hanno campi che non gli appartengono (distanza, durata), ed erano
+  /// editabili in linea nella tabella di prima. Qui restano editabili allo
+  /// stesso modo, in un dialogo invece che in una cella — il riquadro del
+  /// mockup e troppo piccolo per un campo di testo dentro.
+  Future<void> _openSetEditor(WorkoutExercise exercise, int setIndex) {
+    switch (exercise.type) {
+      case ExerciseType.cardio:
+        return _editCardioSet(exercise, setIndex);
+      case ExerciseType.timed:
+      case ExerciseType.isometric:
+        return _editDurationSet(exercise, setIndex);
+      case ExerciseType.bodyweight:
+        return _editSet(exercise, setIndex, showWeight: false);
+      case ExerciseType.strength:
+        return _editSet(exercise, setIndex, showWeight: true);
+    }
   }
-
-  Widget _buildDurationTable(WorkoutExercise exercise, Localization loc) {
-    return Table(
-      columnWidths: const {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(3), // Time
-        2: FlexColumnWidth(1),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        TableRow(
+  Future<void> _editCardioSet(WorkoutExercise exercise, int setIndex) async {
+    final set = exercise.sets[setIndex];
+    final loc = ref.read(localizationNotifierProvider);
+    final distanceController = TextEditingController(
+      text: (set.distance ?? 0).toString(),
+    );
+    final minutesController = TextEditingController(
+      text: ((set.durationSeconds ?? 0) / 60).toStringAsFixed(0),
+    );
+    final salvato = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('${loc.t('exercise_label_short')} ${setIndex + 1}'),
+        content: Row(
           children: [
-            Center(
-              child: Text('#', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ),
-            Center(
-              child: Text(
-                loc.t('duration_sec_label'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Expanded(
+              child: TextField(
+                controller: distanceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Km'),
               ),
             ),
-            const SizedBox(),
+            SizedBox(width: context.immersivo.spacing.md),
+            Expanded(
+              child: TextField(
+                controller: minutesController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: loc.t('time_min_label')),
+              ),
+            ),
           ],
         ),
-        ...exercise.sets.asMap().entries.map((entry) {
-          final setIndex = entry.key;
-          final set = entry.value;
-          return TableRow(
-            children: [
-              Center(child: Text('${setIndex + 1}')),
-              Padding(
-                padding: EdgeInsets.all(context.expressive.spacing.sm),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      // Larghezza prestata: e la misura piu vicina fra i token
-                      // ai 60 che c'erano qui, e non esiste un token per la
-                      // larghezza di un campo numerico. Se un giorno le
-                      // miniature cambiano misura, questo campo va slegato
-                      // invece di seguirle.
-                      width: context.expressive.sizing.thumbnailMd,
-                      child: TextFormField(
-                        initialValue: (set.durationSeconds ?? 0).toString(),
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          suffixText: 's',
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(loc.t('cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(loc.t('save')),
+          ),
+        ],
+      ),
+    );
+    distanceController.dispose();
+    minutesController.dispose();
+    if (salvato != true) return;
+    setState(() {
+      set.distance =
+          double.tryParse(distanceController.text.replaceAll(',', '.')) ?? 0;
+      set.durationSeconds =
+          (int.tryParse(minutesController.text) ?? 0) * 60;
+    });
+  }
+  Future<void> _editDurationSet(WorkoutExercise exercise, int setIndex) async {
+    final set = exercise.sets[setIndex];
+    final loc = ref.read(localizationNotifierProvider);
+    final secondsController = TextEditingController(
+      text: (set.durationSeconds ?? 0).toString(),
+    );
+    final salvato = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('${loc.t('exercise_label_short')} ${setIndex + 1}'),
+        content: TextField(
+          controller: secondsController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(labelText: loc.t('duration_sec_label')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(loc.t('cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(loc.t('save')),
+          ),
+        ],
+      ),
+    );
+    secondsController.dispose();
+    if (salvato != true) return;
+    setState(() {
+      set.durationSeconds = int.tryParse(secondsController.text) ?? 0;
+    });
+  }
+}
+/// Formatta un peso come lo fa il resto dell'app: intero se e intero, una
+/// cifra decimale altrimenti, virgola invece di punto.
+/// 26 — misura del titolo dell'esercizio in testata: fra le voci di
+/// `typography.headline` non ce n'e una che stia bene sopra una foto larga
+/// quanto la card, ne troppo grande ne troppo piccola.
+const double _kExerciseTitleFontSize = 26;
+String _formatWeight(double value) {
+  final text = value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(1);
+  return text.replaceAll('.', ',');
+}
+/// Il valore mostrato in un riquadro serie, secondo il tipo di esercizio —
+/// stessa logica di dispaccio di prima (`_buildExerciseTable`), letta qui
+/// perche il riquadro del mockup e uno solo, non piu una tabella diversa per
+/// tipo.
+String _valoreSerie(ExerciseType type, WorkoutSet set, {required bool showWeight}) {
+  switch (type) {
+    case ExerciseType.cardio:
+      final km = (set.distance ?? 0).toStringAsFixed(1).replaceAll('.', ',');
+      final min = ((set.durationSeconds ?? 0) / 60).toStringAsFixed(0);
+      return '$km km · $min\'';
+    case ExerciseType.timed:
+    case ExerciseType.isometric:
+      return '${set.durationSeconds ?? 0}s';
+    case ExerciseType.bodyweight:
+      return '${set.reps}';
+    case ExerciseType.strength:
+      return showWeight
+          ? '${_formatWeight(set.weight)}×${set.reps}'
+          : '${set.reps}';
+  }
+}
+/// L'esercizio dentro la sessione, nel linguaggio del mockup 1d: foto in
+/// testata che sfuma nel fondo, eyebrow "SERIE completate/totali", un
+/// riquadro per serie (fatta/ora/da fare) invece della tabella di prima.
+///
+/// Resta una lista di **tutti** gli esercizi, modificabile liberamente — il
+/// mockup ne mostra uno alla volta, ma qui si e scelto di non perdere la
+/// visione d'insieme dell'allenamento: solo il linguaggio visivo cambia.
+class _ExerciseSessionCard extends ConsumerWidget {
+  const _ExerciseSessionCard({
+    required this.exercise,
+    required this.index,
+    required this.total,
+    required this.finito,
+    required this.onTapPhoto,
+    required this.onDelete,
+    required this.onAddSet,
+    required this.onSetTap,
+    required this.onSetToggled,
+    required this.onStartSetTimer,
+    required this.loc,
+  });
+  final WorkoutExercise exercise;
+  final int index;
+  final int total;
+  final bool finito;
+  final void Function(Exercise resolved) onTapPhoto;
+  final VoidCallback onDelete;
+  final VoidCallback onAddSet;
+  final void Function(int setIndex) onSetTap;
+  final void Function(WorkoutSet set, bool value) onSetToggled;
+  final void Function(int? seconds) onStartSetTimer;
+  final Localization loc;
+  static const double _kHeroHeight = 150;
+  bool get _showWeight => exercise.type == ExerciseType.strength;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
+    final resolved = ref.watch(
+      exerciseIndexProvider.select((idx) => idx[exercise.exerciseId]),
+    );
+    return DecoratedBox(
+      decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: _kHeroHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (resolved != null)
+                  GestureDetector(
+                    onTap: () => onTapPhoto(resolved),
+                    child: ExerciseImage(
+                      exercise: resolved,
+                      size: ExerciseImageSize.hero,
+                    ),
+                  )
+                else
+                  Container(color: scheme.surfaceContainer),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        scheme.surfaceContainerLowest.withValues(alpha: 0.15),
+                        scheme.surfaceContainerLowest.withValues(alpha: 0.95),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: t.spacing.md,
+                  right: t.spacing.md,
+                  bottom: t.spacing.sm,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${loc.t('exercise_label_short')} ${index + 1} / $total',
+                              style: t.typography.eyebrow?.copyWith(
+                                color: scheme.primary,
+                              ),
+                            ),
+                            Text(
+                              exercise.exerciseName.toUpperCase(),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: t.typography.headline?.copyWith(
+                                fontSize: _kExerciseTitleFontSize,
+                                color: scheme.onSurface,
+                                decoration: finito
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                            ),
+                          ],
                         ),
-                        onChanged: (val) =>
-                            set.durationSeconds = int.tryParse(val) ?? 0,
+                      ),
+                      if (finito)
+                        Icon(
+                          Icons.check_circle,
+                          color: scheme.onSurfaceVariant,
+                          semanticLabel: loc.t('exercise_done'),
+                        ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: t.spacing.sm,
+                  right: t.spacing.sm,
+                  child: InkWell(
+                    onTap: onDelete,
+                    child: Container(
+                      width: t.sizing.iconLg + t.spacing.xs,
+                      height: t.sizing.iconLg + t.spacing.xs,
+                      alignment: Alignment.center,
+                      color: scheme.surfaceContainerLowest.withValues(
+                        alpha: 0.7,
+                      ),
+                      child: Icon(
+                        Icons.delete_outline,
+                        size: t.sizing.iconMd,
+                        color: scheme.error,
                       ),
                     ),
-                    // Questo pulsante avvia il conto alla rovescia sui secondi
-                    // di questa serie. Prima non faceva niente e lo dichiarava,
-                    // e per questo la review di US-082 gli aveva tolto l'ambra:
-                    // nella palette significa «cosa fare adesso» ed e gia sul
-                    // pulsante «Termina». Ora il timer esiste, e durante una
-                    // serie a tempo avviarlo **e** cosa fare adesso.
-                    IconButton(
-                      icon: Icon(
-                        Icons.timer_outlined,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      onPressed: () {
-                        final avviato = startSetTimer(
-                          ref.read(timerNotifierProvider.notifier),
-                          set.durationSeconds,
-                        );
-                        // Il messaggio conferma un timer partito davvero: se
-                        // non e partito, dirlo sarebbe peggio del silenzio.
-                        if (!avviato) return;
-
-                        ToastUtils.showInfo(
-                          context,
-                          loc.t('timer_started_msg'),
-                        );
-                      },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(t.spacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.t('sets_label').toUpperCase(), style: t.typography.eyebrow),
+                    Text(
+                      '${exercise.sets.where((s) => s.isCompleted).length} / '
+                          '${exercise.sets.length}',
+                      style: t.typography.eyebrow,
                     ),
                   ],
                 ),
-              ),
-              Checkbox(
-                value: set.isCompleted,
-                onChanged: (val) =>
-                    _onSetCompleted(exercise, set, val ?? false),
-              ),
-            ],
-          );
-        }),
-      ],
+                SizedBox(height: t.spacing.sm),
+                Wrap(
+                  spacing: t.spacing.sm,
+                  runSpacing: t.spacing.sm,
+                  children: [
+                    for (var i = 0; i < exercise.sets.length; i++)
+                      _SetBox(
+                        setNumber: i + 1,
+                        set: exercise.sets[i],
+                        value: _valoreSerie(
+                          exercise.type,
+                          exercise.sets[i],
+                          showWeight: _showWeight,
+                        ),
+                        loc: loc,
+                        onTap: () => onSetTap(i),
+                        onToggle: (value) =>
+                            onSetToggled(exercise.sets[i], value),
+                        onStartTimer:
+                            exercise.type == ExerciseType.timed ||
+                                    exercise.type == ExerciseType.isometric
+                                ? () => onStartSetTimer(
+                                      exercise.sets[i].durationSeconds,
+                                    )
+                                : null,
+                      ),
+                  ],
+                ),
+                SizedBox(height: t.spacing.xs),
+                TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: Text(loc.t('add_set')),
+                  onPressed: onAddSet,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-
-/// Un valore della serie in tabella: si legge, e toccandolo si apre il foglio.
-///
-/// Non e piu un campo di testo, ma resta alto quanto serve a essere toccato
-/// senza mirare.
-class _SetValueCell extends StatelessWidget {
-  const _SetValueCell({required this.text, required this.onTap});
-
-  final String text;
+/// Un riquadro serie: fatta (bordo verde bosco), in corso (fondo pieno
+/// accento), da fare (bordo tratteggiato) — mockup 1d Sessione attiva.
+/// Toccarlo apre il foglio dei cursori; il segno di spunta in un angolo
+/// segna la serie come fatta senza aprire nient'altro.
+class _SetBox extends StatelessWidget {
+  const _SetBox({
+    required this.setNumber,
+    required this.set,
+    required this.value,
+    required this.loc,
+    required this.onTap,
+    required this.onToggle,
+    this.onStartTimer,
+  });
+  final int setNumber;
+  final WorkoutSet set;
+  final String value;
+  final Localization loc;
   final VoidCallback onTap;
-
+  final ValueChanged<bool> onToggle;
+  final VoidCallback? onStartTimer;
+  static const double _kBoxWidth = 78;
+  static const double _kBoxHeight = 56;
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
+    final done = set.isCompleted;
     return InkWell(
       onTap: onTap,
-      borderRadius: t.shape.cornerSm,
       child: Container(
-        height: t.sizing.minTouchTarget,
-        alignment: Alignment.center,
-        margin: EdgeInsets.symmetric(horizontal: t.spacing.xs),
-        child: Text(text, style: t.typography.metricSmall),
+        width: _kBoxWidth,
+        height: _kBoxHeight,
+        padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
+        decoration: BoxDecoration(
+          color: done ? scheme.primary : null,
+          border: done
+              ? null
+              : Border.all(
+                  color: scheme.outline,
+                  style: BorderStyle.solid,
+                ),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  done ? loc.t('set_done_label') : '$setNumber',
+                  style: t.typography.eyebrow?.copyWith(
+                    color: done
+                        ? scheme.onPrimary
+                        : scheme.tertiary,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: t.typography.metricSmall?.copyWith(
+                    color: done ? scheme.onPrimary : scheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: InkWell(
+                onTap: () => onToggle(!done),
+                child: Padding(
+                  padding: EdgeInsets.all(t.spacing.xs / 2),
+                  child: Icon(
+                    done ? Icons.check_circle : Icons.check_circle_outline,
+                    size: t.sizing.iconSm,
+                    color: done
+                        ? scheme.onPrimary
+                        : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+            if (onStartTimer != null)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: InkWell(
+                  onTap: onStartTimer,
+                  child: Padding(
+                    padding: EdgeInsets.all(t.spacing.xs / 2),
+                    child: Icon(
+                      Icons.timer_outlined,
+                      size: t.sizing.iconSm,
+                      color: done ? scheme.onPrimary : scheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

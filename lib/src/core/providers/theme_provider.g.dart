@@ -7,14 +7,9 @@ part of 'theme_provider.dart';
 // **************************************************************************
 
 String _$themeSettingsNotifierHash() =>
-    r'941d22cf22e5a8ef0e23ed63b683c908eb649ec9';
+    r'ee19333f1c3bef63cc07765e6c264da236e1b2cc';
 
-/// Espone modalità e colore del tema, persistendoli fra i riavvii.
-///
-/// [build] restituisce i valori di default in modo sincrono e avvia la
-/// lettura da `SharedPreferences`: lo stato viene aggiornato appena i valori
-/// salvati sono disponibili. In questo modo `MaterialApp` non deve gestire uno
-/// stato di caricamento e all'avvio non si vede un cambio di tema.
+/// Espone modalità, palette e colore del tema, persistendoli fra i riavvii.
 ///
 /// Copied from [ThemeSettingsNotifier].
 @ProviderFor(ThemeSettingsNotifier)

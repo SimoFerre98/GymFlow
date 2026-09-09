@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 enum BadgeType { workoutCount, streak, friend }
-
 class BadgeModel {
   final String id;
   final String name;
@@ -9,7 +7,6 @@ class BadgeModel {
   final IconData icon;
   final BadgeType type;
   final int threshold; // The value needed to unlock (e.g., 10 workouts)
-
   const BadgeModel({
     required this.id,
     required this.name,
@@ -19,7 +16,6 @@ class BadgeModel {
     required this.threshold,
   });
 }
-
 // Predefined Badges
 const List<BadgeModel> allBadges = [
   BadgeModel(

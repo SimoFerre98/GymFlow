@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
-
+import '../../core/theme/immersivo_tokens.dart';
 /// La card del design system.
 ///
 /// Esiste perche la stessa decorazione era scritta a mano dentro
@@ -28,35 +26,32 @@ class ExpressiveCard extends StatelessWidget {
     this.onTap,
     this.padding,
   });
-
   final Widget child;
-
   /// Titolo della card. Assente significa nessuno spazio occupato.
   final String? title;
-
   /// Azione al tocco. Nulla rende la card non toccabile, senza onda ne
   /// reazione.
   final VoidCallback? onTap;
-
   /// Spaziatura interna. Assente, `spacing.md` su tutti i lati — il valore di
   /// sempre. Esiste per le righe compatte (il cassetto) che vogliono restare
   /// la stessa card, non un'altra decorazione scritta a mano.
   final EdgeInsetsGeometry? padding;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return DecoratedBox(
       decoration: BoxDecoration(
         // Il ruolo che significa "superficie di una card", invece di
         // `cardColor`: quel campo precede Material 3, il tema non lo imposta, e
         // oggi funziona per un valore di default, non per una decisione.
         color: scheme.surfaceContainerHigh,
-        borderRadius: t.shape.cornerLg,
-        // L'ombra segue il tema invece di essere nera per sempre.
-        boxShadow: t.elevation.level2(scheme.shadow),
+        // Angoli vivi, filetto invece di ombra: il bagliore sfumato era
+        // l'elevazione di Material 3 Expressive, non il linguaggio di
+        // Immersivo/Toxic Forest, dove ogni riquadro (le nuove schermate di
+        // Impostazioni, il profilo) si chiude con un bordo sottile su
+        // `scheme.outline`, mai con un `boxShadow`.
+        border: Border.all(color: scheme.outline),
       ),
       child: Material(
         // Nessun colore da scegliere: serve solo la superficie che disegna
@@ -64,7 +59,6 @@ class ExpressiveCard extends StatelessWidget {
         type: MaterialType.transparency,
         child: InkWell(
           onTap: onTap,
-          borderRadius: t.shape.cornerLg,
           child: Padding(
             padding: padding ?? EdgeInsets.all(t.spacing.md),
             child: Column(

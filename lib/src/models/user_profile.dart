@@ -2,9 +2,7 @@ enum UserRole {
   athlete,
   trainer,
   both;
-
   String toMap() => name;
-
   static UserRole fromMap(dynamic value) {
     if (value is String) {
       for (final role in UserRole.values) {
@@ -15,11 +13,9 @@ enum UserRole {
     }
     return UserRole.athlete;
   }
-
   bool get isTrainer => this == UserRole.trainer || this == UserRole.both;
   bool get isAthlete => this == UserRole.athlete || this == UserRole.both;
 }
-
 class UserProfile {
   final String id;
   final String email;
@@ -27,7 +23,6 @@ class UserProfile {
   final String? firstName;
   final String? lastName;
   final UserRole role;
-
   final double? weight;
   final double? height; // in cm
   final String? photoUrl;
@@ -38,14 +33,12 @@ class UserProfile {
   final double? gymLat;
   final double? gymLng;
   final DateTime? subscriptionExpiry;
-
   final DateTime? birthDate;
   final String? gender; // 'male', 'female', 'other'
   final String? friendCode;
   final List<String> friends;
   final List<String> calendarSharedWith;
   final List<String> programsSharedWith;
-
   UserProfile({
     required this.id,
     required this.email,
@@ -70,7 +63,6 @@ class UserProfile {
     this.birthDate,
     this.gender,
   });
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -97,7 +89,6 @@ class UserProfile {
       'gender': gender,
     };
   }
-
   factory UserProfile.fromMap(Map<String, dynamic> map, String documentId) {
     return UserProfile(
       id: documentId,

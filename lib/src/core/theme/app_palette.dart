@@ -1,104 +1,81 @@
 import 'package:flutter/material.dart';
-
-/// Colori di GymFlow.
+/// Colori di GymFlow — direzione "Immersivo / Toxic Forest".
 ///
-/// Scelti dal prodotto con riferimenti visivi, non derivati algoritmicamente:
-/// i rapporti di contrasto di ogni coppia usata dall'interfaccia sono stati
-/// misurati e sono verificati da `test/contrast_test.dart`.
+/// Scelti dal prodotto con riferimenti visivi (`docs/design/05-immersivo-toxic-forest.html`),
+/// non derivati algoritmicamente: i rapporti di contrasto di ogni coppia usata
+/// dall'interfaccia sono misurati e verificati da `test/contrast_test.dart`.
 ///
 /// Qui ci sono soltanto i valori. La loro assegnazione ai ruoli Material 3
 /// avviene in `app_theme.dart`: chi cerca "di che colore e un bottone" guarda
 /// il tema, non questo file.
 abstract final class AppPalette {
-  // ── Indigo: la famiglia che porta le superfici ──────────────────────────
-
+  // ── Toxic Forest: la famiglia che porta le superfici ────────────────────
   /// Sfondo dell'applicazione. Il piu scuro: tutto il resto emerge da qui.
-  static const Color indigo900 = Color(0xFF221E3A);
-
+  static const Color bgDeep = Color(0xFF0B2027);
   /// Superficie delle card.
-  static const Color indigo800 = Color(0xFF312C51);
-
+  static const Color surfaceCard = Color(0xFF143540);
   /// Superficie sollevata: card dentro card, elementi flottanti.
-  static const Color indigo700 = Color(0xFF48426D);
-
-  /// Bordi e separatori sulle superfici scure.
-  static const Color indigo600 = Color(0xFF5A5384);
-
+  static const Color surfaceRaised = Color(0xFF1E4B5A);
+  /// Bordi e separatori sulle superfici scure. Sostituisce l'ombra: qui i
+  /// confini si disegnano con una linea, non con elevazione.
+  static const Color outline = Color(0xFF286274);
   /// Elementi di supporto che non sono azioni.
-  static const Color indigo400 = Color(0xFF8B84B8);
-
+  static const Color support = Color(0xFF5F9C93);
   // ── Accenti: uno per le azioni, uno per i dati ─────────────────────────
-
-  /// Ambra. **Un solo significato: cosa fare adesso.**
+  /// Giallo neon. **Un solo significato: cosa fare adesso.**
   ///
   /// Se compare su qualcosa che non e un'azione, l'occhio impara a ignorarlo
   /// e il colore perde la sua funzione.
-  static const Color amber = Color(0xFFF0C38E);
-
-  /// Ambra spento, per gli stati disabilitati e i contenitori.
-  static const Color amberMuted = Color(0xFF8A6E4E);
-
-  /// Salmone. Riservato ai **dati vitali**: battito, sforzo percepito.
+  static const Color accent = Color(0xFFEEF800);
+  /// Giallo neon spento, per gli stati disabilitati e i contenitori.
+  static const Color accentMuted = Color(0xFF6E7300);
+  /// Verde bosco. Riservato ai **dati vitali**: battito, sforzo percepito.
   ///
-  /// Distinto dall'ambra di proposito: una metrica non e un pulsante.
-  static const Color salmon = Color(0xFFF1AA9B);
-
-  /// Salmone spento, per i contenitori.
-  static const Color salmonMuted = Color(0xFF8C5F55);
-
+  /// Distinto dal giallo di proposito: una metrica non e un pulsante.
+  static const Color accentSecondary = Color(0xFF80B918);
+  /// Verde bosco spento, per i contenitori.
+  static const Color accentSecondaryMuted = Color(0xFF4B6B0E);
   // ── Neutri ──────────────────────────────────────────────────────────────
-
-  /// Bianco freddo, virato verso l'indigo: un bianco puro sull'indigo
+  /// Bianco freddo, virato verso il teal: un bianco puro sul fondo scuro
   /// sembrerebbe staccato.
-  static const Color paper = Color(0xFFF7F5FB);
-
+  static const Color paper = Color(0xFFEAF6F2);
   /// Testo secondario sulle superfici scure.
-  static const Color paperDim = Color(0xFFB8B2D0);
-
+  static const Color paperDim = Color(0xFF8FB3AC);
   // ── Tema chiaro ─────────────────────────────────────────────────────────
-
-  /// Fondo del tema chiaro, con la stessa vira verso l'indigo.
-  static const Color lightBackground = Color(0xFFF2F0F7);
+  /// Fondo del tema chiaro, con la stessa vira verso il teal.
+  static const Color lightBackground = Color(0xFFF0F7F7);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceAlt = Color(0xFFE9E5F3);
-
+  static const Color lightSurfaceAlt = Color(0xFFE0ECEF);
   /// Testo sul tema chiaro.
-  static const Color lightOnSurface = Color(0xFF241F3C);
-  static const Color lightOnSurfaceDim = Color(0xFF6A648A);
-
-  /// Sul tema chiaro l'ambra non ha contrasto sufficiente per il testo:
-  /// serve una variante scurita per i ruoli testuali.
-  static const Color amberOnLight = Color(0xFF7A5A2E);
-
-  /// Idem per il salmone.
-  static const Color salmonOnLight = Color(0xFF8E4436);
-
+  static const Color lightOnSurface = Color(0xFF0B2027);
+  static const Color lightOnSurfaceDim = Color(0xFF4B6B70);
+  /// Sul tema chiaro il giallo neon non ha contrasto sufficiente per il
+  /// testo: serve una variante scurita per i ruoli testuali.
+  static const Color accentOnLight = Color(0xFF5C6300);
+  /// Idem per il verde bosco.
+  static const Color accentSecondaryOnLight = Color(0xFF3F5C0C);
   // ── Semantici: separati dagli accenti ──────────────────────────────────
-
   static const Color success = Color(0xFF7BC49A);
   static const Color warning = Color(0xFFE8B54A);
   static const Color danger = Color(0xFFE2685C);
-
   // ── Categorico: identita di serie in un grafico, non un'azione ──────────
-
   /// Le tinte per distinguere categorie in un grafico — per esempio i tipi
   /// di allenamento in un grafico a torta — dove servono piu tinte
-  /// genuinamente separate di quante ne offra il `ColorScheme` (indaco,
-  /// ambra, salmone). Ambra e salmone restano riservati al loro significato
+  /// genuinamente separate di quante ne offra il `ColorScheme` (teal, giallo
+  /// neon, verde bosco). Giallo e verde restano riservati al loro significato
   /// e non entrano in questo elenco.
   ///
   /// Valori e **ordine** dalla palette di riferimento del skill "dataviz"
   /// (i primi quattro slot, gia validati per accoppiamenti in entrambe le
   /// direzioni di daltonismo), verificati con
   /// `validate_palette.js "#3987E5,#D95926,#199E70,#C98500" --mode dark
-  /// --surface "#221E3A"` sulla superficie di [indigo900]: tutti i controlli
+  /// --surface "#0B2027"` sulla superficie di [bgDeep]: tutti i controlli
   /// passano. L'ordine e fisso e non si ricicla: una quinta categoria non
   /// genera una quinta tinta, ricade su un neutro.
   static const Color categoryBlue = Color(0xFF3987E5);
   static const Color categoryOrange = Color(0xFFD95926);
   static const Color categoryAqua = Color(0xFF199E70);
   static const Color categoryYellow = Color(0xFFC98500);
-
   /// Preset che l'utente puo scegliere per etichettare una scheda: e un tag
   /// personale, non un ruolo del tema, e per questo resta fuori dal
   /// `ColorScheme` — cosi come [accentPresets] qui sotto per il colore delle
@@ -115,142 +92,159 @@ abstract final class AppPalette {
     0xFF795548, // Marrone
     0xFF607D8B, // Blu grigio
   ];
-
   /// Colore di una scheda appena creata, prima che l'utente ne scelga uno.
   static const int defaultProgramColor = 0xFF2196F3;
-
   /// Preset che l'utente puo scegliere come colore delle azioni.
   ///
-  /// Ognuno supera 4,5:1 su [indigo900] e su [indigo800]: la scelta e libera
+  /// Ognuno supera 4,5:1 su [bgDeep] e su [surfaceCard]: la scelta e libera
   /// dentro un insieme che non produce testo illeggibile.
   /// Verificato da `test/contrast_test.dart`.
   static const List<Color> accentPresets = <Color>[
-    amber, // ambra, predefinito
-    salmon, // salmone
-    Color(0xFF9FD8C0), // menta
-    Color(0xFFB9AEE8), // lilla
-    Color(0xFF8FC7E8), // cielo
-    Color(0xFFE8C8DC), // rosa cipria
+    accent, // giallo neon, predefinito
+    accentSecondary, // verde bosco
+    Color(0xFF00F5D4), // teal fluor
+    Color(0xFF57CC99), // salvia brillante
+    Color(0xFF80FFDB), // acquamarina
+    Color(0xFFAACC00), // lime
   ];
 }
-
-/// I quattro stili visivi completi dell'applicazione:
-/// - [defaultStyle]: GymFlow Classico (Indigo, Ambra, Salmone)
-/// - [digitalPulse]: Digital Pulse (#0F172A, #2E1065, #F472B6, #DDD6FE)
-/// - [toxicForest]: Toxic Forest (#0B2027, #143540, #EEF800, #AACC00, #80B918)
-/// - [deepSeaNeon]: Deep Sea Neon (#000814, #001D3D, #003566, #FFC300, #FFD60A)
+/// Le 4 palette complete fra cui l'utente scieglie in Aspetto — non solo
+/// l'accento, l'intera atmosfera (mockup 3d, sezione "PALETTE").
+///
+/// [toxicForest] e la direzione predefinita dell'app (ADR-002): delega ai
+/// valori di [AppPalette] invece di ripeterli, cosi i due non possono
+/// disallinearsi. Le altre 3 portano valori propri, presi dagli esadecimali
+/// esatti del mockup dove il mockup li mostra (sfondo, superficie, dato
+/// vitale, accento — le 4 tinte della striscia-anteprima di ogni riquadro);
+/// il resto (superficie sollevata, bordo, tema chiaro, preset) e stato scelto
+/// per restare nella stessa famiglia cromatica e verificato con
+/// `test/contrast_test.dart`.
+///
+/// **Due scostamenti dichiarati dal mockup**, entrambi per accessibilita:
+/// - [digitalPulse.defaultTertiary]: il mockup mostra `#A855F7`, ma quel
+///   viola non supera 4,5:1 su nessuna delle superfici scure di questa
+///   palette (3,85:1 sulla card, 3,24:1 su quella sollevata). Uso `#C084FC`,
+///   la stessa famiglia piu chiara, che supera 4,5:1 ovunque.
+/// - [deepSeaNeon.darkSurface]: il mockup mostra `#003566` nello slot che
+///   nell'enum precedente (`ab08290`) era `darkSurfaceHigh`; il suo vecchio
+///   `darkSurface` (`#001D3D`) non compare piu nel mockup. Adottato il valore
+///   del mockup e ricavata una nuova superficie sollevata (`#004B80`) a meta
+///   strada verso il bordo esistente.
 enum AppThemeStyle {
-  defaultStyle,
+  classico,
   digitalPulse,
   toxicForest,
   deepSeaNeon;
-
-  /// Chiave di localizzazione per il nome
+  /// Chiave di localizzazione del nome mostrato nel selettore.
   String get labelKey => switch (this) {
-        AppThemeStyle.defaultStyle => 'theme_style_default',
-        AppThemeStyle.digitalPulse => 'theme_style_digital_pulse',
-        AppThemeStyle.toxicForest => 'theme_style_toxic_forest',
-        AppThemeStyle.deepSeaNeon => 'theme_style_deep_sea_neon',
-      };
-
-  /// Sfondo principale dark mode
+    AppThemeStyle.classico => 'theme_style_classico',
+    AppThemeStyle.digitalPulse => 'theme_style_digital_pulse',
+    AppThemeStyle.toxicForest => 'theme_style_toxic_forest',
+    AppThemeStyle.deepSeaNeon => 'theme_style_deep_sea_neon',
+  };
   Color get darkBackground => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.indigo900,
-        AppThemeStyle.digitalPulse => const Color(0xFF0F172A),
-        AppThemeStyle.toxicForest => const Color(0xFF0B2027),
-        AppThemeStyle.deepSeaNeon => const Color(0xFF000814),
-      };
-
-  /// Superficie card dark mode
+    AppThemeStyle.classico => const Color(0xFF221E3A),
+    AppThemeStyle.digitalPulse => const Color(0xFF0F172A),
+    AppThemeStyle.toxicForest => AppPalette.bgDeep,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF000814),
+  };
   Color get darkSurface => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.indigo800,
-        AppThemeStyle.digitalPulse => const Color(0xFF2E1065),
-        AppThemeStyle.toxicForest => const Color(0xFF143540),
-        AppThemeStyle.deepSeaNeon => const Color(0xFF001D3D),
-      };
-
-  /// Superficie sollevata dark mode
+    AppThemeStyle.classico => const Color(0xFF48426D),
+    AppThemeStyle.digitalPulse => const Color(0xFF2E1065),
+    AppThemeStyle.toxicForest => AppPalette.surfaceCard,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF003566),
+  };
   Color get darkSurfaceHigh => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.indigo700,
-        AppThemeStyle.digitalPulse => const Color(0xFF3B1B7D),
-        AppThemeStyle.toxicForest => const Color(0xFF1E4B5A),
-        AppThemeStyle.deepSeaNeon => const Color(0xFF003566),
-      };
-
-  /// Bordi e separatori dark mode
+    AppThemeStyle.classico => const Color(0xFF5A5389),
+    AppThemeStyle.digitalPulse => const Color(0xFF3B1B7D),
+    AppThemeStyle.toxicForest => AppPalette.surfaceRaised,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF004B80),
+  };
   Color get darkOutline => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.indigo600,
-        AppThemeStyle.digitalPulse => const Color(0xFF581C87),
-        AppThemeStyle.toxicForest => const Color(0xFF286274),
-        AppThemeStyle.deepSeaNeon => const Color(0xFF0A4F8A),
-      };
-
-  /// Accento primario predefinito
+    AppThemeStyle.classico => const Color(0xFF6F68A6),
+    AppThemeStyle.digitalPulse => const Color(0xFF581C87),
+    AppThemeStyle.toxicForest => AppPalette.outline,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF0A4F8A),
+  };
+  /// Accento predefinito quando si passa a questa palette.
   Color get defaultAccent => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.amber,
-        AppThemeStyle.digitalPulse => const Color(0xFFF472B6),
-        AppThemeStyle.toxicForest => const Color(0xFFEEF800),
-        AppThemeStyle.deepSeaNeon => const Color(0xFFFFC300),
-      };
-
-  /// Dati vitali (tertiary)
+    AppThemeStyle.classico => const Color(0xFFF0C38E),
+    AppThemeStyle.digitalPulse => const Color(0xFFF472B6),
+    AppThemeStyle.toxicForest => AppPalette.accent,
+    AppThemeStyle.deepSeaNeon => const Color(0xFFFFC300),
+  };
+  /// Dati vitali: distinto dall'accento, non scelto dall'utente.
   Color get defaultTertiary => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.salmon,
-        AppThemeStyle.digitalPulse => const Color(0xFFDDD6FE),
-        AppThemeStyle.toxicForest => const Color(0xFF80B918),
-        AppThemeStyle.deepSeaNeon => const Color(0xFFFFD60A),
-      };
-
-  /// Sottocolori / Colori di accento selezionabili per questo stile
+    AppThemeStyle.classico => const Color(0xFFF1AA9B),
+    AppThemeStyle.digitalPulse => const Color(0xFFC084FC),
+    AppThemeStyle.toxicForest => AppPalette.accentSecondary,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF00B4D8),
+  };
+  /// Tono scurito di [defaultAccent], leggibile come ruolo testuale sul tema
+  /// chiaro (dove il colore crudo non supera 4,5:1). Prima di questa storia
+  /// solo Toxic Forest ne aveva uno: le altre 3 palette usavano l'accento
+  /// crudo anche sul chiaro, illeggibile.
+  Color get accentOnLight => switch (this) {
+    AppThemeStyle.classico => const Color(0xFF6C5840),
+    AppThemeStyle.digitalPulse => const Color(0xFF92446D),
+    AppThemeStyle.toxicForest => AppPalette.accentOnLight,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF735800),
+  };
+  /// Idem per [defaultTertiary].
+  Color get tertiaryOnLight => switch (this) {
+    AppThemeStyle.classico => const Color(0xFF79554E),
+    AppThemeStyle.digitalPulse => const Color(0xFF734F97),
+    AppThemeStyle.toxicForest => AppPalette.accentSecondaryOnLight,
+    AppThemeStyle.deepSeaNeon => const Color(0xFF00758C),
+  };
+  /// Preset di colore delle azioni per questa palette. Il primo e sempre
+  /// [defaultAccent], il secondo [defaultTertiary] (stesso ordine del mockup
+  /// per Toxic Forest); gli altri completano la famiglia cromatica. Ognuno
+  /// supera 4,5:1 su [darkBackground] e su [darkSurface] — verificato da
+  /// `test/contrast_test.dart`.
   List<Color> get accentPresets => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.accentPresets,
-        AppThemeStyle.digitalPulse => const <Color>[
-            Color(0xFFF472B6), // Magenta neon (#F472B6)
-            Color(0xFFDDD6FE), // Lavanda (#DDD6FE)
-            Color(0xFFA855F7), // Viola elettrico (#A855F7)
-            Color(0xFF38BDF8), // Ciano brillante (#38BDF8)
-            Color(0xFF4ADE80), // Menta neon (#4ADE80)
-            Color(0xFFFB7185), // Rosa corallo (#FB7185)
-          ],
-        AppThemeStyle.toxicForest => const <Color>[
-            Color(0xFFEEF800), // Giallo neon (#EEF800)
-            Color(0xFFAACC00), // Lime (#AACC00)
-            Color(0xFF80B918), // Verde bosco (#80B918)
-            Color(0xFF00F5D4), // Teal fluor (#00F5D4)
-            Color(0xFF57CC99), // Salvia brillante (#57CC99)
-            Color(0xFF80FFDB), // Acquamarina (#80FFDB)
-          ],
-        AppThemeStyle.deepSeaNeon => const <Color>[
-            Color(0xFFFFC300), // Oro Cyberpunk (#FFC300)
-            Color(0xFFFFD60A), // Giallo neon (#FFD60A)
-            Color(0xFF00B4D8), // Blu oceano (#00B4D8)
-            Color(0xFF06D6A0), // Smeraldo (#06D6A0)
-            Color(0xFFFF5E7E), // Corallo vivo (#FF5E7E)
-            Color(0xFFE0AAFF), // Lilla neon (#E0AAFF)
-          ],
-      };
-
-  /// Sfondo tema chiaro
+    AppThemeStyle.classico => const <Color>[
+      Color(0xFFF0C38E),
+      Color(0xFFF1AA9B),
+      Color(0xFFE8B4A8),
+      Color(0xFFFFB88C),
+      Color(0xFFEAD196),
+      Color(0xFFF4B9C2),
+    ],
+    AppThemeStyle.digitalPulse => const <Color>[
+      Color(0xFFF472B6),
+      Color(0xFFC084FC),
+      Color(0xFFDDD6FE),
+      Color(0xFF38BDF8),
+      Color(0xFF4ADE80),
+      Color(0xFFFB7185),
+    ],
+    AppThemeStyle.toxicForest => AppPalette.accentPresets,
+    AppThemeStyle.deepSeaNeon => const <Color>[
+      Color(0xFFFFC300),
+      Color(0xFF00B4D8),
+      Color(0xFFFFD60A),
+      Color(0xFF06D6A0),
+      Color(0xFFFF8FA3),
+      Color(0xFFE0AAFF),
+    ],
+  };
   Color get lightBackground => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.lightBackground,
-        AppThemeStyle.digitalPulse => const Color(0xFFF8F5FF),
-        AppThemeStyle.toxicForest => const Color(0xFFF0F7F7),
-        AppThemeStyle.deepSeaNeon => const Color(0xFFF0F4F8),
-      };
-
-  /// Superficie tema chiaro
+    AppThemeStyle.classico => const Color(0xFFF5F3FA),
+    AppThemeStyle.digitalPulse => const Color(0xFFF8F5FF),
+    AppThemeStyle.toxicForest => AppPalette.lightBackground,
+    AppThemeStyle.deepSeaNeon => const Color(0xFFF0F4F8),
+  };
   Color get lightSurface => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.lightSurface,
-        AppThemeStyle.digitalPulse => const Color(0xFFFFFFFF),
-        AppThemeStyle.toxicForest => const Color(0xFFFFFFFF),
-        AppThemeStyle.deepSeaNeon => const Color(0xFFFFFFFF),
-      };
-
-  /// Superficie alternativa tema chiaro
+    AppThemeStyle.classico => const Color(0xFFFFFFFF),
+    AppThemeStyle.digitalPulse => const Color(0xFFFFFFFF),
+    AppThemeStyle.toxicForest => AppPalette.lightSurface,
+    AppThemeStyle.deepSeaNeon => const Color(0xFFFFFFFF),
+  };
   Color get lightSurfaceAlt => switch (this) {
-        AppThemeStyle.defaultStyle => AppPalette.lightSurfaceAlt,
-        AppThemeStyle.digitalPulse => const Color(0xFFEDE8F8),
-        AppThemeStyle.toxicForest => const Color(0xFFE0ECEF),
-        AppThemeStyle.deepSeaNeon => const Color(0xFFDCE5EE),
-      };
+    AppThemeStyle.classico => const Color(0xFFE9E4F2),
+    AppThemeStyle.digitalPulse => const Color(0xFFEDE8F8),
+    AppThemeStyle.toxicForest => AppPalette.lightSurfaceAlt,
+    AppThemeStyle.deepSeaNeon => const Color(0xFFDCE5EE),
+  };
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
-
+import '../../core/theme/immersivo_tokens.dart';
 /// Il pulsante indietro dei mockup 01 e 02: non una freccia sola, una
 /// pillola con scritto **dove si torna** — `.pill.calm` nel CSS dei mockup,
 /// «← Annulla», «← Schede», «← Nuova scheda». Mai «Indietro» generico: il
@@ -12,30 +10,25 @@ import '../../core/theme/expressive_tokens.dart';
 /// l'hamburger, per la stessa ragione per cui le due cose non si scambiano.
 class BackPill extends StatelessWidget {
   const BackPill({super.key, required this.label, this.onTap});
-
   /// Dove si torna. Non un verbo, un nome — la schermata di destinazione.
   final String label;
-
   /// Assente: chiude con `Navigator.maybePop`, il comportamento di una
   /// normale freccia indietro.
   final VoidCallback? onTap;
-
   /// Larghezza generosa e fissa per il `leading` di un `AppBar`: `leadingWidth`
   /// non si adatta al contenuto, e una larghezza diversa per ogni etichetta
   /// renderebbe la fila delle azioni instabile da una schermata all'altra.
   static const double leadingWidth = 152;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Padding(
       padding: EdgeInsets.only(left: t.spacing.md),
       child: Align(
         alignment: Alignment.centerLeft,
         child: InkWell(
-          borderRadius: t.shape.cornerFull,
+          borderRadius: t.shape.cornerXs,
           onTap: onTap ?? () => Navigator.of(context).maybePop(),
           child: Container(
             padding: EdgeInsets.symmetric(
@@ -44,7 +37,7 @@ class BackPill extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: scheme.onSurface.withValues(alpha: 0.13),
-              borderRadius: t.shape.cornerFull,
+              borderRadius: t.shape.cornerXs,
             ),
             child: Text(
               '← $label',

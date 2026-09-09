@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/providers/localization_provider.dart';
-import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/immersivo_tokens.dart';
 import '../../core/utils/personal_record.dart';
 import '../../models/workout.dart';
 import 'expressive_cta_button.dart';
 import 'set_value_slider.dart';
-
 /// Quanto vale una serie, deciso trascinando.
 ///
 /// Sostituisce tre campi numerici larghi poche decine di pixel, che con le mani
@@ -29,22 +27,17 @@ class SetEditorSheet extends ConsumerStatefulWidget {
     this.previous,
     this.showWeight = true,
   });
-
   final WorkoutSet set;
   final int setNumber;
   final String exerciseName;
   final String? exerciseId;
-
   /// Il massimo storico precedente per questo esercizio, se presente.
   final PersonalBest? personalBest;
-
   /// La serie precedente dello stesso esercizio, se c'e: da qui vengono i
   /// valori di partenza, ed e quella mostrata in cima come riferimento.
   final WorkoutSet? previous;
-
   /// Falso per gli esercizi a corpo libero, dove il carico non ha senso.
   final bool showWeight;
-
   /// Apre il foglio e restituisce i valori scelti, o `null` se si e annullato.
   static Future<SetValues?> show(
     BuildContext context, {
@@ -71,31 +64,25 @@ class SetEditorSheet extends ConsumerStatefulWidget {
       ),
     );
   }
-
   @override
   ConsumerState<SetEditorSheet> createState() => _SetEditorSheetState();
 }
-
 /// I tre valori di una serie, come li restituisce il foglio.
 class SetValues {
   const SetValues({required this.weight, required this.reps, this.rpe});
-
   final double weight;
   final int reps;
   final double? rpe;
 }
-
 class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
   static const weightStep = 2.5;
   static const weightMax = 300.0;
   static const repsMax = 50.0;
   static const rpeMin = 1.0;
   static const rpeMax = 10.0;
-
   late double _weight;
   late double _reps;
   late double _rpe;
-
   @override
   void initState() {
     super.initState();
@@ -114,14 +101,12 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
     ]) ?? 8.0;
     _rpe = _firstPositive([previous?.rpe, widget.set.rpe]) ?? 7.0;
   }
-
   static double? _firstPositive(List<double?> candidates) {
     for (final value in candidates) {
       if (value != null && value > 0) return value;
     }
     return null;
   }
-
   String _weightText(double v) {
     // 62,5 e non 62.5: la virgola e il separatore decimale italiano, e il
     // numero si legge fra due serie, non si copia in un foglio di calcolo.
@@ -130,7 +115,6 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
         : v.toStringAsFixed(1);
     return text.replaceAll('.', ',');
   }
-
   /// La via d'uscita per i casi fuori scala: il bilanciere da 137,5 kg quando
   /// il cursore arriva a 300 a passi di 2,5 richiederebbe troppi trascinamenti.
   Future<void> _typeValue({
@@ -143,13 +127,11 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
     final controller = TextEditingController(
       text: decimals ? _weightText(current) : current.toStringAsFixed(0),
     );
-
     final result = await showDialog<double>(
       context: context,
       builder: (ctx) {
-        final t = ctx.expressive;
+        final t = ctx.immersivo;
         final scheme = Theme.of(ctx).colorScheme;
-
         return Dialog(
           backgroundColor: scheme.surfaceContainerHigh,
           shape: RoundedRectangleBorder(borderRadius: t.shape.cornerLg),
@@ -238,28 +220,23 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
         );
       },
     );
-
     controller.dispose();
     if (result != null) onDone(result);
   }
-
   static double? _parse(String raw) =>
       double.tryParse(raw.trim().replaceAll(',', '.'));
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     final loc = ref.watch(localizationNotifierProvider);
     final previous = widget.previous;
     final personalBest = widget.personalBest;
-
     final isRecord = widget.showWeight &&
         personalBest != null &&
         personalBest.weight > 0 &&
         _weight > personalBest.weight;
     final diff = isRecord ? _weight - personalBest.weight : 0.0;
-
     return Padding(
       padding: EdgeInsets.fromLTRB(
         t.spacing.xl,
@@ -291,7 +268,6 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
                 ),
               ],
             ),
-
             // Il riferimento: cosa si era fatto la volta prima. Senza, si
             // impostano tre numeri senza sapere rispetto a cosa.
             if (previous != null || isRecord) ...[
@@ -310,9 +286,7 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
                     : null,
               ),
             ],
-
             SizedBox(height: t.spacing.lg),
-
             if (widget.showWeight) ...[
               SetValueSlider(
                 label: loc.t('load_label'),
@@ -332,7 +306,6 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
               ),
               SizedBox(height: t.spacing.md),
             ],
-
             SetValueSlider(
               label: loc.t('reps_label'),
               value: _reps,
@@ -349,7 +322,6 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
               ),
             ),
             SizedBox(height: t.spacing.md),
-
             // Salmone: la palette lo riserva ai dati vitali, e lo sforzo
             // percepito e esattamente quello. Carico e ripetizioni si
             // impostano, l'RPE si dichiara.
@@ -364,7 +336,6 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
               semanticUnit: 'RPE',
               onChanged: (v) => setState(() => _rpe = v),
             ),
-
             SizedBox(height: t.spacing.xl),
             FilledButton(
               onPressed: () => Navigator.pop(
@@ -377,7 +348,7 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
               ),
               style: FilledButton.styleFrom(
                 minimumSize: Size.fromHeight(t.sizing.minTouchTarget),
-                shape: t.shape.pill,
+                shape: t.shape.tag,
               ),
               child: Text(loc.t('close_set')),
             ),
@@ -387,7 +358,6 @@ class _SetEditorSheetState extends ConsumerState<SetEditorSheet> {
     );
   }
 }
-
 /// La serie precedente, come riferimento sopra i cursori.
 class _PreviousSet extends StatelessWidget {
   const _PreviousSet({
@@ -395,16 +365,13 @@ class _PreviousSet extends StatelessWidget {
     required this.text,
     this.comparisonText,
   });
-
   final String label;
   final String text;
   final String? comparisonText;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: t.spacing.md,
@@ -454,4 +421,3 @@ class _PreviousSet extends StatelessWidget {
     );
   }
 }
-

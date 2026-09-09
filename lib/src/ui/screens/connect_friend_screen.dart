@@ -5,40 +5,34 @@ import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
-import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
-
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 /// Altezza del contenuto del dialogo mentre carica le impostazioni di
 /// condivisione: geometria di questo dialogo.
 const double _kAltezzaCaricamentoDialogo = 100;
-
+const double _kTitleFontSize = 28;
 class ConnectFriendScreen extends ConsumerStatefulWidget {
   const ConnectFriendScreen({super.key});
-
   @override
   ConsumerState<ConnectFriendScreen> createState() => _ConnectFriendScreenState();
 }
-
 class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
   final _codeController = TextEditingController();
   final FirestoreService _firestore = FirestoreService();
   final AuthService _auth = AuthService();
   bool _isLoading = false;
   String? _myFriendCode;
-
   @override
   void initState() {
     super.initState();
     _loadMyCode();
   }
-
   @override
   void dispose() {
     _codeController.dispose();
     super.dispose();
   }
-
   Future<void> _loadMyCode() async {
     // Ensure code exists (backfill for legacy users)
     final code = await _auth.ensureFriendCode();
@@ -46,7 +40,6 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
       _myFriendCode = code ?? 'N/A';
     });
   }
-
   Future<void> _connectWithFriend() async {
     final loc = ref.read(localizationNotifierProvider);
     final code = _codeController.text.trim().toUpperCase();
@@ -57,14 +50,11 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
       ); // reusing enter code label or strict "please enter"
       return;
     }
-
     if (code == _myFriendCode) {
       ToastUtils.showError(context, loc.t('cant_add_self'));
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       final success = await _firestore.addFriendByCode(code);
       if (success) {
@@ -85,27 +75,42 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.t('connect_friends_title')),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: const AppDrawer(),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(t.spacing.xl),
+      body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
+              child: Row(
+                children: [
+                  BackPill(label: loc.t('home')),
+                  SizedBox(width: t.spacing.md),
+                  Text(
+                    loc.t('connect_friends_title').toUpperCase(),
+                    style: t.typography.headline?.copyWith(
+                      fontSize: _kTitleFontSize,
+                      color: scheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(t.spacing.md),
+                child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // My Friend Code Section
@@ -113,7 +118,6 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
               padding: EdgeInsets.all(t.spacing.xl),
               decoration: BoxDecoration(
                 color: scheme.surfaceContainerHigh,
-                borderRadius: t.shape.cornerMd,
                 border: Border.all(color: scheme.outline),
               ),
               child: Column(
@@ -142,9 +146,7 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                 ],
               ),
             ),
-
             SizedBox(height: t.spacing.xxl),
-
             // Enter Code Section
             Text(
               loc.t('enter_friend_code'),
@@ -154,36 +156,41 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
               ),
             ),
             SizedBox(height: t.spacing.md),
-            TextField(
-              controller: _codeController,
-              textCapitalization: TextCapitalization.characters,
-              decoration: InputDecoration(
-                hintText: loc.t('friend_code_hint'),
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.person_add_alt_1),
+            Container(
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHigh,
+                border: Border(left: BorderSide(color: scheme.outline, width: 3)),
+              ),
+              child: TextField(
+                controller: _codeController,
+                textCapitalization: TextCapitalization.characters,
+                style: Theme.of(context).textTheme.bodyLarge,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(t.spacing.md),
+                  hintText: loc.t('friend_code_hint'),
+                  prefixIcon: Icon(Icons.person_add_alt_1, color: scheme.onSurfaceVariant),
+                ),
               ),
             ),
             SizedBox(height: t.spacing.xl),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _connectWithFriend,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: t.spacing.md),
-                shape: RoundedRectangleBorder(
-                  borderRadius: t.shape.cornerSm,
-                ),
-              ),
-              child: _isLoading
-                  ? SizedBox(
-                      width: t.sizing.iconMd,
-                      height: t.sizing.iconMd,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      loc.t('connect_btn'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+            InkWell(
+              onTap: _isLoading ? null : _connectWithFriend,
+              child: Container(
+                height: t.sizing.minTouchTarget,
+                color: scheme.primary,
+                alignment: Alignment.center,
+                child: _isLoading
+                    ? SizedBox(
+                        width: t.sizing.iconMd,
+                        height: t.sizing.iconMd,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: scheme.onPrimary),
+                      )
+                    : Text(
+                        loc.t('connect_btn').toUpperCase(),
+                        style: t.typography.title?.copyWith(color: scheme.onPrimary),
                       ),
-                    ),
+              ),
             ),
             SizedBox(height: t.spacing.xxl),
             Text(
@@ -202,7 +209,6 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                 }
                 final user = snapshot.data!;
                 final friendIds = user.friends;
-
                 if (friendIds.isEmpty) {
                   return Center(
                     child: Text(
@@ -211,7 +217,6 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                     ),
                   );
                 }
-
                 return FutureBuilder<List<UserProfile>>(
                   future: _firestore.getUsers(friendIds),
                   builder: (context, friendSnapshot) {
@@ -219,7 +224,6 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     final friends = friendSnapshot.data!;
-
                     return ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -227,38 +231,49 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                       separatorBuilder: (_, _) => SizedBox(height: t.spacing.sm),
                       itemBuilder: (context, index) {
                         final friend = friends[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: friend.photoUrl != null
-                                ? NetworkImage(friend.photoUrl!)
-                                : null,
-                            child: friend.photoUrl == null
-                                ? Text(friend.displayName[0].toUpperCase())
-                                : null,
-                          ),
-                          title: Text(friend.displayName),
-                          subtitle: Text(
-                            '@${friend.displayName}',
-                          ), // Or real username if we had it
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.privacy_tip_outlined),
-                                onPressed: () => _showAccessControl(friend),
+                        return DecoratedBox(
+                          decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      FriendDetailScreen(friend: friend),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.all(t.spacing.md),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: scheme.surfaceContainer,
+                                    backgroundImage: friend.photoUrl != null
+                                        ? NetworkImage(friend.photoUrl!)
+                                        : null,
+                                    child: friend.photoUrl == null
+                                        ? Text(friend.displayName[0].toUpperCase())
+                                        : null,
+                                  ),
+                                  SizedBox(width: t.spacing.md),
+                                  Expanded(
+                                    child: Text(
+                                      friend.displayName,
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.privacy_tip_outlined, color: scheme.onSurfaceVariant),
+                                    onPressed: () => _showAccessControl(friend),
+                                  ),
+                                  Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+                                ],
                               ),
-                              const Icon(Icons.chevron_right),
-                            ],
+                            ),
                           ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    FriendDetailScreen(friend: friend),
-                              ),
-                            );
-                          },
                         );
                       },
                     );
@@ -266,12 +281,15 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                 );
               },
             ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
   void _showAccessControl(UserProfile friend) {
     showDialog(
       context: context,
@@ -281,27 +299,21 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
     );
   }
 }
-
 class _AccessControlDialog extends ConsumerStatefulWidget {
   final UserProfile friend;
-
   const _AccessControlDialog({required this.friend});
-
   @override
   ConsumerState<_AccessControlDialog> createState() => _AccessControlDialogState();
 }
-
 class _AccessControlDialogState extends ConsumerState<_AccessControlDialog> {
   bool _shareCalendar = false;
   bool _sharePrograms = false;
   bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
     _loadCurrentSettings();
   }
-
   Future<void> _loadCurrentSettings() async {
     final currentUser = await AuthService().getUserProfile();
     if (currentUser != null && mounted) {
@@ -316,21 +328,17 @@ class _AccessControlDialogState extends ConsumerState<_AccessControlDialog> {
       });
     }
   }
-
   Future<void> _toggle(String type, bool value) async {
     // Optimistic update
     setState(() {
       if (type == 'calendar') _shareCalendar = value;
       if (type == 'programs') _sharePrograms = value;
     });
-
     await FirestoreService().toggleFriendAccess(widget.friend.id, type, value);
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
-
     return AlertDialog(
       title: Text('${loc.t('privacy_settings')} ${widget.friend.displayName}'),
       content: _isLoading

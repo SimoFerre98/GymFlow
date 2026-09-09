@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 /// Attribuzione di una foto della libreria curata degli esercizi.
 ///
 /// Le foto vengono da wger.de sotto Creative Commons Attribution-ShareWithAlike:
@@ -14,14 +13,12 @@ class ImageCredit {
     required this.licenseUrl,
     required this.sourceUrl,
   });
-
   final String exerciseId;
   final String author;
   final String licenseShortName;
   final String licenseUrl;
   final String sourceUrl;
 }
-
 /// Lettura di `assets/data/exercise_image_credits.json`.
 ///
 /// Sta in un file a se, senza dipendenze da Flutter, per la stessa ragione di
@@ -35,7 +32,6 @@ abstract final class ImageCreditSeed {
       return const [];
     }
     if (decoded is! Map<String, dynamic>) return const [];
-
     final out = <ImageCredit>[];
     for (final entry in decoded.entries) {
       final value = entry.value;

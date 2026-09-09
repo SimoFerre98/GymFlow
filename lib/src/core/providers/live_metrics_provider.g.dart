@@ -7,16 +7,16 @@ part of 'live_metrics_provider.dart';
 // **************************************************************************
 
 String _$healthServiceProviderHash() =>
-    r'89b252069b2d354b2a8d11cbe8d167c13cb10123';
+    r'b100af424c2ebdc29fdd4f642be1c115479966d1';
 
 /// Espone l'istanza del servizio Salute.
 ///
 /// Copied from [HealthServiceProvider].
 @ProviderFor(HealthServiceProvider)
-final healthServiceProvider =
+final healthServiceProviderProvider =
     AutoDisposeNotifierProvider<HealthServiceProvider, HealthService>.internal(
   HealthServiceProvider.new,
-  name: r'healthServiceProvider',
+  name: r'healthServiceProviderProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
       : _$healthServiceProviderHash,
@@ -25,9 +25,8 @@ final healthServiceProvider =
 );
 
 typedef _$HealthServiceProvider = AutoDisposeNotifier<HealthService>;
-
 String _$liveMetricsNotifierHash() =>
-    r'9a31fec793ab98d361c4d4c8eb5d4e12cbb54321';
+    r'db2be186f4150fe59583945acabaaaf9ecfab44d';
 
 /// Gestisce l'acquisizione periodica delle metriche dal vivo durante l'allenamento.
 ///

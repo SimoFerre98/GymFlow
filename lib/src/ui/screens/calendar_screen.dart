@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:ui';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/core/providers/firestore_provider.dart';
@@ -8,34 +7,26 @@ import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
-import 'package:gymflow/src/ui/widgets/app_drawer.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import '../../core/providers/localization_provider.dart';
-
+/// Misure del mockup 2f Calendario (telaio 1:1, nessuna conversione px→dp).
+const double _kMonthTitleFontSize = 30;
+const double _kNavIconBoxSide = 34;
+const double _kWeekDayNumberFontSize = 19;
+bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
-
   @override
   ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
 }
-
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
-  CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
-  }
-
+  DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   // Combine sessions and schedules into one stream
   Stream<Map<DateTime, List<dynamic>>> _getCalendarEvents(String userId) {
     final firestore = ref.watch(firestoreServiceProvider);
@@ -51,12 +42,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         List<ScheduledWorkout> sharedSchedules,
       ) {
         final Map<DateTime, List<dynamic>> events = LinkedHashMap(
-          equals: isSameDay,
+          equals: _isSameDay,
           hashCode: (DateTime key) {
             return key.day * 1000000 + key.month * 10000 + key.year;
           },
         );
-
         void addEvents(List<dynamic> list) {
           for (var item in list) {
             DateTime date;
@@ -75,419 +65,504 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             } else {
               continue;
             }
-
             if (events[date] == null) events[date] = [];
             events[date]!.add(item);
           }
         }
-
         addEvents(mySessions);
         addEvents(mySchedules);
         addEvents(sharedSessions); // Friend sessions
         addEvents(sharedSchedules); // Friend schedules
-
         return events;
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final userId = ref.watch(currentUserIdProvider);
     final loc = ref.watch(localizationNotifierProvider);
-
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
     if (userId == null) {
       return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
-
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(loc.t('calendar_title')),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+      body: SafeArea(
+        child: StreamBuilder<Map<DateTime, List<dynamic>>>(
+        stream: _getCalendarEvents(userId),
+        builder: (context, snapshot) {
+          final eventsMap = snapshot.data ?? {};
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: t.spacing.md,
+              right: t.spacing.md,
+              top: t.spacing.sm,
+              bottom: t.spacing.bottomInset + t.spacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildMonthHeader(context, t, scheme),
+                SizedBox(height: t.spacing.sm),
+                _buildWeekdayRow(context, loc, t, scheme),
+                SizedBox(height: t.spacing.xs),
+                _buildMonthGrid(context, loc, t, scheme, eventsMap, userId),
+                SizedBox(height: t.spacing.sm),
+                _buildLegend(context, loc, t, scheme),
+                SizedBox(height: t.spacing.xl),
+                _buildWeekSection(context, loc, t, scheme, eventsMap, userId),
+              ],
+            ),
+          );
+        },
+        ),
+      ),
+    );
+  }
+  Widget _buildMonthHeader(
+    BuildContext context,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+  ) {
+    final loc = ref.read(localizationNotifierProvider);
+    final monthLabel = DateFormat(
+      'MMMM',
+      loc.locale.languageCode,
+    ).format(_focusedMonth);
+    return Row(
+      children: [
+        Text(
+          monthLabel.toUpperCase(),
+          style: t.typography.headline?.copyWith(
+            fontSize: _kMonthTitleFontSize,
+            color: scheme.onSurface,
           ),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        SizedBox(width: t.spacing.md),
+        Expanded(
+          child: Container(
+            height: 1,
+            color: scheme.primary.withValues(alpha: 0.5),
+          ),
+        ),
+        SizedBox(width: t.spacing.md),
+        _MonthNavButton(
+          icon: Icons.chevron_left,
+          onTap: () => setState(() {
+            _focusedMonth = DateTime(
+              _focusedMonth.year,
+              _focusedMonth.month - 1,
+            );
+          }),
+        ),
+        SizedBox(width: t.spacing.sm),
+        _MonthNavButton(
+          icon: Icons.chevron_right,
+          onTap: () => setState(() {
+            _focusedMonth = DateTime(
+              _focusedMonth.year,
+              _focusedMonth.month + 1,
+            );
+          }),
+        ),
+      ],
+    );
+  }
+  Widget _buildWeekdayRow(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+  ) {
+    // 2024-01-01 e un lunedi qualunque, usato solo come ancora per i nomi dei
+    // sette giorni della settimana: nessun evento vero legato a questa data.
+    final aMonday = DateTime(2024, 1, 1);
+    return Row(
+      children: List.generate(7, (i) {
+        final day = aMonday.add(Duration(days: i));
+        final label = DateFormat(
+          'EEE',
+          loc.locale.languageCode,
+        ).format(day).substring(0, 1);
+        return Expanded(
+          child: Center(
+            child: Text(
+              label.toUpperCase(),
+              style: t.typography.eyebrow?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+  List<DateTime> _monthGridDays(DateTime month) {
+    final first = DateTime(month.year, month.month, 1);
+    final leading = (first.weekday - DateTime.monday) % 7;
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final totalCells = ((leading + daysInMonth) / 7).ceil() * 7;
+    return List.generate(
+      totalCells,
+      (i) => first.add(Duration(days: i - leading)),
+    );
+  }
+  Widget _buildMonthGrid(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    Map<DateTime, List<dynamic>> eventsMap,
+    String userId,
+  ) {
+    final days = _monthGridDays(_focusedMonth);
+    final now = DateTime.now();
+    final todayKey = DateTime(now.year, now.month, now.day);
+    Widget cell(DateTime day) {
+      final key = DateTime(day.year, day.month, day.day);
+      final inMonth = day.month == _focusedMonth.month;
+      final events = eventsMap[key] ?? const [];
+      final hasSession = events.any((e) => e is WorkoutSession);
+      final hasScheduled = events.any((e) => e is ScheduledWorkout);
+      final isToday = key == todayKey;
+      Color? background;
+      Border? border;
+      Color textColor;
+      if (isToday) {
+        background = scheme.primary;
+        textColor = scheme.onPrimary;
+      } else if (hasSession) {
+        background = scheme.secondary;
+        textColor = scheme.onSecondary;
+      } else if (hasScheduled) {
+        border = Border.all(color: scheme.outline);
+        textColor = scheme.onSurfaceVariant;
+      } else {
+        background = scheme.surfaceContainerHigh;
+        textColor = inMonth
+            ? scheme.onSurfaceVariant
+            : scheme.onSurfaceVariant.withValues(alpha: 0.4);
+      }
+      return Expanded(
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Padding(
+            padding: EdgeInsets.all(t.spacing.xs / 2),
+            child: InkWell(
+              onTap: () =>
+                  _showScheduleDialog(context, userId, loc, initialDate: key),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: background, border: border),
+                child: Text(
+                  '${day.day}',
+                  style: t.typography.eyebrow?.copyWith(color: textColor),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (var row = 0; row < days.length ~/ 7; row++)
+          Row(
+            children: [
+              for (var col = 0; col < 7; col++) cell(days[row * 7 + col]),
+            ],
+          ),
+      ],
+    );
+  }
+  Widget _buildLegend(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+  ) {
+    Widget swatch(Color color, {bool outlined = false}) => Container(
+      width: t.spacing.sm,
+      height: t.spacing.sm,
+      decoration: BoxDecoration(
+        color: outlined ? null : color,
+        border: outlined ? Border.all(color: color) : null,
+      ),
+    );
+    Widget item(Widget dot, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        dot,
+        SizedBox(width: t.spacing.xs),
+        Text(
+          label.toUpperCase(),
+          style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+      ],
+    );
+    return Row(
+      children: [
+        item(swatch(scheme.secondary), loc.t('calendar_legend_done')),
+        SizedBox(width: t.spacing.md),
+        item(swatch(scheme.primary), loc.t('calendar_legend_today')),
+        SizedBox(width: t.spacing.md),
+        item(swatch(scheme.outline, outlined: true), loc.t('calendar_legend_planned')),
+      ],
+    );
+  }
+  Widget _buildWeekSection(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    Map<DateTime, List<dynamic>> eventsMap,
+    String userId,
+  ) {
+    final now = DateTime.now();
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: (now.weekday - DateTime.monday) % 7));
+    final weekDays = List.generate(7, (i) => monday.add(Duration(days: i)));
+    var done = 0;
+    var total = 0;
+    for (final day in weekDays) {
+      final events = eventsMap[DateTime(day.year, day.month, day.day)] ?? const [];
+      if (events.any((e) => e is WorkoutSession)) {
+        done++;
+        total++;
+      } else if (events.any((e) => e is ScheduledWorkout)) {
+        total++;
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              loc.t('calendar_this_week').toUpperCase(),
+              style: t.typography.eyebrow?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            if (total > 0)
+              Text(
+                '$done / $total',
+                style: t.typography.eyebrow?.copyWith(color: scheme.primary),
+              ),
+          ],
+        ),
+        for (final day in weekDays)
+          _buildWeekRow(context, loc, t, scheme, eventsMap, userId, day),
+      ],
+    );
+  }
+  Widget _buildWeekRow(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    Map<DateTime, List<dynamic>> eventsMap,
+    String userId,
+    DateTime day,
+  ) {
+    final key = DateTime(day.year, day.month, day.day);
+    final events = eventsMap[key] ?? const [];
+    final now = DateTime.now();
+    final isToday = key == DateTime(now.year, now.month, now.day);
+    final dayAbbrev = DateFormat(
+      'EEE',
+      loc.locale.languageCode,
+    ).format(day).toUpperCase();
+    if (events.isEmpty) {
+      return _WeekRow(
+        dayAbbrev: dayAbbrev,
+        dayNumber: '${day.day}',
+        numberColor: isToday ? scheme.primary : scheme.onSurfaceVariant,
+        title: loc.t('calendar_free_day'),
+        titleColor: scheme.onSurface,
+        subtitle: loc.t('calendar_tap_to_plan'),
+        subtitleColor: scheme.onSurfaceVariant,
+        trailing: Icon(Icons.add, color: scheme.primary, size: t.sizing.iconSm),
+        onTap: () => _showScheduleDialog(context, userId, loc, initialDate: key),
+      );
+    }
+    final event = events.firstWhere(
+      (e) => e is WorkoutSession,
+      orElse: () => events.first,
+    );
+    final isSession = event is WorkoutSession;
+    final ownerId = isSession
+        ? (event).userId
+        : (event as ScheduledWorkout).userId;
+    final isMine = ownerId == userId;
+    final title = isSession
+        ? (event).workoutName
+        : (event as ScheduledWorkout).workoutName;
+    // Gli stessi tre ruoli gia usati nella vecchia vista a card: `primary`
+    // (ambra) solo per l'azione da fare adesso, `onSurfaceVariant` per cio
+    // che e concluso, `secondary` per un evento che non e una tua azione.
+    if (!isMine) {
+      final icon = isSession
+          ? Icons.check_circle_outline
+          : Icons.schedule_send;
+      return _WeekRow(
+        dayAbbrev: dayAbbrev,
+        dayNumber: '${day.day}',
+        numberColor: scheme.secondary,
+        title: '$title · ${loc.t('friend_label')}',
+        titleColor: scheme.onSurface,
+        subtitle: isSession
+            ? '${loc.t('completed_at')} ${DateFormat('HH:mm').format((event).startTime)}'
+            : '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}',
+        subtitleColor: scheme.onSurfaceVariant,
+        trailing: Icon(icon, color: scheme.secondary, size: t.sizing.iconSm),
+      );
+    }
+    if (isSession) {
+      final minutes = event.durationSeconds ~/ 60;
+      final volumeKg = _sessionVolume(event);
+      return Dismissible(
+        key: Key('session-${event.id}'),
+        direction: DismissDirection.endToStart,
+        background: _dismissBackground(t, scheme),
+        confirmDismiss: (_) => _confirmDelete(context, loc, scheme),
+        onDismissed: (_) => _deleteEvent(loc, event),
+        child: _WeekRow(
+          dayAbbrev: dayAbbrev,
+          dayNumber: '${day.day}',
+          numberColor: scheme.secondary,
+          title: title,
+          titleColor: scheme.onSurface,
+          subtitle: '$minutes ${loc.t('duration_min_short')} · $volumeKg kg',
+          subtitleColor: scheme.onSurfaceVariant,
+          trailing: Icon(
+            Icons.check,
+            color: scheme.secondary,
+            size: t.sizing.iconSm,
+          ),
+        ),
+      );
+    }
+    final scheduled = event as ScheduledWorkout;
+    if (isToday) {
+      return Dismissible(
+        key: Key('scheduled-${scheduled.id}'),
+        direction: DismissDirection.endToStart,
+        background: _dismissBackground(t, scheme),
+        confirmDismiss: (_) => _confirmDelete(context, loc, scheme),
+        onDismissed: (_) => _deleteEvent(loc, scheduled),
+        child: _WeekRow(
+          dayAbbrev: dayAbbrev,
+          dayNumber: '${day.day}',
+          numberColor: scheme.primary,
+          title: '$title · ${loc.t('today_label')}',
+          titleColor: scheme.primary,
+          subtitle: '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format(scheduled.scheduledDate)}',
+          subtitleColor: scheme.primary,
+          highlighted: true,
+          trailing: InkWell(
+            onTap: () => _startWorkout(scheduled),
+            child: Container(
+              width: t.sizing.minTouchTarget - t.spacing.md,
+              height: t.sizing.minTouchTarget - t.spacing.md,
+              alignment: Alignment.center,
+              color: scheme.primary,
+              child: Icon(
+                Icons.play_arrow,
+                color: scheme.onPrimary,
+                size: t.sizing.iconSm,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Dismissible(
+      key: Key('scheduled-${scheduled.id}'),
+      direction: DismissDirection.endToStart,
+      background: _dismissBackground(t, scheme),
+      confirmDismiss: (_) => _confirmDelete(context, loc, scheme),
+      onDismissed: (_) => _deleteEvent(loc, scheduled),
+      child: _WeekRow(
+        dayAbbrev: dayAbbrev,
+        dayNumber: '${day.day}',
+        numberColor: scheme.onSurfaceVariant,
+        title: title,
+        titleColor: scheme.onSurface,
+        subtitle: '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format(scheduled.scheduledDate)}',
+        subtitleColor: scheme.onSurfaceVariant,
+        trailing: InkWell(
+          onLongPress: () => _addToDeviceCalendar(scheduled),
+          child: Icon(
+            Icons.schedule,
+            color: scheme.onSurfaceVariant,
+            size: t.sizing.iconSm,
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _dismissBackground(ImmersivoTokens t, ColorScheme scheme) {
+    return Container(
+      color: scheme.error,
+      alignment: Alignment.centerRight,
+      padding: EdgeInsets.only(right: t.spacing.md),
+      child: Icon(Icons.delete, color: scheme.onError),
+    );
+  }
+  Future<bool> _confirmDelete(
+    BuildContext context,
+    Localization loc,
+    ColorScheme scheme,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(loc.t('delete_event_title')),
+        content: Text(loc.t('delete_event_body')),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showScheduleDialog(context, userId, loc),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(loc.t('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              loc.t('delete'),
+              style: TextStyle(color: scheme.error),
+            ),
           ),
         ],
       ),
-      drawer: const AppDrawer(),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: StreamBuilder<Map<DateTime, List<dynamic>>>(
-            stream: _getCalendarEvents(userId),
-            builder: (context, snapshot) {
-              final eventsMap = snapshot.data ?? {};
-
-              return CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildGlassCalendar(eventsMap),
-                        SizedBox(height: context.expressive.spacing.md),
-                      ],
-                    ),
-                  ),
-                  _buildEventListSliver(eventsMap, loc),
-                  SliverPadding(
-                    padding: EdgeInsets.only(
-                      bottom: context.expressive.spacing.lg,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
     );
+    return result ?? false;
   }
-
-  Widget _buildGlassCalendar(Map<DateTime, List<dynamic>> eventsMap) {
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: t.spacing.md,
-        vertical: t.spacing.sm,
-      ),
-      decoration: BoxDecoration(
-        // `surfaceContainerHigh` e non `cardColor`: quel campo precede
-        // Material 3, il tema non lo imposta, e il mockup vuole le superfici
-        // due gradini sopra lo sfondo.
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.3),
-        borderRadius: t.shape.cornerLg,
-        border: Border.all(color: scheme.onSurface.withValues(alpha: 0.1)),
-        // L'ombra viene dal design system e segue il tema, invece di essere
-        // nera per sempre.
-        boxShadow: t.elevation.level2(scheme.shadow),
-      ),
-      child: ClipRRect(
-        borderRadius: t.shape.cornerLg,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: TableCalendar(
-            firstDay: DateTime.utc(2023, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            onFormatChanged: (format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            },
-            eventLoader: (day) {
-              return eventsMap[DateTime(day.year, day.month, day.day)] ?? [];
-            },
-            calendarStyle: CalendarStyle(
-              todayDecoration: BoxDecoration(
-                color: scheme.primary.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-              selectedDecoration: BoxDecoration(
-                color: scheme.primary,
-                shape: BoxShape.circle,
-                // Il giorno scelto e l'elemento che galleggia sopra la
-                // griglia: e il livello che il design system riserva a questo.
-                boxShadow: t.elevation.level3(scheme.primary),
-              ),
-              // Il pallino dice «qui c'e qualcosa», non «fai questo»: resta
-              // fuori dall'ambra, che significa solo azione.
-              markerDecoration: BoxDecoration(
-                color: scheme.secondary,
-                shape: BoxShape.circle,
-              ),
-            ),
-            headerStyle: HeaderStyle(
-              formatButtonShowsNext: false,
-              titleCentered: true,
-              formatButtonTextStyle: TextStyle(color: scheme.onSurface),
-              titleTextStyle:
-                  t.typography.titleEmphasized?.copyWith(
-                    color: scheme.onSurface,
-                  ) ??
-                  TextStyle(color: scheme.onSurface),
-              leftChevronIcon: Icon(
-                Icons.chevron_left,
-                color: scheme.onSurface,
-              ),
-              rightChevronIcon: Icon(
-                Icons.chevron_right,
-                color: scheme.onSurface,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  void _deleteEvent(Localization loc, dynamic event) {
+    final firestore = ref.read(firestoreServiceProvider);
+    if (event is WorkoutSession) {
+      firestore.deleteSession(event.id);
+    } else if (event is ScheduledWorkout) {
+      firestore.deleteScheduledWorkout(event.id);
+    }
+    ToastUtils.showInfo(context, loc.t('event_deleted'));
   }
-
-  Widget _buildEventListSliver(
-    Map<DateTime, List<dynamic>> eventsMap,
-    Localization loc,
-  ) {
-    if (_selectedDay == null) {
-      return SliverFillRemaining(
-        child: Center(child: Text(loc.t('select_day'))),
-      );
-    }
-
-    final dateKey = DateTime(
-      _selectedDay!.year,
-      _selectedDay!.month,
-      _selectedDay!.day,
-    );
-    final dailyEvents = eventsMap[dateKey] ?? [];
-
-    if (dailyEvents.isEmpty) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.event_available,
-                size: context.expressive.sizing.thumbnailLg,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              SizedBox(height: context.expressive.spacing.md),
-              Text(
-                loc.t('no_workouts_day'),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              SizedBox(height: context.expressive.spacing.md),
-              ElevatedButton.icon(
-                onPressed: () => _showScheduleDialog(
-                  context,
-                  ref.read(currentUserIdProvider)!,
-                  loc,
-                  initialDate: _selectedDay,
-                ),
-                icon: const Icon(Icons.add),
-                label: Text(loc.t('schedule_workout_btn')),
-                style: ElevatedButton.styleFrom(
-                  // I pulsanti d'azione del mockup hanno il raggio pieno.
-                  shape: RoundedRectangleBorder(
-                    borderRadius: context.expressive.shape.cornerFull,
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.expressive.spacing.xl,
-                    vertical: context.expressive.spacing.sm,
-                  ),
-                ),
-              ),
-              SizedBox(height: context.expressive.spacing.xxl),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final event = dailyEvents[index];
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.expressive.spacing.md,
-          ),
-          child: _buildEventCard(event, loc),
-        );
-      }, childCount: dailyEvents.length),
-    );
-  }
-
-  Widget _buildEventCard(dynamic event, Localization loc) {
-    bool isCompleted = event is WorkoutSession;
-    String id = isCompleted
-        ? (event).id
-        : (event as ScheduledWorkout).id;
-    String ownerId = isCompleted
-        ? (event).userId
-        : (event as ScheduledWorkout).userId;
-    String title = isCompleted
-        ? (event).workoutName
-        : (event as ScheduledWorkout).workoutName;
-
-    // Use locale for time format? Usually HH:mm is standard but maybe?
-    // loc.locale.languageCode could be used but DateFormat('HH:mm') is fine.
-
-    String subtitle = isCompleted
-        ? '${loc.t('completed_at')} ${DateFormat('HH:mm').format((event).startTime)}'
-        : '${loc.t('scheduled_for')} ${DateFormat('HH:mm').format((event as ScheduledWorkout).scheduledDate)}';
-
-    bool isMine = ownerId == ref.read(currentUserIdProvider);
-
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-
-    // I tre stati di un evento portavano viola, verde e arancione acceso,
-    // nessuno dei quali e in palette. Il criterio con cui sono stati riportati
-    // sui ruoli:
-    //
-    // - **da fare, tuo** -> `primary` ambra, perche l'ambra significa una cosa
-    //   sola: cosa fare adesso, ed e esattamente questo;
-    // - **fatto, tuo** -> `onSurfaceVariant`, perche cio che e concluso deve
-    //   arretrare invece di chiedere attenzione;
-    // - **di un amico** -> `secondary` indigo, perche non e una tua azione.
-    //
-    // Il salmone resta fuori: la palette lo riserva ai dati vitali, e un
-    // evento in calendario non lo e. US-064 potra rivedere questa scala quando
-    // distinguera i tipi di allenamento.
-    Color accent;
-    IconData icon;
-
-    if (!isMine) {
-      accent = scheme.secondary;
-      icon = isCompleted ? Icons.check_circle_outline : Icons.schedule_send;
-      subtitle += ' ${loc.t('friend_label')}';
-    } else {
-      accent = isCompleted ? scheme.onSurfaceVariant : scheme.primary;
-      icon = isCompleted ? Icons.check_circle : Icons.schedule;
-    }
-
-    Widget cardContent = Container(
-      margin: EdgeInsets.symmetric(vertical: t.spacing.sm),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.5),
-        borderRadius: t.shape.cornerLg,
-        border: Border.all(color: scheme.onSurface.withValues(alpha: 0.05)),
-        boxShadow: t.elevation.level1(accent),
-      ),
-      child: ClipRRect(
-        borderRadius: t.shape.cornerLg,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: ListTile(
-            contentPadding: EdgeInsets.all(t.spacing.md),
-            leading: Container(
-              padding: EdgeInsets.all(t.spacing.sm),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-                border: Border.all(color: accent.withValues(alpha: 0.5)),
-              ),
-              child: Icon(icon, color: accent),
-            ),
-            title: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: scheme.onSurface,
-              ),
-            ),
-            subtitle: Text(subtitle),
-            trailing: isMine
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!isCompleted)
-                        IconButton(
-                          icon: const Icon(Icons.calendar_month),
-                          onPressed: () => _addToDeviceCalendar(event),
-                          tooltip: loc.t('sync_calendar'),
-                        ),
-                      if (!isCompleted)
-                        IconButton(
-                          // Avviare l'allenamento e l'azione principale della
-                          // riga: ambra, non il blu che c'era qui.
-                          icon: Icon(
-                            Icons.play_circle_fill,
-                            color: scheme.primary,
-                          ),
-                          onPressed: () => _startWorkout(event),
-                        ),
-                    ],
-                  )
-                : null, // No actions for friends
-          ),
-        ),
-      ),
-    );
-
-    if (!isMine) {
-      return cardContent; // Cannot dismiss/delete friend events
-    }
-
-    return Dismissible(
-      key: Key(id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        margin: EdgeInsets.symmetric(vertical: t.spacing.sm),
-        decoration: BoxDecoration(
-          color: scheme.error.withValues(alpha: 0.8),
-          borderRadius: t.shape.cornerMd,
-        ),
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.only(right: t.spacing.lg),
-        child: Icon(Icons.delete, color: scheme.onError),
-      ),
-      confirmDismiss: (direction) async {
-        return await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(loc.t('delete_event_title')),
-            content: Text(loc.t('delete_event_body')),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(loc.t('cancel')),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(
-                  loc.t('delete'),
-                  style: TextStyle(color: scheme.error),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      onDismissed: (_) {
-        final firestore = ref.read(firestoreServiceProvider);
-        if (isCompleted) {
-          firestore.deleteSession(id);
-        } else {
-          firestore.deleteScheduledWorkout(id);
+  /// Volume totale della sessione in kg: stessa formula di
+  /// `StatisticsHelper.calculateTotalVolume`, per una sola sessione.
+  int _sessionVolume(WorkoutSession session) {
+    double volume = 0;
+    for (final exercise in session.exercises) {
+      for (final set in exercise.sets) {
+        if (set.isCompleted && set.weight > 0 && set.reps > 0) {
+          volume += set.weight * set.reps;
         }
-        ToastUtils.showInfo(context, loc.t('event_deleted'));
-      },
-      child: cardContent,
-    );
+      }
+    }
+    return volume.round();
   }
-
   void _addToDeviceCalendar(ScheduledWorkout schedule) {
     final loc = ref.read(localizationNotifierProvider);
     final event = Event(
@@ -497,10 +572,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       startDate: schedule.scheduledDate,
       endDate: schedule.scheduledDate.add(const Duration(hours: 1)),
     );
-
     Add2Calendar.addEvent2Cal(event);
   }
-
   Future<void> _startWorkout(ScheduledWorkout schedule) async {
     final firestore = ref.read(firestoreServiceProvider);
     final workout = await firestore.getWorkout(schedule.workoutTemplateId);
@@ -516,7 +589,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       );
     }
   }
-
   void _showScheduleDialog(
     BuildContext context,
     String userId,
@@ -527,15 +599,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        final t = context.expressive;
+        final t = context.immersivo;
         final scheme = Theme.of(context).colorScheme;
-
         return Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(t.shape.radiusLg),
-            ),
+            border: Border(top: BorderSide(color: scheme.outline)),
           ),
           child: Column(
             children: [
@@ -544,17 +613,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 child: Container(
                   width: t.sizing.thumbnailSm,
                   height: t.spacing.xs,
-                  decoration: BoxDecoration(
-                    color: scheme.onSurfaceVariant,
-                    borderRadius: t.shape.cornerXs,
-                  ),
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
               Padding(
                 padding: EdgeInsets.only(bottom: t.spacing.md),
                 child: Text(
                   loc.t('select_workout_schedule'),
-                  style: t.typography.titleEmphasized?.copyWith(
+                  style: t.typography.title?.copyWith(
                     color: scheme.onSurface,
                   ),
                 ),
@@ -566,23 +632,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     if (!workoutsSnapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-
                     return StreamBuilder<List<WorkoutProgram>>(
                       stream: ref.read(firestoreServiceProvider).getUserPrograms(userId),
                       builder: (context, programsSnapshot) {
                         // We don't block on loading programs, just show default if not ready
                         final programs = programsSnapshot.data ?? [];
                         final workouts = workoutsSnapshot.data!;
-
                         if (workouts.isEmpty) {
                           return Center(
                             child: Text(loc.t('no_workouts_create_first')),
                           );
                         }
-
                         // Map programId -> Program for fast lookup
                         final programMap = {for (var p in programs) p.id: p};
-
                         return ListView.separated(
                           padding: EdgeInsets.all(t.spacing.md),
                           itemCount: workouts.length,
@@ -594,7 +656,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 workout.parentProgramId != null
                                 ? programMap[workout.parentProgramId]
                                 : null;
-
                             // Il colore della scheda e un dato scelto
                             // dall'utente, quindi resta suo. Il ripiego invece
                             // era una decisione visiva scritta a mano — il blu
@@ -602,18 +663,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             final color = parentProgram != null
                                 ? Color(parentProgram.color)
                                 : scheme.secondary;
-
                             return InkWell(
                               onTap: () async {
                                 final date =
-                                    (initialDate ??
-                                            _selectedDay ??
-                                            DateTime.now())
-                                        .copyWith(
-                                          hour: 12, // Default to noon
-                                          minute: 0,
-                                        );
-
+                                    (initialDate ?? DateTime.now()).copyWith(
+                                      hour: 12, // Default to noon
+                                      minute: 0,
+                                    );
                                 final schedule = ScheduledWorkout(
                                   id: '',
                                   userId: userId,
@@ -633,7 +689,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 padding: EdgeInsets.all(t.spacing.md),
                                 decoration: BoxDecoration(
                                   color: scheme.surfaceContainerHigh,
-                                  borderRadius: t.shape.cornerMd,
                                   border: Border.all(
                                     color: scheme.onSurface.withValues(
                                       alpha: 0.05,
@@ -646,7 +701,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                       padding: EdgeInsets.all(t.spacing.sm),
                                       decoration: BoxDecoration(
                                         color: color.withValues(alpha: 0.1),
-                                        shape: BoxShape.circle,
                                       ),
                                       child: Icon(
                                         Icons.fitness_center,
@@ -679,10 +733,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                                   Container(
                                                     width: t.spacing.sm,
                                                     height: t.spacing.sm,
-                                                    decoration: BoxDecoration(
-                                                      color: color,
-                                                      shape: BoxShape.circle,
-                                                    ),
+                                                    color: color,
                                                   ),
                                                   SizedBox(
                                                     width: t.spacing.xs,
@@ -718,6 +769,122 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         );
       },
+    );
+  }
+}
+/// Pulsante quadrato di navigazione fra mesi: bordo sottile, nessun fondo.
+class _MonthNavButton extends StatelessWidget {
+  const _MonthNavButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: _kNavIconBoxSide,
+        height: _kNavIconBoxSide,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
+        child: Icon(icon, size: t.sizing.iconSm, color: scheme.onSurface),
+      ),
+    );
+  }
+}
+/// Una riga della sezione "Questa settimana": colonna del giorno, titolo e
+/// sottotitolo, azione a destra. Stessa forma per tutti gli stati (libero,
+/// fatto, pianificato, di un amico) — cambiano solo i colori e l'icona.
+class _WeekRow extends StatelessWidget {
+  const _WeekRow({
+    required this.dayAbbrev,
+    required this.dayNumber,
+    required this.numberColor,
+    required this.title,
+    required this.titleColor,
+    required this.subtitle,
+    required this.subtitleColor,
+    required this.trailing,
+    this.onTap,
+    this.highlighted = false,
+  });
+  final String dayAbbrev;
+  final String dayNumber;
+  final Color numberColor;
+  final String title;
+  final Color titleColor;
+  final String subtitle;
+  final Color subtitleColor;
+  final Widget trailing;
+  final VoidCallback? onTap;
+  final bool highlighted;
+  @override
+  Widget build(BuildContext context) {
+    final t = context.immersivo;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return InkWell(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: highlighted ? scheme.primary.withValues(alpha: 0.05) : null,
+          border: Border(top: BorderSide(color: scheme.outline)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: t.spacing.sm),
+          child: Row(
+            children: [
+              SizedBox(
+                width: t.sizing.thumbnailSm - t.spacing.sm,
+                child: Column(
+                  children: [
+                    Text(
+                      dayAbbrev,
+                      style: t.typography.eyebrow?.copyWith(
+                        color: numberColor,
+                      ),
+                    ),
+                    Text(
+                      dayNumber,
+                      style: t.typography.headline?.copyWith(
+                        fontSize: _kWeekDayNumberFontSize,
+                        color: numberColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: t.spacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: titleColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: subtitleColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              trailing,
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

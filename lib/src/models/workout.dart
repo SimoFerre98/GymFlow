@@ -1,8 +1,6 @@
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout_type.dart';
-
 // --- Session Models (Runtime) ---
-
 class WorkoutSet {
   double weight;
   int reps;
@@ -13,7 +11,6 @@ class WorkoutSet {
   bool isCompleted;
   double? rpe;
   String? notes;
-
   /// Ritmo calcolato in minuti al chilometro (min/km) per attività cardio.
   ///
   /// Restituisce null se la distanza o la durata sono assenti o non positive.
@@ -23,7 +20,6 @@ class WorkoutSet {
     }
     return (durationSeconds! / 60.0) / distance!;
   }
-
   WorkoutSet({
     this.weight = 0,
     this.reps = 0,
@@ -35,7 +31,6 @@ class WorkoutSet {
     this.rpe,
     this.notes,
   });
-
   Map<String, dynamic> toMap() {
     return {
       'weight': weight,
@@ -49,7 +44,6 @@ class WorkoutSet {
       'notes': notes,
     };
   }
-
   factory WorkoutSet.fromMap(Map<String, dynamic> map) {
     return WorkoutSet(
       weight: (map['weight'] ?? 0).toDouble(),
@@ -64,14 +58,12 @@ class WorkoutSet {
     );
   }
 }
-
 class WorkoutExercise {
   final String exerciseId;
   final String exerciseName;
   final ExerciseType type;
   final List<WorkoutSet> sets;
   String? notes;
-
   WorkoutExercise({
     required this.exerciseId,
     required this.exerciseName,
@@ -79,7 +71,6 @@ class WorkoutExercise {
     required this.sets,
     this.notes,
   });
-
   Map<String, dynamic> toMap() {
     return {
       'exerciseId': exerciseId,
@@ -89,7 +80,6 @@ class WorkoutExercise {
       'notes': notes,
     };
   }
-
   factory WorkoutExercise.fromMap(Map<String, dynamic> map) {
     return WorkoutExercise(
       exerciseId: map['exerciseId'] ?? '',
@@ -103,7 +93,6 @@ class WorkoutExercise {
       notes: map['notes'],
     );
   }
-
   static ExerciseType _parseType(String? type) {
     return ExerciseType.values.firstWhere(
       (e) => e.toString().split('.').last == type,
@@ -111,11 +100,8 @@ class WorkoutExercise {
     );
   }
 }
-
 // --- Template Models (Configuration) ---
-
 enum PlannedSetKind { normal, toFailure }
-
 class PlannedSet {
   final int? reps; // null solo se kind == toFailure
   final int? repsMax; // per intervalli: es. 8-12 -> reps 8, repsMax 12
@@ -124,7 +110,6 @@ class PlannedSet {
   final PlannedSetKind kind;
   final int? restSeconds; // sovrascrive il recupero dell'esercizio
   final String? note; // «4 iso 3"»
-
   PlannedSet({
     this.reps = 10,
     this.repsMax,
@@ -134,7 +119,6 @@ class PlannedSet {
     this.restSeconds,
     this.note,
   });
-
   Map<String, dynamic> toMap() {
     return {
       'reps': reps,
@@ -146,7 +130,6 @@ class PlannedSet {
       'note': note,
     };
   }
-
   factory PlannedSet.fromMap(Map<String, dynamic> map) {
     return PlannedSet(
       reps: map['reps'],
@@ -161,7 +144,6 @@ class PlannedSet {
       note: map['note'],
     );
   }
-
   PlannedSet copyWith({
     int? reps,
     int? repsMax,
@@ -182,7 +164,6 @@ class PlannedSet {
     );
   }
 }
-
 class WorkoutTemplateExercise {
   final String exerciseId;
   final String exerciseName;
@@ -194,7 +175,6 @@ class WorkoutTemplateExercise {
   final int? restSeconds;
   final String? notes;
   final String? superSetGroup; // es. "A", "B" per raggruppare in superserie/circuiti
-
   WorkoutTemplateExercise({
     required this.exerciseId,
     required this.exerciseName,
@@ -215,9 +195,7 @@ class WorkoutTemplateExercise {
               targetReps: targetReps ?? "10",
               targetWeight: targetWeight,
             );
-
   int get targetSets => plannedSets.isNotEmpty ? plannedSets.length : 3;
-
   String get targetReps {
     if (plannedSets.isEmpty) return "10";
     final first = plannedSets.first;
@@ -225,9 +203,7 @@ class WorkoutTemplateExercise {
     if (first.repsMax != null) return "${first.reps}-${first.repsMax}";
     return (first.reps ?? 10).toString();
   }
-
   double? get targetWeight => plannedSets.isNotEmpty ? plannedSets.first.weight : null;
-
   Map<String, dynamic> toMap() {
     return {
       'exerciseId': exerciseId,
@@ -245,7 +221,6 @@ class WorkoutTemplateExercise {
       'superSetGroup': superSetGroup,
     };
   }
-
   factory WorkoutTemplateExercise.fromMap(Map<String, dynamic> map) {
     List<PlannedSet> sets = [];
     if (map['plannedSets'] != null && (map['plannedSets'] as List).isNotEmpty) {
@@ -262,7 +237,6 @@ class WorkoutTemplateExercise {
         targetWeight: weight,
       );
     }
-
     return WorkoutTemplateExercise(
       exerciseId: map['exerciseId'] ?? '',
       exerciseName: map['exerciseName'] ?? '',
@@ -276,7 +250,6 @@ class WorkoutTemplateExercise {
       superSetGroup: map['superSetGroup'],
     );
   }
-
   static List<PlannedSet> _generatePlannedSetsFromLegacy({
     required int setsCount,
     required String targetReps,
@@ -286,7 +259,6 @@ class WorkoutTemplateExercise {
     int? reps = 10;
     int? repsMax;
     PlannedSetKind kind = PlannedSetKind.normal;
-
     if (clean == 'max' || clean == 'cedimento' || clean == 'failure') {
       reps = null;
       kind = PlannedSetKind.toFailure;
@@ -297,7 +269,6 @@ class WorkoutTemplateExercise {
     } else {
       reps = int.tryParse(clean) ?? 10;
     }
-
     final count = setsCount <= 0 ? 3 : setsCount;
     return List.generate(
       count,
@@ -309,14 +280,12 @@ class WorkoutTemplateExercise {
       ),
     );
   }
-
   static ExerciseType _parseType(String? type) {
     return ExerciseType.values.firstWhere(
       (e) => e.toString().split('.').last == type,
       orElse: () => ExerciseType.strength,
     );
   }
-
   WorkoutTemplateExercise copyWith({
     String? exerciseId,
     String? exerciseName,
@@ -347,7 +316,6 @@ class WorkoutTemplateExercise {
     );
   }
 }
-
 class WorkoutTemplate {
   final String id;
   final String userId;
@@ -356,10 +324,8 @@ class WorkoutTemplate {
   final String? parentProgramId;
   final List<WorkoutTemplateExercise> exercises;
   final ExerciseType category;
-
   /// Tipo di allenamento ricavato dalla categoria della scheda.
   WorkoutType get workoutType => WorkoutType.fromString(category.name);
-
   WorkoutTemplate({
     required this.id,
     required this.userId,
@@ -369,7 +335,6 @@ class WorkoutTemplate {
     required this.exercises,
     required this.category,
   });
-
   // Serialization
   Map<String, dynamic> toMap() {
     return {
@@ -382,7 +347,6 @@ class WorkoutTemplate {
       'category': category.toString().split('.').last,
     };
   }
-
   factory WorkoutTemplate.fromMap(Map<String, dynamic> map, String id) {
     // Backward compatibility for old 'WorkoutExercise' structure in templates
     List<WorkoutTemplateExercise> parsedExercises = [];
@@ -411,7 +375,6 @@ class WorkoutTemplate {
         }
       }
     }
-
     return WorkoutTemplate(
       id: id,
       userId: map['userId'] ?? '',
@@ -422,7 +385,6 @@ class WorkoutTemplate {
       category: Exercise.fromMap({'type': map['category']}, '').type,
     );
   }
-
   WorkoutTemplate copyWith({
     String? id,
     String? userId,

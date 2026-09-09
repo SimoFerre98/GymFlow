@@ -2,7 +2,6 @@ import '../session.dart';
 import '../workout.dart';
 import '../local/local_workout_session.dart';
 import 'package:gymflow/src/models/exercise.dart';
-
 extension WorkoutSessionToLocal on WorkoutSession {
   LocalWorkoutSession toLocal() {
     final local = LocalWorkoutSession()
@@ -14,12 +13,10 @@ extension WorkoutSessionToLocal on WorkoutSession {
       ..endTime = endTime
       ..notes = notes
       ..workoutType = workoutType;
-
     local.exercises = exercises.map((e) => e.toLocal()).toList();
     return local;
   }
 }
-
 extension WorkoutExerciseToLocal on WorkoutExercise {
   LocalWorkoutExercise toLocal() {
     final local = LocalWorkoutExercise()
@@ -32,7 +29,6 @@ extension WorkoutExerciseToLocal on WorkoutExercise {
     return local;
   }
 }
-
 extension WorkoutSetToLocal on WorkoutSet {
   LocalWorkoutSet toLocal() {
     return LocalWorkoutSet()
@@ -47,7 +43,6 @@ extension WorkoutSetToLocal on WorkoutSet {
       ..notes = notes;
   }
 }
-
 extension LocalWorkoutSessionToDomain on LocalWorkoutSession {
   WorkoutSession toDomain() {
     return WorkoutSession(
@@ -63,7 +58,6 @@ extension LocalWorkoutSessionToDomain on LocalWorkoutSession {
     );
   }
 }
-
 extension LocalWorkoutExerciseToDomain on LocalWorkoutExercise {
   WorkoutExercise toDomain() {
     return WorkoutExercise(
@@ -78,7 +72,6 @@ extension LocalWorkoutExerciseToDomain on LocalWorkoutExercise {
     );
   }
 }
-
 extension LocalWorkoutSetToDomain on LocalWorkoutSet {
   WorkoutSet toDomain() {
     return WorkoutSet(

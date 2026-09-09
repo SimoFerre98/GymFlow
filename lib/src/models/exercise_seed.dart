@@ -1,8 +1,6 @@
 import 'dart:convert';
-
 import 'exercise.dart';
 import 'exercise_media.dart';
-
 /// Lettura e validazione della libreria di esercizi curata.
 ///
 /// Sta in un file a se, senza dipendenze da Flutter e da Firestore, per una
@@ -32,7 +30,6 @@ abstract final class ExerciseSeed {
         ],
       );
     }
-
     if (decoded is! Map<String, dynamic>) {
       return ExerciseSeedResult(
         exercises: const [],
@@ -46,7 +43,6 @@ abstract final class ExerciseSeed {
         ],
       );
     }
-
     final raw = decoded['exercises'];
     if (raw is! List) {
       return ExerciseSeedResult(
@@ -61,11 +57,9 @@ abstract final class ExerciseSeed {
         ],
       );
     }
-
     final exercises = <Exercise>[];
     final issues = <SeedIssue>[];
     final seenIds = <String>{};
-
     for (final entry in raw) {
       if (entry is! Map<String, dynamic>) {
         issues.add(
@@ -78,10 +72,8 @@ abstract final class ExerciseSeed {
         );
         continue;
       }
-
       final id = (entry['id'] as String?)?.trim() ?? '';
       final name = (entry['name'] as String?)?.trim() ?? '';
-
       // Senza identificativo non c'e idempotenza: l'import creerebbe un
       // documento nuovo a ogni esecuzione.
       if (id.isEmpty) {
@@ -95,7 +87,6 @@ abstract final class ExerciseSeed {
         );
         continue;
       }
-
       if (!seenIds.add(id)) {
         issues.add(
           SeedIssue(
@@ -107,7 +98,6 @@ abstract final class ExerciseSeed {
         );
         continue;
       }
-
       if (name.isEmpty) {
         issues.add(
           SeedIssue(
@@ -119,7 +109,6 @@ abstract final class ExerciseSeed {
         );
         continue;
       }
-
       final groups = _groupsOf(entry['muscleGroups']);
       if (groups.isEmpty) {
         // Non e un motivo per saltarlo: il segnaposto ripiega sul nome. Ma va
@@ -133,7 +122,6 @@ abstract final class ExerciseSeed {
           ),
         );
       }
-
       final type = _typeOf(entry['type']);
       if (type == null) {
         issues.add(
@@ -146,7 +134,6 @@ abstract final class ExerciseSeed {
         );
         continue;
       }
-
       // Il video si accetta solo se e davvero un video. Un URL di ricerca
       // finito in questo campo produrrebbe una miniatura inesistente e un
       // indicatore che promette l'esecuzione senza averla.
@@ -168,10 +155,8 @@ abstract final class ExerciseSeed {
           );
         }
       }
-
       final searchQuery = (entry['videoSearchQuery'] as String?)?.trim();
       final imageUrl = (entry['imageUrl'] as String?)?.trim();
-
       exercises.add(
         Exercise(
           id: id,
@@ -190,10 +175,8 @@ abstract final class ExerciseSeed {
         ),
       );
     }
-
     return ExerciseSeedResult(exercises: exercises, issues: issues);
   }
-
   static List<String> _groupsOf(Object? raw) {
     if (raw is! List) return const [];
     return raw
@@ -202,7 +185,6 @@ abstract final class ExerciseSeed {
         .where((g) => g.isNotEmpty)
         .toList();
   }
-
   static ExerciseType? _typeOf(Object? raw) {
     if (raw is! String) return null;
     final wanted = raw.trim().toLowerCase();
@@ -212,27 +194,21 @@ abstract final class ExerciseSeed {
     return null;
   }
 }
-
 /// Cosa e stato letto, e cosa e stato scartato leggendolo.
 class ExerciseSeedResult {
   const ExerciseSeedResult({required this.exercises, required this.issues});
-
   final List<Exercise> exercises;
-
   /// Gli scarti, con il motivo. Il criterio di accettazione chiede che siano
   /// **elencati**, non contati: un URL scartato in silenzio e un video che
   /// nessuno sa di aver perso.
   final List<SeedIssue> issues;
-
   /// Quanti esercizi porteranno una miniatura vera invece del segnaposto.
   int get withVideo => exercises.where((e) => e.hasSpecificVideo).length;
-
   /// Quanti apriranno una ricerca invece dell'esecuzione.
   int get withSearchOnly => exercises
       .where((e) => !e.hasSpecificVideo && e.videoSearchQuery != null)
       .length;
 }
-
 /// Una cosa scartata durante la lettura, con abbastanza contesto da poterla
 /// correggere nel file senza cercarla.
 class SeedIssue {
@@ -242,12 +218,10 @@ class SeedIssue {
     required this.value,
     required this.reason,
   });
-
   final String exerciseId;
   final String field;
   final String value;
   final String reason;
-
   @override
   String toString() => '$exerciseId · $field: $reason';
 }

@@ -10,7 +10,6 @@ enum WorkoutType {
   cardio,
   mobility,
   sport;
-
   /// Converte una stringa (es. da Firestore o Isar) in [WorkoutType],
   /// con retrocompatibilità per sessioni storiche e valori nulli che
   /// ricadono su [strength].
@@ -38,9 +37,7 @@ enum WorkoutType {
         return WorkoutType.strength;
     }
   }
-
   String get keyName => name;
-
   /// Chiave di localizzazione per il nome visualizzato.
   String get localizationKey {
     switch (this) {
@@ -54,12 +51,10 @@ enum WorkoutType {
         return 'workout_type_sport';
     }
   }
-
   bool get isStrength => this == WorkoutType.strength;
   bool get isCardio => this == WorkoutType.cardio;
   bool get isMobility => this == WorkoutType.mobility;
   bool get isSport => this == WorkoutType.sport;
-
   /// Proprietà dei campi dichiarati per questo tipo
   bool get usesWeightAndReps => this == WorkoutType.strength;
   bool get usesDistance => this == WorkoutType.cardio;

@@ -1,5 +1,4 @@
 import '../../models/session.dart';
-
 class StatisticsHelper {
   /// Restituisce una mappa `{indice del giorno (1-7): conteggio}` per la
   /// settimana corrente, da lunedi a domenica.
@@ -17,10 +16,8 @@ class StatisticsHelper {
           microsecond: 0,
         );
     final endOfWeek = startOfWeek.add(const Duration(days: 7));
-
     // Initialize counts for Mon(1) to Sun(7)
     final Map<int, int> counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0};
-
     for (var session in sessions) {
       if (session.startTime.isAfter(startOfWeek) &&
           session.startTime.isBefore(endOfWeek)) {
@@ -30,26 +27,21 @@ class StatisticsHelper {
     }
     return counts;
   }
-
   static int calculateCurrentStreak(List<WorkoutSession> sessions) {
     if (sessions.isEmpty) return 0;
-
     // Sort sessions by date descending
     final sorted = List<WorkoutSession>.from(sessions)
       ..sort((a, b) => b.startTime.compareTo(a.startTime));
-
     int streak = 0;
     final today = DateTime.now();
     // Normalize to date only
     DateTime lastDate = DateTime(today.year, today.month, today.day);
-
     // Check if we worked out today
     final latestSessionDate = DateTime(
       sorted.first.startTime.year,
       sorted.first.startTime.month,
       sorted.first.startTime.day,
     );
-
     if (latestSessionDate.isAtSameMomentAs(lastDate)) {
       // Worked out today
     } else {
@@ -61,27 +53,22 @@ class StatisticsHelper {
         return 0; // Streak broken
       }
     }
-
     DateTime? previousDate;
-
     for (var session in sorted) {
       final date = DateTime(
         session.startTime.year,
         session.startTime.month,
         session.startTime.day,
       );
-
       if (previousDate == null) {
         // First one
         streak = 1;
         previousDate = date;
         continue;
       }
-
       if (date.isAtSameMomentAs(previousDate)) {
         continue; // Same day, ignore
       }
-
       final diff = previousDate.difference(date).inDays;
       if (diff == 1) {
         streak++;
@@ -90,10 +77,8 @@ class StatisticsHelper {
         break; // Streak broken
       }
     }
-
     return streak;
   }
-
   /// Calcola il volume totale sollevato (in kg) per gli allenamenti di forza / palestra.
   ///
   /// Le sessioni che non usano pesi (cardio, mobilità, sport) non contribuiscono
@@ -114,7 +99,6 @@ class StatisticsHelper {
     }
     return volume.round();
   }
-
   /// Somma la distanza totale percorsa (in km) per le attività cardio.
   static double calculateTotalDistance(List<WorkoutSession> sessions) {
     double total = 0;
@@ -129,7 +113,6 @@ class StatisticsHelper {
     }
     return total;
   }
-
   /// Calcola il ritmo medio (minuti al km) su tutte le sessioni cardio completate.
   static double? calculateAveragePace(List<WorkoutSession> sessions) {
     double totalMinutes = 0;
@@ -151,11 +134,9 @@ class StatisticsHelper {
     if (totalDistance <= 0) return null;
     return totalMinutes / totalDistance;
   }
-
   static double calculateAverageRPE(List<WorkoutSession> sessions) {
     double totalRPE = 0;
     int rpeCount = 0;
-
     for (var session in sessions) {
       for (var exercise in session.exercises) {
         for (var set in exercise.sets) {
@@ -166,11 +147,9 @@ class StatisticsHelper {
         }
       }
     }
-
     if (rpeCount == 0) return 0.0;
     return totalRPE / rpeCount;
   }
-
   static Map<String, int> getWorkoutTypeDistribution(
     List<WorkoutSession> sessions,
   ) {

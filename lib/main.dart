@@ -5,7 +5,6 @@ import 'package:gymflow/src/app.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Le due lingue che l'app offre nel proprio selettore, non una: chiamata
@@ -19,14 +18,11 @@ void main() async {
     initializeDateFormatting('it'),
     initializeDateFormatting('en'),
   ]);
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   // Enable offline persistence
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
-
   runApp(const ProviderScope(child: GymFlowApp()));
 }

@@ -1,21 +1,15 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-
 import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import '../core/providers/timer_settings_provider.dart';
 import 'timer_notification_channel.dart';
-
 part 'timer_service.g.dart';
-
 /// 100 ms — i decimi di secondo sono la cifra piu fine che lo schermo mostra
 /// (`time_tools_screen.dart`), quindi aggiornare piu spesso ridisegna senza
 /// cambiare niente.
 const Duration kTickerInterval = Duration(milliseconds: 100);
-
 /// Stato osservabile di cronometro e timer.
 @immutable
 class TimerState {
@@ -28,19 +22,15 @@ class TimerState {
     this.isTimerRunning = false,
     this.isToolsVisible = false,
   });
-
   final Duration stopwatchElapsed;
   final bool isStopwatchRunning;
   final List<Duration> stopwatchLaps;
-
   final Duration timerDuration;
   final Duration timerRemaining;
   final bool isTimerRunning;
-
   /// Vero quando la schermata degli strumenti e aperta: in quel caso
   /// l'overlay flottante resta nascosto per non duplicare i comandi.
   final bool isToolsVisible;
-
   TimerState copyWith({
     Duration? stopwatchElapsed,
     bool? isStopwatchRunning,
@@ -61,10 +51,8 @@ class TimerState {
     );
   }
 }
-
 /// Da quando comincia il conto alla rovescia sentito: gli ultimi tre secondi.
 const Duration kSecondiDiAvviso = Duration(seconds: 3);
-
 /// Il ritorno fisico del conto alla rovescia: vibra e suona.
 ///
 /// È un'interfaccia e non due chiamate sparse nel ticker per una ragione sola:
@@ -75,11 +63,9 @@ const Duration kSecondiDiAvviso = Duration(seconds: 3);
 abstract class AvvisiTempo {
   /// Uno degli ultimi secondi e passato.
   void secondoFinale();
-
   /// Il tempo e scaduto.
   void scaduto();
 }
-
 /// Quello vero: la vibrazione e il suono del sistema.
 ///
 /// Nessuna dipendenza nuova. `HapticFeedback.vibrate()` e non `heavyImpact()`:
@@ -92,10 +78,8 @@ abstract class AvvisiTempo {
 /// dipendenza che comandi il motore di vibrazione direttamente.
 class AvvisiTempoDiSistema implements AvvisiTempo {
   const AvvisiTempoDiSistema();
-
   @override
   void secondoFinale() => HapticFeedback.vibrate();
-
   @override
   void scaduto() {
     // Il suono e la vibrazione insieme: in palestra la cuffia puo essere
@@ -108,7 +92,6 @@ class AvvisiTempoDiSistema implements AvvisiTempo {
     Future.delayed(const Duration(milliseconds: 300), HapticFeedback.vibrate);
   }
 }
-
 /// Cronometro e timer da conto alla rovescia, condivisi da tutta l'app.
 ///
 /// keepAlive perche devono continuare a scorrere anche quando l'utente lascia
@@ -117,20 +100,15 @@ class AvvisiTempoDiSistema implements AvvisiTempo {
 @Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   Timer? _ticker;
-
   /// Istante di avvio dell'ultima corsa del cronometro.
   DateTime? _stopwatchStartedAt;
-
   /// Tempo accumulato nelle corse precedenti, prima dell'ultima pausa.
   Duration _stopwatchOffset = Duration.zero;
-
   /// Istante in cui il conto alla rovescia raggiungera lo zero.
   DateTime? _timerEndsAt;
-
   /// Il servizio nativo che tiene vivo il recupero fuori dall'app.
   /// Sostituibile nei test, come `avvisi`.
   TimerNotificationChannel servizioTimer = TimerNotificationChannelAndroid();
-
   @override
   TimerState build() {
     // `WidgetsBindingObserver` e non un semplice metodo chiamato da fuori: la
@@ -152,12 +130,10 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     });
     return const TimerState();
   }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) riconciliaConIlServizio();
   }
-
   /// Legge lo stato del servizio nativo e allinea questo notifier a lui.
   ///
   /// Serve solo per il **recupero**: il cronometro non ha un servizio fuori
@@ -171,7 +147,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     if (!state.isTimerRunning) return;
     final remoto = await servizioTimer.leggiStato();
     if (remoto == null) return;
-
     final restante = remoto.restanteOra();
     if (restante <= Duration.zero) {
       _timerEndsAt = null;
@@ -180,7 +155,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
       _syncTicker();
       return;
     }
-
     if (remoto.inPausa) {
       _timerEndsAt = null;
       state = state.copyWith(timerRemaining: restante, isTimerRunning: false);
@@ -190,7 +164,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     }
     _syncTicker();
   }
-
   // Getter di comodo: permettono ai consumatori di usare il notifier come
   // usavano il servizio, senza distinguere fra lettura e comando.
   Duration get stopwatchElapsed => state.stopwatchElapsed;
@@ -200,7 +173,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   Duration get timerRemaining => state.timerRemaining;
   bool get isTimerRunning => state.isTimerRunning;
   bool get isToolsVisible => state.isToolsVisible;
-
   /// Se il ticker sta battendo.
   ///
   /// Esiste perche altrimenti «il ticker non parte nel costruttore» non e
@@ -209,16 +181,13 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   /// test passerebbe anche col difetto. Verificato: rimettendo l'avvio dentro
   /// `build()`, senza questo getter la suite restava verde.
   bool get isTickerActive => _ticker != null;
-
   /// Chi vibra e chi suona. Sostituibile nei test.
   AvvisiTempo avvisi = const AvvisiTempoDiSistema();
-
   /// L'ultimo secondo per cui si e gia vibrato.
   ///
   /// Il ticker batte molto piu spesso di una volta al secondo: senza ricordare
   /// l'ultimo, negli ultimi tre secondi il telefono vibrerebbe a ogni battito.
   int? _ultimoSecondoAvvisato;
-
   /// Il ticker serve solo se c'e qualcosa che scorre.
   void _syncTicker() {
     final serve = state.isStopwatchRunning || state.isTimerRunning;
@@ -229,12 +198,10 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
       _ticker = null;
     }
   }
-
   void _onTick(Timer _) {
     var next = state;
     var changed = false;
     var timerReachedZero = false;
-
     if (state.isStopwatchRunning && _stopwatchStartedAt != null) {
       next = next.copyWith(
         stopwatchElapsed:
@@ -242,7 +209,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
       );
       changed = true;
     }
-
     if (state.isTimerRunning && _timerEndsAt != null) {
       final remaining = _timerEndsAt!.difference(DateTime.now());
       if (remaining.isNegative) {
@@ -258,7 +224,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
       }
       changed = true;
     }
-
     if (changed) state = next;
     if (timerReachedZero) {
       segnalaScadenza();
@@ -266,7 +231,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
       _syncTicker();
     }
   }
-
   /// Una vibrazione per ognuno degli ultimi tre secondi.
   ///
   /// Si conta il secondo **intero** che sta per finire: a 2,4 secondi dalla fine
@@ -277,7 +241,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   void avvisaSeUltimiSecondi(Duration restante) {
     final timerSettings = ref.read(timerSettingsNotifierProvider);
     if (!timerSettings.vibrateOnTimerEnd) return;
-
     if (restante > kSecondiDiAvviso) {
       _ultimoSecondoAvvisato = null;
       return;
@@ -287,7 +250,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     _ultimoSecondoAvvisato = secondo;
     avvisi.secondoFinale();
   }
-
   /// Il tempo e finito: si suona, e il conto delle vibrazioni riparte.
   @visibleForTesting
   void segnalaScadenza() {
@@ -297,13 +259,10 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
       avvisi.scaduto();
     }
   }
-
   void setToolsVisible(bool visible) {
     state = state.copyWith(isToolsVisible: visible);
   }
-
   // --- Cronometro ---
-
   void toggleStopwatch() {
     if (state.isStopwatchRunning) {
       if (_stopwatchStartedAt != null) {
@@ -327,7 +286,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     }
     _syncTicker();
   }
-
   void resetStopwatch() {
     _stopwatchStartedAt = null;
     _stopwatchOffset = Duration.zero;
@@ -338,21 +296,17 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     );
     _syncTicker();
   }
-
   void lapStopwatch() {
     if (state.stopwatchElapsed == Duration.zero) return;
     state = state.copyWith(
       stopwatchLaps: [state.stopwatchElapsed, ...state.stopwatchLaps],
     );
   }
-
   // --- Timer da conto alla rovescia ---
-
   void setTimerDuration(Duration d) {
     if (state.isTimerRunning) return; // non si cambia mentre scorre
     state = state.copyWith(timerDuration: d, timerRemaining: d);
   }
-
   void toggleTimer() {
     if (state.isTimerRunning) {
       // In pausa: il tempo rimanente e gia aggiornato dal ticker.
@@ -369,7 +323,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     }
     _syncTicker();
   }
-
   /// Chiede il permesso di notifica. Sostituibile nei test — la richiesta
   /// vera bussa a un canale di piattaforma che in un test non esiste, e
   /// senza poterla sostituire non si potrebbe dimostrare che il servizio
@@ -380,7 +333,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   /// richiesta: la spiegazione e un'schermata che manca ancora.
   Future<bool> Function() richiediPermessoNotifiche =
       () async => (await Permission.notification.request()).isGranted;
-
   /// Avvia il servizio solo se il permesso e concesso.
   ///
   /// Un servizio in primo piano senza permesso di notifica non serve a
@@ -399,7 +351,6 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     if (!concesso) return;
     await servizioTimer.avvia(orarioFine);
   }
-
   void startTimerWithDuration(Duration d) {
     _timerEndsAt = DateTime.now().add(d);
     state = state.copyWith(
@@ -410,23 +361,19 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     unawaited(_avviaServizioSeConsentito(_timerEndsAt!));
     _syncTicker();
   }
-
   void addTimerSeconds(int seconds) {
     final newRemaining = state.timerRemaining + Duration(seconds: seconds);
     final clamped = newRemaining.isNegative ? Duration.zero : newRemaining;
-
     if (clamped == Duration.zero) {
       resetTimer();
       return;
     }
-
     if (state.isTimerRunning) {
       _timerEndsAt = DateTime.now().add(clamped);
       unawaited(_avviaServizioSeConsentito(_timerEndsAt!));
     }
     state = state.copyWith(timerRemaining: clamped);
   }
-
   void resetTimer() {
     _timerEndsAt = null;
     state = state.copyWith(

@@ -3,10 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/ui/screens/login_screen.dart';
 import 'package:gymflow/src/ui/screens/main_screen.dart';
-
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(

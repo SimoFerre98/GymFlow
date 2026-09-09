@@ -3,31 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:gymflow/src/services/timer_service.dart';
-import 'package:gymflow/src/ui/widgets/app_drawer.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
+import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/time_dial.dart';
 import 'package:gymflow/src/ui/widgets/expressive_segmented_control.dart';
 import 'package:gymflow/src/ui/widgets/timer_aurora.dart';
-
+const double _kTitleFontSize = 28;
 class TimeToolsScreen extends ConsumerStatefulWidget {
   const TimeToolsScreen({super.key});
-
   @override
   ConsumerState<TimeToolsScreen> createState() => _TimeToolsScreenState();
 }
-
 class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
   /// Quale vista e scelta: 0 il cronometro, 1 il recupero.
   int _selezionata = 0;
-
   /// Il notifier del tempo, catturato dopo il primo frame.
   ///
   /// Serve per spegnere la visibilita in `dispose`, dove leggere `ref` non e
   /// piu sicuro. Tenerne il riferimento e lecito perche `TimerNotifier` e
   /// `keepAlive`: non viene distrutto quando questa schermata muore.
   TimerNotifier? _timerNotifier;
-
   @override
   void initState() {
     super.initState();
@@ -39,7 +35,6 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
       _timerNotifier!.setToolsVisible(true);
     });
   }
-
   @override
   void dispose() {
     // L'overlay flottante torna visibile uscendo di qui.
@@ -56,49 +51,48 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
     if (notifier != null) {
       scheduleMicrotask(() => notifier.setToolsVisible(false));
     }
-
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
-
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      // L'atmosfera deve coprire tutto lo schermo, non fermarsi dove inizia
-      // l'intestazione: l'utente l'ha segnalato guardando l'APK. La barra
-      // resta trasparente sopra di lei invece di tagliarla.
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          loc.t('stopwatch_menu'),
-        ), // Using general stopwatch_menu key or specific title
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: const AppDrawer(), // Persistent Drawer
       body: Stack(
         children: [
           // Dietro tutto: «un'app da palestra», non un quadrante su una
           // schermata vuota. Dal mockup 03, la sezione che l'utente ha
           // segnalato mancante dopo aver visto l'APK.
           const Positioned.fill(child: TimerAurora()),
-          // `SafeArea` qui e non genericamente sul contenuto: con
-          // `extendBodyBehindAppBar` e' lei che sa quanto spazio occupa la
-          // barra trasparente sopra, e sposta la Column sotto — l'atmosfera
-          // resta visibile anche dietro la barra, il contenuto no.
           SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsets.all(context.expressive.spacing.md),
+                  padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
+                  child: Row(
+                    children: [
+                      BackPill(label: loc.t('home')),
+                      SizedBox(width: t.spacing.md),
+                      Text(
+                        loc.t('stopwatch_menu').toUpperCase(),
+                        style: t.typography.headline?.copyWith(
+                          fontSize: _kTitleFontSize,
+                          color: scheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(width: t.spacing.md),
+                      Expanded(
+                        child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(t.spacing.md),
                   child: ExpressiveSegmentedControl(
                     labels: [loc.t('stopwatch_tab'), loc.t('timer_tab')],
                     selectedIndex: _selezionata,
@@ -119,10 +113,8 @@ class _TimeToolsScreenState extends ConsumerState<TimeToolsScreen> {
     );
   }
 }
-
 class StopwatchView extends ConsumerWidget {
   const StopwatchView({super.key});
-
   String _formatDuration(Duration d) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(d.inMinutes.remainder(60));
@@ -130,7 +122,6 @@ class StopwatchView extends ConsumerWidget {
     final deciseconds = (d.inMilliseconds % 1000) ~/ 100;
     return '$minutes:$seconds:$deciseconds';
   }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // `watch` sullo **stato** e `read` sul notifier, e la distinzione non e
@@ -143,7 +134,6 @@ class StopwatchView extends ConsumerWidget {
     final stato = ref.watch(timerNotifierProvider);
     final service = ref.read(timerNotifierProvider.notifier);
     final loc = ref.watch(localizationNotifierProvider);
-
     // Logic for Buttons:
     // Left:
     // - If Running: "Parziale"
@@ -151,10 +141,8 @@ class StopwatchView extends ConsumerWidget {
     // Right:
     // - If Running: "Pausa" (Yellow/Orange)
     // - If Paused/Stopped: "Avvia" (Green)
-
     final isRunning = stato.isStopwatchRunning;
     final hasTime = stato.stopwatchElapsed > Duration.zero;
-
     return Column(
       children: [
         // Il quadrante prende lo spazio che avanza: «tutta l'altezza, un solo
@@ -172,17 +160,17 @@ class StopwatchView extends ConsumerWidget {
         // I giri, se ce ne sono.
         if (stato.stopwatchLaps.isNotEmpty)
           SizedBox(
-            height: context.expressive.sizing.thumbnailMd * 2,
+            height: context.immersivo.sizing.thumbnailMd * 2,
             child: ListView.builder(
               padding: EdgeInsets.symmetric(
-                horizontal: context.expressive.spacing.lg,
+                horizontal: context.immersivo.spacing.lg,
               ),
               itemCount: stato.stopwatchLaps.length,
               itemBuilder: (context, index) {
                 final lapTime = stato.stopwatchLaps[index];
                 return Padding(
                   padding: EdgeInsets.symmetric(
-                    vertical: context.expressive.spacing.xs,
+                    vertical: context.immersivo.spacing.xs,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -195,7 +183,7 @@ class StopwatchView extends ConsumerWidget {
                       ),
                       Text(
                         _formatDuration(lapTime),
-                        style: context.expressive.typography.metricSmall
+                        style: context.immersivo.typography.metricSmall
                             ?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
@@ -207,7 +195,7 @@ class StopwatchView extends ConsumerWidget {
             ),
           ),
         Padding(
-          padding: EdgeInsets.all(context.expressive.spacing.lg),
+          padding: EdgeInsets.all(context.immersivo.spacing.lg),
           child: TimeControls(
             inCorsa: isRunning,
             onPrimario: service.toggleStopwatch,
@@ -227,23 +215,19 @@ class StopwatchView extends ConsumerWidget {
     );
   }
 }
-
 class TimerView extends ConsumerWidget {
   const TimerView({super.key});
-
   String _formatDuration(Duration d) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = d.inHours;
     final minutes = twoDigits(d.inMinutes.remainder(60));
     final seconds = twoDigits(d.inSeconds.remainder(60));
     final deciseconds = (d.inMilliseconds % 1000) ~/ 100;
-
     if (hours > 0) {
       return '$hours:$minutes:$seconds:$deciseconds';
     }
     return '$minutes:$seconds:$deciseconds';
   }
-
   void _showTimePicker(BuildContext context, TimerNotifier service) {
     showCupertinoModalPopup(
       context: context,
@@ -262,7 +246,6 @@ class TimerView extends ConsumerWidget {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Vedi la nota in `StopwatchView.build`: senza `watch` sullo stato questa
@@ -271,11 +254,9 @@ class TimerView extends ConsumerWidget {
     final service = ref.read(timerNotifierProvider.notifier);
     final loc = ref.watch(localizationNotifierProvider);
     final isRunning = stato.isTimerRunning;
-
     final durata = stato.timerDuration;
     final restante = stato.timerRemaining;
     final haTempo = restante != durata || isRunning;
-
     return Column(
       children: [
         // Il quadrante, con l'anello che dice quanto resta senza leggere le
@@ -301,7 +282,7 @@ class TimerView extends ConsumerWidget {
         // I tempi pronti o le regolazioni rapide se in corso.
         Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: context.expressive.spacing.lg,
+            horizontal: context.immersivo.spacing.lg,
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -354,7 +335,7 @@ class TimerView extends ConsumerWidget {
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(context.expressive.spacing.lg),
+          padding: EdgeInsets.all(context.immersivo.spacing.lg),
           child: TimeControls(
             inCorsa: isRunning,
             onPrimario: service.toggleTimer,
@@ -367,7 +348,6 @@ class TimerView extends ConsumerWidget {
       ],
     );
   }
-
   /// La durata arriva come parametro invece di essere riletta dal notifier: qui
   /// si sta disegnando, e cio che si disegna deve venire dallo stato osservato.
   Widget _buildPresetButton(
@@ -380,7 +360,7 @@ class TimerView extends ConsumerWidget {
     final isSelected = !isRunning && durataCorrente == presetDuration;
     return Builder(
       builder: (context) {
-        final t = context.expressive;
+        final t = context.immersivo;
         final scheme = Theme.of(context).colorScheme;
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
@@ -389,9 +369,10 @@ class TimerView extends ConsumerWidget {
                 ? null
                 : () => service.setTimerDuration(presetDuration),
             style: TextButton.styleFrom(
-              shape: const StadiumBorder(),
-              // La pillola scelta e in ambra, le altre sono superficie: e la
-              // stessa grammatica del segmentato del mockup.
+              shape: RoundedRectangleBorder(borderRadius: t.shape.cornerXs),
+              // Il riquadro scelto e in accento, gli altri sono superficie: e
+              // la stessa grammatica dei preset del mockup 2b — angoli vivi,
+              // non una pillola.
               backgroundColor: isSelected
                   ? scheme.primary
                   : scheme.surfaceContainerHigh,
@@ -409,21 +390,20 @@ class TimerView extends ConsumerWidget {
       },
     );
   }
-
   Widget _buildAdjustmentButton(
     BuildContext context,
     TimerNotifier service,
     int deltaSeconds,
     String label,
   ) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: t.spacing.xs),
       child: OutlinedButton(
         onPressed: () => service.addTimerSeconds(deltaSeconds),
         style: OutlinedButton.styleFrom(
-          shape: const StadiumBorder(),
+          shape: RoundedRectangleBorder(borderRadius: t.shape.cornerXs),
           foregroundColor: scheme.primary,
           padding: EdgeInsets.symmetric(
             horizontal: t.spacing.md,

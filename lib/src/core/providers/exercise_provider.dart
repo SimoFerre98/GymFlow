@@ -1,20 +1,15 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import '../../models/exercise.dart';
 import '../../models/exercise_seed.dart';
 import '../../models/image_credit.dart';
 import 'auth_provider.dart';
 import 'firestore_provider.dart';
-
 part 'exercise_provider.g.dart';
-
 /// Percorso della libreria curata che viaggia dentro l'app.
 const kCuratedLibraryAsset = 'assets/data/exercises_seed.json';
-
 /// Percorso dei crediti delle foto bundlate con la libreria curata.
 const kImageCreditsAsset = 'assets/data/exercise_image_credits.json';
-
 /// I 43 esercizi curati, letti dall'asset.
 ///
 /// **Non stanno in Firestore, e non e un ripiego.** Le regole negano al client
@@ -39,7 +34,6 @@ class CuratedExercises extends _$CuratedExercises {
     return ExerciseSeed.parse(source).exercises;
   }
 }
-
 /// I crediti delle foto della libreria curata, letti dall'asset.
 ///
 /// Stesso ragionamento di [CuratedExercises]: materiale statico, uguale per
@@ -52,7 +46,6 @@ class ImageCredits extends _$ImageCredits {
     return ImageCreditSeed.parse(source);
   }
 }
-
 /// Gli esercizi creati dall'utente, da Firestore.
 @riverpod
 class CustomExercises extends _$CustomExercises {
@@ -60,11 +53,9 @@ class CustomExercises extends _$CustomExercises {
   Stream<List<Exercise>> build() {
     final userId = ref.watch(currentUserIdProvider);
     if (userId == null) return Stream.value(const []);
-
     return ref.watch(firestoreServiceProvider).getExercises(userId);
   }
 }
-
 /// Tutti gli esercizi visibili all'utente: i curati piu i suoi.
 ///
 /// A parita di identificativo vince quello dell'utente: e l'unico dei due che
@@ -87,7 +78,6 @@ class Exercises extends _$Exercises {
     // evitare.
     final custom =
         ref.watch(customExercisesProvider).valueOrNull ?? const <Exercise>[];
-
     final byId = <String, Exercise>{for (final e in curated) e.id: e};
     for (final exercise in custom) {
       byId[exercise.id] = exercise;
@@ -95,7 +85,6 @@ class Exercises extends _$Exercises {
     return byId.values.toList();
   }
 }
-
 /// Gli esercizi per identificativo.
 ///
 /// Esiste per un motivo preciso: schede e sessioni salvano `exerciseId` e

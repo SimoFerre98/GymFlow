@@ -1,6 +1,5 @@
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/workout_type.dart';
-
 class WorkoutSession {
   final String id;
   final String userId;
@@ -11,15 +10,12 @@ class WorkoutSession {
   final List<WorkoutExercise> exercises;
   final String? notes;
   final String workoutType; // 'strength', 'cardio', etc.
-
   /// Tipo tipizzato dell'allenamento.
   WorkoutType get type => WorkoutType.fromString(workoutType);
-
   int get durationSeconds {
     if (endTime == null) return 0;
     return endTime!.difference(startTime).inSeconds;
   }
-
   WorkoutSession({
     required this.id,
     required this.userId,
@@ -31,7 +27,6 @@ class WorkoutSession {
     this.notes,
     this.workoutType = 'strength', // Default
   });
-
   WorkoutSession copyWith({
     String? id,
     String? userId,
@@ -55,7 +50,6 @@ class WorkoutSession {
       workoutType: workoutType ?? this.workoutType,
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -69,7 +63,6 @@ class WorkoutSession {
       'workoutType': workoutType,
     };
   }
-
   factory WorkoutSession.fromMap(Map<String, dynamic> map, String id) {
     return WorkoutSession(
       id: id,

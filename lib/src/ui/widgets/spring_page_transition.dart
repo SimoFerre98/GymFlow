@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
-
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 /// Fa assestare con una molla il contenuto che entra, **senza smontare gli
 /// altri**.
 ///
@@ -28,21 +26,16 @@ class SpringPageTransition extends StatefulWidget {
     required this.index,
     required this.child,
   });
-
   /// La voce attiva. Quando cambia, la molla riparte.
   final int index;
-
   /// Il contenuto, che **non** viene mai ricostruito da questo widget.
   final Widget child;
-
   @override
   State<SpringPageTransition> createState() => _SpringPageTransitionState();
 }
-
 class _SpringPageTransitionState extends State<SpringPageTransition>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-
   @override
   void initState() {
     super.initState();
@@ -50,25 +43,22 @@ class _SpringPageTransitionState extends State<SpringPageTransition>
     // iniziale non deve entrare in scena.
     _controller = AnimationController(vsync: this, value: 1);
   }
-
   @override
   void didUpdateWidget(SpringPageTransition oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.index != widget.index) {
-      _controller.duration = context.expressive.motion.standard;
+      _controller.duration = context.immersivo.motion.standard;
       // `from: 0` e non `forward()`: un cambio voce durante l'assestamento
       // precedente riparte, invece di essere ignorato perche l'animazione era
       // gia in corsa.
       _controller.forward(from: 0);
     }
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     if (MediaQuery.disableAnimationsOf(context)) {
@@ -77,9 +67,7 @@ class _SpringPageTransitionState extends State<SpringPageTransition>
       // frame trasformato.
       return widget.child;
     }
-
-    final molla = context.expressive.motion.spring;
-
+    final molla = context.immersivo.motion.spring;
     return AnimatedBuilder(
       animation: _controller,
       // Il figlio si passa a `AnimatedBuilder` invece di costruirlo dentro
@@ -87,13 +75,12 @@ class _SpringPageTransitionState extends State<SpringPageTransition>
       child: widget.child,
       builder: (context, child) {
         final t = molla.transform(_controller.value);
-
         // La molla supera l'unita — arriva a 1,098 — e qui e voluto: la scala
         // sfora l'identita di un soffio e ci torna, che e cio che si vede come
         // «molla». Su un'opacita non si vedrebbe, perche l'eccedenza viene
         // troncata da `getAlphaFromOpacity`.
         return Transform.translate(
-          offset: Offset(0, (1 - t) * context.expressive.spacing.sm),
+          offset: Offset(0, (1 - t) * context.immersivo.spacing.sm),
           child: Transform.scale(
             scale: 0.96 + 0.04 * t,
             child: child,

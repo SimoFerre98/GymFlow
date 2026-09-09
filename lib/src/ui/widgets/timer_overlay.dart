@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/timer_service.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/app.dart';
 import 'package:gymflow/src/ui/screens/time_tools_screen.dart';
-
 /// La chiave della pillola, per i test.
 const chiavePillola = Key('pillola_del_tempo');
-
 /// Quanto e larga e alta la pillola.
 ///
 /// Serve a tenerla dentro lo schermo mentre la si trascina, e a posizionarla in
@@ -15,7 +13,6 @@ const chiavePillola = Key('pillola_del_tempo');
 /// piccola per leggere il tempo con un'occhiata.
 const double kLarghezzaPillola = 268;
 const double kAltezzaPillola = 68;
-
 /// Se la pillola del tempo deve comparire.
 ///
 /// Sta qui e non dentro `build` perche la serve anche il telaio in `app.dart`,
@@ -29,7 +26,6 @@ bool pillolaVisibile(TimerNotifier service) {
       service.isTimerRunning || service.timerRemaining != service.timerDuration;
   return !service.isToolsVisible && (cronometroAttivo || recuperoAttivo);
 }
-
 /// La pillola flottante del tempo.
 ///
 /// **Flotta, non occupa spazio.** Farle spingere giu il contenuto e stato
@@ -38,30 +34,23 @@ bool pillolaVisibile(TimerNotifier service) {
 /// colori del design system invece dei valori scritti a mano.
 class TimerOverlay extends ConsumerStatefulWidget {
   const TimerOverlay({super.key});
-
   @override
   ConsumerState<TimerOverlay> createState() => _TimerOverlayState();
 }
-
 class _TimerOverlayState extends ConsumerState<TimerOverlay> {
   Offset? _posizione;
-
   @override
   Widget build(BuildContext context) {
     ref.watch(timerNotifierProvider);
     final service = ref.read(timerNotifierProvider.notifier);
-
     if (!pillolaVisibile(service)) return const SizedBox.shrink();
-
     // Il recupero ha la precedenza sul cronometro: e quello che scade.
     final isTimerActive =
         service.isTimerRunning ||
         service.timerRemaining != service.timerDuration;
-
     final schermo = MediaQuery.sizeOf(context);
     final bordo = MediaQuery.paddingOf(context);
-    final t = context.expressive;
-
+    final t = context.immersivo;
     // In basso a destra, dove stava prima. La posizione si ricorda solo se
     // l'utente l'ha spostata.
     final posizione =
@@ -70,7 +59,6 @@ class _TimerOverlayState extends ConsumerState<TimerOverlay> {
           schermo.width - kLarghezzaPillola - t.spacing.lg,
           schermo.height - bordo.bottom - kAltezzaPillola - t.spacing.xxl,
         );
-
     return Positioned(
       left: posizione.dx,
       top: posizione.dy,
@@ -89,11 +77,9 @@ class _TimerOverlayState extends ConsumerState<TimerOverlay> {
       ),
     );
   }
-
   Widget _buildPill(BuildContext context, TimerNotifier service, bool isTimerActive) {
     final scheme = Theme.of(context).colorScheme;
-    final t = context.expressive;
-
+    final t = context.immersivo;
     return GestureDetector(
       onTap: () {
         navigatorKey.currentState?.push(
@@ -119,7 +105,7 @@ class _TimerOverlayState extends ConsumerState<TimerOverlay> {
         ),
         decoration: BoxDecoration(
           color: scheme.surfaceContainerHigh,
-          borderRadius: t.shape.cornerFull,
+          borderRadius: t.shape.cornerXs,
           boxShadow: t.elevation.level3(scheme.shadow),
         ),
         child: Row(
@@ -183,7 +169,6 @@ class _TimerOverlayState extends ConsumerState<TimerOverlay> {
       ),
     );
   }
-
   String _getMainDisplay(TimerNotifier service, bool isTimerActive) {
     final Duration d;
     if (isTimerActive) {

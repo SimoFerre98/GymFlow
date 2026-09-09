@@ -3,33 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/providers/localization_provider.dart';
-import '../../../core/theme/expressive_tokens.dart';
+import '../../../core/theme/immersivo_tokens.dart';
 import '../../../models/session.dart';
 import '../expressive_segmented_control.dart';
-
 class ActivityChart extends ConsumerStatefulWidget {
   final List<WorkoutSession> sessions;
-
   const ActivityChart({super.key, required this.sessions});
-
   @override
   ConsumerState<ActivityChart> createState() => _ActivityChartState();
 }
-
 class _ActivityChartState extends ConsumerState<ActivityChart> {
   // 0 = Week, 1 = Month
   int _viewMode = 0;
-
   // Cached data
   late Map<int, int> _weeklyData; // Day 1-7 (Mon-Sun)
   late Map<int, int> _monthlyData; // Day 1-31
-
   @override
   void initState() {
     super.initState();
     _processData();
   }
-
   @override
   void didUpdateWidget(covariant ActivityChart oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -37,10 +30,8 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
       _processData();
     }
   }
-
   void _processData() {
     final now = DateTime.now();
-
     // Initialize maps
     _weeklyData = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0};
     _monthlyData = {};
@@ -48,19 +39,16 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
     for (int i = 1; i <= daysInMonth; i++) {
       _monthlyData[i] = 0;
     }
-
     // Filter and Count
     for (var session in widget.sessions) {
       // Weekly Logic: Current Week
       // We need to check if the session is in the current week (Mon-Sun window relative to now? Or strictly this calendar week?)
       // Let's do Calendar Week.
       final sessionDate = session.startTime;
-
       // Calculate start of current week (Monday)
       final currentWeekday = now.weekday;
       final startOfWeek = now.subtract(Duration(days: currentWeekday - 1));
       final endOfWeek = startOfWeek.add(const Duration(days: 6));
-
       // Normalize to Date only for comparison
       final dateOnly = DateTime(
         sessionDate.year,
@@ -77,14 +65,12 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
         endOfWeek.month,
         endOfWeek.day,
       );
-
       // Check Week
       if (dateOnly.isAfter(startOfWeekDate.subtract(const Duration(days: 1))) &&
           dateOnly.isBefore(endOfWeekDate.add(const Duration(days: 1)))) {
         _weeklyData[sessionDate.weekday] =
             (_weeklyData[sessionDate.weekday] ?? 0) + 1;
       }
-
       // Check Month
       if (sessionDate.year == now.year && sessionDate.month == now.month) {
         _monthlyData[sessionDate.day] =
@@ -92,7 +78,6 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
@@ -103,7 +88,7 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
           selectedIndex: _viewMode,
           onChanged: (i) => setState(() => _viewMode = i),
         ),
-        SizedBox(height: context.expressive.spacing.md),
+        SizedBox(height: context.immersivo.spacing.md),
         Expanded(
           child: _viewMode == 0
               ? _buildBarChart(_weeklyData, loc)
@@ -112,21 +97,18 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
       ],
     );
   }
-
   Widget _buildBarChart(Map<int, int> data, Localization loc) {
     final scheme = Theme.of(context).colorScheme;
-    final t = context.expressive;
+    final t = context.immersivo;
     final testoAsse = Theme.of(context).textTheme.labelSmall?.copyWith(
       color: scheme.onSurfaceVariant,
       fontWeight: FontWeight.bold,
     );
-
     int maxY = 0;
     data.forEach((_, count) {
       if (count > maxY) maxY = count;
     });
     maxY = (maxY < 4) ? 4 : maxY + 1; // Altezza minima della scala.
-
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
@@ -188,23 +170,19 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
       ),
     );
   }
-
   Widget _buildMonthlyHeatmap(Map<int, int> data, Localization loc) {
     final scheme = Theme.of(context).colorScheme;
-    final t = context.expressive;
+    final t = context.immersivo;
     final lingua = loc.locale.languageCode;
-
     int maxVal = 1;
     data.forEach((_, count) {
       if (count > maxVal) maxVal = count;
     });
-
     final now = DateTime.now();
     final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     final offset = firstDayOfMonth.weekday - 1;
     final totalCells = daysInMonth + offset;
-
     // Le iniziali dei sette giorni, nella lingua scelta: lunedi e il giorno 1
     // di un lunedi vero (8 gennaio 2024), non una lettera scritta a mano —
     // «M T W T F S S» presume l'inglese, e in italiano «giovedi» e «venerdi»
@@ -213,7 +191,6 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
       final giorno = DateTime(2024, 1, 8 + i);
       return DateFormat('EEE', lingua).format(giorno)[0].toUpperCase();
     });
-
     return Column(
       children: [
         Row(
@@ -247,11 +224,9 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
             itemCount: totalCells,
             itemBuilder: (context, index) {
               if (index < offset) return const SizedBox.shrink();
-
               final day = index - offset + 1;
               final count = data[day] ?? 0;
               final isFuture = day > now.day;
-
               if (isFuture) {
                 return Container(
                   decoration: BoxDecoration(
@@ -267,10 +242,8 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
                   ),
                 );
               }
-
               Color colore;
               Color coloreTesto;
-
               if (count == 0) {
                 colore = scheme.onSurface.withValues(alpha: 0.08);
                 coloreTesto = scheme.onSurfaceVariant;
@@ -279,10 +252,8 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
                 colore = scheme.primary.withValues(alpha: opacita);
                 coloreTesto = scheme.onPrimary;
               }
-
               final isToday = day == now.day;
               final dataGiorno = DateTime(now.year, now.month, day);
-
               return Tooltip(
                 message: loc
                     .t('activity_heatmap_tooltip')
@@ -320,12 +291,10 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
       ],
     );
   }
-
   List<BarChartGroupData> _buildBarGroups(Map<int, int> data, ColorScheme scheme) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final List<BarChartGroupData> items = [];
     final sortedKeys = data.keys.toList()..sort();
-
     for (var key in sortedKeys) {
       items.add(
         BarChartGroupData(
@@ -351,7 +320,6 @@ class _ActivityChartState extends ConsumerState<ActivityChart> {
     }
     return items;
   }
-
   /// Il nome breve del giorno, nella lingua scelta dentro l'app.
   ///
   /// `DateFormat('EEE', lingua)` e non uno `switch` scritto a mano: il

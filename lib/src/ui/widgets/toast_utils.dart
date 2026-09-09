@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-
 import '../../core/theme/app_palette.dart';
-import '../../core/theme/expressive_tokens.dart';
-
+import '../../core/theme/immersivo_tokens.dart';
 class ToastUtils {
   static void showSuccess(BuildContext context, String message) {
     _showToast(context, message, AppPalette.success, Icons.check_circle);
   }
-
   static void showError(BuildContext context, String message) {
     _showToast(context, message, AppPalette.danger, Icons.error);
   }
-
   static void showInfo(BuildContext context, String message) {
     final scheme = Theme.of(context).colorScheme;
     // Nessun ruolo semantico "info" in AppPalette: `secondary` e l'indaco
@@ -19,14 +15,13 @@ class ToastUtils {
     // esattamente il ruolo di questo avviso.
     _showToast(context, message, scheme.secondary, Icons.info);
   }
-
   static void _showToast(
     BuildContext context,
     String message,
     Color color,
     IconData icon,
   ) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
@@ -60,7 +55,7 @@ class ToastUtils {
                 ),
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainerHigh,
-                  borderRadius: t.shape.cornerFull,
+                  borderRadius: t.shape.cornerXs,
                   boxShadow: t.elevation.level2(scheme.shadow),
                   border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
                 ),
@@ -88,9 +83,7 @@ class ToastUtils {
         ),
       ),
     );
-
     overlay.insert(overlayEntry);
-
     // Remove after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       overlayEntry.remove();

@@ -7,7 +7,7 @@ part of 'timer_settings_provider.dart';
 // **************************************************************************
 
 String _$timerSettingsNotifierHash() =>
-    r'eb0c22ed283bc006dbad4e1ff7be5314d3ea7efd';
+    r'63e223763d0b111b0cf2e7c04d11ca57157d8fd7';
 
 /// Provider per le impostazioni del timer con persistenza locale.
 ///

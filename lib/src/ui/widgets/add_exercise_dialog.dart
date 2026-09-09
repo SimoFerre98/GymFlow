@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-
 import 'package:gymflow/src/core/providers/localization_provider.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
-
 /// Il dialogo «Nuovo esercizio».
 ///
 /// Esiste come widget con un `State` proprio per una ragione misurata, non per
@@ -32,32 +30,25 @@ class AddExerciseDialog extends StatefulWidget {
     required this.userId,
     required this.saveExercise,
   });
-
   final Localization loc;
-
   /// Chi sta creando l'esercizio. Finisce in `userId` sul documento, ed e cio
   /// che le regole Firestore controllano per consentire la scrittura.
   final String? userId;
-
   /// Iniettata invece di essere presa da un servizio: e cio che rende questo
   /// dialogo provabile con un doppio che solleva.
   final Future<void> Function(Exercise exercise) saveExercise;
-
   @override
   State<AddExerciseDialog> createState() => _AddExerciseDialogState();
 }
-
 class _AddExerciseDialogState extends State<AddExerciseDialog> {
   final TextEditingController _nameController = TextEditingController();
   ExerciseType _selectedType = ExerciseType.strength;
   String? _nameError;
-
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
   }
-
   Future<void> _salva() async {
     final result = await handleAddExerciseSubmit(
       rawName: _nameController.text,
@@ -65,25 +56,20 @@ class _AddExerciseDialogState extends State<AddExerciseDialog> {
       userId: widget.userId,
       saveExercise: widget.saveExercise,
     );
-
     if (!mounted) return;
-
     if (result.shouldCloseDialog) {
       Navigator.of(context).pop();
       return;
     }
-
     if (result.outcome == AddExerciseOutcome.validationError) {
       setState(() => _nameError = widget.loc.t(result.errorKey!));
     } else if (result.outcome == AddExerciseOutcome.saveError) {
       ToastUtils.showError(context, widget.loc.t(result.errorKey!));
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = widget.loc;
-
     return AlertDialog(
       title: Text(loc.t('add_exercise_title')),
       content: Column(
@@ -101,7 +87,7 @@ class _AddExerciseDialogState extends State<AddExerciseDialog> {
               if (_nameError != null) setState(() => _nameError = null);
             },
           ),
-          SizedBox(height: context.expressive.spacing.md),
+          SizedBox(height: context.immersivo.spacing.md),
           DropdownButton<ExerciseType>(
             value: _selectedType,
             isExpanded: true,

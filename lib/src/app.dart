@@ -4,16 +4,12 @@ import 'package:gymflow/src/core/theme/app_theme.dart';
 import 'package:gymflow/src/ui/auth_wrapper.dart';
 import 'package:gymflow/src/core/providers/theme_provider.dart';
 import 'package:gymflow/src/ui/widgets/timer_overlay.dart';
-
 final navigatorKey = GlobalKey<NavigatorState>();
-
 class GymFlowApp extends ConsumerWidget {
   const GymFlowApp({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeSettingsNotifierProvider);
-
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'GymFlow',
@@ -34,7 +30,6 @@ class GymFlowApp extends ConsumerWidget {
     );
   }
 }
-
 /// Il telaio: la pillola del tempo **sopra** il contenuto, senza spostarlo.
 ///
 /// È tornata a flottare dopo la prova sul telefono: farle occupare spazio in
@@ -49,9 +44,7 @@ class GymFlowApp extends ConsumerWidget {
 /// provata da test che si costruivano un albero nel proprio file.
 class GymFlowShell extends ConsumerWidget {
   const GymFlowShell({super.key, required this.child});
-
   final Widget? child;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Stack(

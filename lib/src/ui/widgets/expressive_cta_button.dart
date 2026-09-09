@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
-
-/// Il pulsante d'azione del mockup: fondo ambra, testo scuro, un glifo in un
-/// cerchio scuro a sé. **Non un `FilledButton` rettangolare** — è la specifica
-/// di `DESIGN-SPEC.md` per `.cta`.
+import '../../core/theme/immersivo_tokens.dart';
+/// Il pulsante d'azione del mockup: fondo in accento, testo scuro, un glifo in
+/// un riquadro a sé col bordo dello stesso accento — angolo vivo, non un
+/// cerchio: `.btn-main-icon` di Immersivo, vedi `DESIGN-SPEC.md`.
 ///
 /// Il glifo cambia con l'azione, verificato nei tre usi diversi del mockup 02 e
 /// non inventato: `→` per «Riprendi» e «Continua», `+` per «Nuovo esercizio»,
@@ -28,22 +26,18 @@ class ExpressiveCtaButton extends StatelessWidget {
     required this.onTap,
     this.arw = '→',
   });
-
   final String label;
   final VoidCallback onTap;
   final String? arw;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     // L'ambra come **fondo** non è `primary` nel tema chiaro, dove `primary` è
     // un marrone scuro pensato per il testo: è `primaryContainer`.
     final scuro = scheme.brightness == Brightness.dark;
     final fondo = scuro ? scheme.primary : scheme.primaryContainer;
     final testoColore = scuro ? scheme.onPrimary : scheme.onPrimaryContainer;
-
     return Semantics(
       button: true,
       label: label,
@@ -52,7 +46,7 @@ class ExpressiveCtaButton extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: fondo,
-            borderRadius: t.shape.cornerFull,
+            borderRadius: t.shape.cornerXs,
           ),
           padding: arw == null
               ? EdgeInsets.symmetric(
@@ -79,15 +73,16 @@ class ExpressiveCtaButton extends StatelessWidget {
               ),
               if (arw != null) ...[
                 SizedBox(width: t.spacing.sm),
+                // `.btn-main-icon` del mockup Immersivo: un riquadro (non un
+                // cerchio) col fondo dello scaffold, bordo e glifo nello
+                // stesso colore d'accento del pulsante.
                 Container(
-                  // Il cerchio del mockup è 20 px, cioè 27 dp: fra i token il
-                  // più vicino è `sizing.iconLg` (24), e la differenza non si
-                  // vede.
-                  width: t.sizing.iconLg,
-                  height: t.sizing.iconLg,
+                  width: t.sizing.iconLg + t.spacing.sm,
+                  height: t.sizing.iconLg + t.spacing.sm,
                   decoration: BoxDecoration(
-                    color: testoColore,
-                    shape: BoxShape.circle,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: t.shape.cornerXs,
+                    border: Border.all(color: fondo),
                   ),
                   child: Center(
                     child: Text(

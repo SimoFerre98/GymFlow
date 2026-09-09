@@ -5,7 +5,6 @@ class ScheduledWorkout {
   final String workoutName;
   final DateTime scheduledDate;
   final bool isCompleted;
-
   ScheduledWorkout({
     required this.id,
     required this.userId,
@@ -14,7 +13,6 @@ class ScheduledWorkout {
     required this.scheduledDate,
     this.isCompleted = false,
   });
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -25,7 +23,6 @@ class ScheduledWorkout {
       'isCompleted': isCompleted,
     };
   }
-
   factory ScheduledWorkout.fromMap(Map<String, dynamic> map, String id) {
     return ScheduledWorkout(
       id: id,

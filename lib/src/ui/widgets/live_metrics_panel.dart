@@ -1,12 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/providers/live_metrics_provider.dart';
 import '../../core/providers/localization_provider.dart';
-import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/immersivo_tokens.dart';
 import 'sparkline.dart';
-
 /// Pannello superiore che mostra il cronometro della sessione e le metriche
 /// dal vivo (calorie stimate e frequenza cardiaca) con sparkline integrate.
 class LiveMetricsPanel extends ConsumerWidget {
@@ -16,28 +14,22 @@ class LiveMetricsPanel extends ConsumerWidget {
     this.statusText,
     this.action,
   });
-
   /// Tempo trascorso formattato per il cronometro (es. "00:24:12").
   final String formattedTime;
-
   /// Testo di stato opzionale (es. nome allenamento o "IN CORSO").
   final String? statusText;
-
   /// Widget di azione opzionale posizionato a destra nell'intestazione.
   final Widget? action;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final liveMetrics = ref.watch(liveMetricsNotifierProvider);
     final loc = ref.watch(localizationNotifierProvider);
     final theme = Theme.of(context);
-    final expressive = context.expressive;
-
+    final expressive = context.immersivo;
     final primaryColor = theme.colorScheme.primary;
     final tertiaryColor = theme.colorScheme.tertiary;
     final onSurfaceColor = theme.colorScheme.onSurface;
     final onSurfaceVariantColor = theme.colorScheme.onSurfaceVariant;
-
     return ClipRRect(
       borderRadius: expressive.shape.cornerLg,
       child: BackdropFilter(
@@ -90,9 +82,7 @@ class LiveMetricsPanel extends ConsumerWidget {
                   if (action != null) action!,
                 ],
               ),
-
               SizedBox(height: expressive.spacing.md),
-
               // Sezione metriche dal vivo
               if (!liveMetrics.hasPermission)
                 _PermissionPromptCard(
@@ -120,7 +110,6 @@ class LiveMetricsPanel extends ConsumerWidget {
                         history: liveMetrics.calorieHistory,
                       ),
                     ),
-
                     // Card Battito Cardiaco (mostrata solo se il sensore e presente)
                     if (liveMetrics.canReadHeartRate) ...[
                       SizedBox(width: expressive.spacing.sm),
@@ -146,7 +135,6 @@ class LiveMetricsPanel extends ConsumerWidget {
     );
   }
 }
-
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.title,
@@ -156,19 +144,16 @@ class _MetricCard extends StatelessWidget {
     required this.color,
     required this.history,
   });
-
   final String title;
   final String unit;
   final String valueText;
   final IconData icon;
   final Color color;
   final List<double> history;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final expressive = context.expressive;
-
+    final expressive = context.immersivo;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: expressive.spacing.sm,
@@ -234,23 +219,19 @@ class _MetricCard extends StatelessWidget {
     );
   }
 }
-
 class _PermissionPromptCard extends StatelessWidget {
   const _PermissionPromptCard({
     required this.promptText,
     required this.buttonText,
     required this.onRequestPermission,
   });
-
   final String promptText;
   final String buttonText;
   final VoidCallback onRequestPermission;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final expressive = context.expressive;
-
+    final expressive = context.immersivo;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: expressive.spacing.md,

@@ -83,3 +83,6 @@ macos/flutter/ephemeral/
 
 # Exceptions to rules
 !/android/app/src/main/AndroidManifest.xml
+
+# Claude Code - impostazioni locali/personali, non condivise
+.claude/settings.local.json

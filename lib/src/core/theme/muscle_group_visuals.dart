@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 /// Regioni del corpo usate dal segnaposto dell'esercizio.
 ///
 /// La regione definisce la sagoma a tratto che distingue un esercizio di petto
@@ -12,13 +11,10 @@ enum BodyRegion {
   legs(Icons.directions_run),
   core(Icons.self_improvement),
   cardio(Icons.monitor_heart_outlined);
-
   const BodyRegion(this.glyph);
-
   /// Sagoma disegnata sopra il fondo.
   final IconData glyph;
 }
-
 /// Dal gruppo muscolare alla regione del corpo.
 ///
 /// Esiste perche il campo `musclesTargeted` contiene **due vocabolari diversi**
@@ -49,7 +45,6 @@ abstract final class MuscleGroupVisuals {
     String fallbackSeed = '',
   }) {
     String? firstNonEmpty;
-
     for (final group in muscleGroups) {
       final key = normalize(group);
       if (key.isEmpty) continue;
@@ -57,10 +52,8 @@ abstract final class MuscleGroupVisuals {
       final known = _regionsByGroup[key];
       if (known != null) return known;
     }
-
     return _hashedRegion(firstNonEmpty ?? normalize(fallbackSeed));
   }
-
   /// Regione di un singolo gruppo, oppure `null` se il nome non e riconosciuto.
   ///
   /// Separata da [resolve] perche distinguere "non riconosciuto" da "ripiegato"
@@ -68,7 +61,6 @@ abstract final class MuscleGroupVisuals {
   /// davvero, invece di vedere sempre una regione e crederla giusta.
   static BodyRegion? regionOfGroup(String group) =>
       _regionsByGroup[normalize(group)];
-
   /// Forma di confronto di un nome di gruppo: minuscolo, senza accenti, senza
   /// spazi ripetuti. `'Spalle Posteriori '` e `'spalle posteriori'` sono lo
   /// stesso gruppo, e il segnaposto non deve dipendere da come e stato scritto.
@@ -76,7 +68,6 @@ abstract final class MuscleGroupVisuals {
     final lower = raw.toLowerCase().trim();
     final buffer = StringBuffer();
     var lastWasSpace = false;
-
     for (final rune in lower.runes) {
       final char = String.fromCharCode(rune);
       final plain = _accents[char] ?? char;
@@ -92,10 +83,8 @@ abstract final class MuscleGroupVisuals {
       }
       buffer.write(plain);
     }
-
     return buffer.toString();
   }
-
   /// Scelta stabile per i gruppi che non conosciamo.
   ///
   /// Deve essere **la stessa a ogni avvio e su ogni dispositivo**, altrimenti
@@ -111,7 +100,6 @@ abstract final class MuscleGroupVisuals {
     }
     return BodyRegion.values[hash % BodyRegion.values.length];
   }
-
   /// I due vocabolari, appiattiti in una tabella sola.
   ///
   /// Le chiavi sono gia normalizzate. I sinonimi non sono zelo preventivo: sono
@@ -124,7 +112,6 @@ abstract final class MuscleGroupVisuals {
     'pettorali': BodyRegion.chest,
     'chest': BodyRegion.chest,
     'pecs': BodyRegion.chest,
-
     // Schiena
     'dorso': BodyRegion.back,
     'dorsali': BodyRegion.back,
@@ -135,7 +122,6 @@ abstract final class MuscleGroupVisuals {
     'upper back': BodyRegion.back,
     'lats': BodyRegion.back,
     'traps': BodyRegion.back,
-
     // Spalle
     'spalle': BodyRegion.shoulders,
     'spalle posteriori': BodyRegion.shoulders,
@@ -143,7 +129,6 @@ abstract final class MuscleGroupVisuals {
     'shoulders': BodyRegion.shoulders,
     'delts': BodyRegion.shoulders,
     'rear delts': BodyRegion.shoulders,
-
     // Braccia
     'bicipiti': BodyRegion.arms,
     'tricipiti': BodyRegion.arms,
@@ -153,7 +138,6 @@ abstract final class MuscleGroupVisuals {
     'triceps': BodyRegion.arms,
     'forearms': BodyRegion.arms,
     'arms': BodyRegion.arms,
-
     // Gambe
     'quadricipiti': BodyRegion.legs,
     'femorali': BodyRegion.legs,
@@ -167,7 +151,6 @@ abstract final class MuscleGroupVisuals {
     'glutes': BodyRegion.legs,
     'calves': BodyRegion.legs,
     'legs': BodyRegion.legs,
-
     // Core
     'addome': BodyRegion.core,
     'addominali': BodyRegion.core,
@@ -177,14 +160,12 @@ abstract final class MuscleGroupVisuals {
     'abs': BodyRegion.core,
     'obliques': BodyRegion.core,
     'lower back': BodyRegion.core,
-
     // Cardio
     'cardio': BodyRegion.cardio,
     'cuore': BodyRegion.cardio,
     'heart': BodyRegion.cardio,
     'cardiovascolare': BodyRegion.cardio,
   };
-
   /// Accenti che compaiono nell'italiano dei nomi dei gruppi.
   static const Map<String, String> _accents = {
     'à': 'a',

@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-
 /// Lo stato del servizio nativo del recupero, letto quando l'app torna in
 /// primo piano.
 ///
@@ -15,16 +14,13 @@ class StatoServizioTimer {
     required this.inPausa,
     required this.restanteAllaPausa,
   });
-
   final DateTime orarioFine;
   final bool inPausa;
   final Duration restanteAllaPausa;
-
   /// Quanto resta **ora**, in tutti e due gli stati.
   Duration restanteOra() =>
       inPausa ? restanteAllaPausa : orarioFine.difference(DateTime.now());
 }
-
 /// Il lato Dart del servizio in primo piano che tiene vivo il recupero fuori
 /// dall'app: US-053.
 ///
@@ -36,20 +32,16 @@ class StatoServizioTimer {
 abstract class TimerNotificationChannel {
   /// Il recupero parte, o riparte da una pausa.
   Future<void> avvia(DateTime orarioFine);
-
   /// Il recupero si e messo in pausa dentro l'app: la notifica deve fermarsi
   /// sul tempo restante invece di continuare a scendere.
   Future<void> metteInPausa(Duration restante);
-
   /// Il recupero e stato azzerato, o e scaduto: via la notifica, via il
   /// servizio.
   Future<void> ferma();
-
   /// Lo stato del servizio, se e attivo. `null` se non lo e — non e mai stato
   /// avviato, e stato fermato, o la piattaforma non lo supporta.
   Future<StatoServizioTimer?> leggiStato();
 }
-
 /// Quello vero: parla con `TimerForegroundService` via un canale nativo.
 ///
 /// Ogni chiamata e avvolta in un `try`/`catch` silenzioso e non per
@@ -63,9 +55,7 @@ class TimerNotificationChannelAndroid implements TimerNotificationChannel {
     : _canale =
           canale ??
           const MethodChannel('com.example.gymflow/timer_notification');
-
   final MethodChannel _canale;
-
   @override
   Future<void> avvia(DateTime orarioFine) async {
     try {
@@ -76,7 +66,6 @@ class TimerNotificationChannelAndroid implements TimerNotificationChannel {
       // Vedi il commento della classe.
     }
   }
-
   @override
   Future<void> metteInPausa(Duration restante) async {
     try {
@@ -85,14 +74,12 @@ class TimerNotificationChannelAndroid implements TimerNotificationChannel {
       });
     } catch (_) {}
   }
-
   @override
   Future<void> ferma() async {
     try {
       await _canale.invokeMethod('stop');
     } catch (_) {}
   }
-
   @override
   Future<StatoServizioTimer?> leggiStato() async {
     try {

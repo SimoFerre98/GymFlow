@@ -2,21 +2,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../../../core/providers/firestore_provider.dart';
 import '../../../core/providers/localization_provider.dart';
-import '../../../core/theme/expressive_tokens.dart';
+import '../../../core/theme/immersivo_tokens.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/body_measurement.dart';
-
 class BodyMeasurementsChart extends ConsumerStatefulWidget {
   final String userId;
-
   const BodyMeasurementsChart({super.key, required this.userId});
-
   @override
   ConsumerState<BodyMeasurementsChart> createState() =>
       _BodyMeasurementsChartState();
 }
-
 /// Un campo misurabile: la chiave del modello, e le due chiavi di traduzione
 /// per l'etichetta e l'unita.
 ///
@@ -30,7 +26,6 @@ class _Metrica {
   final String etichetta;
   final String unita;
 }
-
 const _metriche = <_Metrica>[
   _Metrica('weight', 'bm_weight', 'bm_kg'),
   _Metrica('bodyFat', 'bm_body_fat', 'bm_percent'),
@@ -43,10 +38,8 @@ const _metriche = <_Metrica>[
   _Metrica('shoulders', 'bm_shoulders', 'bm_cm'),
   _Metrica('neck', 'bm_neck', 'bm_cm'),
 ];
-
 class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
   String _selectedMetric = _metriche.first.chiave;
-
   double? _getValue(BodyMeasurement m, String chiave) {
     switch (chiave) {
       case 'weight':
@@ -73,12 +66,10 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
         return null;
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final firestore = ref.read(firestoreServiceProvider);
     final loc = ref.watch(localizationNotifierProvider);
-
     return StreamBuilder<List<BodyMeasurement>>(
       stream: firestore.getBodyMeasurements(widget.userId),
       builder: (context, snapshot) {
@@ -90,13 +81,11 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
             ],
           );
         }
-
         final allData = snapshot.data ?? [];
         final dataPoints = allData
             .where((m) => _getValue(m, _selectedMetric) != null)
             .toList();
         dataPoints.sort((a, b) => a.date.compareTo(b.date));
-
         if (dataPoints.isEmpty) {
           return Column(
             children: [
@@ -114,17 +103,16 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
             ],
           );
         }
-
         return Column(
           children: [
             _buildMetricSelector(loc),
-            SizedBox(height: context.expressive.spacing.sm),
+            SizedBox(height: context.immersivo.spacing.sm),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(
-                  right: context.expressive.spacing.md,
-                  top: context.expressive.spacing.lg,
-                  bottom: context.expressive.spacing.sm,
+                  right: context.immersivo.spacing.md,
+                  top: context.immersivo.spacing.lg,
+                  bottom: context.immersivo.spacing.sm,
                 ),
                 child: LineChart(_buildChartData(dataPoints, context, loc)),
               ),
@@ -134,11 +122,9 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
       },
     );
   }
-
   Widget _buildMetricSelector(Localization loc) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: EdgeInsets.symmetric(horizontal: t.spacing.sm),
@@ -157,7 +143,7 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
               ),
               backgroundColor: scheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
-                borderRadius: t.shape.cornerFull,
+                borderRadius: t.shape.cornerXs,
                 side: BorderSide(
                   color: isSelected
                       ? scheme.primary
@@ -175,31 +161,26 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
       ),
     );
   }
-
   LineChartData _buildChartData(
     List<BodyMeasurement> data,
     BuildContext context,
     Localization loc,
   ) {
     if (data.isEmpty) return LineChartData();
-
     final scheme = Theme.of(context).colorScheme;
     final testoAsse = Theme.of(context).textTheme.labelSmall?.copyWith(
       color: scheme.onSurfaceVariant,
     );
     final lingua = loc.locale.languageCode;
     final unita = loc.t(_metriche.firstWhere((m) => m.chiave == _selectedMetric).unita);
-
     final spots = data.asMap().entries.map((e) {
       final m = e.value;
       final val = _getValue(m, _selectedMetric) ?? 0;
       return FlSpot(m.date.millisecondsSinceEpoch.toDouble(), val);
     }).toList();
-
     final minY = spots.map((e) => e.y).reduce((a, b) => a < b ? a : b);
     final maxY = spots.map((e) => e.y).reduce((a, b) => a > b ? a : b);
     final paddingY = (maxY - minY) * 0.1;
-
     return LineChartData(
       gridData: FlGridData(
         show: true,
@@ -214,12 +195,12 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: context.expressive.spacing.xxl,
+            reservedSize: context.immersivo.spacing.xxl,
             interval: 86400000 * 5, // Circa cinque giorni.
             getTitlesWidget: (value, meta) {
               final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
               return Padding(
-                padding: EdgeInsets.only(top: context.expressive.spacing.sm),
+                padding: EdgeInsets.only(top: context.immersivo.spacing.sm),
                 child: Text(
                   DateFormat('MM/dd', lingua).format(date),
                   style: testoAsse,
@@ -233,7 +214,7 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
         rightTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: context.expressive.sizing.thumbnailSm,
+            reservedSize: context.immersivo.sizing.thumbnailSm,
             getTitlesWidget: (value, meta) {
               return Text(value.toStringAsFixed(1), style: testoAsse);
             },

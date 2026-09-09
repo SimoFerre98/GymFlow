@@ -5,17 +5,15 @@ import 'package:health/health.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../services/health_service.dart';
-import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/immersivo_tokens.dart';
 import '../widgets/back_pill.dart';
 import '../widgets/expressive_card.dart';
 import '../widgets/expressive_segmented_control.dart';
-
 class HealthDetailScreen extends ConsumerStatefulWidget {
   final HealthDataType dataType;
   final String title;
   final Color baseColor;
   final String unit;
-
   const HealthDetailScreen({
     super.key,
     required this.dataType,
@@ -23,26 +21,21 @@ class HealthDetailScreen extends ConsumerStatefulWidget {
     required this.baseColor,
     required this.unit,
   });
-
   @override
   ConsumerState<HealthDetailScreen> createState() => _HealthDetailScreenState();
 }
-
 class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
   bool _isWeekly = true; // true = Week, false = Month
   DateTime _currentDate = DateTime.now();
   Map<DateTime, double> _data = {};
   bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
     _loadData();
   }
-
   void _loadData() async {
     setState(() => _isLoading = true);
-
     DateTime start, end;
     if (_isWeekly) {
       // End is _currentDate (or today)
@@ -59,23 +52,19 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         0,
       ); // Last day of month
     }
-
     // Ensure we don't fetch into the future if _currentDate is today
     if (end.isAfter(DateTime.now())) {
       end = DateTime.now();
     }
-
     final data = await HealthService().fetchHistoricalData(
       widget.dataType,
       start,
       end,
     );
-
     // Fill in missing dates with 0 (or null if line chart needs it, but 0 is usually safer for steps)
     // For heart rate maybe we don't want 0?
     // Let's iterate and fill
     Map<DateTime, double> fullData = {};
-
     if (_isWeekly) {
       for (int i = 0; i < 7; i++) {
         DateTime d = end.subtract(Duration(days: i));
@@ -97,13 +86,11 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         fullData[d] = data[d] ?? 0.0;
       }
     }
-
     // Sort by date
     var sortedKeys = fullData.keys.toList()..sort((a, b) => a.compareTo(b));
     Map<DateTime, double> sortedData = {
       for (var k in sortedKeys) k: fullData[k]!,
     };
-
     if (mounted) {
       setState(() {
         _data = sortedData;
@@ -111,7 +98,6 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
       });
     }
   }
-
   void _changePeriod(int offset) {
     setState(() {
       if (_isWeekly) {
@@ -128,7 +114,6 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         // If month is current month, we clamp to Now.
         // If past month, we show full month.
       }
-
       // Prevent future navigation beyond today
       if (_currentDate.isAfter(DateTime.now())) {
         _currentDate = DateTime.now();
@@ -136,17 +121,15 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     });
     _loadData();
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        leading: BackPill(label: loc.t('statistics_title')),
+        leading: BackPill(label: loc.t('data_tab')),
         leadingWidth: BackPill.leadingWidth,
       ),
       body: Column(
@@ -247,7 +230,6 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
       ),
     );
   }
-
   // `loc.locale.languageCode` e non l'omissione che c'era: senza, `DateFormat`
   // usa la lingua **del telefono**, che puo differire da quella scelta
   // dentro l'app — e allora meta pagina si legge in una lingua e l'asse del
@@ -263,42 +245,34 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
       return DateFormat('MMMM y', lingua).format(_currentDate);
     }
   }
-
   String _calculateSummary(Localization loc) {
     if (_data.isEmpty) return '0';
     double total = 0;
     for (var v in _data.values) {
       total += v;
     }
-
     // Battito e peso: la media ha senso, la somma di sette giorni di battito
     // no.
     if (widget.dataType == HealthDataType.HEART_RATE ||
         widget.dataType == HealthDataType.WEIGHT) {
       return (total / _data.length).toStringAsFixed(1);
     }
-
     if (widget.dataType == HealthDataType.SLEEP_SESSION) {
       final ore = (total / 60).toStringAsFixed(1);
       return loc.t('health_total_hours').replaceFirst('%s', ore);
     }
-
     if (total > 1000 && widget.dataType == HealthDataType.STEPS) {
       return '${(total / 1000).toStringAsFixed(1)}k';
     }
-
     return total.toInt().toString();
   }
-
   Widget _buildChart(Localization loc) {
     if (_data.isEmpty) return Center(child: Text(loc.t('no_data')));
-
     final scheme = Theme.of(context).colorScheme;
     final testoAsse = Theme.of(context).textTheme.labelSmall?.copyWith(
       color: scheme.onSurfaceVariant,
     );
     final lingua = loc.locale.languageCode;
-
     // Steps/Calories/Water/Distance/Sleep sono conteggi del giorno: una
     // barra. Battito/peso sono un valore che varia con continuita: una linea.
     bool useBar =
@@ -307,11 +281,10 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         widget.dataType == HealthDataType.WATER ||
         widget.dataType == HealthDataType.DISTANCE_DELTA ||
         widget.dataType == HealthDataType.SLEEP_SESSION;
-
     Widget etichettaAsse(DateTime date) {
       if (_isWeekly) {
         return Padding(
-          padding: EdgeInsets.only(top: context.expressive.spacing.sm),
+          padding: EdgeInsets.only(top: context.immersivo.spacing.sm),
           child: Text(
             DateFormat('EEE', lingua).format(date).substring(0, 1),
             style: testoAsse,
@@ -320,13 +293,12 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
       }
       if (date.day % 5 == 0 || date.day == 1) {
         return Padding(
-          padding: EdgeInsets.only(top: context.expressive.spacing.sm),
+          padding: EdgeInsets.only(top: context.immersivo.spacing.sm),
           child: Text('${date.day}', style: testoAsse),
         );
       }
       return const SizedBox.shrink();
     }
-
     if (useBar) {
       // Se il permesso di Health Connect manca (US-100), `_data` arriva tutta
       // a zero: `maxY: 0` e un grafico degenere, non un grafico vuoto — fl_chart
@@ -337,7 +309,6 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         (curr, next) => curr > next ? curr : next,
       );
       final maxY = picchettoMassimo > 0 ? picchettoMassimo * 1.2 : 1.0;
-
       return BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
@@ -404,7 +375,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                   toY: entry.value,
                   color: widget.baseColor,
                   width: _isWeekly ? 14.0 : 4.0,
-                  borderRadius: context.expressive.shape.cornerXs,
+                  borderRadius: context.immersivo.shape.cornerXs,
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY: maxY,
@@ -493,7 +464,6 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     }
   }
 }
-
 // Helper to get index
 extension IterableExtension<E> on Iterable<E> {
   Iterable<T> mapIndexed<T>(T Function(int index, E e) f) sync* {

@@ -3,7 +3,6 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
-
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -39,7 +38,6 @@ class DefaultFirebaseOptions {
         );
     }
   }
-
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyC64r2zGe0U1PF0izMbdkknPHw416xi3fk',
     appId: '1:704225438245:web:cce7285b0116d71811adcc',
@@ -49,7 +47,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'gymflow-d5d09.firebasestorage.app',
     measurementId: 'G-3368CKE0VC',
   );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyArwyfsWmVQg6HxsymQ87alxLENMxKcQ0w',
     appId: '1:704225438245:android:6f9ef9d23956b23e11adcc',
@@ -57,7 +54,6 @@ class DefaultFirebaseOptions {
     projectId: 'gymflow-d5d09',
     storageBucket: 'gymflow-d5d09.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDOVza1p0EgwA8oundGYIjijJtNPI3cM4k',
     appId: '1:704225438245:ios:c6c610c075b5932811adcc',
@@ -66,7 +62,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'gymflow-d5d09.firebasestorage.app',
     iosBundleId: 'com.example.gymflow',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDOVza1p0EgwA8oundGYIjijJtNPI3cM4k',
     appId: '1:704225438245:ios:c6c610c075b5932811adcc',
@@ -75,7 +70,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'gymflow-d5d09.firebasestorage.app',
     iosBundleId: 'com.example.gymflow',
   );
-
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyC64r2zGe0U1PF0izMbdkknPHw416xi3fk',
     appId: '1:704225438245:web:f1ce3155bd8c80a011adcc',

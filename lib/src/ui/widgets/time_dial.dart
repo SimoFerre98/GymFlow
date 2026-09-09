@@ -1,9 +1,6 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
-
+import '../../core/theme/immersivo_tokens.dart';
 /// I pezzi visivi della schermata del tempo, presi dal mockup 03.
 ///
 /// I numeri qui sotto sono i pixel del mockup **convertiti**, non copiati: per
@@ -12,22 +9,14 @@ import '../../core/theme/expressive_tokens.dart';
 /// non spaziature generali: metterli fra i token di spaziatura li renderebbe
 /// disponibili a chiunque, che e il modo in cui una misura di un disegno finisce
 /// per caso in un altro.
-
 /// Il pulsante grande, da fermo. Mockup: 76 px.
 const double kDiametroPrimario = 91;
-
 /// Il pulsante grande mentre scorre: cambia forma e si allarga. Mockup: 96 px.
 const double kLarghezzaPrimarioInCorsa = 115;
-
-/// Il raggio degli angoli quando e allargato. Mockup: 26 px.
-const double kRaggioPrimarioInCorsa = 31;
-
 /// Il raggio del quadrante. Mockup: `r="102"`.
 const double kRaggioQuadrante = 122;
-
 /// Lo spessore dell'anello. Mockup: `stroke-width="9"`.
 const double kTrattoQuadrante = 11;
-
 /// Il quadrante: un anello che occupa lo spazio, col tempo dentro.
 ///
 /// «Tutta l'altezza, un solo protagonista» e la prima nota del mockup: il
@@ -43,32 +32,25 @@ class TimeDial extends StatelessWidget {
     this.coloreArco,
     this.inCorsa = false,
   });
-
   /// Il tempo gia formattato.
   final String tempo;
-
   /// Lo stato sotto le cifre: «PRONTO», «IN CORSO», «IN PAUSA».
   final String etichetta;
-
   /// Quanto anello resta, da 0 a 1. `null` per il cronometro, che non ha una
   /// fine verso cui andare: li l'anello resta la cornice del tempo.
   final double? frazione;
-
   /// Il colore dell'arco. Il mockup lo fa virare sul salmone in modalita
   /// recupero: e un dato vitale del corpo, non un'azione.
   final Color? coloreArco;
-
   /// «Onde mentre scorre»: le tre onde concentriche vivono solo mentre il
   /// tempo avanza, e si fermano in pausa — e il segnale che qualcosa si
   /// muove anche guardando di sbieco, senza metter a fuoco le cifre.
   final bool inCorsa;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     final colore = coloreArco ?? scheme.primary;
-
     return Center(
       child: SizedBox(
         width: kRaggioQuadrante * 2 + 40,
@@ -127,7 +109,6 @@ class TimeDial extends StatelessWidget {
     );
   }
 }
-
 /// «Le cifre rotolano, non lampeggiano»: la cifra che cambia esce verso
 /// l'alto e la nuova entra dal basso. I separatori (`:`) non animano mai — la
 /// chiave e il carattere stesso, quindi `AnimatedSwitcher` scatta solo dove
@@ -135,12 +116,9 @@ class TimeDial extends StatelessWidget {
 /// mockup (che e JavaScript puro e non ha questo lusso).
 class _CifreRotanti extends StatelessWidget {
   const _CifreRotanti({required this.testo, required this.stile});
-
   final String testo;
   final TextStyle? stile;
-
   static final _cifra = RegExp(r'[0-9]');
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -170,25 +148,20 @@ class _CifreRotanti extends StatelessWidget {
     );
   }
 }
-
 /// «Onde mentre scorre»: tre cerchi che si espandono sfalsati di un terzo di
 /// giro l'uno dall'altro (0,93s su un ciclo di 2,8s nel mockup), e si fermano
 /// in pausa. Un solo `AnimationController`, non tre: le tre onde sono la
 /// stessa fase letta a un terzo di giro di distanza.
 class _OndeConcentriche extends StatefulWidget {
   const _OndeConcentriche({required this.attiva, required this.colore});
-
   final bool attiva;
   final Color colore;
-
   @override
   State<_OndeConcentriche> createState() => _OndeConcentricheState();
 }
-
 class _OndeConcentricheState extends State<_OndeConcentriche>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-
   @override
   void initState() {
     super.initState();
@@ -197,7 +170,6 @@ class _OndeConcentricheState extends State<_OndeConcentriche>
       duration: const Duration(milliseconds: 2800),
     );
   }
-
   @override
   void didChangeDependencies() {
     // Non in `initState`: `MediaQuery.of` iscrive questo widget ai suoi
@@ -206,13 +178,11 @@ class _OndeConcentricheState extends State<_OndeConcentriche>
     super.didChangeDependencies();
     _aggiorna();
   }
-
   @override
   void didUpdateWidget(_OndeConcentriche old) {
     super.didUpdateWidget(old);
     if (old.attiva != widget.attiva) _aggiorna();
   }
-
   void _aggiorna() {
     final consentito = !MediaQuery.of(context).disableAnimations;
     if (widget.attiva && consentito) {
@@ -221,17 +191,14 @@ class _OndeConcentricheState extends State<_OndeConcentriche>
       _controller.stop();
     }
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     if (!widget.attiva) return const SizedBox.shrink();
-
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -263,40 +230,32 @@ class _OndeConcentricheState extends State<_OndeConcentriche>
     );
   }
 }
-
 class _AnelloTempo extends CustomPainter {
   const _AnelloTempo({
     required this.frazione,
     required this.coloreFondo,
     required this.coloreArco,
   });
-
   final double? frazione;
   final Color coloreFondo;
   final Color coloreArco;
-
   @override
   void paint(Canvas canvas, Size size) {
     final centro = Offset(size.width / 2, size.height / 2);
     final raggio = (size.width - kTrattoQuadrante) / 2;
-
     final fondo = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = kTrattoQuadrante
       ..strokeCap = StrokeCap.round
       ..color = coloreFondo;
-
     canvas.drawCircle(centro, raggio, fondo);
-
     final quanto = frazione;
     if (quanto == null || quanto <= 0) return;
-
     final arco = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = kTrattoQuadrante
       ..strokeCap = StrokeCap.round
       ..color = coloreArco;
-
     canvas.drawArc(
       Rect.fromCircle(center: centro, radius: raggio),
       // Da mezzogiorno, come il mockup ruota l'SVG di -90°.
@@ -306,14 +265,12 @@ class _AnelloTempo extends CustomPainter {
       arco,
     );
   }
-
   @override
   bool shouldRepaint(_AnelloTempo old) =>
       old.frazione != frazione ||
       old.coloreArco != coloreArco ||
       old.coloreFondo != coloreFondo;
 }
-
 /// La riga dei comandi: due tondi neutri e uno grande in ambra che cambia forma.
 ///
 /// «Il pulsante cambia forma»: da cerchio a rettangolo stondato quando parte, e
@@ -331,10 +288,8 @@ class TimeControls extends StatelessWidget {
     this.iconaDestra,
     this.etichettaDestra,
   });
-
   final bool inCorsa;
   final VoidCallback onPrimario;
-
   /// Cosa fa il pulsante grande, detto a parole: e l'unica cosa che uno
   /// screen reader puo leggere, perche il pulsante e una forma con un'icona.
   final String? etichettaPrimario;
@@ -344,12 +299,10 @@ class TimeControls extends StatelessWidget {
   final VoidCallback? onDestra;
   final IconData? iconaDestra;
   final String? etichettaDestra;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
     Widget secondario(IconData icona, VoidCallback? azione, String? etichetta) {
       return Semantics(
         label: etichetta,
@@ -363,13 +316,14 @@ class TimeControls extends StatelessWidget {
             foregroundColor: azione == null
                 ? scheme.onSurfaceVariant.withValues(alpha: 0.38)
                 : scheme.onSurfaceVariant,
-            shape: const CircleBorder(),
+            // Angolo vivo, non un cerchio: il mockup 2b disegna i pulsanti
+            // secondari del cronometro come riquadri, non come tondi.
+            shape: RoundedRectangleBorder(borderRadius: t.shape.cornerXs),
           ),
           icon: Icon(icona),
         ),
       );
     }
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -388,18 +342,17 @@ class TimeControls extends StatelessWidget {
           height: kDiametroPrimario,
           decoration: BoxDecoration(
             color: scheme.primary,
-            borderRadius: BorderRadius.circular(
-              inCorsa ? kRaggioPrimarioInCorsa : kDiametroPrimario / 2,
-            ),
+            // Angolo vivo in entrambi gli stati: il morphing resta
+            // sull'allargamento, non piu sul passaggio cerchio→rettangolo —
+            // Immersivo non ha pulsanti tondi (mockup 2b).
+            borderRadius: t.shape.cornerXs,
             boxShadow: t.elevation.level2(scheme.primary),
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: onPrimario,
-              borderRadius: BorderRadius.circular(
-                inCorsa ? kRaggioPrimarioInCorsa : kDiametroPrimario / 2,
-              ),
+              borderRadius: t.shape.cornerXs,
               child: Icon(
                 inCorsa ? Icons.pause_rounded : Icons.play_arrow_rounded,
                 color: scheme.onPrimary,

@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
-
 enum GoalType {
   workoutFrequency,
   targetLoad,
   bodyWeight,
 }
-
 @immutable
 class UserGoal {
   final String id;
@@ -20,7 +18,6 @@ class UserGoal {
   final bool isAchieved;
   final DateTime createdAt;
   final DateTime? achievedAt;
-
   const UserGoal({
     required this.id,
     required this.userId,
@@ -35,13 +32,11 @@ class UserGoal {
     required this.createdAt,
     this.achievedAt,
   });
-
   double get progressFraction {
     if (targetValue <= 0) return 0.0;
     final frac = currentValue / targetValue;
     return frac.clamp(0.0, 1.0);
   }
-
   UserGoal copyWith({
     String? id,
     String? userId,
@@ -71,7 +66,6 @@ class UserGoal {
       achievedAt: achievedAt ?? this.achievedAt,
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -88,14 +82,12 @@ class UserGoal {
       'achievedAt': achievedAt?.toIso8601String(),
     };
   }
-
   factory UserGoal.fromMap(Map<String, dynamic> map, String docId) {
     GoalType parseType(String? val) {
       if (val == 'targetLoad') return GoalType.targetLoad;
       if (val == 'bodyWeight') return GoalType.bodyWeight;
       return GoalType.workoutFrequency;
     }
-
     return UserGoal(
       id: docId.isNotEmpty ? docId : (map['id'] as String? ?? ''),
       userId: map['userId'] as String? ?? '',

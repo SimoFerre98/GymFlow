@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gymflow/src/models/workout.dart';
-
 part 'active_session_provider.g.dart';
-
 /// Stato di una sessione di allenamento in corso.
 @immutable
 class ActiveSessionState {
@@ -13,19 +11,15 @@ class ActiveSessionState {
     this.startedAt,
     this.scheduledWorkoutId,
   });
-
   final WorkoutTemplate? workout;
   final List<WorkoutExercise> sessionExercises;
   final DateTime? startedAt;
   final String? scheduledWorkoutId;
-
   /// Restituisce true se c'è un allenamento avviato e in corso.
   bool get isActive => workout != null && startedAt != null;
-
   /// Tempo totale trascorso dall'inizio reale della sessione.
   Duration get elapsedDuration =>
       startedAt != null ? DateTime.now().difference(startedAt!) : Duration.zero;
-
   ActiveSessionState copyWith({
     WorkoutTemplate? workout,
     List<WorkoutExercise>? sessionExercises,
@@ -40,7 +34,6 @@ class ActiveSessionState {
     );
   }
 }
-
 /// Provider globale che mantiene in memoria l'allenamento attivo.
 @Riverpod(keepAlive: true)
 class ActiveSessionNotifier extends _$ActiveSessionNotifier {
@@ -48,7 +41,6 @@ class ActiveSessionNotifier extends _$ActiveSessionNotifier {
   ActiveSessionState build() {
     return const ActiveSessionState();
   }
-
   /// Avvia una nuova sessione di allenamento oppure riprende quella già in corso.
   void startOrResumeSession(
     WorkoutTemplate workout, {
@@ -58,7 +50,6 @@ class ActiveSessionNotifier extends _$ActiveSessionNotifier {
     if (state.isActive && state.workout?.id == workout.id) {
       return;
     }
-
     // Inizializza gli esercizi della scheda
     final clonedExercises = workout.exercises.map((e) {
       return WorkoutExercise(
@@ -76,7 +67,6 @@ class ActiveSessionNotifier extends _$ActiveSessionNotifier {
           } else {
             startReps = int.tryParse(repsStr) ?? 0;
           }
-
           return WorkoutSet(
             weight: e.targetWeight ?? 0,
             reps: startReps,
@@ -87,7 +77,6 @@ class ActiveSessionNotifier extends _$ActiveSessionNotifier {
         notes: e.notes,
       );
     }).toList();
-
     state = ActiveSessionState(
       workout: workout,
       sessionExercises: clonedExercises,
@@ -95,13 +84,11 @@ class ActiveSessionNotifier extends _$ActiveSessionNotifier {
       scheduledWorkoutId: scheduledWorkoutId,
     );
   }
-
   /// Aggiorna gli esercizi e le serie della sessione corrente.
   void updateSessionExercises(List<WorkoutExercise> exercises) {
     if (!state.isActive) return;
     state = state.copyWith(sessionExercises: exercises);
   }
-
   /// Termina e resetta la sessione attiva.
   void endSession() {
     state = const ActiveSessionState();

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
-
+import '../../core/theme/immersivo_tokens.dart';
 /// Un valore di una serie, impostato trascinando invece che digitando.
 ///
 /// Esiste come componente e non come tre copie perche i criteri di US-046
@@ -27,49 +25,38 @@ class SetValueSlider extends StatelessWidget {
     this.semanticUnit,
     this.onTapValue,
   });
-
   final String label;
   final double value;
   final double min;
   final double max;
-
   /// Di quanto si muove il valore a ogni scatto.
   final double step;
-
   final ValueChanged<double> onChanged;
-
   /// Colore dell'accento. Ambra per cio che si imposta, salmone per i dati
   /// vitali: sul mockup lo sforzo percepito e salmone per questo.
   final Color? color;
-
   /// Come si scrive il valore accanto all'etichetta. Di norma senza decimali.
   final String Function(double value)? formatValue;
-
   /// Unita annunciata allo screen reader: "kg", "ripetizioni", "RPE".
   ///
   /// Il criterio chiede valore **e** unita: "62,5" da solo non dice niente a
   /// chi non vede l'etichetta sopra.
   final String? semanticUnit;
-
   /// Cosa fare toccando il valore. E la via d'uscita da tastiera per i casi
   /// fuori scala, che un criterio chiede esplicitamente.
   final VoidCallback? onTapValue;
-
   String get _text => formatValue?.call(value) ?? value.toStringAsFixed(0);
-
   @override
   Widget build(BuildContext context) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     final accent = color ?? scheme.primary;
-
     // Il valore di partenza puo non essere un multiplo del passo: una serie
     // salvata a 61,3 kg resta 61,3 finche non la si tocca. Il cursore pero
     // lavora a scatti, quindi il conteggio delle divisioni parte dal minimo.
     final divisions = ((max - min) / step).round().clamp(1, 100000);
     final clamped = value.clamp(min, max);
     final sliderValue = _snap(clamped);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -144,13 +131,11 @@ class SetValueSlider extends StatelessWidget {
         ],
     );
   }
-
   String _describe(double v) {
     final bounded = v.clamp(min, max);
     final text = formatValue?.call(bounded) ?? bounded.toStringAsFixed(0);
     return semanticUnit == null ? text : '$text $semanticUnit';
   }
-
   /// Riporta il valore sul multiplo del passo piu vicino, partendo dal minimo.
   double _snap(double raw) {
     final steps = ((raw - min) / step).round();
@@ -160,26 +145,21 @@ class SetValueSlider extends StatelessWidget {
     return double.parse(snapped.toStringAsFixed(3)).clamp(min, max).toDouble();
   }
 }
-
 /// «Valore che pulsa», dal mockup 03: un balzo di scala al cambio, non un
 /// messaggio. Vale sia per il trascinamento del cursore sia per il dialog di
 /// inserimento diretto — entrambi passano da qui perche entrambi cambiano
 /// [SetValueSlider.value], e questo widget confronta solo quello.
 class _ValoreChePulsa extends StatefulWidget {
   const _ValoreChePulsa({required this.valore, required this.child});
-
   final double valore;
   final Widget child;
-
   @override
   State<_ValoreChePulsa> createState() => _ValoreChePulsaState();
 }
-
 class _ValoreChePulsaState extends State<_ValoreChePulsa>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scala;
-
   @override
   void initState() {
     super.initState();
@@ -200,7 +180,6 @@ class _ValoreChePulsaState extends State<_ValoreChePulsa>
       ),
     ]).animate(_controller);
   }
-
   @override
   void didUpdateWidget(_ValoreChePulsa old) {
     super.didUpdateWidget(old);
@@ -209,13 +188,11 @@ class _ValoreChePulsaState extends State<_ValoreChePulsa>
       _controller.forward(from: 0);
     }
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(scale: _scala, child: widget.child);

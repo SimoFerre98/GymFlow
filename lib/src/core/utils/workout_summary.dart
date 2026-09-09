@@ -1,5 +1,4 @@
 import '../../models/session.dart';
-
 /// Un esercizio della sessione, con quante serie sono finite sul totale.
 ///
 /// Non porta pesi o ripetizioni: fino a US-083 una serie pianificata non ha
@@ -13,12 +12,10 @@ class ExerciseLine {
     required this.completedSets,
     required this.totalSets,
   });
-
   final String name;
   final int completedSets;
   final int totalSets;
 }
-
 /// Dati aggregati di una sessione di allenamento per la schermata di riepilogo.
 ///
 /// Calcola volume totale, serie completate su totale, sforzo medio (RPE),
@@ -36,7 +33,6 @@ class WorkoutSummary {
     this.avgHeartRate,
     this.exercises = const [],
   });
-
   final String workoutName;
   final DateTime startTime;
   final DateTime? endTime;
@@ -46,19 +42,16 @@ class WorkoutSummary {
   final double? averageRpe;
   final int? calories;
   final int? avgHeartRate;
-
   /// Gli esercizi della sessione, nell'ordine in cui sono stati eseguiti —
   /// l'elenco che fa riconoscere l'allenamento sullo scontrino, non solo
   /// quattro numeri aggregati.
   final List<ExerciseLine> exercises;
-
   /// Durata in minuti dell'allenamento.
   int get durationMinutes {
     if (endTime == null) return 0;
     final diff = endTime!.difference(startTime).inMinutes;
     return diff > 0 ? diff : 0;
   }
-
   /// Calcola il riepilogo da una [WorkoutSession].
   ///
   /// Regole:
@@ -78,9 +71,7 @@ class WorkoutSummary {
     int rpeCount = 0;
     double setCaloriesSum = 0;
     bool hasSetCalories = false;
-
     final exerciseLines = <ExerciseLine>[];
-
     for (final exercise in session.exercises) {
       var completedPerEsercizio = 0;
       for (final set in exercise.sets) {
@@ -115,10 +106,8 @@ class WorkoutSummary {
         );
       }
     }
-
     final computedCalories =
         calories ?? (hasSetCalories ? setCaloriesSum.round() : null);
-
     return WorkoutSummary(
       // Nessun ripiego qui: e un file di calcolo e non conosce la lingua.
       // Il nome mancante lo risolve chi disegna, con una chiave tradotta.

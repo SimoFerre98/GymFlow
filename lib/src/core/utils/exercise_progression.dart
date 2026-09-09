@@ -1,14 +1,12 @@
 import 'package:flutter/foundation.dart';
 import '../../models/session.dart';
 import '../../models/workout.dart';
-
 /// Periodo di filtro per il grafico di progressione.
 enum ProgressionPeriod {
   oneMonth,
   threeMonths,
   all,
 }
-
 /// Punto nel grafico della progressione (carico massimo per sessione).
 @immutable
 class ProgressionPoint {
@@ -18,12 +16,10 @@ class ProgressionPoint {
     required this.reps,
     required this.sessionId,
   });
-
   final DateTime date;
   final double weight;
   final int reps;
   final String sessionId;
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -33,11 +29,9 @@ class ProgressionPoint {
           weight == other.weight &&
           reps == other.reps &&
           sessionId == other.sessionId;
-
   @override
   int get hashCode => Object.hash(date, weight, reps, sessionId);
 }
-
 /// Funzioni pure per calcolare l'andamento del carico massimo di un esercizio nel tempo.
 abstract class ExerciseProgression {
   /// Filtra le sessioni e ricava i punti per il grafico di progressione dell'esercizio.
@@ -54,7 +48,6 @@ abstract class ExerciseProgression {
     DateTime? referenceDate,
   }) {
     final refDate = referenceDate ?? DateTime.now();
-
     final filteredByDate = sessions.where((session) {
       final startTime = session.startTime;
       return switch (period) {
@@ -65,14 +58,11 @@ abstract class ExerciseProgression {
         ProgressionPeriod.all => true,
       };
     });
-
     final points = <ProgressionPoint>[];
-
     for (final session in filteredByDate) {
       double maxWeight = 0.0;
       int maxReps = 0;
       bool foundValidSet = false;
-
       for (final ex in session.exercises) {
         if (ex.exerciseId == exerciseId) {
           for (final set in ex.sets) {
@@ -88,7 +78,6 @@ abstract class ExerciseProgression {
           }
         }
       }
-
       if (foundValidSet) {
         points.add(
           ProgressionPoint(
@@ -100,12 +89,10 @@ abstract class ExerciseProgression {
         );
       }
     }
-
     // Ordinati in ordine cronologico crescente
     points.sort((a, b) => a.date.compareTo(b.date));
     return points;
   }
-
   /// Trova l'ultima sessione (in ordine cronologico decrescente) che contiene l'esercizio.
   static WorkoutSession? getLastSession({
     required List<WorkoutSession> sessions,
@@ -114,13 +101,10 @@ abstract class ExerciseProgression {
     final matchingSessions = sessions.where((session) {
       return session.exercises.any((ex) => ex.exerciseId == exerciseId);
     }).toList();
-
     if (matchingSessions.isEmpty) return null;
-
     matchingSessions.sort((a, b) => b.startTime.compareTo(a.startTime));
     return matchingSessions.first;
   }
-
   /// Trova la combinazione di serie per l'esercizio nell'ultima sessione.
   static WorkoutExercise? getLastExerciseData({
     required WorkoutSession session,

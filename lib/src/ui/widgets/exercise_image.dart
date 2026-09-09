@@ -1,26 +1,20 @@
 import 'dart:math' as math;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
-
-import '../../core/theme/expressive_tokens.dart';
+import '../../core/theme/immersivo_tokens.dart';
 import '../../core/theme/muscle_group_visuals.dart';
 import '../../models/exercise.dart';
-
 /// Costruisce il provider di un indirizzo. Iniettabile per i test.
 typedef ExerciseImageProviderFactory = ImageProvider Function(String url);
-
 /// Quale catena seguire: la miniatura delle liste o l'immagine grande.
 enum ExerciseImageSize {
   /// Miniature: una sola qualita YouTube, la piu leggera fra quelle nitide.
   thumbnail,
-
   /// Immagine piena: prova la risoluzione massima e ripiega su quella che
   /// esiste sempre.
   hero,
 }
-
 /// L'immagine di un esercizio, qualunque materiale ci sia.
 ///
 /// Cammina la catena di ripiego — foto dell'utente, immagine curata, miniatura
@@ -44,12 +38,9 @@ class ExerciseImage extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.imageProviderFactory,
   });
-
   final Exercise exercise;
-
   /// Quale delle due catene seguire.
   final ExerciseImageSize size;
-
   /// Larghezza logica a cui decodificare l'immagine.
   ///
   /// Una miniatura di YouTube e larga 480 pixel; decodificarla intera per
@@ -57,9 +48,7 @@ class ExerciseImage extends StatefulWidget {
   /// servono. Passare la larghezza reale e cio che rende scorrevole una lista
   /// lunga.
   final double? decodeWidth;
-
   final BoxFit fit;
-
   /// Come si ottiene un `ImageProvider` da un indirizzo.
   ///
   /// Di norma resta nullo e vale [defaultProviderFactory], che usa la cache su
@@ -67,7 +56,6 @@ class ExerciseImage extends StatefulWidget {
   /// richiederebbe rete e canali di piattaforma, e finirebbe per misurare la
   /// libreria di cache invece del nostro ripiego.
   final ExerciseImageProviderFactory? imageProviderFactory;
-
   /// Provider predefinito: asset locale se il candidato e bundlato con l'app
   /// (percorso `assets/...`), altrimenti cache su disco condivisa da tutta
   /// l'app.
@@ -75,29 +63,23 @@ class ExerciseImage extends StatefulWidget {
     if (url.startsWith('assets/')) return AssetImage(url);
     return CachedNetworkImageProvider(url);
   }
-
   @override
   State<ExerciseImage> createState() => _ExerciseImageState();
 }
-
 class _ExerciseImageState extends State<ExerciseImage> {
   late List<String> _candidates = _candidatesOf(widget);
-
   /// Anello corrente. Cresce e non torna indietro: quando supera la lista, il
   /// segnaposto e definitivo e non si riprova all'infinito.
   int _attempt = 0;
-
   /// Vero fra la scoperta di un errore e il ricostruire che ne consegue, per
   /// non contare due volte lo stesso fallimento.
   bool _advancing = false;
-
   static List<String> _candidatesOf(ExerciseImage widget) {
     return switch (widget.size) {
       ExerciseImageSize.thumbnail => widget.exercise.thumbnailCandidates,
       ExerciseImageSize.hero => widget.exercise.heroCandidates,
     };
   }
-
   @override
   void didUpdateWidget(covariant ExerciseImage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -111,7 +93,6 @@ class _ExerciseImageState extends State<ExerciseImage> {
       _advancing = false;
     }
   }
-
   /// Passa all'anello successivo, dopo il frame in corso.
   ///
   /// L'errore arriva durante la costruzione dell'albero, quando `setState` non
@@ -119,7 +100,6 @@ class _ExerciseImageState extends State<ExerciseImage> {
   void _advanceFrom(String failed) {
     if (_advancing) return;
     _advancing = true;
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         _advancing = false;
@@ -133,13 +113,10 @@ class _ExerciseImageState extends State<ExerciseImage> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final placeholder = ExercisePlaceholder.of(widget.exercise);
-
     if (_attempt >= _candidates.length) return placeholder;
-
     final url = _candidates[_attempt];
     final factory =
         widget.imageProviderFactory ?? ExerciseImage.defaultProviderFactory;
@@ -150,7 +127,6 @@ class _ExerciseImageState extends State<ExerciseImage> {
         ? null
         : (decodeWidth * MediaQuery.devicePixelRatioOf(context)).round();
     final provider = ResizeImage.resizeIfNeeded(pixels, null, factory(url));
-
     return Image(
       // Un elemento nuovo per ogni anello. Senza la chiave, `Image` riusa lo
       // stesso stato e con esso l'eccezione dell'anello precedente: il suo
@@ -179,8 +155,8 @@ class _ExerciseImageState extends State<ExerciseImage> {
             placeholder,
             AnimatedOpacity(
               opacity: frame == null ? 0 : 1,
-              duration: context.expressive.motion.quick,
-              curve: context.expressive.motion.enter,
+              duration: context.immersivo.motion.quick,
+              curve: context.immersivo.motion.enter,
               child: child,
             ),
           ],
@@ -189,7 +165,6 @@ class _ExerciseImageState extends State<ExerciseImage> {
     );
   }
 }
-
 /// L'ultimo anello della catena: cosa si vede quando non c'e nessuna immagine.
 ///
 /// Per due terzi della libreria curata questo **e** l'immagine dell'esercizio:
@@ -198,7 +173,6 @@ class _ExerciseImageState extends State<ExerciseImage> {
 /// del corpo, la sagoma dice il gruppo muscolare.
 class ExercisePlaceholder extends StatelessWidget {
   const ExercisePlaceholder({super.key, required this.region});
-
   /// Segnaposto di un esercizio, con la regione dedotta dai suoi gruppi.
   factory ExercisePlaceholder.of(Exercise exercise, {Key? key}) {
     return ExercisePlaceholder(
@@ -209,13 +183,10 @@ class ExercisePlaceholder extends StatelessWidget {
       ),
     );
   }
-
   final BodyRegion region;
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         // In un riquadro senza limiti il segnaposto si dimensiona sulla sagoma
@@ -224,7 +195,6 @@ class ExercisePlaceholder extends StatelessWidget {
           constraints.hasBoundedWidth ? constraints.maxWidth : 48.0,
           constraints.hasBoundedHeight ? constraints.maxHeight : 48.0,
         );
-
         return DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(

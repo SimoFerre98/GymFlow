@@ -3,19 +3,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/user_goal.dart';
 import '../../models/session.dart';
-
 part 'goals_provider.g.dart';
-
 @Riverpod(keepAlive: true)
 class UserGoalsNotifier extends _$UserGoalsNotifier {
   static const _goalsStorageKey = 'user_goals_v1';
-
   @override
   List<UserGoal> build() {
     _loadFromPrefs();
     return _defaultGoals();
   }
-
   List<UserGoal> _defaultGoals() {
     final now = DateTime.now();
     return [
@@ -41,7 +37,6 @@ class UserGoalsNotifier extends _$UserGoalsNotifier {
       ),
     ];
   }
-
   Future<void> _loadFromPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -57,7 +52,6 @@ class UserGoalsNotifier extends _$UserGoalsNotifier {
       }
     } catch (_) {}
   }
-
   Future<void> _saveToPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -65,27 +59,21 @@ class UserGoalsNotifier extends _$UserGoalsNotifier {
       await prefs.setString(_goalsStorageKey, jsonEncode(jsonList));
     } catch (_) {}
   }
-
   void addGoal(UserGoal goal) {
     state = [...state, goal];
     _saveToPrefs();
   }
-
   void removeGoal(String id) {
     state = state.where((g) => g.id != id).toList();
     _saveToPrefs();
   }
-
   void updateProgressFromSessions(List<WorkoutSession> sessions) {
     if (sessions.isEmpty) return;
-
     final now = DateTime.now();
     final oneWeekAgo = now.subtract(const Duration(days: 7));
     final recentSessionsCount = sessions.where((s) => s.startTime.isAfter(oneWeekAgo)).length.toDouble();
-
     final updated = state.map((goal) {
       if (goal.isAchieved) return goal;
-
       if (goal.type == GoalType.workoutFrequency) {
         final achieved = recentSessionsCount >= goal.targetValue;
         return goal.copyWith(
@@ -114,7 +102,6 @@ class UserGoalsNotifier extends _$UserGoalsNotifier {
       }
       return goal;
     }).toList();
-
     state = updated;
     _saveToPrefs();
   }

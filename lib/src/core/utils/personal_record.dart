@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../models/session.dart';
 import '../../models/workout.dart';
-
 /// Un record personale storico su un esercizio.
 @immutable
 class PersonalBest {
@@ -12,13 +11,11 @@ class PersonalBest {
     required this.reps,
     required this.date,
   });
-
   final String exerciseId;
   final String exerciseName;
   final double weight;
   final int reps;
   final DateTime date;
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -28,11 +25,9 @@ class PersonalBest {
           weight == other.weight &&
           reps == other.reps &&
           date == other.date;
-
   @override
   int get hashCode => Object.hash(exerciseId, weight, reps, date);
 }
-
 /// Il miglioramento rispetto al massimo storico precedente.
 @immutable
 class PersonalRecord {
@@ -45,7 +40,6 @@ class PersonalRecord {
     this.previousReps,
     this.previousDate,
   });
-
   final String exerciseId;
   final String exerciseName;
   final double newWeight;
@@ -53,9 +47,7 @@ class PersonalRecord {
   final double previousWeight;
   final int? previousReps;
   final DateTime? previousDate;
-
   double get diffWeight => newWeight - previousWeight;
-
   /// Riconosce un record personale.
   ///
   /// Regola: è record il carico più alto mai sollevato per almeno una ripetizione.
@@ -76,11 +68,9 @@ class PersonalRecord {
     int? previousReps,
   }) {
     if (candidate.weight <= 0 || candidate.reps < 1) return null;
-
     final validHistory =
         history.where((s) => s.weight > 0 && s.reps >= 1).toList();
     if (validHistory.isEmpty) return null;
-
     var maxWeight = 0.0;
     int? maxReps;
     for (final set in validHistory) {
@@ -89,10 +79,8 @@ class PersonalRecord {
         maxReps = set.reps;
       }
     }
-
     if (maxWeight <= 0) return null;
     if (candidate.weight <= maxWeight) return null;
-
     return PersonalRecord(
       exerciseId: exerciseId,
       exerciseName: exerciseName,
@@ -103,7 +91,6 @@ class PersonalRecord {
       previousDate: previousDate,
     );
   }
-
   /// Riconosce un record partendo da un [PersonalBest] precedente.
   static PersonalRecord? detectFromBest({
     required String exerciseId,
@@ -115,7 +102,6 @@ class PersonalRecord {
     if (candidate.weight <= 0 || candidate.reps < 1) return null;
     if (previousBest.weight <= 0) return null;
     if (candidate.weight <= previousBest.weight) return null;
-
     return PersonalRecord(
       exerciseId: exerciseId,
       exerciseName:
@@ -127,16 +113,13 @@ class PersonalRecord {
       previousDate: previousBest.date,
     );
   }
-
   /// Calcola i massimi storici per ogni esercizio da tutte le sessioni passate.
   static Map<String, PersonalBest> calculatePersonalBests(
     List<WorkoutSession> sessions,
   ) {
     final map = <String, PersonalBest>{};
-
     final sorted = List<WorkoutSession>.from(sessions)
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
-
     for (final session in sorted) {
       for (final ex in session.exercises) {
         for (final set in ex.sets) {
@@ -155,10 +138,8 @@ class PersonalRecord {
         }
       }
     }
-
     return map;
   }
-
   /// Riconosce tutti i record battuti in una specifica sessione rispetto allo storico precedente.
   static List<PersonalRecord> detectSessionRecords({
     required WorkoutSession session,
@@ -173,14 +154,11 @@ class PersonalRecord {
                       s.id.compareTo(session.id) < 0)),
         )
         .toList();
-
     final priorBests = calculatePersonalBests(priorSessions);
     final records = <PersonalRecord>[];
-
     for (final ex in session.exercises) {
       final priorBest = priorBests[ex.exerciseId];
       if (priorBest == null) continue;
-
       WorkoutSet? bestSet;
       for (final set in ex.sets) {
         if (set.isCompleted && set.weight > 0 && set.reps >= 1) {
@@ -189,7 +167,6 @@ class PersonalRecord {
           }
         }
       }
-
       if (bestSet != null) {
         final record = detectFromBest(
           exerciseId: ex.exerciseId,
@@ -202,7 +179,6 @@ class PersonalRecord {
         }
       }
     }
-
     return records;
   }
 }

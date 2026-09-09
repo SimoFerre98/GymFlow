@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/services/auth_service.dart';
@@ -12,18 +12,16 @@ import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
-
 /// Altezza della fila di pastiglie colore: geometria di questa schermata.
 const double _kAltezzaSelettoreColore = 50;
-
+const double _kTitleFontSize = 26;
+const double _kIconBoxSide = 36;
 class ProgramCreatorScreen extends ConsumerStatefulWidget {
   final WorkoutProgram? program;
   const ProgramCreatorScreen({super.key, this.program});
-
   @override
   ConsumerState<ProgramCreatorScreen> createState() => _ProgramCreatorScreenState();
 }
-
 class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
@@ -32,7 +30,6 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   DateTime? _endDate;
   int _selectedColor = AppPalette.defaultProgramColor;
   bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -44,14 +41,12 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
     _endDate = widget.program?.endDate;
     _selectedColor = widget.program?.color ?? AppPalette.defaultProgramColor;
   }
-
   @override
   void dispose() {
     _nameController.dispose();
     _descController.dispose();
     super.dispose();
   }
-
   Future<void> _pickDateRange() async {
     final picked = await showDateRangePicker(
       context: context,
@@ -61,7 +56,6 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
           ? DateTimeRange(start: _startDate!, end: _endDate!)
           : null,
     );
-
     if (picked != null) {
       setState(() {
         _startDate = picked.start;
@@ -69,15 +63,12 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
       });
     }
   }
-
   Future<void> _saveProgram() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
     try {
       final user = AuthService().currentUser;
       if (user == null) throw Exception('User not logged in');
-
       final program = WorkoutProgram(
         id: widget.program?.id ?? '',
         userId: user.uid,
@@ -90,9 +81,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
         endDate: _endDate,
         color: _selectedColor,
       );
-
       await FirestoreService().saveProgram(program);
-
       if (mounted) {
         ToastUtils.showSuccess(context, ref.read(localizationNotifierProvider).t('program_saved_success'));
         Navigator.pop(context);
@@ -108,29 +97,55 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.program == null
-              ? loc.t('new_program')
-              : loc.t('edit_program'),
-        ),
-        leading: BackPill(label: loc.t('programs_tab')),
-        leadingWidth: BackPill.leadingWidth,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _isLoading ? null : _saveProgram,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
+              child: Row(
+                children: [
+                  BackPill(label: loc.t('programs_tab')),
+                  SizedBox(width: t.spacing.md),
+                  Text(
+                    (widget.program == null
+                            ? loc.t('new_program')
+                            : loc.t('edit_program'))
+                        .toUpperCase(),
+                    style: t.typography.headline?.copyWith(
+                      fontSize: _kTitleFontSize,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  InkWell(
+                    onTap: _isLoading ? null : _saveProgram,
+                    child: Container(
+                      width: _kIconBoxSide,
+                      height: _kIconBoxSide,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: scheme.surfaceContainerHigh,
+                        border: Border.all(color: scheme.outline),
+                      ),
+                      child: Icon(Icons.check, size: 18, color: scheme.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
         padding: EdgeInsets.all(t.spacing.md),
         child: Form(
           key: _formKey,
@@ -142,31 +157,22 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                 title: loc.t('basic_info'),
                 child: Column(
                   children: [
-                    TextFormField(
+                    _buildField(
                       controller: _nameController,
-                      decoration: InputDecoration(
-                      labelText: loc.t('program_name'),
-                        hintText: loc.t('program_name_hint'),
-                        border: const OutlineInputBorder(),
-                      ),
+                      label: loc.t('program_name'),
                       validator: (v) =>
                           v == null || v.isEmpty ? loc.t('name_required') : null,
                     ),
                     SizedBox(height: t.spacing.md),
-                    TextFormField(
+                    _buildField(
                       controller: _descController,
-                      decoration: InputDecoration(
-                      labelText: loc.t('description_label'),
-                        hintText: loc.t('description_hint'),
-                        border: const OutlineInputBorder(),
-                      ),
+                      label: loc.t('description_label'),
                       maxLines: 3,
                     ),
                   ],
                 ),
               ),
               SizedBox(height: t.spacing.md),
-
               _buildSection(
                 title: loc.t('color_label'),
                 child: SizedBox(
@@ -183,7 +189,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                           margin: EdgeInsets.only(right: t.spacing.sm),
                           decoration: BoxDecoration(
                             color: Color(color),
-                            shape: BoxShape.circle,
+                            borderRadius: t.shape.cornerXs,
                             border: isSelected
                                 ? Border.all(color: scheme.onSurface, width: 3)
                                 : null,
@@ -205,7 +211,6 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                 ),
               ),
               SizedBox(height: t.spacing.md),
-
               // Duration Card
               _buildSection(
                 title: loc.t('duration_section'),
@@ -248,9 +253,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                   ),
                 ),
               ),
-
               SizedBox(height: t.spacing.xl),
-
               // Days Section (Workouts)
               if (widget.program != null)
                 StreamBuilder<
@@ -268,21 +271,16 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-
                     final currentProgram = snapshot.data!.program;
                     final allWorkouts = snapshot.data!.workouts;
-
                     final programWorkouts = <WorkoutTemplate>[];
-
                     final workoutMap = {for (var w in allWorkouts) w.id: w};
-
                     // 1. Get ordered workouts from explicit list
                     for (var id in currentProgram.workoutIds) {
                       if (workoutMap.containsKey(id)) {
                         programWorkouts.add(workoutMap[id]!);
                       }
                     }
-
                     // 2. Find orphans (workouts pointing to this program but not in list)
                     final linkedWorkouts = allWorkouts
                         .where((w) => w.parentProgramId == currentProgram.id)
@@ -293,16 +291,12 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                         // Optional: Auto-repair could happen here or on reorder
                       }
                     }
-
                     return Column(
                       children: [
                         if (programWorkouts.isEmpty)
                           Container(
                             padding: EdgeInsets.all(t.spacing.lg),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: scheme.outline),
-                              borderRadius: t.shape.cornerSm,
-                            ),
+                            decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
                             child: Center(
                               child: Text(loc.t('no_days_added')),
                             ),
@@ -311,14 +305,12 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                           ReorderableListView(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            onReorder: (oldIndex, newIndex) async {
-                              if (oldIndex < newIndex) newIndex -= 1;
+                            onReorderItem: (oldIndex, newIndex) async {
                               final ids = List<String>.from(
                                 currentProgram.workoutIds,
                               );
                               final item = ids.removeAt(oldIndex);
                               ids.insert(newIndex, item);
-
                               final updated = WorkoutProgram(
                                 id: currentProgram.id,
                                 userId: currentProgram.userId,
@@ -335,24 +327,12 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                             },
                             children: [
                               for (final workout in programWorkouts)
-                                Card(
+                                DecoratedBox(
                                   key: ValueKey(workout.id),
-                                  margin: EdgeInsets.symmetric(
-                                    vertical: t.spacing.xs,
+                                  decoration: BoxDecoration(
+                                    border: Border(top: BorderSide(color: scheme.outline)),
                                   ),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: scheme.surfaceContainer,
-                                      child: Text(
-                                        '${programWorkouts.indexOf(workout) + 1}',
-                                        style: TextStyle(color: scheme.onSurface),
-                                      ),
-                                    ),
-                                    title: Text(workout.name),
-                                    subtitle: Text(
-                                      '${workout.exercises.length} Exercises',
-                                    ),
-                                    trailing: const Icon(Icons.drag_handle),
+                                  child: InkWell(
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -364,33 +344,84 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                                         ),
                                       );
                                     },
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(vertical: t.spacing.sm),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: t.sizing.thumbnailSm,
+                                            height: t.sizing.thumbnailSm,
+                                            alignment: Alignment.center,
+                                            color: scheme.surfaceContainerHigh,
+                                            child: Text(
+                                              '${programWorkouts.indexOf(workout) + 1}',
+                                              style: t.typography.metricSmall?.copyWith(color: scheme.onSurface),
+                                            ),
+                                          ),
+                                          SizedBox(width: t.spacing.md),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  workout.name,
+                                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${workout.exercises.length} ${loc.t('exercises_label')}',
+                                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                    color: scheme.onSurfaceVariant,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Icon(Icons.drag_handle, color: scheme.onSurfaceVariant),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                             ],
                           ),
                         SizedBox(height: t.spacing.sm),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => WorkoutCreatorScreen(
-                                    parentProgramId: currentProgram.id,
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => WorkoutCreatorScreen(
+                                  parentProgramId: currentProgram.id,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(vertical: t.spacing.md),
+                            decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add, color: scheme.primary),
+                                SizedBox(width: t.spacing.sm),
+                                Text(
+                                  loc.t('add_workout_day'),
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: scheme.primary,
                                   ),
                                 ),
-                              );
-                            },
-                            icon: const Icon(Icons.add),
-                            label: Text(loc.t('add_workout_day')),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     );
                   },
                 ),
-
               if (widget.program == null)
                 Center(
                   child: Padding(
@@ -404,14 +435,45 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
             ],
           ),
         ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-
-  Widget _buildSection({required String title, required Widget child}) {
-    final t = context.expressive;
+  Widget _buildField({
+    required TextEditingController controller,
+    required String label,
+    String? Function(String?)? validator,
+    int maxLines = 1,
+  }) {
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        border: Border(left: BorderSide(color: scheme.outline, width: 3)),
+      ),
+      child: TextFormField(
+        controller: controller,
+        validator: validator,
+        maxLines: maxLines,
+        style: Theme.of(context).textTheme.bodyLarge,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.all(t.spacing.md),
+          labelText: label,
+          suffixIcon: maxLines == 1
+              ? Icon(Icons.edit_outlined, size: t.sizing.iconSm, color: scheme.onSurfaceVariant)
+              : null,
+        ),
+      ),
+    );
+  }
+  Widget _buildSection({required String title, required Widget child}) {
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -428,4 +490,3 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
     );
   }
 }
-

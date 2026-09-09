@@ -1,752 +1,329 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/models/user_profile.dart';
-import 'package:gymflow/src/ui/screens/profile_screen.dart';
-import 'package:gymflow/src/ui/screens/body_measurements_screen.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:gymflow/src/core/providers/theme_provider.dart';
-import 'package:gymflow/src/core/theme/app_palette.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
-import 'package:gymflow/src/ui/widgets/toast_utils.dart';
-import 'package:gymflow/src/ui/widgets/app_drawer.dart';
-import 'package:gymflow/src/services/health_service.dart';
-import 'package:gymflow/src/core/providers/localization_provider.dart'; // Added
-import 'package:gymflow/src/core/providers/timer_settings_provider.dart';
-
-/// Altezza del dialogo di scelta della posizione: geometria di questo
-/// dialogo, non una spaziatura condivisa.
-const double _kAltezzaDialogoMappa = 400;
-
+import '../../core/providers/localization_provider.dart';
+import '../../core/providers/theme_provider.dart';
+import '../../core/providers/timer_settings_provider.dart';
+import '../../core/theme/app_palette.dart';
+import '../../core/theme/immersivo_tokens.dart';
+import '../../models/user_profile.dart';
+import '../../services/auth_service.dart';
+import '../../services/health_service.dart';
+import '../widgets/timer_aurora.dart';
+import '../widgets/toast_utils.dart';
+import 'appearance_settings_screen.dart';
+import 'body_measurements_screen.dart';
+import 'general_settings_screen.dart';
+import 'gym_settings_screen.dart';
+import 'profile_screen.dart';
+import 'timer_settings_screen.dart';
+/// Misure del mockup 3a Impostazioni indice (telaio 1:1, nessuna conversione
+/// px→dp).
+const double _kTitleFontSize = 28;
+const double _kAvatarRadius = 26;
+/// Indice delle impostazioni: solo navigazione verso le schermate dedicate
+/// (Aspetto, Timer, Palestra, Generali) piu tre azioni reali dirette
+/// (profilo, misure corporee, abbonamento) e il tasto per uscire.
+///
+/// Il mockup mostra anche un interruttore "Notifiche": nessun servizio di
+/// notifiche push esiste in questo progetto (niente `firebase_messaging` ne
+/// canale locale a parte quello del timer, gia gestito altrove) — l'unico
+/// stato che lo sosteneva era una variabile locale che non veniva letta da
+/// nessuna parte, quindi e stato tolto invece di restare un interruttore che
+/// non fa nulla.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
-
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
-
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // Mock settings state for now
-  bool _notificationsEnabled = true;
-
-  final TextEditingController _gymNameController = TextEditingController();
-  final TextEditingController _gymAddressController = TextEditingController();
-  double? _gymLat;
-  double? _gymLng;
-  DateTime? _subscriptionExpiry;
-
-  /// Vero mentre `_saveGymInfo` e in corso: disabilita il pulsante di
-  /// aggiornamento, cosi un secondo tocco durante il salvataggio non parte
-  /// una seconda scrittura.
-  bool _isSaving = false;
-
-  @override
-  void dispose() {
-    _gymNameController.dispose();
-    _gymAddressController.dispose();
-    super.dispose();
+  bool _isSavingSubscription = false;
+  Future<void> _pickSubscriptionDate(UserProfile? profile) async {
+    final loc = ref.read(localizationNotifierProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: profile?.subscriptionExpiry ?? today.add(const Duration(days: 30)),
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 365 * 5)),
+    );
+    if (picked == null) return;
+    setState(() => _isSavingSubscription = true);
+    try {
+      var updatedSource = profile;
+      if (updatedSource == null) {
+        final authUser = AuthService().currentUser;
+        if (authUser == null) return;
+        updatedSource = UserProfile(
+          id: authUser.uid,
+          email: authUser.email ?? '',
+          displayName: authUser.displayName ?? loc.t('default_user_name'),
+          createdAt: DateTime.now(),
+        );
+      }
+      await AuthService().updateUserProfile(
+        updatedSource.copyWith(subscriptionExpiry: picked),
+      );
+      if (mounted) ToastUtils.showSuccess(context, loc.t('gym_info_saved'));
+    } catch (e) {
+      if (mounted) ToastUtils.showError(context, '${loc.t('info_save_error')}: $e');
+    } finally {
+      if (mounted) setState(() => _isSavingSubscription = false);
+    }
   }
-
   @override
   Widget build(BuildContext context) {
-    // 1. Get Providers
     final loc = ref.watch(localizationNotifierProvider);
     final theme = ref.watch(themeSettingsNotifierProvider);
-    final themeNotifier = ref.read(themeSettingsNotifierProvider.notifier);
     final timerSettings = ref.watch(timerSettingsNotifierProvider);
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-    final t = context.expressive;
-
-    // Preset del colore delle azioni. Ognuno supera WCAG AA sulle superfici
-    // scure: la scelta e libera dentro un insieme che non produce testo
-    // illeggibile. Verificato da test/contrast_test.dart
-    final List<Color> colorPresets = theme.themeStyle.accentPresets;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.t('settings_title')),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: const AppDrawer(),
-      body: StreamBuilder<UserProfile?>(
-        stream: AuthService().getUserProfileStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final profile = snapshot.data;
-
-          if (profile != null && _gymNameController.text.isEmpty) {
-            _gymNameController.text = profile.gymName ?? '';
-            _gymAddressController.text = profile.gymAddress ?? '';
-            _gymLat = profile.gymLat;
-            _gymLng = profile.gymLng;
-            _subscriptionExpiry = profile.subscriptionExpiry;
-          }
-
-          return ListView(
-            padding: EdgeInsets.all(t.spacing.xl),
-            children: [
-              // 1. Account Section
-              _buildSectionHeader(context, loc.t('account_section')),
-              _buildSettingsCard(
-                context,
-                children: [
-                  _buildSettingsTile(
-                    context,
-                    title: loc.t('my_profile'),
-                    subtitle: profile?.displayName ?? loc.t('guest_user'),
-                    icon: Icons.person_outline,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  _buildSettingsTile(
-                    context,
-                    title: loc.t('body_measurements'),
-                    subtitle: loc.t('track_progress'),
-                    icon: Icons.monitor_weight_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const BodyMeasurementsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  _buildSettingsTile(
-                    context,
-                    title: loc.t('subscription'),
-                    subtitle: _subscriptionExpiry == null
-                        ? loc.t('free_plan')
-                        : '${loc.t('expires')}: ${_subscriptionExpiry!.toString().split(' ')[0]}',
-                    icon: Icons.star_outline,
-                    trailing: _subscriptionExpiry != null
-                        ? _buildBadgeAbbonamento(context, scheme, t)
-                        : null,
-                    onTap: () async {
-                      final now = DateTime.now();
-                      final today = DateTime(now.year, now.month, now.day);
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate:
-                            _subscriptionExpiry ??
-                            today.add(const Duration(days: 30)),
-                        firstDate: today, // Allows selecting today
-                        lastDate: today.add(const Duration(days: 365 * 5)),
-                      );
-                      if (picked != null) {
-                        setState(() => _subscriptionExpiry = picked);
-                        _saveGymInfo();
-                      }
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xl),
-
-              // 2. Gym Section
-              _buildSectionHeader(context, loc.t('gym_settings_section')),
-              _buildSettingsCard(
-                context,
-                children: [
-                  ExpansionTile(
-                    leading: _buildLeadingIcona(context, scheme, t, Icons.fitness_center),
-                    title: Text(
-                      loc.t('gym_details'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    subtitle: Text(
-                      _gymNameController.text.isNotEmpty
-                          ? _gymNameController.text
-                          : loc.t('set_name_address'),
-                    ),
-                    childrenPadding: EdgeInsets.all(t.spacing.md),
-                    tilePadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    shape: const Border(),
-                    children: [
-                      TextField(
-                        controller: _gymNameController,
-                        decoration: InputDecoration(
-                          labelText: loc.t('gym_name_label'),
-                          prefixIcon: const Icon(Icons.business),
-                        ),
-                      ),
-                      SizedBox(height: t.spacing.sm),
-                      TextField(
-                        controller: _gymAddressController,
-                        decoration: InputDecoration(
-                          labelText: loc.t('address_label'),
-                          prefixIcon: const Icon(Icons.place),
-                        ),
-                      ),
-                      SizedBox(height: t.spacing.md),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isSaving ? null : _saveGymInfo,
-                          child: _isSaving
-                              ? SizedBox(
-                                  width: t.sizing.iconSm,
-                                  height: t.sizing.iconSm,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: scheme.onPrimary,
-                                  ),
-                                )
-                              : Text(loc.t('update_info_btn')),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  _buildSettingsTile(
-                    context,
-                    title: loc.t('gym_location'),
-                    subtitle: _gymLat != null
-                        ? loc.t('location_pinned')
-                        : loc.t('tap_to_set'),
-                    icon: Icons.map_outlined,
-                    onTap: _showMapPicker,
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xl),
-
-              // Integrations
-              _buildSectionHeader(context, loc.t('integrations_section')),
-              _buildSettingsCard(
-                context,
-                children: [
-                  _buildSettingsTile(
-                    context,
-                    title: 'Google Fit / Health Connect',
-                    subtitle: loc.t('sync_steps'),
-                    icon: Icons.health_and_safety,
-                    onTap: () async {
-                      bool success = await HealthService().requestPermissions();
-                      if (context.mounted) {
-                        if (success) {
-                          ToastUtils.showSuccess(
-                            context,
-                            loc.t('permissions_granted'),
-                          );
-                        } else {
-                          // Allow user to check permissions
-                        }
-                      }
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xl),
-
-              // 3. Preferences Section
-              _buildSectionHeader(context, loc.t('preferences_section')),
-              _buildSettingsCard(
-                context,
-                children: [
-                  // Language Selection
-                  ListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    leading: _buildLeadingIcona(context, scheme, t, Icons.language),
-                    title: Text(
-                      loc.t('language'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    trailing: DropdownButton<String>(
-                      value: loc.locale.languageCode,
-                      underline: const SizedBox(),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'it',
-                          child: Text('🇮🇹 Italiano'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'en',
-                          child: Text('🇬🇧 English'),
-                        ),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          ref
-                              .read(localizationNotifierProvider.notifier)
-                              .setLocale(Locale(val));
-                        }
-                      },
-                    ),
-                  ),
-
-                  // App Visual Style Selector
-                  ListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.sm,
-                    ),
-                    leading: Container(
-                      padding: EdgeInsets.all(t.spacing.sm),
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: t.shape.cornerSm,
-                      ),
-                      child: Icon(Icons.palette_outlined, color: theme.primaryColor),
-                    ),
-                    title: Text(
-                      loc.t('theme_style_label'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: EdgeInsets.only(top: t.spacing.sm),
-                      child: SizedBox(
-                        height: 72,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: AppThemeStyle.values.map((style) {
-                            final isSelected = theme.themeStyle == style;
-                            return GestureDetector(
-                              onTap: () => themeNotifier.setThemeStyle(style),
-                              child: Container(
-                                width: 140,
-                                margin: EdgeInsets.only(
-                                  right: t.spacing.sm,
-                                  bottom: t.spacing.xs,
-                                ),
-                                padding: EdgeInsets.all(t.spacing.sm),
-                                decoration: BoxDecoration(
-                                  color: style.darkSurface,
-                                  borderRadius: t.shape.cornerMd,
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? scheme.primary
-                                        : style.darkOutline,
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                  boxShadow: isSelected
-                                      ? t.elevation.level1(scheme.primary)
-                                      : null,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            loc.t(style.labelKey),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppPalette.paper,
-                                                ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        if (isSelected)
-                                          Icon(
-                                            Icons.check_circle,
-                                            size: t.sizing.iconSm,
-                                            color: style.defaultAccent,
-                                          ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 14,
-                                          height: 14,
-                                          decoration: BoxDecoration(
-                                            color: style.darkBackground,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: scheme.outlineVariant,
-                                              width: 1,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: t.spacing.xs),
-                                        Container(
-                                          width: 14,
-                                          height: 14,
-                                          decoration: BoxDecoration(
-                                            color: style.darkSurfaceHigh,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        SizedBox(width: t.spacing.xs),
-                                        Container(
-                                          width: 14,
-                                          height: 14,
-                                          decoration: BoxDecoration(
-                                            color: style.defaultAccent,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        SizedBox(width: t.spacing.xs),
-                                        Container(
-                                          width: 14,
-                                          height: 14,
-                                          decoration: BoxDecoration(
-                                            color: style.defaultTertiary,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Subcolor / Accent Color Picker
-                  ListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.sm,
-                    ),
-                    leading: Container(
-                      padding: EdgeInsets.all(t.spacing.sm),
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: t.shape.cornerSm,
-                      ),
-                      child: Icon(Icons.color_lens, color: theme.primaryColor),
-                    ),
-                    title: Text(
-                      loc.t('accent_color_label'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    subtitle: SizedBox(
-                      height: t.sizing.thumbnailSm,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: colorPresets.map((color) {
-                          final isSelected =
-                              theme.primaryColor.toARGB32() ==
-                              color.toARGB32();
-                          return GestureDetector(
-                            onTap: () => themeNotifier.setPrimaryColor(color),
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                right: t.spacing.sm,
-                                top: t.spacing.xs,
-                              ),
-                              width: t.sizing.iconLg + t.spacing.sm,
-                              height: t.sizing.iconLg + t.spacing.sm,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                                border: isSelected
-                                    ? Border.all(
-                                        color: scheme.onSurface,
-                                        width: 2,
-                                      )
-                                    : null,
-                                boxShadow: t.elevation.level1(color),
-                              ),
-                              child: isSelected
-                                  ? Icon(
-                                      Icons.check,
-                                      size: t.sizing.iconSm,
-                                      color: theme.themeStyle.darkBackground,
-                                    )
-                                  : null,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: TimerAurora()),
+          SafeArea(
+            child: StreamBuilder<UserProfile?>(
+              stream: AuthService().getUserProfileStream(),
+              builder: (context, snapshot) {
+                final profile = snapshot.data;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
+                      child: Row(
+                        children: [
+                          Text(
+                            loc.t('settings_title').toUpperCase(),
+                            style: t.typography.headline?.copyWith(
+                              fontSize: _kTitleFontSize,
+                              color: scheme.onSurface,
                             ),
-                          );
-                        }).toList(),
+                          ),
+                          SizedBox(width: t.spacing.md),
+                          Expanded(
+                            child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    secondary: _buildLeadingIcona(
-                      context,
-                      scheme,
-                      t,
-                      Icons.notifications_outlined,
-                    ),
-                    title: Text(
-                      loc.t('notifications'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    value: _notificationsEnabled,
-                    // Nessun colore qui: `SwitchThemeData` in `app_theme.dart`
-                    // gia' distingue pollice (`onPrimary`) e binario (`primary`)
-                    // da acceso. Forzare qui lo stesso ambra sul pollice li
-                    // rendeva indistinguibili — una pillola unica, non uno
-                    // switch con un pollice visibile.
-                    onChanged: (val) =>
-                        setState(() => _notificationsEnabled = val),
-                  ),
-
-                  // Theme Selector
-                  ListTile(
-                    leading: _buildLeadingIcona(context, scheme, t, Icons.palette_outlined),
-                    title: Text(
-                      loc.t('app_theme'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    subtitle: Text(
-                      theme.themeMode == ThemeMode.system
-                          ? loc.t('system')
-                          : (theme.themeMode == ThemeMode.dark
-                                ? loc.t('dark')
-                                : loc.t('light')),
-                    ),
-                    trailing: DropdownButton<ThemeMode>(
-                      value: theme.themeMode,
-                      underline: const SizedBox(),
-                      icon: const Icon(Icons.arrow_drop_down),
-                      onChanged: (ThemeMode? newValue) {
-                        if (newValue != null) {
-                          themeNotifier.setThemeMode(newValue);
-                        }
-                      },
-                      items: [
-                        DropdownMenuItem(
-                          value: ThemeMode.system,
-                          child: Text(loc.t('system')),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(t.spacing.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildProfileCard(context, loc, t, scheme, profile),
+                            SizedBox(height: t.spacing.lg),
+                            _buildSectionHeader(context, loc.t('account_section')),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.person_outline,
+                              iconColor: scheme.primary,
+                              title: loc.t('my_profile'),
+                              subtitle: profile?.displayName ?? loc.t('guest_user'),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                              ),
+                            ),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.monitor_weight_outlined,
+                              iconColor: scheme.tertiary,
+                              title: loc.t('body_measurements'),
+                              subtitle: loc.t('track_progress'),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const BodyMeasurementsScreen()),
+                              ),
+                            ),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.star_outline,
+                              iconColor: scheme.primary,
+                              title: loc.t('subscription'),
+                              subtitle: profile?.subscriptionExpiry == null
+                                  ? loc.t('free_plan')
+                                  : '${loc.t('expires')}: ${profile!.subscriptionExpiry!.toString().split(' ')[0]}',
+                              trailing: profile?.subscriptionExpiry != null
+                                  ? _buildBadgeAbbonamento(context, scheme, t, profile!)
+                                  : null,
+                              isLast: true,
+                              onTap: _isSavingSubscription ? null : () => _pickSubscriptionDate(profile),
+                            ),
+                            SizedBox(height: t.spacing.lg),
+                            _buildSectionHeader(context, loc.t('gym_settings_section')),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.business_outlined,
+                              iconColor: scheme.onSurfaceVariant,
+                              title: loc.t('gym_details'),
+                              subtitle: (profile?.gymName?.isNotEmpty ?? false)
+                                  ? profile!.gymName!
+                                  : loc.t('set_name_address'),
+                              isLast: true,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const GymSettingsScreen()),
+                              ),
+                            ),
+                            SizedBox(height: t.spacing.lg),
+                            _buildSectionHeader(context, loc.t('app_section')),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.palette_outlined,
+                              iconColor: scheme.primary,
+                              title: loc.t('appearance_title'),
+                              subtitle: loc.t('appearance_index_subtitle'),
+                              trailing: Container(width: 16, height: 16, color: theme.primaryColor),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AppearanceSettingsScreen()),
+                              ),
+                            ),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.access_time,
+                              iconColor: scheme.onSurfaceVariant,
+                              title: loc.t('timer_settings_section_title'),
+                              subtitle: timerSettings.autoRestEnabled
+                                  ? '${loc.t('auto_label')} · ${timerSettings.defaultRestSeconds}s'
+                                  : '${loc.t('manual_label')} · ${timerSettings.defaultRestSeconds}s',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const TimerSettingsScreen()),
+                              ),
+                            ),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.language,
+                              iconColor: scheme.onSurfaceVariant,
+                              title: loc.t('general_settings_section_title'),
+                              subtitle: loc.locale.languageCode == 'it'
+                                  ? loc.t('language_name_it')
+                                  : loc.t('language_name_en'),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const GeneralSettingsScreen()),
+                              ),
+                            ),
+                            _buildTile(
+                              context,
+                              t,
+                              scheme,
+                              icon: Icons.health_and_safety_outlined,
+                              iconColor: scheme.tertiary,
+                              title: 'Google Fit / Health Connect',
+                              subtitle: loc.t('sync_steps'),
+                              isLast: true,
+                              onTap: () async {
+                                final success = await HealthService().requestPermissions();
+                                if (context.mounted && success) {
+                                  ToastUtils.showSuccess(context, loc.t('permissions_granted'));
+                                }
+                              },
+                            ),
+                            SizedBox(height: t.spacing.xl),
+                            _buildSignOut(context, loc, t),
+                            SizedBox(height: t.spacing.xl),
+                          ],
                         ),
-                        DropdownMenuItem(
-                          value: ThemeMode.light,
-                          child: Text(loc.t('light')),
-                        ),
-                        DropdownMenuItem(
-                          value: ThemeMode.dark,
-                          child: Text(loc.t('dark')),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Vibrazione al tocco
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    secondary: _buildLeadingIcona(
-                      context,
-                      scheme,
-                      t,
-                      Icons.vibration,
-                    ),
-                    title: Text(
-                      loc.t('haptic_feedback'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
                       ),
                     ),
-                    value: theme.hapticFeedback,
-                    onChanged: (val) => themeNotifier.setHapticFeedback(val),
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xl),
-
-              // Timer & Rest Section
-              _buildSectionHeader(context, loc.t('timer_settings_section')),
-              _buildSettingsCard(
-                context,
-                children: [
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    secondary: _buildLeadingIcona(
-                      context,
-                      scheme,
-                      t,
-                      Icons.timer_outlined,
-                    ),
-                    title: Text(
-                      loc.t('auto_rest_timer'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    subtitle: Text(loc.t('auto_rest_timer_desc')),
-                    value: timerSettings.autoRestEnabled,
-                    onChanged: (val) => ref
-                        .read(timerSettingsNotifierProvider.notifier)
-                        .setAutoRestEnabled(val),
-                  ),
-                  ListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    leading: _buildLeadingIcona(
-                      context,
-                      scheme,
-                      t,
-                      Icons.hourglass_bottom,
-                    ),
-                    title: Text(
-                      loc.t('default_rest_time'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    trailing: DropdownButton<int>(
-                      value: timerSettings.defaultRestSeconds,
-                      underline: const SizedBox(),
-                      items: const [
-                        DropdownMenuItem(value: 30, child: Text('30s')),
-                        DropdownMenuItem(value: 45, child: Text('45s')),
-                        DropdownMenuItem(value: 60, child: Text('60s')),
-                        DropdownMenuItem(value: 90, child: Text('90s')),
-                        DropdownMenuItem(value: 120, child: Text('120s')),
-                        DropdownMenuItem(value: 180, child: Text('180s')),
-                        DropdownMenuItem(value: 300, child: Text('300s')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          ref
-                              .read(timerSettingsNotifierProvider.notifier)
-                              .setDefaultRestSeconds(val);
-                        }
-                      },
-                    ),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: t.spacing.md,
-                      vertical: t.spacing.xs,
-                    ),
-                    secondary: _buildLeadingIcona(
-                      context,
-                      scheme,
-                      t,
-                      Icons.vibration_outlined,
-                    ),
-                    title: Text(
-                      loc.t('vibrate_on_timer_end'),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                    value: timerSettings.vibrateOnTimerEnd,
-                    onChanged: (val) => ref
-                        .read(timerSettingsNotifierProvider.notifier)
-                        .setVibrateOnTimerEnd(val),
-                  ),
-                ],
-              ),
-              SizedBox(height: t.spacing.xl),
-
-
-
-              // Logout Button
-              SizedBox(
-                width: double.infinity,
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.all(t.spacing.md),
-                    backgroundColor: AppPalette.danger.withValues(alpha: 0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: t.shape.cornerMd,
-                    ),
-                  ),
-                  onPressed: () async {
-                    await AuthService().signOut();
-                    if (context.mounted) {
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                    }
-                  },
-                  icon: const Icon(Icons.logout, color: AppPalette.danger),
-                  label: Text(
-                    loc.t('sign_out'),
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppPalette.danger,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: t.spacing.xxl + t.spacing.sm),
-            ],
-          );
-        },
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
-
-  // --- UI Helpers ---
-
+  Widget _buildProfileCard(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    UserProfile? profile,
+  ) {
+    final imageProvider = profile?.photoUrl != null ? NetworkImage(profile!.photoUrl!) : null;
+    final subscriptionActive = profile?.subscriptionExpiry?.isAfter(DateTime.now()) ?? false;
+    return Container(
+      padding: EdgeInsets.all(t.spacing.md),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        border: Border(left: BorderSide(color: scheme.primary, width: 3)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: _kAvatarRadius,
+            backgroundColor: scheme.surfaceContainer,
+            backgroundImage: imageProvider,
+            child: imageProvider == null
+                ? Icon(Icons.person, size: _kAvatarRadius, color: scheme.onSurfaceVariant)
+                : null,
+          ),
+          SizedBox(width: t.spacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  profile?.displayName ?? loc.t('guest_user'),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  profile?.email ?? '',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          if (subscriptionActive)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: t.spacing.sm, vertical: t.spacing.xs),
+              decoration: BoxDecoration(
+                color: AppPalette.success.withValues(alpha: 0.18),
+                border: Border.all(color: AppPalette.success),
+              ),
+              child: Text(
+                loc.t('subscription_active').toUpperCase(),
+                style: t.typography.eyebrow?.copyWith(color: AppPalette.success),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
   Widget _buildBadgeAbbonamento(
     BuildContext context,
     ColorScheme scheme,
-    ExpressiveTokens t,
+    ImmersivoTokens t,
+    UserProfile profile,
   ) {
-    final attiva = _subscriptionExpiry!.isAfter(DateTime.now());
+    final attiva = profile.subscriptionExpiry!.isAfter(DateTime.now());
     final colore = attiva ? AppPalette.success : AppPalette.danger;
-
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: t.spacing.sm,
-        vertical: t.spacing.xs,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: t.spacing.sm, vertical: t.spacing.xs),
       decoration: BoxDecoration(
         color: colore.withValues(alpha: 0.2),
-        borderRadius: t.shape.cornerSm,
         border: Border.all(color: colore),
       ),
       child: Text(
@@ -760,223 +337,99 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
-
-  /// L'icona a sinistra di una voce, sempre nello stesso neutro: nessuna di
-  /// queste destinazioni e "cosa fare adesso", quindi nessuna prende l'ambra.
-  Widget _buildLeadingIcona(
-    BuildContext context,
-    ColorScheme scheme,
-    ExpressiveTokens t,
-    IconData icon,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(t.spacing.sm),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainer,
-        borderRadius: t.shape.cornerSm,
-      ),
-      child: Icon(icon, color: scheme.onSurfaceVariant),
-    );
-  }
-
   Widget _buildSectionHeader(BuildContext context, String title) {
-    final t = context.expressive;
+    final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: EdgeInsets.only(left: t.spacing.sm, bottom: t.spacing.md),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-          color: scheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsCard(
-    BuildContext context, {
-    required List<Widget> children,
-  }) {
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: t.shape.cornerLg,
-        boxShadow: t.elevation.level2(scheme.shadow),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: scheme.outline))),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: t.spacing.sm),
+        child: Text(title.toUpperCase(), style: t.typography.eyebrow),
       ),
-      child: Column(children: children),
     );
   }
-
-  Widget _buildSettingsTile(
-    BuildContext context, {
-    required String title,
-    String? subtitle,
+  Widget _buildTile(
+    BuildContext context,
+    ImmersivoTokens t,
+    ColorScheme scheme, {
     required IconData icon,
-    VoidCallback? onTap,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
     Widget? trailing,
+    bool isLast = false,
+    required VoidCallback? onTap,
   }) {
-    final t = context.expressive;
-    final scheme = Theme.of(context).colorScheme;
-
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: t.spacing.md,
-        vertical: t.spacing.xs,
-      ),
-      leading: _buildLeadingIcona(context, scheme, t, icon),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: scheme.onSurface,
-        ),
-      ),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            )
-          : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (trailing != null) ...[trailing, SizedBox(width: t.spacing.sm)],
-          Icon(
-            Icons.chevron_right,
-            color: scheme.onSurfaceVariant,
-            size: t.sizing.iconMd,
-          ),
-        ],
-      ),
+    return InkWell(
       onTap: onTap,
-    );
-  }
-
-  void _showMapPicker() {
-    final t = context.expressive;
-
-    // Default to Rome if not set
-    final initialCenter = _gymLat != null && _gymLng != null
-        ? LatLng(_gymLat!, _gymLng!)
-        : const LatLng(41.9028, 12.4964);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        child: SizedBox(
-          height: _kAltezzaDialogoMappa,
-          child: Column(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: scheme.outline.withValues(alpha: 0.55)),
+            bottom: isLast ? BorderSide(color: scheme.outline) : BorderSide.none,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: t.spacing.sm),
+          child: Row(
             children: [
+              Icon(icon, size: t.sizing.iconMd, color: iconColor),
+              SizedBox(width: t.spacing.md),
               Expanded(
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: initialCenter,
-                    initialZoom: 13.0,
-                    onTap: (tapPosition, point) {
-                      setState(() {
-                        _gymLat = point.latitude;
-                        _gymLng = point.longitude;
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.gymflow.app',
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                     ),
-                    if (_gymLat != null && _gymLng != null)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: LatLng(_gymLat!, _gymLng!),
-                            width: 80,
-                            height: 80,
-                            child: const Icon(
-                              Icons.location_on,
-                              color: AppPalette.danger,
-                              size: 40,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(t.spacing.sm),
-                child: Text(ref.read(localizationNotifierProvider).t('tap_to_select_location')),
-              ),
+              if (trailing != null) ...[trailing, SizedBox(width: t.spacing.sm)],
+              Icon(Icons.chevron_right, size: t.sizing.iconSm, color: scheme.onSurfaceVariant),
             ],
           ),
         ),
       ),
     );
   }
-
-  Future<void> _saveGymInfo() async {
-    setState(() => _isSaving = true);
-
-    try {
-      var userProfile = await AuthService().getUserProfile();
-
-      // Fallback: If no Firestore doc exists, try to create from Auth
-      if (userProfile == null) {
-        final authUser = AuthService().currentUser;
-        if (authUser != null) {
-          userProfile = UserProfile(
-            id: authUser.uid,
-            email: authUser.email ?? '',
-            displayName:
-                authUser.displayName ??
-                ref.read(localizationNotifierProvider).t('default_user_name'),
-            createdAt: DateTime.now(),
-          );
-        } else {
-          if (mounted) ToastUtils.showError(context, ref.read(localizationNotifierProvider).t('user_not_authenticated'));
-          return;
+  Widget _buildSignOut(BuildContext context, Localization loc, ImmersivoTokens t) {
+    return InkWell(
+      onTap: () async {
+        await AuthService().signOut();
+        if (context.mounted) {
+          Navigator.popUntil(context, (route) => route.isFirst);
         }
-      }
-
-      final updatedProfile = userProfile.copyWith(
-        gymName: _gymNameController.text.trim(),
-        gymAddress: _gymAddressController.text.trim(),
-        gymLat: _gymLat,
-        gymLng: _gymLng,
-        subscriptionExpiry: _subscriptionExpiry,
-      );
-
-      debugPrint('Saving profile: ${updatedProfile.toMap()}'); // Debug log
-
-      await AuthService().updateUserProfile(updatedProfile);
-
-      if (mounted) {
-        ToastUtils.showSuccess(
-          context,
-          ref.read(localizationNotifierProvider).t('gym_info_saved'),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error saving gym info: $e');
-      if (mounted) {
-        ToastUtils.showError(
-          context,
-          '${ref.read(localizationNotifierProvider).t('info_save_error')}: $e',
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
-    }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: t.spacing.md),
+        decoration: BoxDecoration(
+          color: AppPalette.danger.withValues(alpha: 0.12),
+          border: Border.all(color: AppPalette.danger.withValues(alpha: 0.55)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.logout, color: AppPalette.danger),
+            SizedBox(width: t.spacing.sm),
+            Text(
+              loc.t('sign_out'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppPalette.danger,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

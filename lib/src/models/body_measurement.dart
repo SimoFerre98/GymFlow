@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 class BodyMeasurement {
   final String id;
   final String userId;
@@ -15,7 +14,6 @@ class BodyMeasurement {
   final double? shoulders;
   final double? neck;
   final double? bodyFatPercentage;
-
   BodyMeasurement({
     required this.id,
     required this.userId,
@@ -32,7 +30,6 @@ class BodyMeasurement {
     this.neck,
     this.bodyFatPercentage,
   });
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -51,7 +48,6 @@ class BodyMeasurement {
       'bodyFatPercentage': bodyFatPercentage,
     };
   }
-
   factory BodyMeasurement.fromMap(Map<String, dynamic> map, String documentId) {
     return BodyMeasurement(
       id: documentId,
