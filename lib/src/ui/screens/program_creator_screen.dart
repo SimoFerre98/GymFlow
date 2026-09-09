@@ -231,9 +231,10 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              loc.t('date_range_label'),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: scheme.onSurfaceVariant),
+                              loc.t('date_range_label').toUpperCase(),
+                              style: t.typography.eyebrow?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
                             ),
                             SizedBox(height: t.spacing.xs),
                             Text(
@@ -450,25 +451,36 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   }) {
     final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        border: Border(left: BorderSide(color: scheme.outline, width: 3)),
-      ),
-      child: TextFormField(
-        controller: controller,
-        validator: validator,
-        maxLines: maxLines,
-        style: Theme.of(context).textTheme.bodyLarge,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.all(t.spacing.md),
-          labelText: label,
-          suffixIcon: maxLines == 1
-              ? Icon(Icons.edit_outlined, size: t.sizing.iconSm, color: scheme.onSurfaceVariant)
-              : null,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
         ),
-      ),
+        SizedBox(height: t.spacing.sm),
+        Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHigh,
+            border: Border(left: BorderSide(color: scheme.primary, width: 3)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            validator: validator,
+            maxLines: maxLines,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.all(t.spacing.md),
+              suffixIcon: maxLines == 1
+                  ? Icon(Icons.edit_outlined, size: t.sizing.iconSm, color: scheme.onSurfaceVariant)
+                  : null,
+            ),
+          ),
+        ),
+      ],
     );
   }
   Widget _buildSection({required String title, required Widget child}) {
@@ -478,11 +490,8 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: scheme.onSurface,
-          ),
+          title.toUpperCase(),
+          style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
         ),
         SizedBox(height: t.spacing.sm),
         child,

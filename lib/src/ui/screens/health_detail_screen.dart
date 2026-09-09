@@ -9,6 +9,7 @@ import '../../core/theme/immersivo_tokens.dart';
 import '../widgets/back_pill.dart';
 import '../widgets/expressive_card.dart';
 import '../widgets/expressive_segmented_control.dart';
+const double _kTitleFontSize = 26;
 class HealthDetailScreen extends ConsumerStatefulWidget {
   final HealthDataType dataType;
   final String title;
@@ -127,13 +128,37 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
     final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        leading: BackPill(label: loc.t('data_tab')),
-        leadingWidth: BackPill.leadingWidth,
-      ),
-      body: Column(
-        children: [
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
+              child: Row(
+                children: [
+                  BackPill(label: loc.t('data_tab')),
+                  SizedBox(width: t.spacing.md),
+                  Flexible(
+                    child: Text(
+                      widget.title.toUpperCase(),
+                      style: t.typography.headline?.copyWith(
+                        fontSize: _kTitleFontSize,
+                        color: scheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: t.spacing.md),
+                  Expanded(
+                    child: Container(height: 1, color: scheme.primary.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+          children: [
           SizedBox(height: t.spacing.lg),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: t.spacing.xl),
@@ -226,7 +251,11 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
               ),
             ),
           ),
-        ],
+              ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
