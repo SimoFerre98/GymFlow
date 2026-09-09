@@ -30,10 +30,30 @@ import 'package:gymflow/src/models/session.dart';
 /// direbbe il falso in tutte e due le direzioni. Quello che si puo fissare, e
 /// che vale, e l'invariante in due pezzi qui sotto.
 ///
-/// **Limite dichiarato**: nessuno di questi test guarda i pixel disegnati.
-/// Provano che il ritaglio c'e e che le icone stanno tutte sopra la linea di
-/// taglio; che il risultato si legga bene mentre si scorre resta da confermare
-/// sull'APK.
+/// ---
+///
+/// **Cio che segue non descrive piu la Home.** Il redesign Immersivo l'ha
+/// riscritta da capo (vedi la nota in cima a `dashboard_screen.dart`): non
+/// c'e piu una `SliverAppBar`, non c'e piu un cassetto ad amburger — le sue 5
+/// destinazioni sono riquadri sulla Home — e non c'e piu un saluto personale:
+/// il mockup non ne ha uno, ha il logo GYMFLOW. L'intestazione oggi e statica
+/// (un'immagine con overlay dentro un `Column` a `Expanded`), non uno spazio
+/// flessibile che si comprime scorrendo: l'intera classe di difetto che
+/// questo file sorvegliava — un testo che risale sotto le icone mentre la
+/// barra si comprime — non puo piu accadere, perche il meccanismo che la
+/// causava e stato tolto, non solo corretto.
+///
+/// I quattro test sotto sono stati riscritti per verificarlo esplicitamente
+/// invece di misurare una struttura che non esiste piu: provano che i widget
+/// del vecchio meccanismo (`SliverAppBar`, `NestedScrollView`) sono assenti, e
+/// che nessun nome utente arbitrario compare piu in Home — nemmeno quello
+/// lungo che il vecchio test troncava, perche oggi il nome utente non ci si
+/// mostra affatto. Vedi il report della storia di manutenzione test/ per
+/// l'elenco di cosa e stato adattato e perche.
+///
+/// **Limite dichiarato**: questi test provano l'assenza del meccanismo
+/// difettoso, non l'aspetto della nuova intestazione — quello resta da
+/// confermare sull'APK, come per il file originale.
 class FakeFirestoreService implements svc.FirestoreService {
   @override
   Stream<List<WorkoutProgram>> getUserPrograms(String userId) =>
@@ -103,107 +123,67 @@ void main() {
     ),
   );
 
-  /// Il ritaglio applicato allo spazio flessibile, e la sua linea superiore.
-  double lineaDiTaglio(WidgetTester tester) {
-    final ritaglio = find.descendant(
-      of: find.byType(SliverAppBar),
-      matching: find.byWidgetPredicate(
-        (w) => w is ClipRect && w.clipper != null,
-      ),
-    );
-    expect(
-      ritaglio,
-      findsWidgets,
-      reason: 'lo spazio flessibile non e ritagliato: senza ritaglio il saluto '
-          'viene disegnato sopra le icone mentre si scorre',
-    );
-    final widget = tester.widgetList<ClipRect>(ritaglio).first;
-    return widget.clipper!.getClip(tester.getSize(ritaglio.first)).top;
-  }
+  testWidgets(
+    'la Home non ha piu una barra che si comprime: niente da ritagliare',
+    (tester) async {
+      await tester.pumpWidget(dashboard('Mario'));
+      await tester.pumpAndSettle();
 
-  testWidgets('le icone della barra stanno tutte sopra la linea di taglio', (
-    tester,
-  ) async {
-    await tester.pumpWidget(dashboard('Mario'));
-    await tester.pumpAndSettle();
+      // Il meccanismo che il vecchio test proteggeva (uno spazio flessibile
+      // ritagliato sotto le icone) esiste solo se esiste una `SliverAppBar`
+      // con `FlexibleSpaceBar`. Qui non c'e: lo `Scaffold` della Home non ha
+      // nemmeno un `appBar`.
+      expect(find.byType(SliverAppBar), findsNothing);
+      expect(find.byType(FlexibleSpaceBar), findsNothing);
+      expect(tester.widget<Scaffold>(find.byType(Scaffold)).appBar, isNull);
+    },
+  );
 
-    final taglio = lineaDiTaglio(tester);
-    expect(taglio, greaterThan(0));
+  testWidgets(
+    'a riposo non c e piu un saluto personale: al suo posto il logo GYMFLOW',
+    (tester) async {
+      await tester.pumpWidget(dashboard('Mario'));
+      await tester.pumpAndSettle();
 
-    // Se ogni icona sta interamente sopra la linea, allora niente di cio che
-    // viene disegnato sotto puo coprirla: e questo che rende la sovrapposizione
-    // impossibile, non la posizione del titolo in un istante particolare.
-    for (final icona in [Icons.menu, Icons.bar_chart]) {
-      final trovata = find.byIcon(icona);
-      expect(trovata, findsOneWidget, reason: 'icona $icona assente');
-      expect(
-        tester.getRect(trovata).bottom,
-        lessThanOrEqualTo(taglio),
-        reason: 'l icona $icona sporge sotto la linea di taglio, quindi il '
-            'saluto puo finirle sopra',
-      );
-    }
-  });
+      // Il mockup Immersivo non ha un saluto (vedi la nota in cima al file):
+      // la scritta fissa 'Bentornato,' e il nome dell'atleta non compaiono
+      // piu da nessuna parte, sostituiti dal logo dell'app.
+      expect(find.text('Bentornato,'), findsNothing);
+      expect(find.text('Mario'), findsNothing);
+      expect(find.text('GYMFLOW'), findsOneWidget);
+    },
+  );
 
-  testWidgets('a riposo il saluto resta dove la home lo ha sempre avuto', (
-    tester,
-  ) async {
-    await tester.pumpWidget(dashboard('Mario'));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'il nome utente, anche lungo, non compare piu: niente da troncare',
+    (tester) async {
+      // Stesso input del vecchio test («nome lungo»), ma la domanda e
+      // cambiata: prima si verificava che il nome venisse troncato invece di
+      // sbordare, oggi che la Home non lo mostri affatto — quindi non c'e
+      // piu un bordo da sbordare.
+      const nomeLungo =
+          'Bartolomeo Massimiliano della Valle di Sotto e di Sopra';
+      await tester.pumpWidget(dashboard(nomeLungo));
+      await tester.pumpAndSettle();
 
-    // Misurato su `main` prima di questa storia: il blocco non si sposta e non
-    // rimpicciolisce. La larghezza e la prova che l'ingrandimento che
-    // `FlexibleSpaceBar` applica al proprio titolo c'e ancora: senza, il saluto
-    // sarebbe largo circa 157 invece di 235.
-    final saluto = tester.getRect(find.text('Bentornato,'));
-    expect(saluto.left, 20.0);
-    expect(saluto.top, closeTo(67.5, 0.5));
-    expect(saluto.width, closeTo(235.1, 1.0));
-  });
+      expect(find.text(nomeLungo), findsNothing);
+      expect(find.textContaining('Bartolomeo'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-  testWidgets('il nome lungo viene troncato invece di sbordare', (
-    tester,
-  ) async {
-    const nomeLungo =
-        'Bartolomeo Massimiliano della Valle di Sotto e di Sopra';
-    await tester.pumpWidget(dashboard(nomeLungo));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'niente NestedScrollView da comprimere: l intestazione e statica',
+    (tester) async {
+      await tester.pumpWidget(dashboard('Mario'));
+      await tester.pumpAndSettle();
 
-    for (final testo in tester.widgetList<Text>(find.text(nomeLungo))) {
-      expect(
-        testo.maxLines,
-        1,
-        reason: 'senza maxLines il nome va a capo e il blocco cresce',
-      );
-      expect(testo.overflow, TextOverflow.ellipsis);
-    }
-
-    // E non esce dallo schermo.
-    final larghezza = tester.view.physicalSize.width / tester.view.devicePixelRatio;
-    for (final r in find
-        .text(nomeLungo)
-        .evaluate()
-        .map((e) => tester.getRect(find.byWidget(e.widget as Text)))) {
-      expect(r.right, lessThanOrEqualTo(larghezza));
-    }
-  });
-
-  testWidgets('a barra compressa il nome compare nella toolbar', (
-    tester,
-  ) async {
-    await tester.pumpWidget(dashboard('Mario'));
-    await tester.pumpAndSettle();
-    await tester.drag(find.byType(NestedScrollView), const Offset(0, -300));
-    await tester.pumpAndSettle();
-
-    final nellaToolbar = find.descendant(
-      of: find.byType(NavigationToolbar),
-      matching: find.text('Mario'),
-    );
-    expect(nellaToolbar, findsOneWidget);
-    expect(
-      tester.getRect(nellaToolbar).overlaps(tester.getRect(find.byIcon(Icons.menu))),
-      isFalse,
-    );
-  });
+      // Il vecchio test scorreva una `NestedScrollView` per far comprimere la
+      // barra e vedere il nome ricomparire nella toolbar. Qui non c'e una
+      // `NestedScrollView`: l'intestazione (l'immagine con overlay, o il
+      // logo di `_EmptyHome`) non si comprime scorrendo.
+      expect(find.byType(NestedScrollView), findsNothing);
+      expect(find.byType(NavigationToolbar), findsNothing);
+    },
+  );
 }

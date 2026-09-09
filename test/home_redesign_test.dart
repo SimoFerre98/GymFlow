@@ -139,40 +139,44 @@ void main() {
       );
     });
 
-    testWidgets('DashboardScreen list shows ExerciseRow, even with unknown id', (tester) async {
-      // It's hard to mount DashboardScreen completely due to dependencies mentioned in the plan,
-      // but the plan says: "testWidgets: la lista costruisce ExerciseRow, non una copia. Un test che conta gli ExerciseRow".
-      // Wait, the plan says: "dashboard_screen.dart non si monta... I due widget nuovi invece si montano... Un test con un id che non esiste".
-      // Let's just create a dummy widget that uses _buildExercisesList or similar.
-      // Actually, the plan says "dashboard_screen.dart non si monta... I due widget nuovi invece si montano".
-      // "La lista mostra miniature e indicatori | testWidgets: la lista costruisce ExerciseRow... Un test che conta gli ExerciseRow"
-      // Wait, if dashboard_screen doesn't mount, how can I test its list? 
-      // Maybe I should test `ExerciseRow` itself, but the plan says "la lista costruisce ExerciseRow".
-      // I can test that I used ExerciseRow in the source code!
-      final dashboardSource = File('lib/src/ui/screens/dashboard_screen.dart').readAsStringSync();
-      expect(dashboardSource.contains('ExerciseRow('), isTrue);
-      
-      // Check that a fake Exercise with unknown id works with ExerciseRow
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ExerciseRow(
-              exercise: Exercise(
-                id: 'unknown_id',
-                name: 'Unknown',
-                description: '',
-                type: ExerciseType.strength,
-                musclesTargeted: [],
+    testWidgets(
+      'US-062 non descrive piu la Home: non costruisce piu ExerciseRow',
+      (tester) async {
+        // La Home del redesign Immersivo non mostra piu una lista di esercizi
+        // (vedi la nota in cima a `dashboard_screen.dart`): al suo posto ci
+        // sono due `_NumberedRow` — prossimo allenamento, obiettivo migliore.
+        // `ExerciseRow` resta un widget vivo, usato dalla libreria esercizi e
+        // dalle schede, ma non piu dalla Home: il criterio di US-062 non si
+        // applica piu a questo file.
+        final dashboardSource =
+            File('lib/src/ui/screens/dashboard_screen.dart').readAsStringSync();
+        expect(dashboardSource.contains('ExerciseRow('), isFalse);
+        expect(dashboardSource.contains('_NumberedRow('), isTrue);
+
+        // Cio che resta vero, e vale a prescindere da chi lo usa oggi:
+        // `ExerciseRow` tollera un esercizio con un id sconosciuto senza
+        // eccezioni — la garanzia che il test originale voleva davvero.
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ExerciseRow(
+                exercise: Exercise(
+                  id: 'unknown_id',
+                  name: 'Unknown',
+                  description: '',
+                  type: ExerciseType.strength,
+                  musclesTargeted: [],
+                ),
+                subtitle: const Text('Meta'),
+                trailing: const Text('Pill'),
               ),
-              subtitle: const Text('Meta'),
-              trailing: const Text('Pill'),
             ),
           ),
-        ),
-      );
-      
-      expect(find.byType(ExerciseRow), findsOneWidget);
-      expect(find.text('Unknown'), findsOneWidget);
-    });
+        );
+
+        expect(find.byType(ExerciseRow), findsOneWidget);
+        expect(find.text('Unknown'), findsOneWidget);
+      },
+    );
   });
 }

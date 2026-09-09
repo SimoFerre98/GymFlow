@@ -1,7 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
 import 'package:gymflow/src/ui/widgets/set_value_slider.dart';
+
+/// Il nodo semantico dello `Slider`, cercato per il suo flag invece che per
+/// `find.byType(Slider)`.
+///
+/// Su questa versione di Flutter, `tester.getSemantics(find.byType(Slider))`
+/// risale all'elemento sbagliato — quello dell'`OverlayPortal` che lo
+/// `Slider` usa internamente per l'indicatore, non il nodo che porta
+/// `value`/`increasedValue`/`decreasedValue` — e torna sempre vuoto. Il nodo
+/// giusto esiste ed e popolato correttamente (verificato leggendo l'intero
+/// albero semantico): va solo cercato per flag.
+SemanticsNode _sliderSemantics(WidgetTester tester) {
+  SemanticsNode? found;
+  void visit(SemanticsNode node) {
+    if (found != null) return;
+    if (node.getSemanticsData().flagsCollection.isSlider) {
+      found = node;
+      return;
+    }
+    node.visitChildren((child) {
+      visit(child);
+      return found == null;
+    });
+  }
+
+  // `rootPipelineOwner`, il rimpiazzo non deprecato, non possiede
+  // direttamente un `semanticsOwner` su questa versione di Flutter (lo
+  // possiedono i suoi figli, non esposti pubblicamente): resta questa la
+  // sola via per arrivare alla radice dell'albero semantico nei test.
+  // ignore: deprecated_member_use
+  visit(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!);
+  return found!;
+}
 
 void main() {
   Widget host(Widget child) =>
@@ -127,7 +160,7 @@ void main() {
       );
 
       // "62,5" da solo non dice niente a chi non vede l'etichetta sopra.
-      final node = tester.getSemantics(find.byType(Slider));
+      final node = _sliderSemantics(tester);
       expect(node.value, contains('kg'));
       expect(node.increasedValue, contains('kg'));
       expect(node.decreasedValue, contains('kg'));
@@ -152,7 +185,7 @@ void main() {
         ),
       );
 
-      final node = tester.getSemantics(find.byType(Slider));
+      final node = _sliderSemantics(tester);
       expect(node.value, '8');
 
       handle.dispose();

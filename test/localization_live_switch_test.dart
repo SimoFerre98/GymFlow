@@ -44,8 +44,10 @@ void main() {
     );
     await tester.pump();
 
-    // La lingua predefinita e l'italiano.
-    expect(find.text('Bentornato'), findsOneWidget);
+    // La lingua predefinita e l'italiano. Il titolo e sempre maiuscolo nel
+    // redesign Immersivo (`.toUpperCase()` in login_screen.dart, coerente col
+    // resto della tipografia Anton): non piu 'Bentornato' ma 'BENTORNATO'.
+    expect(find.text('BENTORNATO'), findsOneWidget);
     expect(find.text('ACCEDI'), findsOneWidget);
 
     await container
@@ -54,8 +56,8 @@ void main() {
     await tester.pump();
 
     // Senza riavvio, e senza toccare la schermata.
-    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('WELCOME BACK'), findsOneWidget);
     expect(find.text('LOGIN'), findsOneWidget);
-    expect(find.text('Bentornato'), findsNothing);
+    expect(find.text('BENTORNATO'), findsNothing);
   });
 }

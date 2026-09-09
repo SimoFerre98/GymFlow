@@ -18,14 +18,14 @@ void main() {
 
     test('due colori identici danno 1', () {
       expect(
-        Contrast.ratio(AppPalette.amber, AppPalette.amber),
+        Contrast.ratio(AppPalette.accent, AppPalette.accent),
         closeTo(1.0, 0.001),
       );
     });
 
     test('l ordine degli argomenti non conta', () {
-      final a = Contrast.ratio(AppPalette.paper, AppPalette.indigo900);
-      final b = Contrast.ratio(AppPalette.indigo900, AppPalette.paper);
+      final a = Contrast.ratio(AppPalette.paper, AppPalette.bgDeep);
+      final b = Contrast.ratio(AppPalette.bgDeep, AppPalette.paper);
       expect(a, closeTo(b, 0.0001));
     });
   });
@@ -37,52 +37,52 @@ void main() {
     final pairs = <String, ({Color fg, Color bg, double min})>{
       'testo su fondo': (
         fg: AppPalette.paper,
-        bg: AppPalette.indigo900,
+        bg: AppPalette.bgDeep,
         min: Contrast.aaa,
       ),
       'testo su superficie': (
         fg: AppPalette.paper,
-        bg: AppPalette.indigo800,
+        bg: AppPalette.surfaceCard,
         min: Contrast.aaa,
       ),
       'testo su superficie sollevata': (
         fg: AppPalette.paper,
-        bg: AppPalette.indigo700,
+        bg: AppPalette.surfaceRaised,
         min: Contrast.aa,
       ),
       'testo secondario su fondo': (
         fg: AppPalette.paperDim,
-        bg: AppPalette.indigo900,
+        bg: AppPalette.bgDeep,
         min: Contrast.aa,
       ),
       'ambra su fondo': (
-        fg: AppPalette.amber,
-        bg: AppPalette.indigo900,
+        fg: AppPalette.accent,
+        bg: AppPalette.bgDeep,
         min: Contrast.aaa,
       ),
       'ambra su superficie': (
-        fg: AppPalette.amber,
-        bg: AppPalette.indigo800,
+        fg: AppPalette.accent,
+        bg: AppPalette.surfaceCard,
         min: Contrast.aa,
       ),
       'salmone su fondo': (
-        fg: AppPalette.salmon,
-        bg: AppPalette.indigo900,
+        fg: AppPalette.accentSecondary,
+        bg: AppPalette.bgDeep,
         min: Contrast.aa,
       ),
       'salmone su superficie': (
-        fg: AppPalette.salmon,
-        bg: AppPalette.indigo800,
+        fg: AppPalette.accentSecondary,
+        bg: AppPalette.surfaceCard,
         min: Contrast.aa,
       ),
       'testo su bottone ambra': (
-        fg: AppPalette.indigo900,
-        bg: AppPalette.amber,
+        fg: AppPalette.bgDeep,
+        bg: AppPalette.accent,
         min: Contrast.aaa,
       ),
       'testo su bottone salmone': (
-        fg: AppPalette.indigo900,
-        bg: AppPalette.salmon,
+        fg: AppPalette.bgDeep,
+        bg: AppPalette.accentSecondary,
         min: Contrast.aa,
       ),
     };
@@ -107,7 +107,7 @@ void main() {
     });
 
     test('il primo preset e l ambra predefinita', () {
-      expect(AppPalette.accentPresets.first, AppPalette.amber);
+      expect(AppPalette.accentPresets.first, AppPalette.accent);
     });
 
     for (var i = 0; i < AppPalette.accentPresets.length; i++) {
@@ -155,7 +155,7 @@ void main() {
     testWidgets('la sagoma si vede su entrambi gli estremi del gradiente, tema scuro', (
       tester,
     ) async {
-      final s = AppTheme.darkTheme(AppPalette.amber).colorScheme;
+      final s = AppTheme.darkTheme(AppPalette.accent).colorScheme;
       final glyphColor = s.onSurface.withValues(alpha: 0.92);
 
       final rStart = Contrast.ratio(glyphColor, s.outline);
@@ -176,7 +176,7 @@ void main() {
     testWidgets('la sagoma si vede su entrambi gli estremi del gradiente, tema chiaro', (
       tester,
     ) async {
-      final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;
+      final s = AppTheme.lightTheme(AppPalette.accent).colorScheme;
       final glyphColor = s.onSurface.withValues(alpha: 0.92);
 
       final rStart = Contrast.ratio(glyphColor, s.outline);
@@ -199,7 +199,7 @@ void main() {
     testWidgets('il simbolo si vede sul fondo del badge, tema scuro', (
       tester,
     ) async {
-      final s = AppTheme.darkTheme(AppPalette.amber).colorScheme;
+      final s = AppTheme.darkTheme(AppPalette.accent).colorScheme;
       final r = Contrast.ratio(s.onTertiary, s.tertiary);
       expect(
         r,
@@ -211,7 +211,7 @@ void main() {
     testWidgets('il simbolo si vede sul fondo del badge, tema chiaro', (
       tester,
     ) async {
-      final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;
+      final s = AppTheme.lightTheme(AppPalette.accent).colorScheme;
       final r = Contrast.ratio(s.onTertiary, s.tertiary);
       expect(
         r,
@@ -223,7 +223,7 @@ void main() {
 
   group('coppie del tema chiaro', () {
     testWidgets('i ruoli testuali del tema chiaro superano AA', (tester) async {
-      final s = AppTheme.lightTheme(AppPalette.amber).colorScheme;
+      final s = AppTheme.lightTheme(AppPalette.accent).colorScheme;
 
       final checks = <String, ({Color fg, Color bg})>{
         'testo su superficie': (fg: s.onSurface, bg: s.surface),
@@ -245,7 +245,7 @@ void main() {
     });
 
     testWidgets('i ruoli testuali del tema scuro superano AA', (tester) async {
-      final s = AppTheme.darkTheme(AppPalette.amber).colorScheme;
+      final s = AppTheme.darkTheme(AppPalette.accent).colorScheme;
 
       final checks = <String, ({Color fg, Color bg})>{
         'testo su superficie': (fg: s.onSurface, bg: s.surface),

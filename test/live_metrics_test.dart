@@ -60,7 +60,7 @@ void main() {
       final fakeService = _FakeHealthService(permissions: false);
       final container = ProviderContainer(
         overrides: [
-          healthServiceProvider.overrideWith(
+          healthServiceProviderProvider.overrideWith(
             () => _FakeHealthServiceProvider(fakeService),
           ),
         ],
@@ -87,7 +87,7 @@ void main() {
       );
       final container = ProviderContainer(
         overrides: [
-          healthServiceProvider.overrideWith(
+          healthServiceProviderProvider.overrideWith(
             () => _FakeHealthServiceProvider(fakeService),
           ),
         ],
@@ -120,7 +120,7 @@ void main() {
       );
       final container = ProviderContainer(
         overrides: [
-          healthServiceProvider.overrideWith(
+          healthServiceProviderProvider.overrideWith(
             () => _FakeHealthServiceProvider(fakeService),
           ),
         ],
@@ -149,7 +149,7 @@ void main() {
       );
       final container = ProviderContainer(
         overrides: [
-          healthServiceProvider.overrideWith(
+          healthServiceProviderProvider.overrideWith(
             () => _FakeHealthServiceProvider(fakeService),
           ),
         ],
@@ -178,7 +178,7 @@ void main() {
       );
       final container = ProviderContainer(
         overrides: [
-          healthServiceProvider.overrideWith(
+          healthServiceProviderProvider.overrideWith(
             () => _FakeHealthServiceProvider(fakeService),
           ),
         ],
@@ -216,7 +216,7 @@ void main() {
       );
       final container = ProviderContainer(
         overrides: [
-          healthServiceProvider.overrideWith(
+          healthServiceProviderProvider.overrideWith(
             () => _FakeHealthServiceProvider(fakeService),
           ),
         ],

@@ -11,7 +11,7 @@ void main() {
     test('ci sono quattro stili visivi totali', () {
       expect(AppThemeStyle.values.length, 4);
       expect(AppThemeStyle.values, containsAll([
-        AppThemeStyle.defaultStyle,
+        AppThemeStyle.classico,
         AppThemeStyle.digitalPulse,
         AppThemeStyle.toxicForest,
         AppThemeStyle.deepSeaNeon,
@@ -36,7 +36,10 @@ void main() {
       expect(s.darkBackground, const Color(0xFF0F172A));
       expect(s.darkSurface, const Color(0xFF2E1065));
       expect(s.defaultAccent, const Color(0xFFF472B6));
-      expect(s.defaultTertiary, const Color(0xFFDDD6FE));
+      // Non 0xFFA855F7 del mockup: quel viola non supera 4,5:1 su nessuna
+      // superficie scura di questa palette. Scostamento dichiarato in
+      // app_palette.dart, verificato da contrast_test.dart.
+      expect(s.defaultTertiary, const Color(0xFFC084FC));
     });
 
     test('Toxic Forest ha i valori esadecimali conformi alla specifica', () {
@@ -50,9 +53,13 @@ void main() {
     test('Deep Sea Neon ha i valori esadecimali conformi alla specifica', () {
       final s = AppThemeStyle.deepSeaNeon;
       expect(s.darkBackground, const Color(0xFF000814));
-      expect(s.darkSurface, const Color(0xFF001D3D));
+      // Non 0xFF001D3D: quel valore era darkSurface nell'enum precedente
+      // (ab08290). Il mockup mostra 0xFF003566 nello slot che allora era
+      // darkSurfaceHigh — adottato, con darkSurfaceHigh ricavato di
+      // conseguenza. Scostamento dichiarato in app_palette.dart.
+      expect(s.darkSurface, const Color(0xFF003566));
       expect(s.defaultAccent, const Color(0xFFFFC300));
-      expect(s.defaultTertiary, const Color(0xFFFFD60A));
+      expect(s.defaultTertiary, const Color(0xFF00B4D8));
     });
 
     testWidgets('AppTheme genera temi scuri e chiari per tutti e 4 gli stili', (tester) async {
@@ -72,7 +79,7 @@ void main() {
   group('ThemeSettings', () {
     test('copyWith aggiorna correttamente lo stile e il colore', () {
       const initial = ThemeSettings();
-      expect(initial.themeStyle, AppThemeStyle.defaultStyle);
+      expect(initial.themeStyle, AppThemeStyle.toxicForest);
 
       final updated = initial.copyWith(
         themeStyle: AppThemeStyle.digitalPulse,

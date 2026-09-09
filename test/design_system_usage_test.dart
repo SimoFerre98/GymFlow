@@ -230,14 +230,18 @@ void main() {
     }
   });
 
-  test('la tipografia emphasized e usata per i titoli', () {
-    // `titleEmphasized` esiste da US-033 e prima di questa storia non la usava
-    // nessuno.
+  test('la tipografia Anton di Immersivo e usata per i titoli', () {
+    // Non piu `titleEmphasized` di Material 3 Expressive (US-033, superato da
+    // ADR-002): ogni schermata legge da `ImmersivoTypography` il campo del
+    // peso giusto per il proprio titolo — `display` o `headline` per
+    // un'intestazione protagonista, `title` per una di sezione — non un nome
+    // unico fisso.
+    final campoTitolo = RegExp(r'\.typography\.(display|headline|title)\b');
     for (final percorso in schermate) {
       expect(
-        File(percorso).readAsStringSync(),
-        contains('titleEmphasized'),
-        reason: '$percorso deve usare expressive.typography.titleEmphasized',
+        campoTitolo.hasMatch(File(percorso).readAsStringSync()),
+        isTrue,
+        reason: '$percorso deve usare t.typography.display/headline/title',
       );
     }
   });

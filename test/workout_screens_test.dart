@@ -44,54 +44,75 @@ void main() {
       );
     });
 
-    test('main_screen.dart usa ProgramListScreen per la terza voce', () {
-      final mainScreenFile = File('lib/src/ui/screens/main_screen.dart');
-      expect(mainScreenFile.existsSync(), isTrue);
+    test(
+      'main_screen.dart ha quattro voci (non piu ProgramListScreen fra loro)',
+      () {
+        // US-025 voleva `ProgramListScreen` come terza voce di una barra a
+        // tre. Il redesign Immersivo l'ha riscritta a quattro voci fisse —
+        // Home, Calendario, Crea, Impostazioni (`_NavBar` in
+        // main_screen.dart) — e ha spostato Schede (insieme a Statistiche,
+        // Obiettivi, Cronometro, Amici) fra i riquadri raggiungibili dalla
+        // Home (`_ShortcutRow` in dashboard_screen.dart). Il criterio si
+        // sposta con lei, non sparisce: `ProgramListScreen` deve restare
+        // raggiungibile da qualche parte, solo non piu da qui.
+        final mainScreenFile = File('lib/src/ui/screens/main_screen.dart');
+        expect(mainScreenFile.existsSync(), isTrue);
 
-      final content = mainScreenFile.readAsStringSync();
-      expect(
-        content,
-        isNot(contains('HomeScreen')),
-        reason: 'main_screen.dart non deve piu usare HomeScreen',
-      );
+        final content = mainScreenFile.readAsStringSync();
+        expect(
+          content,
+          isNot(contains('HomeScreen')),
+          reason: 'main_screen.dart non deve piu usare HomeScreen',
+        );
 
-      // Cercare 'ProgramListScreen' nel file intero non basta: il test
-      // resterebbe verde anche con la schermata montata sulla prima voce e il
-      // Dashboard sulla terza, che e esattamente il difetto che US-025 chiude.
-      // Quindi si estrae la lista _screens e si guarda la posizione.
-      //
-      // `(?:const\s*)?` perche una lista di widget `const` e legittima — anzi
-      // e la forma raccomandata da AGENTS.md — e non deve far sparire il
-      // match: e successo, con la barra riscritta per US-038.
-      final listaScreens = RegExp(
-        r'_screens\s*=\s*(?:const\s*)?\[(.*?)\]',
-        dotAll: true,
-      ).firstMatch(content);
-      expect(
-        listaScreens,
-        isNotNull,
-        reason: 'la lista _screens di main_screen.dart non e stata trovata',
-      );
+        // Cercare 'ProgramListScreen' nel file intero non basta: il test
+        // resterebbe verde anche con la schermata montata sulla prima voce e il
+        // Dashboard sulla terza, che e esattamente il difetto che US-025 chiude.
+        // Quindi si estrae la lista _screens e si guarda la posizione.
+        //
+        // `(?:const\s*)?` perche una lista di widget `const` e legittima — anzi
+        // e la forma raccomandata da AGENTS.md — e non deve far sparire il
+        // match: e successo, con la barra riscritta per US-038.
+        final listaScreens = RegExp(
+          r'_screens\s*=\s*(?:const\s*)?\[(.*?)\]',
+          dotAll: true,
+        ).firstMatch(content);
+        expect(
+          listaScreens,
+          isNotNull,
+          reason: 'la lista _screens di main_screen.dart non e stata trovata',
+        );
 
-      final voci = listaScreens!
-          .group(1)!
-          .split(',')
-          .map((v) => v.trim())
-          .where((v) => v.isNotEmpty)
-          .toList();
+        final voci = listaScreens!
+            .group(1)!
+            .split(',')
+            .map((v) => v.trim())
+            .where((v) => v.isNotEmpty)
+            .toList();
 
-      expect(
-        voci.length,
-        3,
-        reason: 'la barra in basso ha tre voci: $voci',
-      );
-      expect(
-        voci[2],
-        contains('ProgramListScreen'),
-        reason:
-            'la terza voce della barra in basso deve essere ProgramListScreen, '
-            'non ${voci[2]}',
-      );
-    });
+        expect(
+          voci.length,
+          4,
+          reason: 'la barra in basso ha ora quattro voci: $voci',
+        );
+        expect(voci[0], contains('DashboardScreen'));
+        expect(voci[1], contains('CalendarScreen'));
+        expect(voci[2], contains('WorkoutCreatorScreen'));
+        expect(voci[3], contains('SettingsScreen'));
+
+        expect(
+          content,
+          isNot(contains('ProgramListScreen')),
+          reason: 'ProgramListScreen non e piu una voce della barra in basso',
+        );
+        final dashboardContent =
+            File('lib/src/ui/screens/dashboard_screen.dart').readAsStringSync();
+        expect(
+          dashboardContent,
+          contains('ProgramListScreen'),
+          reason: 'ProgramListScreen deve restare raggiungibile, ora dalla Home',
+        );
+      },
+    );
   });
 }

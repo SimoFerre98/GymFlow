@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/providers/exercise_provider.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/ui/widgets/exercise_image.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
@@ -65,7 +65,7 @@ void main() {
           exerciseIndexProvider.overrideWith(() => _StubIndex(index)),
       ],
       child: MaterialApp(
-        theme: theme ?? AppTheme.darkTheme(AppPalette.amber),
+        theme: theme ?? AppTheme.darkTheme(AppPalette.accent),
         home: Scaffold(body: Center(child: child)),
       ),
     );
@@ -81,7 +81,7 @@ void main() {
     });
 
     testWidgets('il badge e salmone (tertiary) e misura 18x18', (tester) async {
-      final theme = AppTheme.darkTheme(AppPalette.amber);
+      final theme = AppTheme.darkTheme(AppPalette.accent);
       await tester.pumpWidget(
         host(
           ExerciseThumbnail(exercise: exercise(videoUrl: _videoUrl)),
@@ -100,7 +100,7 @@ void main() {
 
       final decoration = badgeContainer.decoration as BoxDecoration?;
       expect(decoration?.color, theme.colorScheme.tertiary);
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       expect(badgeContainer.constraints?.minWidth, tokens.sizing.badge);
       expect(badgeContainer.constraints?.minHeight, tokens.sizing.badge);
 
@@ -166,7 +166,7 @@ void main() {
     testWidgets('la miniatura misura thumbnailMd', (tester) async {
       await tester.pumpWidget(host(ExerciseThumbnail(exercise: exercise())));
 
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       expect(
         tester.getSize(find.byType(ExerciseThumbnail)),
         Size.square(tokens.sizing.thumbnailMd),
@@ -189,7 +189,7 @@ void main() {
     ) async {
       await tester.pumpWidget(host(ExerciseThumbnail(exercise: exercise())));
 
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
       expect(clip.borderRadius, tokens.shape.cornerMd);
     });
@@ -201,7 +201,7 @@ void main() {
       // tengono in memoria trenta volte i pixel che servono.
       await tester.pumpWidget(host(ExerciseThumbnail(exercise: exercise())));
 
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       final image = tester.widget<ExerciseImage>(find.byType(ExerciseImage));
       expect(image.decodeWidth, tokens.sizing.thumbnailMd);
     });
@@ -224,7 +224,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       final afterFrame = tester.getSize(find.byType(ExerciseThumbnail));
 
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       expect(beforeFrame, Size.square(tokens.sizing.thumbnailMd));
       expect(afterFrame, beforeFrame);
     });
@@ -379,7 +379,7 @@ void main() {
         ),
       );
 
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       expect(
         tester.getSize(find.byType(ExerciseThumbnailById)),
         Size.square(tokens.sizing.thumbnailMd),

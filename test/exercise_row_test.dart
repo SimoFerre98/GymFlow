@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
-import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/ui/widgets/exercise_row.dart';
 import 'package:gymflow/src/ui/widgets/exercise_thumbnail.dart';
@@ -39,7 +39,7 @@ void main() {
   Widget host(Widget child, {ThemeData? theme}) {
     return ProviderScope(
       child: MaterialApp(
-        theme: theme ?? AppTheme.darkTheme(AppPalette.amber),
+        theme: theme ?? AppTheme.darkTheme(AppPalette.accent),
         home: Scaffold(body: Center(child: child)),
       ),
     );
@@ -128,7 +128,7 @@ void main() {
     });
 
     testWidgets('il fondo segue surfaceContainerHigh del tema', (tester) async {
-      final darkTheme = AppTheme.darkTheme(AppPalette.amber);
+      final darkTheme = AppTheme.darkTheme(AppPalette.accent);
       await tester.pumpWidget(
         host(ExerciseRow(exercise: exercise()), theme: darkTheme),
       );
@@ -165,17 +165,18 @@ void main() {
       expect(material.color, Colors.transparent);
     });
 
-    testWidgets('il raggio e quello del mockup convertito, non copiato', (
+    testWidgets('il raggio e quello del token, non un numero scritto', (
       tester,
     ) async {
-      // Il mockup dice 16 px, ma i pixel non si copiano: 16 x 1,36 = 22 dp, e
-      // `cornerLg` (24) e il token piu vicino. Con `cornerMd` (16) la riga
-      // avrebbe angoli molto piu squadrati di quelli disegnati.
+      // Immersivo e un linguaggio ad angoli vivi: `cornerLg` vale zero, non
+      // piu 24 come nell'era Material 3 Expressive. Il punto del test resta
+      // lo stesso di allora — leggere dal token, non ripeterne il valore —
+      // solo il valore atteso e cambiato con la direzione visiva.
       await tester.pumpWidget(
         host(ExerciseRow(exercise: exercise())),
       );
 
-      const tokens = ExpressiveTokens();
+      const tokens = ImmersivoTokens();
       final material = tester.widget<Material>(
         find
             .descendant(

@@ -2,22 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/theme/app_theme.dart';
 import 'package:gymflow/src/core/theme/expressive_tokens.dart';
+import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 
 void main() {
   // Questi due sono testWidgets e non test semplici perche costruire un
   // AppTheme fa risolvere la scala tipografica a GoogleFonts, che senza rete
   // ne font negli asset solleva un'eccezione. L'ambiente widget la tollera,
   // quello unitario no. Cio che si verifica non cambia.
-  group('ExpressiveTokens registrati nel tema', () {
-    testWidgets('il tema chiaro espone i token', (tester) async {
-      final theme = AppTheme.lightTheme(const Color(0xFFD500F9));
-      expect(theme.extension<ExpressiveTokens>(), isNotNull);
-    });
+  group('token registrati nel tema', () {
+    testWidgets(
+      'il tema chiaro espone ImmersivoTokens, non piu ExpressiveTokens',
+      (tester) async {
+        // Dal redesign Immersivo/Toxic Forest (docs/adr/002) `AppTheme`
+        // registra solo `ImmersivoTokens`. `ExpressiveTokens` resta una
+        // classe valida — la leggono ancora 5 widget non migrati — ma non
+        // arriva piu dal tema: chi la legge vede sempre i suoi default.
+        final theme = AppTheme.lightTheme(const Color(0xFFD500F9));
+        expect(theme.extension<ExpressiveTokens>(), isNull);
+        expect(theme.extension<ImmersivoTokens>(), isNotNull);
+      },
+    );
 
-    testWidgets('il tema scuro espone i token', (tester) async {
-      final theme = AppTheme.darkTheme(const Color(0xFFD500F9));
-      expect(theme.extension<ExpressiveTokens>(), isNotNull);
-    });
+    testWidgets(
+      'il tema scuro espone ImmersivoTokens, non piu ExpressiveTokens',
+      (tester) async {
+        final theme = AppTheme.darkTheme(const Color(0xFFD500F9));
+        expect(theme.extension<ExpressiveTokens>(), isNull);
+        expect(theme.extension<ImmersivoTokens>(), isNotNull);
+      },
+    );
   });
 
   group('accesso dal contesto', () {
@@ -146,37 +159,52 @@ void main() {
     });
   });
 
-  group('tipografia Expressive', () {
-    testWidgets('gli stili emphasized esistono nel tema', (tester) async {
+  group('tipografia Immersivo', () {
+    // Il tema non espone piu `ExpressiveTokens.typography` (vedi il gruppo
+    // sopra): gli stili "protagonisti" di oggi sono qui, in
+    // `ImmersivoTokens.typography`, in Anton invece che nella scala
+    // "emphasized" di Material 3 Expressive.
+    testWidgets('gli stili Anton (display, headline, title) esistono nel tema', (
+      tester,
+    ) async {
       final t = AppTheme.darkTheme(const Color(0xFFF0C38E))
-          .extension<ExpressiveTokens>()!;
+          .extension<ImmersivoTokens>()!;
 
-      expect(t.typography.displayEmphasized, isNotNull);
-      expect(t.typography.headlineEmphasized, isNotNull);
-      expect(t.typography.titleEmphasized, isNotNull);
+      expect(t.typography.display, isNotNull);
+      expect(t.typography.headline, isNotNull);
+      expect(t.typography.title, isNotNull);
     });
 
-    testWidgets('emphasized pesa piu dello stile base', (tester) async {
+    testWidgets(
+      'il titolo Anton ha l altezza e la spaziatura del linguaggio Immersivo, non quelle del base',
+      (tester) async {
+        // Anton e "un solo peso" (vedi immersivo_tokens.dart): a differenza
+        // di ExpressiveTypography, che marcava l'enfasi alzando il
+        // `fontWeight`, qui l'enfasi viene dal cambio di famiglia e da
+        // altezza/spaziatura scelte apposta — non da un peso piu alto, che
+        // Anton non ha.
+        final theme = AppTheme.darkTheme(const Color(0xFFF0C38E));
+        final t = theme.extension<ImmersivoTokens>()!;
+        final base = theme.textTheme.titleLarge!;
+
+        expect(t.typography.title!.letterSpacing, isNot(base.letterSpacing));
+        expect(t.typography.title!.height, isNot(base.height));
+      },
+    );
+
+    testWidgets('il titolo usa Anton, non la famiglia del testo base', (
+      tester,
+    ) async {
       final theme = AppTheme.darkTheme(const Color(0xFFF0C38E));
-      final t = theme.extension<ExpressiveTokens>()!;
-      final base = theme.textTheme.titleLarge!;
+      final t = theme.extension<ImmersivoTokens>()!;
 
+      // Qui la differenza e il punto, non un errore: a differenza di
+      // ExpressiveTypography (stessa famiglia del corpo, solo piu marcata),
+      // Immersivo mescola quattro famiglie con un compito ciascuna — Anton
+      // per i titoli, Space Grotesk per il corpo.
       expect(
-        t.typography.titleEmphasized!.fontWeight!.index,
-        greaterThan(base.fontWeight?.index ?? 0),
-        reason: 'lo stile emphasized deve essere piu marcato del base',
-      );
-    });
-
-    testWidgets('emphasized usa la stessa famiglia del testo base', (tester) async {
-      final theme = AppTheme.darkTheme(const Color(0xFFF0C38E));
-      final t = theme.extension<ExpressiveTokens>()!;
-
-      // Nessuna seconda famiglia: un altro font costerebbe un download in piu
-      // e romperebbe l'unita visiva.
-      expect(
-        t.typography.headlineEmphasized!.fontFamily,
-        theme.textTheme.headlineMedium!.fontFamily,
+        t.typography.headline!.fontFamily,
+        isNot(theme.textTheme.headlineMedium!.fontFamily),
       );
     });
 
@@ -184,7 +212,7 @@ void main() {
       tester,
     ) async {
       final t = AppTheme.darkTheme(const Color(0xFFF0C38E))
-          .extension<ExpressiveTokens>()!;
+          .extension<ImmersivoTokens>()!;
 
       for (final style in [
         t.typography.metricLarge,
@@ -200,7 +228,7 @@ void main() {
       }
     });
 
-    test('i default della tipografia sono nulli, non inventati', () {
+    test('i default della tipografia ExpressiveTypography sono nulli, non inventati', () {
       // Senza un TextTheme da cui derivare non si possono costruire stili
       // sensati: meglio nullo che un valore arbitrario che sembra scelto.
       const t = ExpressiveTypography();

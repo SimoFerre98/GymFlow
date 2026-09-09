@@ -22,14 +22,21 @@ void main() {
     final itemsToMove = [
       'ActivityChart',
       'BodyMeasurementsChart',
-      '_buildStatCard',
+      // Era `_buildStatCard`, un metodo privato: il redesign Immersivo ha
+      // sostituito la griglia di tessere con quattro sezioni a piena
+      // larghezza (massimale, volume settimanale, ripartizione, streak — la
+      // stessa grammatica per tutte, vedi il commento su `_SezioneDati`). Il
+      // nome cambia, cio che questo test sorveglia no.
+      '_SezioneDati',
       // Era `_buildHealthSection`, un metodo privato della schermata. US-100 lo
       // ha estratto in un widget suo per poter dimostrare che col permesso
       // mancante non compare uno zero: la schermata intera non si monta in un
       // test. Il nome cambia, cio che questo test sorveglia no — la sezione
       // salute sta nelle statistiche e non piu nella home.
       'HealthSummarySection',
-      '_buildHistoryItem'
+      // Era `_buildHistoryItem`: stessa sorte di `_buildStatCard`, rinominato
+      // nella riscrittura di questa schermata in `_StoricoItem`.
+      '_StoricoItem',
     ];
 
     for (final item in itemsToMove) {
@@ -38,22 +45,24 @@ void main() {
     }
   });
 
-  test('I quattro _buildStatCard sono quattro anche dopo', () {
+  test('Le quattro _SezioneDati (ex _buildStatCard) sono quattro anche dopo', () {
+    // `_buildStatCard` non esiste piu: il redesign Immersivo lo ha sostituito
+    // con `_SezioneDati`, un widget invece di un metodo privato, usato con la
+    // stessa cardinalita — una per massimale, volume settimanale,
+    // ripartizione e streak (vedi il commento sulla classe). Il criterio
+    // resta lo stesso, solo il nome sorvegliato cambia.
     final statisticsLines = righeDiCodice('lib/src/ui/screens/statistics_screen.dart');
-    
-    // Contiamo quante volte _buildStatCard viene chiamato nel build
+
     int count = 0;
     for (final line in statisticsLines) {
-      if (line.contains('_buildStatCard(')) {
+      if (line.contains('_SezioneDati(')) {
         count++;
       }
     }
 
-    // Le statistiche sono 4 + la definizione del metodo = 5 occurrences totali (oppure 4 chiamate)
-    // Dato che stiamo controllando con '_buildStatCard(' controlliamo le chiamate e la definizione.
-    // La definizione e `Widget _buildStatCard(`. Le chiamate sono `_buildStatCard(`.
-    // Visto che cerchiamo `_buildStatCard(`:
-    expect(count, equals(5), reason: 'Ci devono essere 4 chiamate a _buildStatCard più la definizione del metodo');
+    // 4 chiamate + il costruttore della classe = 5 occorrenze totali di
+    // `_SezioneDati(`.
+    expect(count, equals(5), reason: 'Ci devono essere 4 chiamate a _SezioneDati più il suo costruttore');
   });
 
   test('La schermata è raggiungibile dalla home, non più dal cassetto', () {

@@ -59,7 +59,7 @@ Widget _wrapWithApp({
 }) {
   return ProviderScope(
     overrides: [
-      healthServiceProvider.overrideWith(
+      healthServiceProviderProvider.overrideWith(
         () => _FakeHealthServiceProvider(service),
       ),
     ],
