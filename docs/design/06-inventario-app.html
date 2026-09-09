@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>GymFlow — inventario schermate (2026-09-09)</title>
+<style>
+  :root {
+    --bg: #0B2027; --card: #143540; --raised: #1E4B5A; --outline: #286274;
+    --accent: #EEF800; --vital: #80B918; --paper: #EAF6F2; --paperDim: #8FB3AC;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--paper); font-family: -apple-system, "Segoe UI", sans-serif; margin: 0; padding: 0 0 80px; }
+  header { padding: 40px 24px 24px; border-bottom: 1px solid var(--outline); }
+  h1 { font-family: Impact, "Arial Narrow", sans-serif; font-size: 2.4em; letter-spacing: 1px; margin: 0 0 8px; text-transform: uppercase; }
+  header p { color: var(--paperDim); max-width: 760px; line-height: 1.5; }
+  header .warn { background: var(--card); border-left: 3px solid var(--accent); padding: 12px 16px; margin-top: 16px; max-width: 760px; }
+  section { padding: 32px 24px; }
+  section h2 { font-family: Impact, "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--outline); padding-bottom: 8px; color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-top: 20px; }
+  figure { background: var(--card); border: 1px solid var(--outline); margin: 0; padding: 0; overflow: hidden; }
+  figure .imgwrap { height: 420px; overflow: hidden; background: #000; display: flex; align-items: flex-start; justify-content: center; border-bottom: 1px solid var(--outline); }
+  figure img { width: 100%; display: block; cursor: zoom-in; }
+  figcaption { padding: 12px 14px; }
+  figcaption .titolo { font-weight: 800; display: block; margin-bottom: 4px; }
+  figcaption .file { color: var(--paperDim); font-size: 0.75em; font-family: ui-monospace, monospace; display: block; margin-bottom: 6px; }
+  figcaption .nota { font-size: 0.85em; color: var(--paperDim); line-height: 1.4; }
+  figcaption .gap { color: var(--vital); font-weight: 700; }
+  .missing-list { background: var(--card); border: 1px solid var(--outline); padding: 20px 24px; margin-top: 16px; }
+  .missing-list ul { margin: 8px 0; padding-left: 20px; line-height: 1.7; }
+  .missing-list li b { color: var(--accent); }
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10; align-items: center; justify-content: center; cursor: zoom-out; }
+  #lightbox img { max-height: 92vh; max-width: 92vw; border: 1px solid var(--outline); }
+  footer { padding: 24px; color: var(--paperDim); font-size: 0.85em; border-top: 1px solid var(--outline); margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>GymFlow — inventario reale delle schermate</h1>
+  <p>Non un mockup disegnato: sono <b>screenshot dell'app installata</b> (branch <code>main</code>, commit
+  del 2026-09-09, telefono <code>RFGL10YZ5RX</code>), raccolti per avere una visione d'insieme di come
+  l'app è fatta oggi, dopo il recupero del redesign "Immersivo / Toxic Forest" — e per capire cosa
+  collega cosa, cosa manca, e dove il redesign non è arrivato dappertutto allo stesso livello.</p>
+  <div class="warn">⚠️ Non è completo. Coprono le schermate raggiungibili in una singola sessione di
+  navigazione: mancano libreria esercizi, dettaglio esercizio, amici, dettaglio salute, riepilogo
+  fine allenamento, login/registrazione. Vedi la sezione "Cosa manca" in fondo.</div>
+</header>
+
+<section>
+  <h2>Home &amp; navigazione principale</h2>
+  <div class="grid">
+    <figure>
+      <div class="imgwrap"><img src="screenshots/01-home.png" onclick="zoom(this)"></div>
+      <figcaption>
+        <span class="titolo">Home (dashboard_screen.dart)</span>
+        <span class="file">01-home.png</span>
+        <span class="nota">Foto esercizio a piena larghezza che sfuma nello sfondo, titolo del giorno
+        in Anton, CTA "AVVIA ALLENAMENTO" ambra/giallo neon, ticker di statistiche, quattro tessere
+        di scorciatoia (Dati/Schede/Obiettivi/Cronometro), barra di navigazione a 4 voci
+        (Home/Calendario/Crea/Impostazioni).</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>Allenamento: creare, seguire, tracciare</h2>
+  <div class="grid">
+    <figure>
+      <div class="imgwrap"><img src="screenshots/17-schede.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Schede (program_list_screen.dart)</span>
+      <span class="file">17-schede.png</span>
+      <span class="nota">Elenco programmi con stato attivo, intervallo di date, "N giorni".</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/18-modifica-scheda.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Modifica scheda (program_creator_screen.dart)</span>
+      <span class="file">18-modifica-scheda.png</span>
+      <span class="nota"><span class="gap">Nota di coerenza:</span> font e componenti (input, selettore
+      colore) qui sono molto più "standard Material" che nel resto dell'app — niente Anton nei
+      titoli di sezione, gli swatch colore sono generici. Sembra la schermata meno toccata dal
+      redesign Immersivo.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/15-nuovo-giorno-vuoto.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Nuovo giorno, vuoto (workout_creator_screen.dart)</span>
+      <span class="file">15-nuovo-giorno-vuoto.png</span>
+      <span class="nota">Categoria (Strength/Cardio/Timed/Bodyweight/Isometric — inglese, non
+      localizzato), tre modelli di partenza.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/16-nuovo-giorno-da-modello.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Nuovo giorno, da modello</span>
+      <span class="file">16-nuovo-giorno-da-modello.png</span>
+      <span class="nota">La "riga esercizio" (miniatura + nome + serie×ripetizioni·recupero) qui in
+      forma di editor, con maniglia di trascinamento.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/19-sessione-attiva.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Sessione attiva (active_session_screen.dart)</span>
+      <span class="file">19-sessione-attiva.png</span>
+      <span class="nota">La schermata più usata dell'app: illustrazione anatomica per esercizio,
+      caselle di spunta per serie, cronometro di sessione, calorie e battito dal vivo.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/20-dialogo-scarta-sessione.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Dialogo: lasciare o scartare la sessione</span>
+      <span class="file">20-dialogo-scarta-sessione.png</span>
+      <span class="nota">Compare uscendo con una sessione in corso — "Scarta ed elimina" o "Lascia in
+      corso" (background). Coerente con l'estetica ad angoli vivi anche nei dialog.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>Progressi</h2>
+  <div class="grid">
+    <figure>
+      <div class="imgwrap"><img src="screenshots/10-statistiche.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Dati (statistics_screen.dart)</span>
+      <span class="file">10-statistiche.png</span>
+      <span class="nota">Filtro 4/12 settimane/1 anno, volume con grafico a linea, ripartizione per
+      categoria, streak, passi/calorie da Health Connect.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/11-obiettivi.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Obiettivi (gamification_screen.dart)</span>
+      <span class="file">11-obiettivi.png</span>
+      <span class="nota">Streak, sfide mensili con barra di progresso, 6 badge (3 sbloccati).</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/12-cronometro.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Cronometro (time_tools_screen.dart)</span>
+      <span class="file">12-cronometro.png</span>
+      <span class="nota">Sfondo "aura" con masse sfocate in movimento, come descritto in
+      DESIGN-SPEC.md — confermato ancora presente nel codice recuperato.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/13-timer.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Timer (stessa schermata, tab Timer)</span>
+      <span class="file">13-timer.png</span>
+      <span class="nota">L'anello vira sul verde (dati vitali/tempo che scorre), preset rapidi
+      30s/1m/1m30/2m/3m.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/14-calendario.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Calendario (calendar_screen.dart)</span>
+      <span class="file">14-calendario.png</span>
+      <span class="nota">Griglia mensile con legenda Fatto/Oggi/Pianificato, elenco della settimana
+      sotto.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>Profilo &amp; Impostazioni</h2>
+  <div class="grid">
+    <figure>
+      <div class="imgwrap"><img src="screenshots/02-impostazioni-indice.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Impostazioni · indice (settings_screen.dart)</span>
+      <span class="file">02-impostazioni-indice.png</span>
+      <span class="nota">Sezioni Account / Impostazioni Palestra / App — corrisponde quasi a riga al
+      mockup "Turno 3" trovato su Claude Design.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/08-profilo.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Il mio profilo (profile_screen.dart)</span>
+      <span class="file">08-profilo.png</span>
+      <span class="nota">Foto copertina, peso/altezza/massa grassa, grafico peso 12 settimane, ruolo
+      "Atleta e Trainer" (US-086).</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/09-misure.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Misure (body_measurements_screen.dart)</span>
+      <span class="file">09-misure.png</span>
+      <span class="nota">Peso attuale a cursore, 9 misure corporee in elenco.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/04-palestra.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Palestra (gym_settings_screen.dart)</span>
+      <span class="file">04-palestra.png</span>
+      <span class="nota"><span class="gap">Gap vs mockup:</span> il mockup "Turno 3" (3c) mostra
+      mappa/coordinate, orari, promemoria all'arrivo, amici in comune, sessioni/ore totali. Il codice
+      reale ha solo nome, indirizzo, e un placeholder mappa "tocca per impostare" — molto più
+      semplice.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/03-aspetto.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Aspetto (appearance_settings_screen.dart)</span>
+      <span class="file">03-aspetto.png</span>
+      <span class="nota">Tema chiaro/scuro, 4 palette, 6 accentPresets con anteprima live — questa è
+      la schermata più fedele al mockup di tutte.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/05-timer-recupero.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Recupero (timer_settings_screen.dart)</span>
+      <span class="file">05-timer-recupero.png</span>
+      <span class="nota"><span class="gap">Gap vs mockup:</span> il mockup (3e) prevede recupero per
+      tipo di serie (Forza/Ipertrofia/Resistenza), schermo sempre acceso, conto alla rovescia vocale,
+      statistiche sul recupero medio. Il codice reale ha solo preset di durata, recupero automatico e
+      vibrazione.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/06-generali.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Generali (general_settings_screen.dart)</span>
+      <span class="file">06-generali.png</span>
+      <span class="nota"><span class="gap">Gap vs mockup:</span> il mockup (3f) prevede anche unità di
+      misura (kg/lb, cm/in), stato sincronizzazione, esportazione dati, privacy/permessi, elimina
+      account. Il reale ha solo lingua (IT/EN, manca ES del mockup), crediti foto, versione,
+      esci.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="imgwrap"><img src="screenshots/07-crediti-foto.png" onclick="zoom(this)"></div>
+      <figcaption><span class="titolo">Crediti foto (image_credits_screen.dart)</span>
+      <span class="file">07-crediti-foto.png</span>
+      <span class="nota">Attribuzioni CC-BY-SA per le immagini da wger.de, una per esercizio.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>Cosa manca in questo inventario</h2>
+  <div class="missing-list">
+    <p>Non raggiunte in questa sessione di navigazione — da catturare in un secondo passaggio prima
+    di considerare l'inventario completo:</p>
+    <ul>
+      <li><b>Libreria esercizi</b> (exercise_library_screen.dart) — punto d'ingresso non trovato dal
+      flusso "Nuovo giorno" in questa sessione, va cercato meglio.</li>
+      <li><b>Dettaglio esercizio</b> (exercise_detail_screen.dart) — non tappabile dalla sessione
+      attiva; probabile ingresso dalla libreria.</li>
+      <li><b>Amici</b> (connect_friend_screen.dart, friend_detail_screen.dart) — punto d'ingresso non
+      esplorato.</li>
+      <li><b>Dettaglio salute</b> (health_detail_screen.dart) — probabile dalla schermata Dati.</li>
+      <li><b>Riepilogo fine allenamento</b> (workout_summary_screen.dart) — richiede completare
+      davvero un allenamento, non solo scartarlo.</li>
+      <li><b>Login / Registrazione</b> — non esplorate per non compromettere la sessione autenticata
+      corrente.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>Osservazioni per la discussione sulla direzione</h2>
+  <div class="missing-list">
+    <ul>
+      <li><b>Le impostazioni "profonde"</b> (Palestra, Recupero, Generali) sono sistematicamente più
+      semplici del mockup "Turno 3" — sembra che il redesign abbia dato priorità alle schermate più
+      visibili (Home, Aspetto) lasciando indietro quelle di configurazione. Da decidere se completarle
+      o se il mockup era comunque troppo ambizioso per queste schermate secondarie.</li>
+      <li><b>"Modifica scheda" stona</b> rispetto al resto: è l'unica schermata importante che non
+      sembra aver ricevuto lo stile Immersivo (font standard, componenti Material generici). Buona
+      candidata per il prossimo lavoro di coerenza visiva.</li>
+      <li><b>Le categorie di allenamento restano in inglese</b> ("STRENGTH", "CARDIO", "TIMED",
+      "BODYWEIGHT", "ISOMETRIC") in un'app altrimenti interamente in italiano — probabile debito di
+      localizzazione, non una scelta di design.</li>
+    </ul>
+  </div>
+</section>
+
+<div id="lightbox" onclick="this.style.display='none'"><img id="lightbox-img"></div>
+<script>
+function zoom(img) {
+  document.getElementById('lightbox-img').src = img.src;
+  document.getElementById('lightbox').style.display = 'flex';
+}
+</script>
+
+<footer>
+  Screenshot raccolti il 2026-09-09 dall'app installata su <code>RFGL10YZ5RX</code> (Samsung S26
+  Ultra), commit <code>main</code> post-recupero Immersivo. Non sostituisce
+  <code>docs/DESIGN-SPEC.md</code> né i mockup: è un riscontro fra quello che il codice fa davvero e
+  quello che i documenti descrivono.
+</footer>
+
+</body>
+</html>
