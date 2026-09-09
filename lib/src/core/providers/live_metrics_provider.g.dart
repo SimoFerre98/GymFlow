@@ -26,7 +26,7 @@ final healthServiceProviderProvider =
 
 typedef _$HealthServiceProvider = AutoDisposeNotifier<HealthService>;
 String _$liveMetricsNotifierHash() =>
-    r'db2be186f4150fe59583945acabaaaf9ecfab44d';
+    r'e3e3cc6e22595a856064da06c838496a78994b8e';
 
 /// Gestisce l'acquisizione periodica delle metriche dal vivo durante l'allenamento.
 ///

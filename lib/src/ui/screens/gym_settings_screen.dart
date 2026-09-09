@@ -17,10 +17,12 @@ const double _kMapHeight = 250;
 /// `UserProfile` — piu gli amici che condividono la stessa palestra, calcolati
 /// da `UserProfile.friends` invece di essere un dato a se.
 ///
-/// Il mockup mostra anche orari di apertura, un promemoria all'arrivo e un
-/// trio di statistiche (sessioni qui, ore totali, dal anno X): nessuno dei tre
-/// ha un campo reale — le sessioni non sono legate a una palestra — quindi non
-/// compaiono.
+/// Il mockup mostra anche un promemoria all'arrivo e un trio di statistiche
+/// (sessioni qui, ore totali, dal anno X): il primo richiede geolocalizzazione
+/// in background (una dipendenza nuova, da decidere con l'utente), il secondo
+/// richiede legare le sessioni a una palestra — un cambio al modello dati che
+/// non conterebbe le sessioni gia registrate. Gli orari di apertura invece non
+/// avevano nessuno dei due ostacoli: aggiunti come campo reale.
 class GymSettingsScreen extends ConsumerStatefulWidget {
   const GymSettingsScreen({super.key});
   @override
@@ -29,6 +31,7 @@ class GymSettingsScreen extends ConsumerStatefulWidget {
 class _GymSettingsScreenState extends ConsumerState<GymSettingsScreen> {
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _hoursController = TextEditingController();
   double? _lat;
   double? _lng;
   bool _loaded = false;
@@ -37,12 +40,14 @@ class _GymSettingsScreenState extends ConsumerState<GymSettingsScreen> {
   void dispose() {
     _nameController.dispose();
     _addressController.dispose();
+    _hoursController.dispose();
     super.dispose();
   }
   void _applyProfile(UserProfile profile) {
     if (_loaded) return;
     _nameController.text = profile.gymName ?? '';
     _addressController.text = profile.gymAddress ?? '';
+    _hoursController.text = profile.gymOpeningHours ?? '';
     _lat = profile.gymLat;
     _lng = profile.gymLng;
     _loaded = true;
@@ -126,6 +131,7 @@ class _GymSettingsScreenState extends ConsumerState<GymSettingsScreen> {
       final updated = profile.copyWith(
         gymName: _nameController.text.trim(),
         gymAddress: _addressController.text.trim(),
+        gymOpeningHours: _hoursController.text.trim(),
         gymLat: _lat,
         gymLng: _lng,
       );
@@ -195,6 +201,15 @@ class _GymSettingsScreenState extends ConsumerState<GymSettingsScreen> {
                           scheme,
                           label: loc.t('address_label'),
                           controller: _addressController,
+                          accent: scheme.outline,
+                        ),
+                        SizedBox(height: t.spacing.md),
+                        _buildField(
+                          context,
+                          t,
+                          scheme,
+                          label: loc.t('gym_hours_label'),
+                          controller: _hoursController,
                           accent: scheme.outline,
                         ),
                         SizedBox(height: t.spacing.lg),

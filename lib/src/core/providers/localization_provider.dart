@@ -449,6 +449,7 @@ class Localization {
     'password_too_short_min6': 'Password too short (min 6)',
     'gym_name_label': 'Gym Name',
     'address_label': 'Address',
+    'gym_hours_label': 'Opening Hours (e.g. 06-23)',
     'update_info_btn': 'Update Info',
     'tap_to_select_location': 'Tap to select location',
     'user_not_authenticated': 'User not authenticated',
@@ -529,6 +530,11 @@ class Localization {
     'auto_rest_timer_desc': 'Start timer automatically when completing a set',
     'default_rest_time': 'Default Rest Duration',
     'vibrate_on_timer_end': 'Vibrate on Timer End',
+    'sound_on_timer_end': 'Sound on Timer End',
+    'rest_by_type_title': 'Rest by Set Type',
+    'rest_type_strength': 'Strength · 1-5 reps',
+    'rest_type_hypertrophy': 'Hypertrophy · 6-12 reps',
+    'rest_type_endurance': 'Endurance · 13+ reps',
   };
   static final Map<String, String> _it = {
     'settings_title': 'Impostazioni',
@@ -967,6 +973,7 @@ class Localization {
     'password_too_short_min6': 'Password troppo corta (min 6)',
     'gym_name_label': 'Nome Palestra',
     'address_label': 'Indirizzo',
+    'gym_hours_label': 'Orari di Apertura (es. 06-23)',
     'update_info_btn': 'Aggiorna Info',
     'tap_to_select_location': 'Tocca per selezionare la posizione',
     'user_not_authenticated': 'Utente non autenticato',
@@ -1047,6 +1054,11 @@ class Localization {
     'auto_rest_timer_desc': 'Avvia il timer alla spunta di una serie',
     'default_rest_time': 'Durata Recupero Predefinita',
     'vibrate_on_timer_end': 'Vibrazione a Fine Recupero',
+    'sound_on_timer_end': 'Suono a Fine Recupero',
+    'rest_by_type_title': 'Recupero per Tipo di Serie',
+    'rest_type_strength': 'Forza · 1-5 rip',
+    'rest_type_hypertrophy': 'Ipertrofia · 6-12 rip',
+    'rest_type_endurance': 'Resistenza · 13+ rip',
   };
 }
 /// Espone la lingua corrente e le sue traduzioni, persistendo la scelta.

@@ -506,7 +506,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
         ((templateExercise?.restSeconds != null &&
                 templateExercise!.restSeconds! > 0)
             ? templateExercise.restSeconds!
-            : timerSettings.defaultRestSeconds);
+            : timerSettings.restSecondsForReps(set.reps));
     if (restSeconds > 0) {
       final timerNotifier = ref.read(timerNotifierProvider.notifier);
       timerNotifier.startTimerWithDuration(Duration(seconds: restSeconds));

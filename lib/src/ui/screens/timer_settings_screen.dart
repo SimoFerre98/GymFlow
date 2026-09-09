@@ -11,13 +11,14 @@ const double _kDefaultTimeFontSize = 66;
 /// I preset di recupero predefinito del mockup, in secondi. Uguali alle
 /// opzioni gia esposte da `TimerSettingsNotifier.setDefaultRestSeconds`.
 const _kRestPresets = <int>[30, 45, 60, 90, 120, 180, 300];
-/// Timer e recupero: solo le tre preferenze che `TimerSettingsNotifier`
-/// gestisce davvero (recupero automatico, durata predefinita, vibrazione).
+/// Timer e recupero.
 ///
-/// Il mockup mostra anche suono a fine recupero, schermo sempre acceso,
-/// conto alla rovescia vocale e un recupero diverso per forza/ipertrofia/
-/// resistenza: nessuno di questi ha oggi un campo nel provider, quindi non
-/// compare — inventarli vorrebbe dire un interruttore che non cambia niente.
+/// Il mockup mostra anche schermo sempre acceso e conto alla rovescia vocale:
+/// richiedono una dipendenza nuova (rispettivamente per tenere lo schermo
+/// acceso e per la sintesi vocale) che il progetto non ha ancora scelto —
+/// decisione da prendere con l'utente, non da anticipare qui. Suono a fine
+/// recupero e recupero per tipo di serie invece non richiedono nulla di
+/// nuovo: `TimerSettingsNotifier` li gestisce davvero.
 class TimerSettingsScreen extends ConsumerWidget {
   const TimerSettingsScreen({super.key});
   String _formatRest(int seconds) {
@@ -83,6 +84,16 @@ class TimerSettingsScreen extends ConsumerWidget {
                       value: settings.vibrateOnTimerEnd,
                       onChanged: notifier.setVibrateOnTimerEnd,
                     ),
+                    _buildToggle(
+                      context,
+                      t,
+                      scheme,
+                      icon: Icons.volume_up_outlined,
+                      title: loc.t('sound_on_timer_end'),
+                      value: settings.soundOnTimerEnd,
+                      onChanged: notifier.setSoundOnTimerEnd,
+                    ),
+                    _buildRestByType(context, loc, t, scheme, settings, notifier),
                     SizedBox(height: t.spacing.xl),
                   ],
                 ),
@@ -138,6 +149,81 @@ class TimerSettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+  /// Tre righe, una per fascia di ripetizioni: quando una serie senza un
+  /// recupero proprio (ne dell'esercizio ne pianificato) si chiude, e questa
+  /// tabella a decidere quanto riposo dare — vedi
+  /// `TimerSettings.restSecondsForReps` in `timer_settings_provider.dart`.
+  Widget _buildRestByType(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    TimerSettings settings,
+    TimerSettingsNotifier notifier,
+  ) {
+    final righe = <(String, int, ValueChanged<int>)>[
+      (
+        loc.t('rest_type_strength'),
+        settings.restSecondsStrength,
+        notifier.setRestSecondsStrength,
+      ),
+      (
+        loc.t('rest_type_hypertrophy'),
+        settings.restSecondsHypertrophy,
+        notifier.setRestSecondsHypertrophy,
+      ),
+      (
+        loc.t('rest_type_endurance'),
+        settings.restSecondsEndurance,
+        notifier.setRestSecondsEndurance,
+      ),
+    ];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: scheme.outline)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(top: t.spacing.md, bottom: t.spacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              loc.t('rest_by_type_title').toUpperCase(),
+              style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            for (final riga in righe)
+              Padding(
+                padding: EdgeInsets.only(top: t.spacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      riga.$1,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: t.spacing.xs),
+                    Wrap(
+                      spacing: t.spacing.xs,
+                      runSpacing: t.spacing.xs,
+                      children: [
+                        for (final preset in _kRestPresets)
+                          _RestPresetChip(
+                            label: _formatRest(preset),
+                            selected: riga.$2 == preset,
+                            onTap: () => riga.$3(preset),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );

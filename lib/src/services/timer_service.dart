@@ -63,8 +63,10 @@ const Duration kSecondiDiAvviso = Duration(seconds: 3);
 abstract class AvvisiTempo {
   /// Uno degli ultimi secondi e passato.
   void secondoFinale();
-  /// Il tempo e scaduto.
-  void scaduto();
+  /// Il tempo e scaduto. Vibrazione e suono sono due preferenze indipendenti
+  /// nelle impostazioni (`vibrateOnTimerEnd`/`soundOnTimerEnd`): chi chiama
+  /// decide quali dei due sono attivi, non e implicito nel metodo.
+  void scaduto({required bool vibra, required bool suona});
 }
 /// Quello vero: la vibrazione e il suono del sistema.
 ///
@@ -81,15 +83,19 @@ class AvvisiTempoDiSistema implements AvvisiTempo {
   @override
   void secondoFinale() => HapticFeedback.vibrate();
   @override
-  void scaduto() {
-    // Il suono e la vibrazione insieme: in palestra la cuffia puo essere
-    // occupata dalla musica e il telefono in tasca.
-    SystemSound.play(SystemSoundType.alert);
-    // Tre impulsi netti a intervalli ravvicinati per garantire un feedback
-    // deciso e chiaramente distinguibile anche in tasca durante l'allenamento.
-    HapticFeedback.vibrate();
-    Future.delayed(const Duration(milliseconds: 150), HapticFeedback.vibrate);
-    Future.delayed(const Duration(milliseconds: 300), HapticFeedback.vibrate);
+  void scaduto({required bool vibra, required bool suona}) {
+    // Il suono e la vibrazione erano insieme, senza scelta: in palestra la
+    // cuffia puo essere occupata dalla musica e il telefono in tasca, ma non
+    // e detto che l'utente voglia entrambi — ora sono due preferenze scelte
+    // da chi chiama, non un pacchetto unico.
+    if (suona) SystemSound.play(SystemSoundType.alert);
+    if (vibra) {
+      // Tre impulsi netti a intervalli ravvicinati per garantire un feedback
+      // deciso e chiaramente distinguibile anche in tasca durante l'allenamento.
+      HapticFeedback.vibrate();
+      Future.delayed(const Duration(milliseconds: 150), HapticFeedback.vibrate);
+      Future.delayed(const Duration(milliseconds: 300), HapticFeedback.vibrate);
+    }
   }
 }
 /// Cronometro e timer da conto alla rovescia, condivisi da tutta l'app.
@@ -255,8 +261,11 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
   void segnalaScadenza() {
     _ultimoSecondoAvvisato = null;
     final timerSettings = ref.read(timerSettingsNotifierProvider);
-    if (timerSettings.vibrateOnTimerEnd) {
-      avvisi.scaduto();
+    if (timerSettings.vibrateOnTimerEnd || timerSettings.soundOnTimerEnd) {
+      avvisi.scaduto(
+        vibra: timerSettings.vibrateOnTimerEnd,
+        suona: timerSettings.soundOnTimerEnd,
+      );
     }
   }
   void setToolsVisible(bool visible) {

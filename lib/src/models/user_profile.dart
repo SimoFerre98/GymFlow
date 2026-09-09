@@ -32,6 +32,10 @@ class UserProfile {
   final String? gymAddress;
   final double? gymLat;
   final double? gymLng;
+  /// Orari di apertura, come testo libero (es. "06-23"): non c'e un dato
+  /// strutturato per giorno da nessuna parte del prodotto, e il mockup stesso
+  /// mostra un intervallo unico, non un orario per giorno della settimana.
+  final String? gymOpeningHours;
   final DateTime? subscriptionExpiry;
   final DateTime? birthDate;
   final String? gender; // 'male', 'female', 'other'
@@ -59,6 +63,7 @@ class UserProfile {
     this.gymAddress,
     this.gymLat,
     this.gymLng,
+    this.gymOpeningHours,
     this.subscriptionExpiry,
     this.birthDate,
     this.gender,
@@ -84,6 +89,7 @@ class UserProfile {
       'gymAddress': gymAddress,
       'gymLat': gymLat,
       'gymLng': gymLng,
+      'gymOpeningHours': gymOpeningHours,
       'subscriptionExpiry': subscriptionExpiry?.toIso8601String(),
       'birthDate': birthDate?.toIso8601String(),
       'gender': gender,
@@ -110,6 +116,7 @@ class UserProfile {
       gymAddress: map['gymAddress'],
       gymLat: map['gymLat']?.toDouble(),
       gymLng: map['gymLng']?.toDouble(),
+      gymOpeningHours: map['gymOpeningHours'],
       subscriptionExpiry: map['subscriptionExpiry'] != null
           ? DateTime.tryParse(map['subscriptionExpiry'])
           : null,
@@ -135,6 +142,7 @@ class UserProfile {
     String? gymAddress,
     double? gymLat,
     double? gymLng,
+    String? gymOpeningHours,
     DateTime? subscriptionExpiry,
     DateTime? birthDate,
     String? gender,
@@ -159,6 +167,7 @@ class UserProfile {
       gymAddress: gymAddress ?? this.gymAddress,
       gymLat: gymLat ?? this.gymLat,
       gymLng: gymLng ?? this.gymLng,
+      gymOpeningHours: gymOpeningHours ?? this.gymOpeningHours,
       subscriptionExpiry: subscriptionExpiry ?? this.subscriptionExpiry,
       birthDate: birthDate ?? this.birthDate,
       gender: gender ?? this.gender,
