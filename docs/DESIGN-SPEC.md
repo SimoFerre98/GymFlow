@@ -1,268 +1,135 @@
-# GymFlow — specifiche visive estratte dai mockup
+# GymFlow — specifiche visive della direzione "Immersivo / Toxic Forest"
 
-**I mockup sono la fonte autorevole della grafica.** Stanno in
-[`docs/design/`](design/), sono versionati nel repository, e si aprono in un browser:
+**Questo documento non è più estratto da un mockup: è estratto dal codice.** La direzione
+precedente (Material 3 Expressive, palette Indigo) aveva tre mockup HTML come fonte autorevole; la
+direzione attuale, "Immersivo / Toxic Forest", è stata scritta direttamente in `lib/` — e il codice
+è sopravvissuto a un incidente (il PC su cui era stato scritto è andato perso) mentre i documenti di
+riferimento no. **`docs/adr/002-immersivo-toxic-forest.md`** e **`docs/design/05-immersivo-toxic-forest.html`**
+sono citati per nome da un commento in testa a `lib/src/core/theme/app_palette.dart` come i
+documenti ufficiali di questa direzione, ma non sono mai stati committati e non sono recuperabili
+dal codice (non essendo file compilati). Finché non si ritrovano, **questo documento e il codice
+stesso sono la fonte più affidabile disponibile**.
 
-| File                                                            | Contenuto                                                                                                                 |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [`01-direzione-visiva.html`](design/01-direzione-visiva.html)   | 6 schermate: home, sessione, statistiche, serie in corso, riepilogo, catena delle immagini                                |
-| [`02-schermate-app.html`](design/02-schermate-app.html)         | 9 schermate: libreria, nuovo esercizio, tipi di allenamento, timer, pillola, Now Bar, calendario, obiettivi, impostazioni |
-| [`03-timer-e-movimento.html`](design/03-timer-e-movimento.html) | timer **funzionante**, repertorio delle micro-interazioni, Now Bar                                                        |
-
-Questo documento è il loro **estratto operativo**: i valori che servono al codice, già convertiti.
-Non sostituisce i mockup — quando c'è un dubbio si apre l'HTML e si guarda.
-
----
-
-## ⚠️ La conversione da pixel del mockup a dp
-
-**I numeri dell'HTML non si copiano.** E il fattore non è nemmeno uno solo: i primi due mockup
-disegnano un telefono da 300 px, il terzo da 340. Verificato nei file, non dedotto.
-
-| Mockup                 | Telaio | Cornice | Schermo disegnato | Fattore verso 384 dp |
-| ---------------------- | ------ | ------- | ----------------- | -------------------- |
-| `01-direzione-visiva`  | 300 px | 9 px    | 282 px            | **× 1,36**           |
-| `02-schermate-app`     | 300 px | 9 px    | 282 px            | **× 1,36**           |
-| `03-timer-e-movimento` | 340 px | 10 px   | 320 px            | **× 1,20**           |
-
-Il telefono reale (S26 Ultra) è **384 dp** di larghezza logica: 1080 px reali diviso 2,8125 di
-densità.
-
-Chi legge `width: 40px` sulla miniatura e scrive `40` in Flutter la fa **un quarto più piccola** di
-com'è disegnata. È l'errore più facile da fare con questi file, ed è il motivo per cui questo
-documento esiste.
-
-| Elemento nel mockup (file 01 e 02, × 1,36) | px  | dp     | Token                                         |
-| ------------------------------------------ | --- | ------ | --------------------------------------------- |
-| Miniatura esercizio                        | 40  | **54** | `sizing.thumbnailMd` = 56 ✅                  |
-| Raggio miniatura                           | 12  | **16** | `shape.cornerMd` = 16 ✅                      |
-| Indicatore video                           | 13  | **18** | `sizing.badge` = 20, accettabile              |
-| Raggio card                                | 20  | **27** | `shape.cornerLg` = 24, accettabile            |
-| Padding card                               | 12  | **16** | `spacing.md` = 16 — **oggi si usa `lg` = 20** |
-| Raggio riga esercizio                      | 16  | **22** | fra`cornerMd` e `cornerLg`                    |
-| Padding riga esercizio                     | 8   | **11** | `spacing.sm` = 8 o `md` = 16                  |
-| Raggio barra di navigazione                | 20  | **27** | `cornerLg`                                    |
-| Pillole, pulsanti, chip                    | 99  | pieno  | `cornerFull` ✅                               |
+L'unico materiale di riferimento visivo superstite è
+[`docs/design/GymFlow Immersivo Impostazioni.html`](design/GymFlow%20Immersivo%20Impostazioni.html)
+— non un mockup nel formato dei precedenti, ma l'estratto di una conversazione di design ("Turno 3")
+che mostra le schermate Impostazioni e le 4 palette a confronto sulla Home. Si apre in un browser.
 
 ---
 
-## Stili Visivi dell'Applicazione (4 Temi Completi)
+## I quattro stili (`AppThemeStyle`)
 
-L'applicazione supporta 4 stili visivi complessivi (`AppThemeStyle`), selezionabili dalle Impostazioni, ciascuno con la propria palette di superfici, contrasti e sottocolori di accento:
+Selezionabili da Impostazioni → Aspetto. **`toxicForest` è il default** (`theme_provider.dart`).
+Ogni stile fissa sfondo, superfici, bordo, un colore per le **azioni** (`defaultAccent`) e uno per i
+**dati vitali** (`defaultTertiary`) — mai lo stesso ruolo, in nessuno stile: se un'azione e un dato
+condividessero il colore, l'occhio perderebbe il modo di distinguerli. Valori in
+`lib/src/core/theme/app_palette.dart`.
 
-### 1. GymFlow Classico (Default Indigo)
-Lo stile originario dei mockup di GymFlow, basato su toni indaco caldi, ambra per le azioni e salmone per le metriche vitali.
-- **Sfondo (`darkBackground`):** `#221E3A`
-- **Superficie Card (`darkSurface`):** `#312C51`
-- **Superficie Sollevata (`darkSurfaceHigh`):** `#48426D`
-- **Bordi / Outline (`darkOutline`):** `#5A5384`
-- **Azione Primaria (`defaultAccent`):** `#F0C38E` (Ambra)
-- **Metriche Vitali (`defaultTertiary`):** `#F1AA9B` (Salmone)
-- **Sottocolori / Accenti:** `#F0C38E` (Ambra), `#F1AA9B` (Salmone), `#9FD8C0` (Menta), `#B9AEE8` (Lilla), `#8FC7E8` (Cielo), `#E8C8DC` (Rosa cipria)
+| Stile | Sfondo | Superficie card | Superficie sollevata | Bordo | Azione | Dati vitali |
+|---|---|---|---|---|---|---|
+| **GymFlow Classico** | `#221E3A` | `#48426D` | `#5A5389` | `#6F68A6` | `#F0C38E` ambra | `#F1AA9B` salmone |
+| **Digital Pulse** | `#0F172A` | `#2E1065` | `#3B1B7D` | `#581C87` | `#F472B6` magenta | `#C084FC` lilla¹ |
+| **Toxic Forest** (default) | `#0B2027` | `#143540` | `#1E4B5A` | `#286274` | `#EEF800` giallo neon | `#80B918` verde bosco |
+| **Deep Sea Neon** | `#000814` | `#003566`¹ | `#004B80`¹ | `#0A4F8A` | `#FFC300` oro | `#FFD60A` giallo brillante |
 
-### 2. Digital Pulse (Cyberpunk Neon)
-Ispirato a palette ad alto contrasto con toni viola profondo e magenta brillante.
-- **Sfondo (`darkBackground`):** `#0F172A` (Slate dark / navy)
-- **Superficie Card (`darkSurface`):** `#2E1065` (Viola profondo)
-- **Superficie Sollevata (`darkSurfaceHigh`):** `#3B1B7D` (Viola medio)
-- **Bordi / Outline (`darkOutline`):** `#581C87` (Viola vibrante)
-- **Azione Primaria (`defaultAccent`):** `#F472B6` (Magenta / Rosa neon)
-- **Metriche Vitali / Secondario (`defaultTertiary`):** `#DDD6FE` (Lavanda tenue)
-- **Sottocolori / Accenti:** `#F472B6` (Magenta), `#DDD6FE` (Lavanda), `#A855F7` (Viola elettrico), `#38BDF8` (Ciano), `#4ADE80` (Menta neon), `#FB7185` (Rosa corallo)
+¹ Due valori si scostano deliberatamente dai riferimenti visivi originari, per accessibilità
+(commento in `app_palette.dart`): il lilla di Digital Pulse era `#A855F7` nel materiale di
+riferimento ma non supera 4,5:1 su nessuna superficie scura di quella palette (3,85:1 sulla card);
+la superficie di Deep Sea Neon ha scambiato ruolo con la sua sollevata rispetto a una versione
+precedente del codice (`ab08290`).
 
-### 3. Toxic Forest (Neon Bio-Teal & Lime)
-Ispirato a toni scuri teal forestale con accenti giallo fluo e lime elettrico.
-- **Sfondo (`darkBackground`):** `#0B2027` (Teal bosco scurissimo)
-- **Superficie Card (`darkSurface`):** `#143540` (Teal petrolio scuro)
-- **Superficie Sollevata (`darkSurfaceHigh`):** `#1E4B5A` (Teal ardesia)
-- **Bordi / Outline (`darkOutline`):** `#286274` (Teal medio)
-- **Azione Primaria (`defaultAccent`):** `#EEF800` (Giallo neon / Fluo)
-- **Metriche Vitali / Secondario (`defaultTertiary`):** `#80B918` (Verde bosco / Oliva)
-- **Sottocolori / Accenti:** `#EEF800` (Giallo neon), `#AACC00` (Lime), `#80B918` (Verde oliva), `#00F5D4` (Teal fluo), `#57CC99` (Salvia brillante), `#80FFDB` (Acquamarina)
+Ogni stile ha anche **6 preset di colore per l'accento** (`accentPresets`, scelto dall'utente in
+Impostazioni → Aspetto con anteprima live su una card reale) — il primo preset è sempre
+`defaultAccent`, il secondo `defaultTertiary`, gli altri completano la famiglia cromatica. **Il
+colore dei dati vitali non cambia mai con l'accento scelto**: se cambiasse anche quello, la
+distinzione azione↔dato sparirebbe. Ogni preset supera 4,5:1 su sfondo e superficie card,
+verificato da `test/contrast_test.dart`.
 
-### 4. Deep Sea Neon (Abyss & Cyberpunk Gold)
-Ispirato alla profondità dell'oceano con accenti oro neon e blu cobalto.
-- **Sfondo (`darkBackground`):** `#000814` (Blu abisso quasi nero)
-- **Superficie Card (`darkSurface`):** `#001D3D` (Blu notte)
-- **Superficie Sollevata (`darkSurfaceHigh`):** `#003566` (Blu cobalto oceanico)
-- **Bordi / Outline (`darkOutline`):** `#0A4F8A` (Blu elettrico)
-- **Azione Primaria (`defaultAccent`):** `#FFC300` (Oro Cyberpunk / Giallo caldo)
-- **Metriche Vitali / Secondario (`defaultTertiary`):** `#FFD60A` (Giallo brillante neon)
-- **Sottocolori / Accenti:** `#FFC300` (Oro neon), `#FFD60A` (Giallo neon), `#00B4D8` (Blu cielo), `#06D6A0` (Smeraldo), `#FF5E7E` (Corallo vivo), `#E0AAFF` (Lilla neon)
+Il tema chiaro non è un'inversione meccanica: l'accento crudo di nessuno dei 4 stili regge il
+contrasto per il testo su fondo chiaro, quindi i ruoli testuali usano varianti scurite
+(`accentOnLight`, `tertiaryOnLight`), definite per stile in `app_palette.dart`.
 
 ---
 
-## Colori del tema GymFlow Classico, e a cosa corrispondono nel `ColorScheme`
+## Mappatura sul `ColorScheme` (`app_theme.dart`)
 
-I mockup usano cinque colori del prodotto. Tutti e cinque esistono già in `app_palette.dart`.
+Il tema **non** è generato con `ColorScheme.fromSeed`: i colori sono scelti a mano, i contrasti
+delle coppie usate sono già verificati, e derivarli da un seme unico li perderebbe. Tema scuro:
 
-| Mockup      | Valore    | Dove va nel tema              | Uso nei mockup                                   |
-| ----------- | --------- | ----------------------------- | ------------------------------------------------ |
-| `--ink-900` | `#221E3A` | `surfaceContainerLowest`      | **Sfondo dello schermo**                         |
-| `--ink-800` | `#312C51` | `surface`, `surfaceContainer` | Telaio, testo su ambra                           |
-| `--ink-700` | `#48426D` | `surfaceContainerHigh`        | **Fondo delle card e delle righe**               |
-| `--ink-600` | `#5A5384` | `outline`                     | Estremo chiaro dei gradienti                     |
-| `--amber`   | `#F0C38E` | `primary`                     | Azione, valore in evidenza, elemento selezionato |
-| `--salmon`  | `#F1AA9B` | `tertiary`                    | Dati vitali**e indicatore video**                |
-| `--paper`   | `#F7F5FB` | `onSurface`                   | Testo                                            |
+| Ruolo | Valore |
+|---|---|
+| `primary` / `onPrimary` | accento scelto / `style.darkBackground` |
+| `secondary` | `style.defaultTertiary` @80% — supporto, non un'azione |
+| `tertiary` / `onTertiary` | `style.defaultTertiary` / `style.darkBackground` — **dati vitali** |
+| `surface`, `surfaceContainer` | `style.darkSurface` |
+| `surfaceContainerLowest/Low` | `style.darkBackground` |
+| `surfaceContainerHigh/Highest` | `style.darkSurfaceHigh` |
+| `outline` | `style.darkOutline` |
+| `onSurface` | `AppPalette.paper` (bianco freddo virato teal, non bianco puro) |
 
-### ⚠️ Le card stanno su `ink-700`, non su `ink-800`
-
-Nel mockup lo schermo è `ink-900` e le card sono `ink-700`: **due gradini di distacco**, non uno.
-`ExpressiveCard` oggi usa `surfaceContainer` (= `ink-800`), quindi le card staccano meno di quanto
-disegnato.
-
-### ⚠️ L'ambra come **fondo** non è `primary` nel tema chiaro
-
-Vale per lo scontrino di US-049, per la card ambra piena e per ogni superficie ambra del mockup.
-
-| Tema       | Fondo ambra                   | Testo sopra                     |
-| ---------- | ----------------------------- | ------------------------------- |
-| Scuro      | `scheme.primary`              | `scheme.onPrimary`              |
-| **Chiaro** | **`scheme.primaryContainer`** | **`scheme.onPrimaryContainer`** |
-
-Nel tema chiaro `primary` è `amberOnLight` `#7A5A2E` — **marrone scuro**, perché l'ambra non regge
-il testo su fondo chiaro e i ruoli testuali usano una variante scurita. Chi scrive `primary` come
-colore di sfondo ottiene una superficie marrone che il mockup non prevede.
-
-Il mandato di US-049 diceva `primary` senza distinguere i due temi: l'esecutore se n'è accorto e ha
-fatto la cosa giusta. Questa riga esiste perché non ricapiti.
-
-### ⚠️ L'indicatore video è salmone
-
-`.play { background: var(--salmon); color: var(--ink-800); }` — pallino salmone con il triangolo
-scuro, in basso a destra, 2 px dal bordo. Non un fondo scuro con il simbolo chiaro.
+Nel tema chiaro `primary` è `style.accentOnLight` (scurito, leggibile) e l'accento crudo scala a
+`primaryContainer` — chi scrive `scheme.primary` aspettandosi il colore "vivo" dell'accento su
+sfondo chiaro ottiene invece la variante scurita pensata per il testo: è voluto, vedi il commento in
+testa a `AppTheme.lightTheme`.
 
 ---
 
-## Componenti
+## Principi "Immersivo": angoli vivi, filetto, bagliore
 
-### Riga esercizio (`.exr`) — **il componente più usato dell'app**
+Diverso in ogni punto dalla direzione precedente (Material 3 Expressive: angoli morbidi, elevazione,
+ombra). Tutto in `lib/src/core/theme/immersivo_tokens.dart`, letto da `context.immersivo` — **non
+più `context.expressive`**, rimosso insieme a `ExpressiveTokens`.
 
-```
-fondo ink-700 · raggio 22dp · padding 11dp · gap 12dp
-├── miniatura 54dp, raggio 16dp, con indicatore video in basso a destra
-├── colonna: nome (bold, ~14dp) + riga meta (dim, ~11dp: "4 × 8 · 60 kg" oppure "Petto · Tricipiti")
-└── pillola del tipo o del gruppo (ambra / salmone / neutra)
-```
-
-Non è un `ListTile` dentro una `Card` di Material: è una **riga propria**, più compatta.
-
-### Segnaposto della miniatura — **uniforme, non per gruppo muscolare**
-
-```css
-background: linear-gradient(150deg, var(--ink-600), var(--ink-800));
-```
-
-Gradiente indigo **uguale per tutti gli esercizi**, con sopra una sagoma a tratto (`stroke`, non
-piena) in ambra, salmone o carta. Non sette tinte diverse per regione del corpo.
-
-### Card (`.card`)
-
-`fondo ink-700 · raggio 27dp · padding 16dp · gap 12dp`
-
-Tre varianti:
-
-- **normale**: fondo `ink-700`
-- **piena** (`.card.solid`): fondo **ambra**, testo `ink-800` — «questo è il livello primario»
-- **contornata** (`.card.outline`): trasparente, bordo ambra 1,4px — recupero, record
-
-### Pillole (`.pill`)
-
-`raggio pieno · maiuscolo · ~11dp · peso 700 · letter-spacing .04em`
-Fondo = accento al **20%**, testo = accento pieno. Tre varianti: ambra, salmone, neutra
-(`paper` al 13%).
-
-### Pulsante d'azione (`.cta`)
-
-`fondo ambra · testo ink-800 · raggio pieno · peso 800`, con un cerchio scuro a destra che contiene
-la freccia. **Non un `FilledButton` rettangolare.**
-
-### Etichette (`.lbl`)
-
-`~11dp · maiuscolo · letter-spacing .06em · paper al 58%`
-
-### Numeri (`.metric`)
-
-**Monospaziato, cifre tabulari**, peso 700, letter-spacing −.02em. Corrisponde a
-`typography.metric*`, che esiste da US-033.
-
-### Barra di navigazione (`.nav`)
-
-`margine 12dp · raggio 27dp · fondo ink-700 · icona selezionata in ambra, le altre al 42%`
+- **Angoli vivi.** `ImmersivoShape` ha `radiusXs/Sm/Md/Lg/Xl` tutti a **0**. `radiusFull` (999)
+  resta solo per elementi genuinamente circolari (avatar) — mai per pillole o badge, che nel
+  redesign sono rettangoli. I confini si disegnano con un **filetto** (bordo 1px, colore
+  `scheme.outline`), non con l'elevazione: card, dialog, input, tutti bordati così in
+  `app_theme.dart`.
+- **Bagliore (`glow`) al posto dell'ombra.** `ImmersivoElevation` espone tre livelli come liste di
+  `BoxShadow` colorate (`level1` appena percettibile, `level2` stato selezionato/attivo, `level3`
+  elementi flottanti come la barra di navigazione o l'overlay del timer) — mai un'ombra neutra
+  direzionale.
+- **Font Anton** (Google Fonts), condensato e tutto maiuscolo, per titoli e numeri protagonisti — la
+  base testo resta Space Grotesk (`GoogleFonts.spaceGroteskTextTheme`). Non esiste più una scala
+  "emphasized" separata per peso: l'enfasi è nella scelta del font, non in una variante più pesante
+  dello stesso.
+- **`ticker_marquee.dart`**, nuovo: uno striscione di statistiche che scorre orizzontalmente (es.
+  "VOLUME 18,4 T / RECORD PANCA 92,5 KG / 4 SU 5 SESSIONI /"), usato sia in home sia nella
+  schermata Timer per il riepilogo dei recuperi. Sostituisce la griglia statica di tessere della
+  direzione precedente.
+- **Scala delle spaziature** (`ImmersivoSpacing`, multipli di 4): `xs=4` (icona-etichetta),
+  `sm=8` (elementi affini), `md=16` (padding standard), `lg=20` (riquadri grandi), `xl=24` (margine
+  di schermata), `xxl=32` (fra sezioni), `bottomInset=100` (coda delle liste, sopra la barra
+  flottante).
+- **Le impostazioni sono spezzate in 5 file**, non più una schermata sola: `settings_screen.dart`
+  resta l'indice (Account · Palestra · App) e rimanda a `appearance_settings_screen.dart` (tema,
+  palette, accento, anteprima, aptica), `gym_settings_screen.dart` (dettagli palestra, posizione,
+  soci in comune), `timer_settings_screen.dart` (recupero predefinito e per tipo di serie, feedback
+  fine recupero), `general_settings_screen.dart` (lingua, unità, dati/privacy, info, uscita).
 
 ---
 
-## Movimento (dal mockup 03)
+## Cosa verificare prima di fidarsi ciecamente di questo documento
 
-| Curva nel mockup               | Token Flutter                                             |
-| ------------------------------ | --------------------------------------------------------- |
-| `cubic-bezier(.2,0,0,1)`       | `Easing.standard` → `motion.standardCurve`                |
-| `cubic-bezier(.05,.7,.1,1)`    | `Easing.emphasizedDecelerate` → `motion.emphasizedCurve`  |
-| `cubic-bezier(.3,0,.8,.15)`    | `Easing.emphasizedAccelerate` → `motion.exit`             |
-| `cubic-bezier(.34,1.56,.64,1)` | **elastica, non esiste in `Easing`** — è US-036 (`motor`) |
-
-Micro-interazioni dichiarate:
-
-1. **Cifre che rotolano** — quella che cambia esce in alto, la nuova entra dal basso, sfocatura
-   minima. In Flutter: `AnimatedSwitcher` + `SlideTransition`. **Solo la cifra che cambia si muove.**
-2. **Pulsante che muta forma** — da cerchio a rettangolo stondato quando parte, e si allarga
-   (76 → 96 px). Curva elastica.
-3. **Onde concentriche** — tre cerchi si espandono sfalsati di ~0,93 s mentre il timer scorre, fermi
-   in pausa.
-4. **Cursore che scivola** — nel segmentato l'ambra scorre sotto le etichette (0,48 s, emphasized
-   decelerate) e il quadrante vira sul salmone.
-5. **Valore che pulsa** — al cambio si ingrandisce del 24% e vira sull'ambra. **Non implementato cosi
-   com'e**: il balzo di scala si, il viraggio no — un valore in salmone (sforzo percepito) che
-   virasse sull'ambra userebbe il colore delle azioni per un dato vitale, la stessa confusione che
-   la palette vuole evitare ovunque altro.
-
-### Lo sfondo del timer (`.aura`), mancante finche l'utente non l'ha segnalato il 2026-08-12
-
-Tre masse sfocate (`blur 38px`) che galleggiano lentissime dietro il quadrante — non decorazione fine
-a se stessa: **e la differenza fra "un quadrante su una schermata vuota" e "un'app da palestra"**, ed
-e esattamente cosi che l'utente l'ha descritta mancando. Estratta solo ora perche le prime letture del
-mockup si sono fermate alle micro-interazioni sopra, che sono a schermo (le note del mockup), mentre
-l'atmosfera e nel CSS e non ha una nota propria.
-
-| Massa | Diametro (px → dp, ×1,20) | Colore mockup | Ruolo Flutter | Posizione | Periodo |
-|---|---|---|---|---|---|
-| a1 | 210 → 252 | `rgba(240,195,142,.30)` (ambra) | `scheme.primary` @30% | top:-50→-60, right:-60→-72 | 14s |
-| a2 | 190 → 228 | `rgba(241,170,155,.24)` (salmone) | `scheme.tertiary` @24% | bottom:60→72, left:-70→-84 | 17s |
-| a3 | 150 → 180 | `rgba(90,83,132,.5)` — e `indigo600` | `scheme.outline` @50% | top:44% dell'altezza, right:-50→-60 | 20s, invertito |
-
-Ogni massa si muove avanti e indietro (`0%,100% → 50%`), non in tondo: `AnimationController.repeat(reverse: true)`, un solo controller condiviso per le tre masse invece di tre `Ticker`. Rispetta `MediaQuery.disableAnimations`, letto in `didChangeDependencies` e non in `initState` — la differenza e un errore vero, non stile: `MediaQuery.of` prima che `initState` sia finito lancia un'eccezione.
-
-### Il repertorio del movimento, fuori dal cronometro
-
-La seconda galleria del mockup 03 («Il repertorio del movimento») elenca quattro pattern pensati per
-tutta l'app, non solo per il timer. Due sono nel codice, due non lo sono ancora:
-
-- [x] **Forma che muta** — e il pulsante primario di `TimeControls`, gia in `time_dial.dart`.
-- [x] **Gruppo di pulsanti** — icone che si solleva e si arrotonda una alla volta al tocco (il
-  mockup lo scrive per `:hover`, che sul telefono non esiste: l'equivalente e la pressione).
-  `LiftingIconButton`, applicato per ora al cestino della lista esercizi in
-  `workout_creator_screen.dart`. Il colore da premuto resta nella famiglia semantica del pulsante —
-  il cestino usa un rosso piu tenue, non l'ambra, perche cancellare non e "cosa fare adesso".
-- [ ] **Carte sovrapposte** — tre schede che si aprono a ventaglio al tocco. **Non implementata**:
-  non ha ancora un punto d'uso naturale nell'app. Il filtro per gruppo muscolare della libreria
-  esercizi (`exercise_library_screen.dart`) sembra il candidato piu vicino, ma e semanticamente
-  diverso — un filtro multi-selezione deve mostrare tutte le voci insieme, non nasconderne due
-  dietro un tocco. Da riconsiderare quando (se) arriva una schermata con davvero tre voci correlate
-  da svelare, non da filtrare.
+- **Non è stato validato pixel per pixel contro un mockup**: senza `05-immersivo-toxic-forest.html`,
+  i valori sopra vengono dal codice (fonte primaria, affidabile per *cosa fa* l'app) e dagli
+  screenshot dell'app installata (fonte visiva, affidabile per *come appare*) — non da una specifica
+  di design originale. Se e quando quel file si ritrova, riconciliare.
+- **Regressione nota, non ancora decisa con il prodotto**: la card del record personale
+  (`_RecordBar` in `workout_summary_screen.dart`) non mostra più le ripetizioni della serie che ha
+  stabilito il record né la data del massimale precedente — informazioni che la direzione
+  precedente mostrava. Verificare se è una semplificazione voluta della direzione Immersivo o una
+  perdita da recuperare.
+- **Il repertorio di movimento e le micro-interazioni** della direzione precedente (cifre che
+  rotolano, pulsante che muta forma, onde concentriche, sfondo `.aura` del timer) non sono stati
+  riverificati contro il codice recuperato: `lib/src/ui/widgets/timer_aurora.dart` e
+  `time_dial.dart` esistono ancora nell'elenco dei file recuperati, ma se si comportano ancora come
+  descritto nella direzione Indigo o sono stati adattati a Immersivo va controllato leggendo il
+  sorgente, non assunto da questo documento.
 
 ---
 
-## Cosa nei mockup non è ancora nel backlog come dettaglio
-
-- **Anello di avanzamento** della scheda in corso, sulla home (US-055 lo copre come schermata)
-- **Griglia a tessere di dimensioni diverse** per le statistiche: «quello che conta occupa più
-  spazio»
-- **Scontrino** di fine allenamento con il bordo dentellato (US-049)
-- **Cursori** per carico, ripetizioni e sforzo (US-046)
-- **Segmentato** Tutti / Miei / Recenti e **chip per gruppo muscolare** nella libreria (US-065)
-- **Ventaglio di carte** per le schede
-
----
-
-_Estratto il 2026-08-06 dai tre mockup. Quando un mockup cambia, questo documento va rifatto._
+_Riscritto il 2026-09-09, dal codice recuperato di `recovery/immersivo-toxic-forest` (ora in
+`main`), non da un mockup. Quando `05-immersivo-toxic-forest.html` o `adr/002` si ritrovano, o
+quando l'inventario completo degli screenshot dell'app è pronto, questo documento va riconciliato
+con quel materiale._
