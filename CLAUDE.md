@@ -119,9 +119,19 @@ lib/src/
 
 ## Stato del progetto
 
-Il backlog è in [`docs/BACKLOG.md`](docs/BACKLOG.md): **94 storie, 17 epiche, 304 punti**, di cui 40 completate. Ogni storia riporta `Depends on`, `Blocks` e `Status`. Una storia è eseguibile quando tutte quelle in `Depends on` sono `✅ DONE`.
+⚠️ **I numeri di questa sezione invecchiano in fretta e sono stati disallineati per settimane.**
+Prima di fidarsene, ricontare: `grep -c "^#### US-" docs/BACKLOG.md` e
+`grep -c "✅ DONE" docs/BACKLOG.md`. Al 2026-09-09: **110 storie, 17 epiche**, di cui **64
+completate**. Ogni storia riporta `Depends on`, `Blocks` e `Status`. Una storia è eseguibile quando
+tutte quelle in `Depends on` sono `✅ DONE`.
 
-**Direzione visiva: palette Indigo, app scura per impostazione predefinita.** Ambra `#F0C38E` significa sempre e solo "cosa fare adesso"; salmone `#F1AA9B` è riservato ai dati vitali. Tenerli distinti è deliberato: se l'ambra compare su qualcosa che non è un'azione, perde la sua funzione.
+**Direzione visiva: "Immersivo / Toxic Forest", non più Indigo/Material 3 Expressive.** Il cambio è
+descritto per intero in [`docs/HANDOFF.md`](docs/HANDOFF.md), sezione 5 — leggerlo prima di scrivere
+un widget che si vede. In sintesi: 4 palette scelte dall'utente (`AppThemeStyle`), ciascuna con un
+colore per le azioni e uno per i dati vitali sempre distinti fra loro (mai lo stesso ruolo), angoli
+vivi invece che arrotondati, bagliori colorati invece di ombre, font Anton per titoli e numeri. I
+token vivono in `lib/src/core/theme/immersivo_tokens.dart` e `app_palette.dart`, non più in
+`ExpressiveTokens`.
 
 Debito noto e già tracciato — non aprire storie nuove per queste, esistono già:
 

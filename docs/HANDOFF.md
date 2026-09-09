@@ -1,329 +1,282 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-08-10 · **Commit:** `e913a37` su `main` e `dev`, allineati e pushati
+**Aggiornato:** 2026-09-09 · **Commit:** `d5b2327` su `recovery/immersivo-toxic-forest`
+(pushato, **non ancora mergiato in `main`**). `main`/`dev` sono fermi a `ab08290` (14 agosto).
 
-Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione**. Contiene
-ciò che **non si deduce leggendo il repository**: decisioni prese a voce, trappole dell'ambiente,
-e il livello di rigore atteso.
+Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
+assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
+macchina Linux personale, non più sul PC Windows citato nelle versioni precedenti di questo file,
+**perso** nel frattempo (vedi sezione 1). Contiene ciò che **non si deduce leggendo il repository**:
+decisioni prese a voce, trappole dell'ambiente, il livello di rigore atteso, e — questa volta — la
+storia di come una settimana di lavoro quasi persa è stata recuperata.
 
 ## Cosa leggere, e cosa non leggere
 
 | Leggi | Perché |
 |---|---|
 | **Questo file**, per intero | È il più corto che contenga tutto |
-| [`../AGENTS.md`](../AGENTS.md) · 153 righe | Le cinque regole che fanno fallire una consegna |
-| [`WORKFLOW.md`](WORKFLOW.md) · 318 righe | Le 8 fasi. Leggi almeno le fasi 4 e 5 |
-| [`DELEGA.md`](DELEGA.md) · 236 righe | Come si delega, e **il modello del mandato da incollare** |
-| [`DESIGN-SPEC.md`](DESIGN-SPEC.md) · 185 righe | **Obbligatorio** se tocchi qualcosa che si vede |
+| [`../AGENTS.md`](../AGENTS.md) | Le regole che fanno fallire una consegna |
+| [`WORKFLOW.md`](WORKFLOW.md) | Il ciclo in 8 fasi — **attualmente sospeso**, vedi sezione 2 |
+| [`DESIGN-SPEC.md`](DESIGN-SPEC.md) | ⚠️ **Stale**: descrive la direzione precedente (Material 3 Expressive/Indigo), non quella oggi nel codice. Non riscritto ancora — vedi sezione 2 |
 
-⚠️ **`BACKLOG.md` è 3208 righe e 190 KB: non leggerlo tutto.** È la fonte di verità, e si consulta
-**cercando**: `grep -n "^#### US-0XX" docs/BACKLOG.md` per una storia, `grep -n "Status:" ` per lo
-stato di tutte. Leggere una storia significa leggere il suo blocco, non il file.
+⚠️ **`docs/design/` ha oggi un solo file**, `GymFlow Immersivo Impostazioni.html` (un estratto di
+conversazione con Claude Design, "Turno 3", non un mockup nel formato dei tre precedenti). I tre
+mockup storici (`01-direzione-visiva.html`, `02-schermate-app.html`, `03-timer-e-movimento.html`,
+direzione Material 3 Expressive/Indigo) sono stati **rimossi dal repository** il 2026-09-09: la
+direzione che descrivevano è superata. Il mockup che dovrebbe sostituirli come fonte autorevole,
+`docs/design/05-immersivo-toxic-forest.html`, e l'ADR che lo accompagna,
+`docs/adr/002-immersivo-toxic-forest.md`, sono **citati per nome dal codice ma non recuperabili**:
+non sono mai stati committati e non sono file compilati in un APK, quindi il trucco della sezione 1
+non può ritrovarli. Cercare nella conversazione "Turno 3" su Claude Design (turni 1 e 2 della stessa
+conversazione, non ancora ritrovati) prima di rassegnarsi a riscriverli da zero.
 
-⚠️ **`docs/planning/` ha 82 file per 780 KB**: sono i piani e le review di ogni storia affrontata.
-**Non si leggono in blocco.** Si apre `US-XXX.md` quando si lavora a `US-XXX`, e
-`US-XXX-review.md` quando serve sapere perché una cosa è com'è. Le review delle storie chiuse sono
-archivio: preziose come precedenti, inutili come lettura.
-
-⚠️ **`README.md` sovrastima l'app.** Descrive funzioni come complete quando sono intenzioni
-(«drag & drop planner», «sync with device calendar»). Le sue affermazioni tecniche sono state
-corrette, il resto no: **non usarlo come fonte di verità su cosa l'app fa**.
-
----
-
-## 1. Dove siamo
-
-**47 storie completate su 102.** **17 avvisi** dell'analyzer, **zero errori**, **501 test verdi**
-(erano 102 a inizio progetto). CI verde su entrambi i branch.
-
-### ⚠️ Leggi prima questo: Firestore negava tutto da sei mesi
-
-Scoperto il 2026-08-10. Le regole in produzione erano quelle di prova generate alla creazione del
-database, con la loro scadenza: `if request.time < timestamp.date(2026, 2, 24)`. **Falsa dal 24
-febbraio.** Ogni lettura e ogni scrittura negate, a tutti, per quasi sei mesi.
-
-Spiegava insieme cose che sembravano separate: lo storico vuoto, «Nuovo esercizio» che non salvava,
-**US-045 morta** e **US-072 nata per aggirarla**, l'errore su `ensureFriendCode`.
-
-Ora `firestore.rules` è nel repository e ogni utente vede **solo i propri dati**. Resta **una**
-negazione, deliberata: la query della condivisione fra amici — vedi **US-080**.
-
-**La lezione, e vale ancora**: quando un dato non arriva, il primo controllo è
-`adb logcat | grep PERMISSION_DENIED`, non il codice che lo legge. Il 2026-08-10 ha trovato un
-secondo difetto per questa strada — vedi US-098.
-
-### Cosa si vede a schermo, oggi
-
-**Aggiornato il 2026-08-11, dopo una sessione di implementazione diretta** (niente fasi di
-`WORKFLOW.md`, per scelta esplicita dell'utente: si formalizza a fine lavoro, non prima). Il
-**test sul sorgente** (`test/design_system_usage_test.dart`) ora sorveglia **l'intero albero di
-`lib/src/ui`**, non solo le quattro schermate principali: schermate e widget, uno per uno, elencati
-in `schermate` e `widgetDeiMockup` dentro il file stesso.
-
-**US-023** (schermate secondarie) e **US-038** (barra di navigazione) sono ✅ **DONE** — vedi le loro
-voci in `BACKLOG.md` per cosa e stato toccato e cosa e dichiarato limite. La barra in basso non usa
-più `google_nav_bar`: il pacchetto e stato tolto anche da `pubspec.yaml`, non solo dal widget.
-
-**Il debito visibile di US-034** — `Colors.grey` ereditati dal fondo chiaro — non dovrebbe più
-comparire in nessuna schermata: ogni file di `lib/src/ui` e passato dai ruoli del `ColorScheme`.
-Se l'utente segnala ancora testi sbiaditi, è una regressione, non il debito noto — e il test
-guardiano dovrebbe già averla presa, quindi il primo sospetto è un colore letto da un posto che il
-test non guarda (uno stile di `Theme.of(context).textTheme` senza `.copyWith`, per esempio).
+⚠️ **`BACKLOG.md` è 3455 righe, 110 storie, 64 `✅ DONE`** (contato il 2026-09-09 con
+`grep -c "^#### US-"` e `grep -c "✅ DONE"` — **non fidarsi dell'intestazione del file**, che dice
+ancora "81 storie" ed è ferma al 6 agosto: mai aggiornata nonostante il footer del file stesso dica
+110). Si consulta cercando, non leggendo tutto: `grep -n "^#### US-0XX" docs/BACKLOG.md`.
 
 ---
 
-## 2. ⚠️ Cosa è in volo adesso
+## 1. Dove siamo: il codice di una settimana intera era quasi perso
 
-**Tre worktree aperti**, e due contengono lavoro:
+**Il fatto più importante di questa consegna.** Tra il 14 e il 21 agosto 2026 è stato scritto,
+sul PC Windows dell'utente, un redesign visivo completo dell'app — cambio di nome, cambio di
+identità: **"Immersivo / Toxic Forest"**, che sostituisce integralmente Material 3 Expressive e la
+palette Indigo (ADR-001, `DESIGN-SPEC.md`). Quel PC è andato perso. **Nessun commit di quel lavoro
+è mai arrivato su GitHub**: `main`/`dev` si fermano al 14 agosto (`ab08290`), l'APK installato sul
+telefono (`RFGL10YZ5RX`) era del 21 agosto — sette giorni di lavoro reale, a rischio di sparire per
+sempre.
 
-| Worktree | Branch | Stato |
-|---|---|---|
-| `C:\Users\s.ferrero\Code\GF027` | `feature/US-027-localize-secondary-screens` | ⚠️ **RESPINTA**, e il lavoro che resta è **enumerato da un test rosso**: `flutter test test/localization_secondary_test.dart`. Diciassette stringhe. Leggi `docs/planning/US-027-review.md` |
-| `C:\Users\s.ferrero\Code\GF094` | `feature/US-094-session-timer-button` | 📋 Pianificata, **non iniziata**. Piano in `docs/planning/US-094.md` |
-| `C:\Users\s.ferrero\.gemini\antigravity\worktrees\GymFlow\*` | vari | **Rumore di Gemini**: se li trovi vuoti e fermi a un commit di `main`, si rimuovono |
+### Come è stato recuperato
 
-**Il mandato per finire US-027 e quello per US-094 sono già scritti** e sono stati consegnati
-all'utente. Se servono di nuovo, si ricostruiscono dal modello in `DELEGA.md` più i due piani.
+L'APK installato era una build **debug** (mai release, per prassi del progetto). Le build debug
+Flutter incorporano nel Dart Kernel (`assets/flutter_assets/kernel_blob.bin` dentro l'APK) il
+**testo sorgente originale** di ogni file `.dart` compilato — serve al debugger per "view source".
+Estratto l'APK dal telefono via `adb`, cercando nel dump di `strings` i marcatori
+`file:///C:/Users/s.ferrero/Code/GymFlow/lib/....dart` (il percorso reale sul PC perduto), il testo
+fra un marcatore e il successivo è il contenuto quasi letterale di quel file, commenti italiani
+compresi. **109 file su 111 recuperati integralmente**, con parentesi bilanciate; gli altri due
+sistemati a mano (uno rigenerato con `build_runner`, un altro con una coda di rumore binario tagliata
+dopo verifica). Sei file sono del tutto nuovi rispetto a quanto era su GitHub: `immersivo_tokens.dart`
+e quattro sotto-schermate delle impostazioni (`appearance_`, `general_`, `gym_`,
+`timer_settings_screen.dart`) più `ticker_marquee.dart`.
 
-### Chi fa cosa
+Il codice recuperato vive sul branch **`recovery/immersivo-toxic-forest`** (pushato, non mergiato):
+- `flutter analyze` su `lib/`: **zero errori**. Due interventi manuali oltre al recupero automatico
+  sono stati necessari — vedi commit `ff893a5` per il dettaglio (rumore binario tagliato in
+  `expressive_segmented_control.dart`; `healthServiceProvider` rinominato in
+  `healthServiceProviderProvider` in 3 punti, perché la classe `HealthServiceProvider` finisce già in
+  "Provider" e **questa** versione di `riverpod_generator` genera il nome doppio — la stessa trappola
+  già in sezione 3 dalle versioni precedenti di questo file, ricomparsa per lo stesso motivo).
+- `flutter test`: **873/873 verdi** (commit `d5b2327`), dopo aver aggiornato 17 file di test che
+  usavano l'API precedente di `AppPalette` (`amber`/`salmon`/`indigo900`, rimossi) o assumevano una
+  struttura di schermata che il redesign ha cambiato o eliminato del tutto (l'intera `SliverAppBar`
+  con saluto e cassetto della dashboard non esiste più; il widget condiviso `WorkoutReceipt` non è
+  più usato da `WorkoutSummaryScreen`).
 
-Il modello è cambiato il 2026-08-06 e vale ancora: **chi ha il contesto pianifica (fase 1) e
-rivede (fase 5), chi è veloce implementa (fasi 2-4)**, e il merge resta una decisione dell'utente.
-L'esecutore oggi è **Gemini (Antigravity CLI)**, con l'utente come tramite: l'orchestratore prepara
-il mandato, l'utente lo incolla, e riporta indietro il rapporto.
+  ⚠️ **Segnalazione da portare in review, non richiusa**: la nuova `_RecordBar` in
+  `workout_summary_screen.dart` non mostra più né le ripetizioni della serie che ha stabilito il
+  record né la data del massimale precedente. È un cambiamento di **contenuto**, non solo di stile —
+  va deciso con l'utente se è voluto o una perdita da recuperare.
 
-⚠️ **`agy -p` non funziona** (`timeout waiting for response`, zero turni): l'orchestratore non può
-lanciarlo da sé. E **Gemini crea worktree propri** anche quando il mandato lo vieta: quando torna
-un rapporto, `git worktree list` prima di cercare il branch.
+### Cosa manca ancora, di questa storia
+
+1. **Decidere quando/come portare `recovery/immersivo-toxic-forest` in `main`.** Per ora è solo
+   pushato. Nessun merge senza via libera esplicito (vale la regola di sempre, ora più che mai: è
+   un branch enorme, 107+ file).
+2. **Ritrovare, o riscrivere dichiarandolo, `ADR-002` e `docs/design/05-immersivo-toxic-forest.html`**
+   — vedi il box in cima al file.
+3. **Riscrivere `DESIGN-SPEC.md`** sulla base del codice ora recuperato (`app_palette.dart`,
+   `immersivo_tokens.dart` sono la fonte più affidabile oggi, insieme agli screenshot presi
+   dall'app installata). Finché non è fatto, `DESIGN-SPEC.md` va trattato come **storico**, non come
+   riferimento.
+4. **Aggiornare i numeri stantii** in `BACKLOG.md` (intestazione) e in `../CLAUDE.md` ("Stato del
+   progetto" diceva 94 storie/40 completate; sono 110/64).
+5. Due segnalazioni minori spawnate come task separati durante l'aggiornamento dei test: un commento
+   ormai stantio in `exercise_row.dart` sui raggi Material 3 Expressive, e il sospetto che
+   `WorkoutReceipt` sia codice morto (usato solo dai suoi stessi test).
 
 ---
 
-## 3. Ambiente: quello che non funziona come ti aspetti
+## 2. ⚠️ Il processo formale è sospeso
 
-Flutter **non è nel PATH**: `export PATH="/c/Users/s.ferrero/Flutter/bin:$PATH"`. Flutter 3.38.7,
-Dart 3.10.7.
+**`WORKFLOW.md` non è stato seguito per gran parte del lavoro recente**, non solo per il redesign
+Immersivo. La cronologia di agosto mostra commit `US-FIX:`/`US-STYLE:` diretti su `main`/`dev` senza
+branch di storia, e almeno tre `Merge branch '...' into dev` — un vero merge, non lo squash che il
+processo prescrive, e `dev` non dovrebbe mai ricevere commit propri. Non è un incidente isolato: è
+una scelta esplicita dell'utente più volte, quando il ritmo ha contato più del rispetto delle fasi.
 
-| Target | Stato |
+**Conseguenza pratica**: non fidarsi di `BACKLOG.md`/`docs/planning/` come specchio fedele di tutto
+il lavoro reale fatto sul codice. Verificare sempre lo stato vero — `git log`, l'app installata —
+prima di pianificare.
+
+**Regola nuova, esplicita, dal 2026-09-08**: qualunque modifica rilevante va **committata e pushata
+il prima possibile**, anche fuori dal ciclo formale se necessario. Non deve mai restare solo su un
+disco locale. È la lezione diretta della sezione 1: un push su un branch anche non mergiato avrebbe
+evitato l'intero recupero forense.
+
+---
+
+## 3. Ambiente: **non più il PC Windows**
+
+Le versioni precedenti di questo file descrivevano un ambiente Windows (`C:\Users\s.ferrero\...`,
+`%LOCALAPPDATA%\Android\Sdk`) che **non esiste più** — quel PC è perso (sezione 1). La sessione che
+scrive questa versione girava su una macchina **Linux personale** dell'utente, diversa anche dal
+laptop di lavoro. Se in futuro si torna a lavorare da un PC Windows o da un'altra macchina, questa
+sezione va riscritta da capo: non ereditarla.
+
+**Su questa macchina Linux (Ubuntu 26.04), impostato da zero il 2026-09-09:**
+
+| Strumento | Stato |
 |---|---|
-| **Android** | ✅ l'unico attivo |
-| Web | ❌ Isar genera interi a 64 bit non rappresentabili in JS. Accantonato in **EP-008** |
-| Windows desktop | ❌ Visual Studio non installato |
+| Flutter | Via **snap** (`/snap/bin/flutter`, 3.47.2 stable) — non nel PATH di sistema per gli script, ma `flutter`/`dart` funzionano da shell interattiva |
+| Android SDK | `/usr/lib/android-sdk`, **manca `cmdline-tools`**: `flutter build apk` non è stato verificato qui. `flutter analyze` e `flutter test` **non ne hanno bisogno** e funzionano pienamente |
+| `adb` | Installato via `apt` (richiede `sudo`, vedi sotto). Telefono riconosciuto: `RFGL10YZ5RX`, Samsung S26 Ultra (`SM_S948B`) |
+| `gh` (GitHub CLI) | Autenticato come `SimoFerre98`; `git push`/`pull` funzionano tramite le sue credenziali |
 
-**Telefono**: Samsung S26 Ultra, `RFGL10YZ5RX`. Si scollega spesso: `adb devices` prima di
-installare. `adb` sta in `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
+**`sudo` non può mai essere lanciato dall'assistente**: questo ambiente non ha un terminale
+interattivo a cui `sudo` possa chiedere la password, a prescindere dai permessi concessi. Per comandi
+che richiedono `sudo` con una certa frequenza (oggi solo `apt`), l'utente ha configurato
+`/etc/sudoers.d/claude-apt` con `NOPASSWD` **solo** per `/usr/bin/apt` e `/usr/bin/apt-get` — non per
+altro, deliberatamente ristretto.
+
+**Alcune azioni Bash richiedono un permesso esplicito** oltre a quanto l'assistente può fare di
+default: il classificatore di permessi blocca `git push origin --delete`, `git checkout --` e
+comandi che sovrascrivono file in blocco (`rsync`/`cp -r` su `lib/`), anche quando l'operazione è
+sicura (branch non-`main`, tutto tracciato da git). Si sbloccano aggiungendo una riga mirata a
+`.claude/settings.local.json` (non versionato) — vedi quello che c'è già lì per il formato. Non
+allargare questi permessi oltre il comando esatto che serve in quel momento.
+
+**Trappole indipendenti dalla macchina, confermate ancora valide:**
+
+| Trappola | Come si evita |
+|---|---|
+| **`dart run build_runner build` dopo aver toccato un solo file** | Rigenera **tutti** i `.g.dart`. La versione di `riverpod_generator` installata può differire da quella che ha scritto l'ultimo commit e produrre nomi diversi per lo stesso provider (visto di nuovo il 2026-09-09 su `HealthServiceProvider` → `healthServiceProviderProvider`, la stessa trappola di US-102). Dopo la rigenerazione, `git status` su **tutta** `providers/` |
+| **`dart format` su questo repository** | Non lanciarlo: riscriverebbe centinaia di righe non toccate |
+| **`git merge --squash`** | Non marca il branch come merged: si cancella con `git branch -D` |
+| **Il buffer di `logcat` gira** | `adb logcat -c` prima di riprodurre un difetto |
+| **Non fidarsi del rapporto di un sub-agente** | Rifare `flutter analyze`/`flutter test` in prima persona prima di accettare un esito — ha già trovato discrepanze in passato (sezione 4) |
 
 ```bash
+adb devices -l                                       # verifica il telefono prima di installare
 flutter build apk --debug --target-platform android-arm64
 adb -s RFGL10YZ5RX install -r build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-**Mai `flutter install`**: disinstalla l'app e cancella i dati, e l'utente si ritrova scollegato da
-Firebase. Con `adb install -r` si conserva tutto — si verifica che `firstInstallTime` in
-`adb shell dumpsys package com.example.gymflow` **non** sia cambiato.
-
-| Trappola | Come si evita |
-|---|---|
-| **`dart format` su questo repository** | **Non lanciarlo**: i file non sono formattati così, e riscriverebbe centinaia di righe non toccate. `dart fix --apply --code=<regola>` invece è sicuro e mirato: US-030 ha fatto 23 correzioni con un diff di 9 file |
-| **`dart run build_runner build` dopo un solo provider modificato** | Rigenera **tutti** i `.g.dart`, e la versione di `riverpod_generator` installata puo' differire da quella che ha scritto l'ultimo commit: trovato il 2026-08-12 su `HealthServiceProvider` — una classe il cui nome finisce gia' in «Provider» — che con la versione vecchia generava `healthServiceProvider` e con quella nuova `healthServiceProviderProvider`, rompendo ogni punto d'uso senza che il file toccato a mano fosse coinvolto. Dopo la rigenerazione, `git status` su **tutta** la cartella `providers/`: se un `.g.dart` che non dovevi toccare e cambiato, `git checkout --` su quello e non sul file giusto |
-| **`git checkout -- <file>` dopo una mutazione** | Ripristina **tutto** il file, quindi cancella anche la correzione che stavi verificando. Succeduto due volte. Usa una **copia di sicurezza** |
-| **`git switch` dentro un worktree** | Sposta **quel** worktree, non la cartella principale. Un `git switch dev` girato in `GF027` ha spostato quel worktree su `dev` e un `reset` successivo ha fatto regredire `dev`. Verifica sempre `pwd` |
-| **`git merge --squash`** | Non marca il branch come merged: si cancella con `git branch -D` |
-| **Rimuovere un worktree** | `git worktree remove` fallisce con «Filename too long» se dentro c'è una `build/`. Serve `Remove-Item -LiteralPath "\\?\C:\...\GF0XX" -Recurse -Force` in PowerShell, poi `git worktree prune`. Con `--force` e senza `build/` funziona |
-| **`firebase deploy --only firestore:rules`** | Con il multi-database **non fa niente** e stampa «Deploy complete!». Usare `--only firestore` e verificare il ruleset dall'API |
-| **`git add -A` in un worktree** | Raccoglie avanzi di Gradle e registrant di plugin rigenerati. Elencare i file |
-| **Percorsi Android in bash** | Anteporre `MSYS_NO_PATHCONV=1` |
-| **`sleep` in bash** | Bloccato: usare `run_in_background` |
-| **Il buffer di `logcat` gira** | 240.000 righe e la traccia sparisce. `adb logcat -c` **prima** di far riprodurre un difetto |
+**Mai `flutter install`**: disinstalla l'app e cancella i dati. Con `adb install -r` si conserva
+tutto — si verifica che `firstInstallTime` in `adb shell dumpsys package com.example.gymflow`
+**non** sia cambiato.
 
 ---
 
 ## 4. Il livello di rigore atteso
 
-È il punto che si perde cambiando sessione, ed è il più importante di questo file.
+**Quando un criterio non è verificabile, si dichiara. Non si spunta.**
 
-**Quando un criterio non è verificabile, si dichiara. Non si spunta.** Ogni review del progetto ha
-una sezione sui limiti, ed è quella che rende credibile il resto.
+**Non fidarsi del rapporto di consegna, nemmeno di un sub-agente diligente.** Il 2026-09-09 l'agente
+che ha aggiornato i test ha consegnato un rapporto dettagliato e onesto — verificato comunque di
+persona con `flutter analyze`/`flutter test` prima di accettarlo, per prassi, e confermato identico.
+Il 2026-08-10: una consegna dichiarava «nessun nuovo avviso» avendone introdotti tre, e «456 verdi»
+con la suite rossa.
 
-**Non fidarsi del rapporto di consegna.** Si rifanno `analyze` e `test` nel worktree, e si riparte
-dal diff. Il 2026-08-10: una consegna dichiarava «nessun nuovo avviso» avendone introdotti tre nel
-proprio file di test, e «456 verdi» con **la suite rossa**. Un'altra dichiarava un baseline che non
-esisteva.
+**Confrontare l'ELENCO degli avvisi con `main`, non il totale.**
 
-**Confrontare l'ELENCO degli avvisi con `main`, non il totale.** Un calo va spiegato quanto un
-aumento: può venire dal codice che la storia riscriveva davvero — legittimo — o da un rifacimento
-fuori mandato.
-
-**Rompere il codice di proposito e controllare che un test diventi rosso.** È il controllo che ha
-trovato più difetti in assoluto. Tre avvertenze pagate care: **verifica che la mutazione sia
-davvero nel file** prima di crederci; muta il **file vero**, non una copia; e **scegli una
-mutazione diversa** da quella che l'esecutore ha già provato — la sua è quella che il suo test
-prende già.
+**Rompere il codice di proposito e controllare che un test diventi rosso.**
 
 ### Dove nascono i difetti, in ordine di frequenza misurata
 
-1. **Valori del mockup copiati invece che convertiti.** `dp = px × 1,36` per i mockup 01 e 02,
-   `× 1,20` per il 03. Successo in US-073, US-047, US-050, e in US-062 nella forma più letterale
-   possibile: cinque `fontSize: 8.5`, cioè la riga `.exr-meta { font-size: 8.5px }` del CSS. In
-   US-082 in forma nuova: `spacing.sm + spacing.xs` per riottenere 12 senza scrivere un letterale.
-   **La lezione dentro la lezione**: la guardia ne vide tre su undici, perché il piano chiedeva di
-   aggiungere i **file nuovi** alla lista sorvegliata e non era stato fatto. Un test che sorveglia
-   solo i file vecchi non sorveglia niente.
-2. **Test che certificano meno del loro nome.** In US-025 «usa `ProgramListScreen` per la terza
-   voce» cercava la stringa nel file intero: restava verde con la schermata montata sulla prima
-   voce. In US-062 «changes arc based on fraction and radius» controllava solo il parametro del
-   costruttore.
-3. **Test che provano i pezzi e non il cablaggio fra loro.** In US-093 il cronometro non si muoveva
-   da un giorno: le viste prendevano il notifier con `ref.read`, che non crea iscrizioni. I test
-   provavano il notifier — corretto — e che la schermata si aprisse senza eccezioni. Entrambi
-   verdi, entrambi ciechi: **nessuno guardava cosa viene disegnato**. In US-036 il test della
-   transizione montava un widget scritto nel file di test.
-4. **Criteri spuntati e non veri.** In US-027 «tutte le stringhe sostituite» con diciassette
-   rimaste. In US-066 «il peso arriva da Salute» diventato «nessuna importazione da Salute» ✓.
-5. **Dati inventati mostrati come veri.** In US-062 `currentDay: 3`, `progressFraction: 0.72` e
-   `durationMinutes: 45` erano i numeri d'esempio del mockup: l'anello avrebbe indicato 72% a chi
-   non si è mai allenato. **Un numero inventato è peggio di un numero assente**: il secondo si nota
-   e si chiede, il primo si crede.
-6. **Riscritture che cancellano senza dichiararlo.** In US-066 la schermata delle misure è passata
-   da undici campi a quattro e i dati salvati sono diventati invisibili. Niente falliva. Da qui la
-   regola per gli spostamenti: **il diff deve leggersi come taglia e incolla**, e si verifica
-   confrontando le righe uscite con quelle entrate (fatto in US-095).
-7. **Troncamenti nei calcoli.** Un `toInt()` dentro un ciclo perde i mezzi chili a ogni serie:
-   corretto in US-049 e **sopravvissuto** in `statistics_helper` fino a US-096, perché erano due
-   calcoli diversi.
-
-E tre rilievi che si sono rivelati **sbagliati**, per ricordare che si verifica prima di segnalare:
-«usa `DateFormat` per i mesi», «le sagome non sono outline», e «il cronometro tronca una cifra».
-Nel 2026-08-10 se ne aggiungono due miei: un `FadeTransition` che credevo sollevasse un'assertion
-(`getAlphaFromOpacity` limita internamente) e un `drawer` che credevo perso e era solo spostato.
+1. **Valori del mockup copiati invece che convertiti.** `dp = px × 1,36` per i mockup storici
+   (ormai rimossi), `× 1,20` per il terzo. Se e quando si ritrova `05-immersivo-toxic-forest.html`,
+   verificare il suo fattore di conversione da zero: non è detto sia lo stesso.
+2. **Test che certificano meno del loro nome.**
+3. **Test che provano i pezzi e non il cablaggio fra loro.**
+4. **Criteri spuntati e non veri.**
+5. **Dati inventati mostrati come veri.**
+6. **Riscritture che cancellano senza dichiararlo.** Il caso più recente: la card del record
+   personale nel redesign Immersivo (sezione 1) — dichiarato nel commit, non ancora deciso con
+   l'utente se è voluto.
+7. **Troncamenti nei calcoli.**
+8. **Codice recuperato per via forense con rumore binario in coda non ripulito.** Nuovo il
+   2026-09-09: l'estrazione automatica dal Dart Kernel a volte lascia, dopo la graffa di chiusura
+   vera di un file, alcune righe di byte non stampabili che sembrano quasi codice. Si individua
+   contando parentesi/graffe fino a ogni riga candidata: il bilancio torna a zero esattamente alla
+   riga vera, mai prima.
 
 ---
 
 ## 5. Decisioni prese, che non si deducono dal codice
 
-### Direzione visiva: palette Indigo, app scura
+### Direzione visiva attuale: "Immersivo / Toxic Forest" (sostituisce Indigo/Material 3 Expressive)
 
-| Ruolo | Colore | Significato |
+| Ruolo | Valore | Significato |
 |---|---|---|
-| Sfondo | `#221E3A` | |
-| Superfici | `#312C51` / `#48426D` | Card, e card dentro card |
-| **Azione** | `#F0C38E` ambra | **Un solo significato: cosa fare adesso** |
-| **Dati vitali** | `#F1AA9B` salmone | Battito, sforzo. Mai per le azioni |
+| Sfondo (Toxic Forest) | `AppPalette.bgDeep` `#0B2027` | |
+| Superficie card | `AppPalette.surfaceCard` `#143540` | |
+| **Azione** | `AppPalette.accent` (giallo neon `#EEF800` in Toxic Forest, uno dei 4 stili) | **Un solo significato: cosa fare adesso** — regola invariata dalla direzione Indigo, solo generalizzata |
+| **Dati vitali** | `AppPalette.accentSecondary` (verde bosco in Toxic Forest) | Mai per le azioni. Non cambia con l'`accentPreset` scelto dall'utente: se cambiasse anche questo, la distinzione azione↔dato sparirebbe |
 
-La separazione è deliberata: se l'ambra compare su qualcosa che non è un'azione, l'occhio impara a
-ignorarla. È già stata corretta due volte in review (US-082, US-062).
+**4 palette intere** (`AppThemeStyle`: `classico`, `digitalPulse`, `toxicForest` — **default**,
+`deepSeaNeon`), ciascuna con **6 preset di colore per l'accento** (`accentPresets`), scelti
+dall'utente in Impostazioni → Aspetto con anteprima live. Lo switcher di stile a schede della
+versione precedente (US-STYLE) è sparito da lì.
 
-⚠️ **L'ambra come fondo non è `primary` nel tema chiaro**, è `primaryContainer`: nel chiaro
-`primary` è un marrone scuro pensato per il testo.
+**Estetica: angoli vivi, non arrotondati.** `ImmersivoShape` ha quasi tutti i raggi a 0: i confini si
+disegnano con un filetto (bordo sottile), non con l'elevazione. `radiusFull` resta solo per elementi
+genuinamente circolari (avatar). **Bagliori (`glow`)** — liste di `BoxShadow` colorate — al posto
+delle ombre neutre. **Font Anton** (Google Fonts), condensato e maiuscolo, per titoli e numeri: non
+più la scala Material 3 "emphasized". Vedi `lib/src/core/theme/immersivo_tokens.dart`, il file più
+affidabile su questa direzione finché `DESIGN-SPEC.md` non è riscritto.
 
-### Material 3 Expressive: costruito, non installato
+### Trainer e schede: l'ordine deciso resta valido
 
-Flutter non lo supporta. Vedi [`adr/001-material-3-expressive.md`](adr/001-material-3-expressive.md).
-Tutti i token passano da `ExpressiveTokens`, letta con `context.expressive`.
-
-**`motor 1.1.0` è installato** (US-036) e serve per la **fisica**, non per le curve: la molla del
-mockup è `Cubic(0.34, 1.56, 0.64, 1)`, che si scrive in una riga. Ciò che una curva a durata fissa
-non sa fare è ripartire da posizione e velocità correnti quando un gesto la interrompe.
-
-### Trainer e schede: l'ordine è deciso
-
-**EP-016 «Schede come le scrive un allenatore» viene prima di EP-017 «Trainer e clienti».**
-Verificato nel modello: `WorkoutTemplateExercise` ha **un** `targetSets`, **un** `targetReps` e
-**un** `targetWeight`, quindi **nessuna delle quattro schede reali** dell'utente è rappresentabile.
-Un trainer che non può scrivere `4x(15-12-10-8)` con i carichi non usa l'app per lavoro.
-
-- **US-083** (modello delle serie, 8pt) è pianificata e **non delegabile**. Il punto 4 è deciso:
-  `perSide` vive nel piano, Isar resta fuori.
-- **US-087** (l'invito) **assorbe US-080**: lo stesso meccanismo serve a trainer e amici.
-- **US-092** (consenso e revoca) viene **prima** di US-091 (l'andamento): un consenso aggiunto
-  sopra una funzione che già mostra tutto è un consenso finto.
+**EP-016 «Schede come le scrive un allenatore» viene prima di EP-017 «Trainer e clienti».** Nessuna
+informazione nuova la mette in discussione — verificare comunque lo stato reale delle storie
+US-083/086/087 nel backlog prima di assumerlo ancora vero.
 
 ### Verifica tramite APK
 
-Il ciclo **non esegue l'app**: produce un APK, l'utente prova sul telefono. I criteri che
-richiedono interazione si marcano **«da confermare sull'APK»**, mai spuntati.
+Il ciclo **non esegue l'app**: produce un APK, l'utente prova sul telefono. Su questa macchina Linux,
+`flutter build apk` non è stato testato per l'assenza di `cmdline-tools` — se serve una build,
+verificare prima se conviene completare quel setup o tornare a una macchina con toolchain Android
+completa.
 
 ---
 
-## 6. Prove sul dispositivo in sospeso
+## 6. Cosa fare adesso
 
-L'APK installato il 2026-08-10 alle 23:54 contiene tutto fino a `e913a37`.
+Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo file:
 
-| Cosa | Dove | Storia |
-|---|---|---|
-| ⭐ **L'evento programmato compare nel calendario.** Se **ancora** non compare, il difetto è nella **scrittura** e non nella lettura, e va cercato altrove | Calendario → «+» | US-098 |
-| ⭐ Nel trasloco non si è rotto niente: quattro tessere coi numeri giusti, due grafici che disegnano, storico che elenca | menu → Statistiche, o l'icona in alto sulla home | US-095 |
-| La home senza l'anello non risulta povera. Se lo fosse, **non** si rimettono i numeri finti: si sblocca US-059 e si fa US-063 | apri l'app | US-062 |
-| Un esercizio creato compare in «Miei» e sopravvive alla chiusura | Menu → Esercizi → «+» | US-079 |
-| La schermata rossa `_dependents.isEmpty`. **Serve lo stack**: `adb logcat -c`, riprodurre, `adb logcat -d \| grep -A40 dependents` | creando un esercizio | US-081 |
-| Il cronometro scorre, e l'assestamento a molla sul cambio voce si vede senza risultare lento | Menu → Cronometro; le tre voci della barra | US-093, US-036 |
-| Il saluto mostra il nome dal primo istante, non «Atleta» | apri l'app | US-008 |
-| La build **release** si installa e si avvia | serve un APK release | US-040 |
-| 55 fps su 100 esercizi, in build **profile** | menu → Design system | US-043 |
+1. **Chiudere i punti aperti della sezione 1**: decidere il merge di `recovery/immersivo-toxic-forest`,
+   la ricerca di ADR-002/mockup 05, la riscrittura di `DESIGN-SPEC.md`, la card del record.
+2. **Riallineare `BACKLOG.md` e `CLAUDE.md`** ai numeri veri (110 storie, 64 `✅ DONE`).
+3. **Solo dopo**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
+   scritto qui**: si ricava con `grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md`, una storia è
+   pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
 
 ---
 
-## 7. Cosa fare adesso
-
-**Non fidarti di un elenco di storie eseguibili scritto qui**: invecchia in un giorno. Si ricava
-dal backlog — una storia è pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
-
-Le priorità decise con l'utente, in ordine:
-
-1. **Finire US-027** (branch aperto, test rosso che elenca il lavoro) e **US-094** (pianificata).
-2. **US-083**, il modello delle serie: sblocca l'importazione delle schede reali **e** il trainer.
-   Non delegabile.
-3. ~~US-101 (il saluto sotto l'hamburger) e US-100 (Health Connect nega `READ_STEPS`)~~ — **erano
-   già `✅ DONE` nel backlog quando questa lista e stata scritta**: la prova, ancora una volta, che
-   questo elenco invecchia in un giorno. Guarda `BACKLOG.md`, non qui.
-4. **US-102**, i sei `deprecated_member_use` rimasti — gli altri cinque tipi di avviso della storia
-   sono stati chiusi il 2026-08-12, uno per uno, non con `dart fix`. Restano i provider scritti come
-   funzione: il rename tocca 14 file, e uno (`sync_provider.dart`) fa da ponte Firestore↔Isar.
-   **Non e un mandato meccanico.**
-5. ~~US-038 (la barra in basso) sblocca US-023 e US-051~~ — **fatte entrambe**, US-051 resta da
-   verificare a parte (badge di Obiettivi, non toccati in questa sessione).
-
-### Decisioni ancora aperte
-
-- **US-099**: la vibrazione «in stile iPhone» **probabilmente non è raggiungibile** con
-  `HapticFeedback`, che l'SDK stesso dichiara non adatto al controllo preciso; su Android diventa
-  `LONG_PRESS`/`VIRTUAL_KEY`, tocchi brevi tarati dal produttore. Si prova `heavyImpact()` perché
-  costa zero, e **se è moscia serve una dipendenza**: decisione dell'utente.
-- **US-074**: il record tiene conto delle ripetizioni? Serve decidere se un massimale stimato aiuta
-  o confonde.
-- **`docs/design/04-other-ideas.html`**: un mockup nuovo aggiunto dall'utente il 2026-08-10, **non
-  ancora letto né estratto in `DESIGN-SPEC.md`**. Se contiene decisioni visive, va estratto **prima**
-  che qualcuno ci lavori sopra, o si ripete la storia dei pixel copiati.
-- Le **tessere della dashboard**: sforzo e calorie in salmone, conteggi in indigo. Da confermare.
-- **«Recenti»** nella libreria è una voce che non filtra niente: resta o sparisce?
-
----
-
-## 8. Convenzioni di scrittura
+## 7. Convenzioni di scrittura
 
 - **Italiano** per commenti, documentazione e commit. Il codice resta in inglese.
-- **I commenti spiegano il perché.** Un commento che ripete la riga sotto è rumore.
+- **I commenti spiegano il perché.**
 - **Nessun riferimento ad AI** nei commit o nel codice. Nessun trailer `Co-Authored-By`.
-- **Le review dichiarano i limiti.** Una review senza sezione sui limiti è sospetta.
+- **Le review dichiarano i limiti.**
 - Niente stringhe fuori dalla localizzazione, niente colori fuori da `app_palette.dart`, niente
-  numeri per spaziature e raggi: vengono da `context.expressive`.
+  numeri per spaziature e raggi: vengono da `context.immersivo` (non più `context.expressive`).
 
 ---
 
-## 9. Verifica rapida all'inizio di una sessione
+## 8. Verifica rapida all'inizio di una sessione
 
 ```bash
-git worktree list                                    # PRIMA di git log: c'è lavoro in volo?
 git status --porcelain
+git branch -a                                        # quali branch esistono davvero, oggi
 git log --oneline -5
-git rev-list --left-right --count origin/main...main
-git rev-list --left-right --count main...dev         # deve dare 0 0
+git rev-list --left-right --count main...recovery/immersivo-toxic-forest
+adb devices -l                                        # il telefono è ancora la fonte più aggiornata
 ```
-
-Il 2026-08-07 è servito **mezzo pomeriggio** per rimediare a due storie consegnate come un unico
-mucchio non committato, con rapporti che dichiaravano gli stessi numeri perché misurati sullo
-stesso albero. Da qui la regola del worktree per storia, e il motivo per cui il primo comando non
-è `git log`.
 
 ---
 
-_Documento di passaggio · GymFlow · riscritto il 2026-08-10 sul commit `e913a37`_
+_Documento di passaggio · GymFlow · riscritto il 2026-09-09 sul commit `d5b2327`,
+branch `recovery/immersivo-toxic-forest`_

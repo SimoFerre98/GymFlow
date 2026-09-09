@@ -13,6 +13,12 @@
 
 ## Backlog Summary
 
+> ⚠️ **Questa tabella è ferma alla v2.0 del 2026-08-06 e NON riflette lo stato reale.** Sono state
+> aggiunte epiche (EP-016, EP-017) e storie (fino a US-110) senza aggiornarla, e anche il footer del
+> file in fondo ("56 completate") è più vecchio della realtà. **Il conteggio vero, verificato il
+> 2026-09-09:** `grep -c "^#### US-" docs/BACKLOG.md` → **110 storie**; `grep -c "✅ DONE"` → **64
+> completate**. Non fidarsi di nessuno dei due numeri scritti più sotto senza ricontare.
+
 | Epic | Title | Stories | Story Points | Scope |
 |---|---|---|---|---|
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
