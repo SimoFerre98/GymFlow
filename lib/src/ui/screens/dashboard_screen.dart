@@ -585,6 +585,11 @@ class _ShortcutRow extends StatelessWidget {
         builder: (_) => const GamificationScreen(),
       ),
       _Shortcut(
+        icon: Icons.flag_outlined,
+        label: loc.t('goals_title_short'),
+        builder: (_) => const GoalsScreen(),
+      ),
+      _Shortcut(
         icon: Icons.timer_outlined,
         label: loc.t('stopwatch_menu'),
         builder: (_) => const TimeToolsScreen(),
