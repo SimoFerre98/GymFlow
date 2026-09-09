@@ -162,9 +162,10 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
           ),
           SizedBox(height: t.spacing.xl),
           Text(
-            widget.friend.displayName,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+            widget.friend.displayName.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: t.typography.headline?.copyWith(
+              fontSize: _kTitleFontSize + 6,
               color: scheme.onSurface,
             ),
           ),
@@ -389,17 +390,14 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                title.toUpperCase(),
+                style: t.typography.eyebrow?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
               ),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: scheme.onSurface,
-                ),
+                style: t.typography.metricMedium?.copyWith(color: color),
               ),
             ],
           ),

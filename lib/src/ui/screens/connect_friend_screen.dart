@@ -123,10 +123,9 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
               child: Column(
                 children: [
                   Text(
-                    loc.t('your_friend_code'),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: scheme.onSurface,
+                    loc.t('your_friend_code').toUpperCase(),
+                    style: t.typography.eyebrow?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
                   SizedBox(height: t.spacing.sm),
@@ -149,10 +148,9 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
             SizedBox(height: t.spacing.xxl),
             // Enter Code Section
             Text(
-              loc.t('enter_friend_code'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: scheme.onSurface,
+              loc.t('enter_friend_code').toUpperCase(),
+              style: t.typography.eyebrow?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
             SizedBox(height: t.spacing.md),
@@ -194,10 +192,9 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
             ),
             SizedBox(height: t.spacing.xxl),
             Text(
-              loc.t('your_friends_list'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: scheme.onSurface,
+              loc.t('your_friends_list').toUpperCase(),
+              style: t.typography.eyebrow?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
             SizedBox(height: t.spacing.md),
