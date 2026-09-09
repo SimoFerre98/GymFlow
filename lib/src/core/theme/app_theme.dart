@@ -272,21 +272,6 @@ class AppTheme {
           side: BorderSide(color: scheme.outline, width: 1),
         ),
       ),
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? scheme.onPrimary
-              : scheme.onSurfaceVariant,
-        ),
-        trackColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? scheme.primary
-              : scheme.surfaceContainerHigh,
-        ),
-        // Angoli vivi anche qui: l'interruttore del mockup e un rettangolo,
-        // non una pillola.
-        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-      ),
       sliderTheme: SliderThemeData(
         activeTrackColor: scheme.primary,
         inactiveTrackColor: scheme.surfaceContainerHigh,

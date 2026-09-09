@@ -5,6 +5,7 @@ import '../../core/providers/theme_provider.dart';
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/immersivo_tokens.dart';
 import '../widgets/back_pill.dart';
+import '../widgets/immersivo_switch.dart';
 /// Misure del mockup 3d Aspetto (telaio 1:1, nessuna conversione px→dp).
 const double _kTitleFontSize = 28;
 const double _kPreviewLoadFontSize = 34;
@@ -397,7 +398,7 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            Switch(
+            ImmersivoSwitch(
               value: theme.hapticFeedback,
               onChanged: notifier.setHapticFeedback,
             ),

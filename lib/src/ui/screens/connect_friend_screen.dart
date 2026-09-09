@@ -6,6 +6,7 @@ import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/back_pill.dart';
+import 'package:gymflow/src/ui/widgets/immersivo_switch.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 /// Altezza del contenuto del dialogo mentre carica le impostazioni di
@@ -346,15 +347,15 @@ class _AccessControlDialogState extends ConsumerState<_AccessControlDialog> {
           : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SwitchListTile(
-                  title: Text(loc.t('share_calendar')),
-                  subtitle: Text(loc.t('share_calendar_sub')),
+                _buildToggleRow(
+                  title: loc.t('share_calendar'),
+                  subtitle: loc.t('share_calendar_sub'),
                   value: _shareCalendar,
                   onChanged: (val) => _toggle('calendar', val),
                 ),
-                SwitchListTile(
-                  title: Text(loc.t('share_programs')),
-                  subtitle: Text(loc.t('share_programs_sub')),
+                _buildToggleRow(
+                  title: loc.t('share_programs'),
+                  subtitle: loc.t('share_programs_sub'),
                   value: _sharePrograms,
                   onChanged: (val) => _toggle('programs', val),
                 ),
@@ -366,6 +367,43 @@ class _AccessControlDialogState extends ConsumerState<_AccessControlDialog> {
           child: Text(loc.t('done')),
         ),
       ],
+    );
+  }
+  Widget _buildToggleRow({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final t = context.immersivo;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: t.spacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: t.spacing.md),
+          ImmersivoSwitch(value: value, onChanged: onChanged),
+        ],
+      ),
     );
   }
 }

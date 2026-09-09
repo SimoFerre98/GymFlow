@@ -4,6 +4,7 @@ import '../../core/providers/localization_provider.dart';
 import '../../core/providers/timer_settings_provider.dart';
 import '../../core/theme/immersivo_tokens.dart';
 import '../widgets/back_pill.dart';
+import '../widgets/immersivo_switch.dart';
 /// Misure del mockup 3e Timer e recupero (telaio 1:1, nessuna conversione
 /// px→dp).
 const double _kTitleFontSize = 28;
@@ -284,7 +285,7 @@ class TimerSettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            Switch(value: value, onChanged: onChanged),
+            ImmersivoSwitch(value: value, onChanged: onChanged),
           ],
         ),
       ),

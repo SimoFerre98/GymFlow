@@ -176,7 +176,7 @@ class ExerciseLibraryScreen extends ConsumerStatefulWidget {
   /// lo userebbe di nuovo.
   final bool isSelecting;
   /// Dove torna la pillola indietro: il nome della schermata che ha aperto
-  /// questa. Assente, mostra la freccia predefinita invece di indovinare.
+  /// questa. Assente, non mostra alcun controllo indietro invece di indovinare.
   final String? backLabel;
   const ExerciseLibraryScreen({
     super.key,
@@ -220,23 +220,22 @@ class _ExerciseLibraryScreenState
     final muscleGroups = extractMuscleGroups(allExercises);
     final topGroups = muscleGroups.take(3).toList();
     return Scaffold(
-      appBar: AppBar(
-        leading: widget.backLabel != null
-            ? BackPill(label: widget.backLabel!)
-            : null,
-        leadingWidth: widget.backLabel != null ? BackPill.leadingWidth : null,
-      ),
-      body: Column(
+      body: SafeArea(
+        child: Column(
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(
               t.spacing.md,
-              0,
+              t.spacing.sm,
               t.spacing.md,
               t.spacing.sm,
             ),
             child: Row(
               children: [
+                if (widget.backLabel != null) ...[
+                  BackPill(label: widget.backLabel!),
+                  SizedBox(width: t.spacing.md),
+                ],
                 Text(
                   loc.t('exercises_title').toUpperCase(),
                   style: t.typography.headline?.copyWith(
@@ -554,6 +553,7 @@ class _ExerciseLibraryScreenState
             ),
           ),
         ],
+        ),
       ),
     );
   }
