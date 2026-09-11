@@ -18,6 +18,10 @@ import '../../core/providers/localization_provider.dart';
 const double _kMonthTitleFontSize = 30;
 const double _kNavIconBoxSide = 34;
 const double _kWeekDayNumberFontSize = 19;
+/// Il pallino che segnala un allenamento programmato nella cella del mese:
+/// un riempimento pieno, non un filetto — un bordo sottile su una cella già
+/// piccola si perdeva nello sfondo (segnalato dall'utente).
+const double _kEventDotSide = 5;
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -138,6 +142,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             color: scheme.onSurface,
           ),
         ),
+        SizedBox(width: t.spacing.xs),
+        Padding(
+          // Allinea la base dell'anno a quella del titolo, che ha una riga
+          // (`height: 0.9` di Anton) piu bassa della sua stessa font size.
+          padding: EdgeInsets.only(top: _kMonthTitleFontSize * 0.3),
+          child: Text(
+            '${_focusedMonth.year}',
+            style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        ),
         SizedBox(width: t.spacing.md),
         Expanded(
           child: Container(
@@ -222,27 +236,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final key = DateTime(day.year, day.month, day.day);
       final inMonth = day.month == _focusedMonth.month;
       final events = eventsMap[key] ?? const [];
+      // `any` per tipo, non conteggio: un giorno con due allenamenti fatti
+      // resta comunque "fatto", non "fatto due volte" — quello che deve
+      // restare visibile è la combinazione dei tipi presenti, non quante
+      // occorrenze di ciascuno (vedi il pallino sotto per lo scheduled).
       final hasSession = events.any((e) => e is WorkoutSession);
       final hasScheduled = events.any((e) => e is ScheduledWorkout);
       final isToday = key == todayKey;
-      Color? background;
-      Border? border;
-      Color textColor;
-      if (isToday) {
-        background = scheme.primary;
-        textColor = scheme.onPrimary;
-      } else if (hasSession) {
-        background = scheme.secondary;
-        textColor = scheme.onSecondary;
-      } else if (hasScheduled) {
-        border = Border.all(color: scheme.outline);
-        textColor = scheme.onSurfaceVariant;
-      } else {
-        background = scheme.surfaceContainerHigh;
-        textColor = inMonth
-            ? scheme.onSurfaceVariant
-            : scheme.onSurfaceVariant.withValues(alpha: 0.4);
-      }
+      // Il riempimento segue solo "fatto o no": "oggi" era un riempimento a
+      // se, quindi un allenamento fatto proprio oggi spariva sotto il colore
+      // di "oggi" — ora "oggi" è un anello sul bordo, mai un colore che
+      // sostituisce quello del giorno.
+      final background = hasSession ? scheme.secondary : scheme.surfaceContainerHigh;
+      final textColor = hasSession
+          ? scheme.onSecondary
+          : (inMonth
+              ? scheme.onSurfaceVariant
+              : scheme.onSurfaceVariant.withValues(alpha: 0.4));
       return Expanded(
         child: AspectRatio(
           aspectRatio: 1,
@@ -253,10 +263,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   _showScheduleDialog(context, userId, loc, initialDate: key),
               child: Container(
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: background, border: border),
-                child: Text(
-                  '${day.day}',
-                  style: t.typography.eyebrow?.copyWith(color: textColor),
+                decoration: BoxDecoration(
+                  color: background,
+                  border: isToday ? Border.all(color: scheme.primary, width: 2) : null,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Text(
+                      '${day.day}',
+                      style: t.typography.eyebrow?.copyWith(color: textColor),
+                    ),
+                    if (hasScheduled)
+                      Positioned(
+                        bottom: t.spacing.xs / 2,
+                        child: Container(
+                          width: _kEventDotSide,
+                          height: _kEventDotSide,
+                          color: textColor,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -304,9 +331,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       children: [
         item(swatch(scheme.secondary), loc.t('calendar_legend_done')),
         SizedBox(width: t.spacing.md),
-        item(swatch(scheme.primary), loc.t('calendar_legend_today')),
+        item(swatch(scheme.primary, outlined: true), loc.t('calendar_legend_today')),
         SizedBox(width: t.spacing.md),
-        item(swatch(scheme.outline, outlined: true), loc.t('calendar_legend_planned')),
+        item(swatch(scheme.onSurfaceVariant), loc.t('calendar_legend_planned')),
       ],
     );
   }
