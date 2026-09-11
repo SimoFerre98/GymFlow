@@ -36,8 +36,9 @@ const double _kCtaIconSide = 46;
 const double _kMuscleDotSide = 5;
 const double _kGoalTrackWidth = 56;
 const double _kGoalTrackHeight = 5;
-const double _kShortcutTileWidth = 84;
-const double _kShortcutTileHeight = 92;
+/// Colonne della griglia di scorciatoie: 6 destinazioni, 3 per riga, due righe.
+const int _kShortcutColumns = 3;
+const double _kShortcutAspectRatio = 84 / 92;
 /// La Home del mockup Immersivo (`1d Home`): foto a piena larghezza che sfuma
 /// nel fondo, titolo in Anton, striscia scorrevole, due righe numerate.
 ///
@@ -557,11 +558,14 @@ class _NumberedRow extends StatelessWidget {
     );
   }
 }
-/// Le 5 destinazioni che il cassetto teneva, ora riquadri raggiungibili dalla
+/// Le 6 destinazioni che il cassetto teneva, ora riquadri raggiungibili dalla
 /// Home invece che da un cassetto ad amburger. Riquadri a filo (`Border.all`,
 /// nessun riempimento) per restare fedeli al linguaggio "solo filetti" della
 /// Home — non `ExpressiveCard`, che qui darebbe una superficie piena che il
 /// mockup 1d non disegna da nessuna parte in questa schermata.
+///
+/// Griglia, non riga scorrevole: tutte le destinazioni visibili insieme,
+/// nessuna nascosta a scorrimento orizzontale finche non ci si inciampa.
 class _ShortcutRow extends StatelessWidget {
   const _ShortcutRow({required this.loc});
   final Localization loc;
@@ -600,14 +604,16 @@ class _ShortcutRow extends StatelessWidget {
         builder: (_) => const ConnectFriendScreen(),
       ),
     ];
-    return SizedBox(
-      height: _kShortcutTileHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: destinazioni.length,
-        separatorBuilder: (_, _) => SizedBox(width: t.spacing.sm),
-        itemBuilder: (context, index) => _ShortcutTile(shortcut: destinazioni[index]),
-      ),
+    return GridView.count(
+      crossAxisCount: _kShortcutColumns,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: t.spacing.sm,
+      mainAxisSpacing: t.spacing.sm,
+      childAspectRatio: _kShortcutAspectRatio,
+      children: [
+        for (final shortcut in destinazioni) _ShortcutTile(shortcut: shortcut),
+      ],
     );
   }
 }
@@ -630,7 +636,6 @@ class _ShortcutTile extends StatelessWidget {
         MaterialPageRoute(builder: shortcut.builder),
       ),
       child: Container(
-        width: _kShortcutTileWidth,
         padding: EdgeInsets.symmetric(vertical: t.spacing.sm, horizontal: t.spacing.xs),
         decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
         child: Column(
