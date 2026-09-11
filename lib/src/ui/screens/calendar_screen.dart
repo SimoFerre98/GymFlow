@@ -7,21 +7,55 @@ import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
+import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
+import 'package:gymflow/src/models/workout_type.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import '../../core/providers/localization_provider.dart';
+/// A quale colore categorico corrisponde ogni tipo di allenamento nella
+/// barra della cella del calendario — stessa mappa, stesso ordine fisso di
+/// `workout_type_pie_chart.dart`: un tipo aggiunto in mezzo non deve spostare
+/// il colore di quelli gia mostrati altrove.
+Color _workoutTypeColor(WorkoutType type) => switch (type) {
+  WorkoutType.strength => AppPalette.categoryBlue,
+  WorkoutType.cardio => AppPalette.categoryOrange,
+  WorkoutType.mobility => AppPalette.categoryAqua,
+  WorkoutType.sport => AppPalette.categoryYellow,
+};
+/// I tipi distinti allenati in un giorno, dagli eventi di quel giorno,
+/// nell'ordine fisso di [WorkoutType.values] — non l'ordine in cui gli
+/// eventi arrivano dallo stream Firestore: cosi la barra colorata della
+/// cella ha sempre lo stesso ordine a parita di tipi, invece di rimescolarsi
+/// a ogni ricarica.
+List<WorkoutType> orderedSessionTypes(List<dynamic> dayEvents) {
+  final types = <WorkoutType>{
+    for (final e in dayEvents)
+      if (e is WorkoutSession) e.type,
+  };
+  return [
+    for (final type in WorkoutType.values)
+      if (types.contains(type)) type,
+  ];
+}
 /// Misure del mockup 2f Calendario (telaio 1:1, nessuna conversione px→dp).
 const double _kMonthTitleFontSize = 30;
 const double _kNavIconBoxSide = 34;
 const double _kWeekDayNumberFontSize = 19;
-/// Il pallino che segnala un allenamento programmato nella cella del mese:
-/// un riempimento pieno, non un filetto — un bordo sottile su una cella già
-/// piccola si perdeva nello sfondo (segnalato dall'utente).
+/// Il pallino che segnala un allenamento programmato (non ancora fatto)
+/// nell'angolo della cella: un riempimento pieno, non un filetto — un bordo
+/// sottile su una cella gia piccola si perdeva nello sfondo (segnalato
+/// dall'utente).
 const double _kEventDotSide = 5;
+/// La barra colorata sul fondo della cella, un segmento per ogni tipo di
+/// allenamento fatto quel giorno: dice sia che qualcosa e stato fatto sia
+/// cosa, cosa che un riempimento a tinta unica non può fare (segnalato
+/// dall'utente: due allenamenti di tipo diverso nello stesso giorno non si
+/// distinguevano).
+const double _kEventBarHeight = 6;
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -236,23 +270,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final key = DateTime(day.year, day.month, day.day);
       final inMonth = day.month == _focusedMonth.month;
       final events = eventsMap[key] ?? const [];
-      // `any` per tipo, non conteggio: un giorno con due allenamenti fatti
-      // resta comunque "fatto", non "fatto due volte" — quello che deve
-      // restare visibile è la combinazione dei tipi presenti, non quante
-      // occorrenze di ciascuno (vedi il pallino sotto per lo scheduled).
-      final hasSession = events.any((e) => e is WorkoutSession);
+      final orderedTypes = orderedSessionTypes(events);
       final hasScheduled = events.any((e) => e is ScheduledWorkout);
       final isToday = key == todayKey;
-      // Il riempimento segue solo "fatto o no": "oggi" era un riempimento a
-      // se, quindi un allenamento fatto proprio oggi spariva sotto il colore
-      // di "oggi" — ora "oggi" è un anello sul bordo, mai un colore che
-      // sostituisce quello del giorno.
-      final background = hasSession ? scheme.secondary : scheme.surfaceContainerHigh;
-      final textColor = hasSession
-          ? scheme.onSecondary
-          : (inMonth
-              ? scheme.onSurfaceVariant
-              : scheme.onSurfaceVariant.withValues(alpha: 0.4));
+      final textColor = inMonth
+          ? scheme.onSurfaceVariant
+          : scheme.onSurfaceVariant.withValues(alpha: 0.4);
       return Expanded(
         child: AspectRatio(
           aspectRatio: 1,
@@ -262,21 +285,40 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               onTap: () =>
                   _showScheduleDialog(context, userId, loc, initialDate: key),
               child: Container(
-                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: background,
+                  color: scheme.surfaceContainerHigh,
                   border: isToday ? Border.all(color: scheme.primary, width: 2) : null,
                 ),
                 child: Stack(
-                  alignment: Alignment.center,
                   children: [
-                    Text(
-                      '${day.day}',
-                      style: t.typography.eyebrow?.copyWith(color: textColor),
+                    Column(
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${day.day}',
+                              style: t.typography.eyebrow?.copyWith(color: textColor),
+                            ),
+                          ),
+                        ),
+                        if (orderedTypes.isNotEmpty)
+                          SizedBox(
+                            height: _kEventBarHeight,
+                            child: Row(
+                              children: [
+                                for (final type in orderedTypes)
+                                  Expanded(
+                                    child: ColoredBox(color: _workoutTypeColor(type)),
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                     if (hasScheduled)
                       Positioned(
-                        bottom: t.spacing.xs / 2,
+                        top: t.spacing.xs / 2,
+                        right: t.spacing.xs / 2,
                         child: Container(
                           width: _kEventDotSide,
                           height: _kEventDotSide,
@@ -327,12 +369,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
       ],
     );
-    return Row(
+    return Wrap(
+      spacing: t.spacing.md,
+      runSpacing: t.spacing.xs,
       children: [
-        item(swatch(scheme.secondary), loc.t('calendar_legend_done')),
-        SizedBox(width: t.spacing.md),
+        for (final type in WorkoutType.values)
+          item(swatch(_workoutTypeColor(type)), loc.t(type.localizationKey)),
         item(swatch(scheme.primary, outlined: true), loc.t('calendar_legend_today')),
-        SizedBox(width: t.spacing.md),
         item(swatch(scheme.onSurfaceVariant), loc.t('calendar_legend_planned')),
       ],
     );
