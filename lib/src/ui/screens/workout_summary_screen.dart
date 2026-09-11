@@ -387,6 +387,9 @@ class _RecordBar extends StatelessWidget {
     final scheme = theme.colorScheme;
     final weightStr = WorkoutSummaryScreen._formatWeight(record.newWeight);
     final previousStr = WorkoutSummaryScreen._formatWeight(record.previousWeight);
+    final previousDateStr = record.previousDate == null
+        ? null
+        : DateFormat('dd/MM/yyyy').format(record.previousDate!);
     return Container(
       padding: EdgeInsets.all(t.spacing.md),
       color: scheme.primary,
@@ -408,7 +411,10 @@ class _RecordBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${loc.t('previous_max_was')} $previousStr kg'.toUpperCase(),
+                  (previousDateStr == null
+                          ? '${loc.t('previous_max_was')} $previousStr kg'
+                          : '${loc.t('previous_max_was')} $previousStr kg · $previousDateStr')
+                      .toUpperCase(),
                   style: t.typography.eyebrow?.copyWith(
                     color: scheme.onPrimary.withValues(alpha: 0.7),
                   ),
@@ -416,12 +422,23 @@ class _RecordBar extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            '$weightStr kg',
-            style: t.typography.headline?.copyWith(
-              fontSize: _kRecordWeightFontSize,
-              color: scheme.onPrimary,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$weightStr kg',
+                style: t.typography.headline?.copyWith(
+                  fontSize: _kRecordWeightFontSize,
+                  color: scheme.onPrimary,
+                ),
+              ),
+              Text(
+                '× ${record.newReps} ${loc.t('reps_label')}'.toUpperCase(),
+                style: t.typography.eyebrow?.copyWith(
+                  color: scheme.onPrimary.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
           ),
         ],
       ),

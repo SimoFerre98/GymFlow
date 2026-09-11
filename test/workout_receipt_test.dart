@@ -291,14 +291,16 @@ void main() {
 
       // `_RecordBar` (il redesign Immersivo, sostituisce la card precedente)
       // non compone piu ne una pillola 'RECORD' isolata ne un delta '+2,5
-      // kg': mostra 'Record · <esercizio>', il nuovo peso da solo, e il
-      // massimo precedente senza piu le ripetizioni ne la data — vedi
-      // `_RecordBar` in workout_summary_screen.dart, che non legge piu
-      // `record.newReps` ne `record.previousDate`. Un cambiamento di
-      // contenuto, non solo di stile: vale la pena rileggerlo in review.
+      // kg': mostra 'Record · <esercizio>', il nuovo peso, le ripetizioni
+      // della serie che lo ha stabilito e il massimo precedente con la sua
+      // data — vedi `_RecordBar` in workout_summary_screen.dart.
       expect(find.text('Record · Panca piana'), findsOneWidget);
       expect(find.text('62,5 kg'), findsOneWidget);
-      expect(find.text('IL MASSIMO PRECEDENTE ERA 60 KG'), findsOneWidget);
+      expect(find.text('× 8 RIPETIZIONI'), findsOneWidget);
+      expect(
+        find.text('IL MASSIMO PRECEDENTE ERA 60 KG · 21/07/2026'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('non mostra card dei record se la lista dei record e vuota', (tester) async {
