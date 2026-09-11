@@ -9,37 +9,34 @@ import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
-import 'package:gymflow/src/models/workout_type.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import '../../core/providers/localization_provider.dart';
-/// A quale colore categorico corrisponde ogni tipo di allenamento nella
-/// barra della cella del calendario — stessa mappa, stesso ordine fisso di
-/// `workout_type_pie_chart.dart`: un tipo aggiunto in mezzo non deve spostare
-/// il colore di quelli gia mostrati altrove.
-Color _workoutTypeColor(WorkoutType type) => switch (type) {
-  WorkoutType.strength => AppPalette.categoryBlue,
-  WorkoutType.cardio => AppPalette.categoryOrange,
-  WorkoutType.mobility => AppPalette.categoryAqua,
-  WorkoutType.sport => AppPalette.categoryYellow,
-};
-/// I tipi distinti allenati in un giorno, dagli eventi di quel giorno,
-/// nell'ordine fisso di [WorkoutType.values] — non l'ordine in cui gli
-/// eventi arrivano dallo stream Firestore: cosi la barra colorata della
-/// cella ha sempre lo stesso ordine a parita di tipi, invece di rimescolarsi
-/// a ogni ricarica.
-List<WorkoutType> orderedSessionTypes(List<dynamic> dayEvents) {
-  final types = <WorkoutType>{
-    for (final e in dayEvents)
-      if (e is WorkoutSession) e.type,
+/// Il colore di un allenamento non e dato dal tipo (forza/cardio/...): e
+/// quello scelto dall'utente creando il programma a cui la scheda
+/// appartiene (`WorkoutProgram.color`, scelto in `program_creator_screen.dart`
+/// — lo stesso commento di `AppPalette.programColorPresets` lo chiama
+/// "colore di una scheda", anche se il campo vive sul programma). Una
+/// scheda senza programma non ha un colore proprio: ricade su
+/// [AppPalette.defaultProgramColor].
+///
+/// Richiede il join sessione/programmazione → scheda → programma perche
+/// ne' [WorkoutSession] ne' [ScheduledWorkout] portano il colore con se.
+Map<String, int> resolveColorByTemplateId(
+  List<WorkoutTemplate> templates,
+  List<WorkoutProgram> programs,
+) {
+  final programById = {for (final p in programs) p.id: p};
+  return {
+    for (final tpl in templates)
+      tpl.id: (tpl.parentProgramId == null
+              ? null
+              : programById[tpl.parentProgramId]?.color) ??
+          AppPalette.defaultProgramColor,
   };
-  return [
-    for (final type in WorkoutType.values)
-      if (types.contains(type)) type,
-  ];
 }
 /// Misure del mockup 2f Calendario (telaio 1:1, nessuna conversione px→dp).
 const double _kMonthTitleFontSize = 30;
@@ -50,12 +47,16 @@ const double _kWeekDayNumberFontSize = 19;
 /// sottile su una cella gia piccola si perdeva nello sfondo (segnalato
 /// dall'utente).
 const double _kEventDotSide = 5;
-/// La barra colorata sul fondo della cella, un segmento per ogni tipo di
-/// allenamento fatto quel giorno: dice sia che qualcosa e stato fatto sia
-/// cosa, cosa che un riempimento a tinta unica non può fare (segnalato
-/// dall'utente: due allenamenti di tipo diverso nello stesso giorno non si
-/// distinguevano).
-const double _kEventBarHeight = 6;
+/// Quanti colori distinti al massimo si affiancano nella cella: oltre,
+/// le fasce diventerebbero troppo strette per essere lette in una cella
+/// larga quanto un settimo dello schermo.
+const int _kMaxStripeColors = 3;
+/// Il badge con il numero di allenamenti fatti quel giorno, mostrato solo
+/// se sono piu di uno: le fasce colorate dicono "quali tipi/programmi
+/// diversi", ma se sono due allenamenti dello stesso programma le fasce
+/// sono un unico colore identico — serve un altro segnale per capire che
+/// non e uno solo (segnalato dall'utente).
+const double _kCountBadgeSide = 15;
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -65,19 +66,26 @@ class CalendarScreen extends ConsumerStatefulWidget {
 }
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-  // Combine sessions and schedules into one stream
-  Stream<Map<DateTime, List<dynamic>>> _getCalendarEvents(String userId) {
+  // Combine sessions and schedules into one stream, insieme a schede e
+  // programmi (servono solo per risalire al colore scelto dall'utente, vedi
+  // `_colorByTemplateId`).
+  Stream<({Map<DateTime, List<dynamic>> events, Map<String, int> colorByTemplateId})>
+      _getCalendarEvents(String userId) {
     final firestore = ref.watch(firestoreServiceProvider);
-    return Rx.combineLatest4(
+    return Rx.combineLatest6(
       firestore.getUserSessions(userId),
       firestore.getUserScheduledWorkouts(userId),
       firestore.getSharedSessions(userId),
       firestore.getSharedScheduledWorkouts(userId),
+      firestore.getUserWorkouts(userId),
+      firestore.getUserPrograms(userId),
       (
         List<WorkoutSession> mySessions,
         List<ScheduledWorkout> mySchedules,
         List<WorkoutSession> sharedSessions,
         List<ScheduledWorkout> sharedSchedules,
+        List<WorkoutTemplate> templates,
+        List<WorkoutProgram> programs,
       ) {
         final Map<DateTime, List<dynamic>> events = LinkedHashMap(
           equals: _isSameDay,
@@ -111,7 +119,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         addEvents(mySchedules);
         addEvents(sharedSessions); // Friend sessions
         addEvents(sharedSchedules); // Friend schedules
-        return events;
+        return (
+          events: events,
+          colorByTemplateId: resolveColorByTemplateId(templates, programs),
+        );
       },
     );
   }
@@ -126,10 +137,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }
     return Scaffold(
       body: SafeArea(
-        child: StreamBuilder<Map<DateTime, List<dynamic>>>(
+        child: StreamBuilder<
+            ({Map<DateTime, List<dynamic>> events, Map<String, int> colorByTemplateId})>(
         stream: _getCalendarEvents(userId),
         builder: (context, snapshot) {
-          final eventsMap = snapshot.data ?? {};
+          final eventsMap = snapshot.data?.events ?? {};
+          final colorByTemplateId = snapshot.data?.colorByTemplateId ?? {};
           return SingleChildScrollView(
             padding: EdgeInsets.only(
               left: t.spacing.md,
@@ -144,7 +157,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 SizedBox(height: t.spacing.sm),
                 _buildWeekdayRow(context, loc, t, scheme),
                 SizedBox(height: t.spacing.xs),
-                _buildMonthGrid(context, loc, t, scheme, eventsMap, userId),
+                _buildMonthGrid(context, loc, t, scheme, eventsMap, colorByTemplateId, userId),
                 SizedBox(height: t.spacing.sm),
                 _buildLegend(context, loc, t, scheme),
                 SizedBox(height: t.spacing.xl),
@@ -261,6 +274,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     ImmersivoTokens t,
     ColorScheme scheme,
     Map<DateTime, List<dynamic>> eventsMap,
+    Map<String, int> colorByTemplateId,
     String userId,
   ) {
     final days = _monthGridDays(_focusedMonth);
@@ -270,12 +284,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final key = DateTime(day.year, day.month, day.day);
       final inMonth = day.month == _focusedMonth.month;
       final events = eventsMap[key] ?? const [];
-      final orderedTypes = orderedSessionTypes(events);
+      final doneSessions = events.whereType<WorkoutSession>().toList();
       final hasScheduled = events.any((e) => e is ScheduledWorkout);
       final isToday = key == todayKey;
-      final textColor = inMonth
-          ? scheme.onSurfaceVariant
-          : scheme.onSurfaceVariant.withValues(alpha: 0.4);
+      // I colori distinti fatti quel giorno, nell'ordine in cui compaiono la
+      // prima volta: due allenamenti dello stesso programma restano un solo
+      // colore (il badge del conteggio sotto dice comunque che sono due),
+      // due di programmi diversi diventano due fasce affiancate.
+      final doneColorList = <int>[];
+      for (final session in doneSessions) {
+        final raw = colorByTemplateId[session.workoutTemplateId] ??
+            AppPalette.defaultProgramColor;
+        if (!doneColorList.contains(raw)) doneColorList.add(raw);
+      }
+      final stripeColorList = doneColorList.take(_kMaxStripeColors).map(Color.new).toList();
+      // Il numero del giorno, il pallino programmato e il badge del
+      // conteggio sono tutti letti sopra un colore libero (quello scelto
+      // dall'utente per il programma), non sopra un ruolo del tema: uno
+      // sfondo `scrim` semitrasparente sotto ciascuno li rende leggibili
+      // qualunque sia la tinta della fascia, la stessa idea gia usata per
+      // il bottone indietro sopra la foto profilo in `profile_screen.dart`.
+      final overlayBackground = scheme.scrim.withValues(alpha: 0.55);
       return Expanded(
         child: AspectRatio(
           aspectRatio: 1,
@@ -284,48 +313,75 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             child: InkWell(
               onTap: () =>
                   _showScheduleDialog(context, userId, loc, initialDate: key),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHigh,
-                  border: isToday ? Border.all(color: scheme.primary, width: 2) : null,
-                ),
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              '${day.day}',
-                              style: t.typography.eyebrow?.copyWith(color: textColor),
-                            ),
+              child: Opacity(
+                opacity: inMonth ? 1 : 0.4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: stripeColorList.isEmpty ? scheme.surfaceContainerHigh : null,
+                    border: isToday ? Border.all(color: scheme.primary, width: 2) : null,
+                  ),
+                  child: Stack(
+                    children: [
+                      if (stripeColorList.isNotEmpty)
+                        Positioned.fill(
+                          child: Row(
+                            children: [
+                              for (final color in stripeColorList)
+                                Expanded(child: ColoredBox(color: color)),
+                            ],
                           ),
                         ),
-                        if (orderedTypes.isNotEmpty)
-                          SizedBox(
-                            height: _kEventBarHeight,
-                            child: Row(
-                              children: [
-                                for (final type in orderedTypes)
-                                  Expanded(
-                                    child: ColoredBox(color: _workoutTypeColor(type)),
-                                  ),
-                              ],
+                      Center(
+                        child: Container(
+                          padding: stripeColorList.isEmpty
+                              ? null
+                              : EdgeInsets.symmetric(horizontal: t.spacing.xs),
+                          color: stripeColorList.isEmpty ? null : overlayBackground,
+                          child: Text(
+                            '${day.day}',
+                            style: t.typography.eyebrow?.copyWith(
+                              color: stripeColorList.isEmpty
+                                  ? scheme.onSurfaceVariant
+                                  : scheme.onSurface,
                             ),
                           ),
-                      ],
-                    ),
-                    if (hasScheduled)
-                      Positioned(
-                        top: t.spacing.xs / 2,
-                        right: t.spacing.xs / 2,
-                        child: Container(
-                          width: _kEventDotSide,
-                          height: _kEventDotSide,
-                          color: textColor,
                         ),
                       ),
-                  ],
+                      if (doneSessions.length > 1)
+                        Positioned(
+                          bottom: t.spacing.xs / 2,
+                          left: t.spacing.xs / 2,
+                          child: Container(
+                            width: _kCountBadgeSide,
+                            height: _kCountBadgeSide,
+                            alignment: Alignment.center,
+                            color: overlayBackground,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Padding(
+                                padding: EdgeInsets.all(t.spacing.xs / 2),
+                                child: Text(
+                                  '${doneSessions.length}',
+                                  style: t.typography.eyebrow?.copyWith(color: scheme.onSurface),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (hasScheduled)
+                        Positioned(
+                          top: t.spacing.xs / 2,
+                          right: t.spacing.xs / 2,
+                          child: Container(
+                            width: _kEventDotSide,
+                            height: _kEventDotSide,
+                            color: stripeColorList.isEmpty
+                                ? scheme.onSurfaceVariant
+                                : scheme.onSurface,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -369,12 +425,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
       ],
     );
+    // Niente voce "fatto": il colore del giorno non e piu un ruolo fisso del
+    // tema (forza/cardio/...) ma quello scelto dall'utente per il programma
+    // — non c'e una singola tinta da spiegare qui, e il tipo di allenamento
+    // si legge comunque aprendo il giorno.
     return Wrap(
       spacing: t.spacing.md,
       runSpacing: t.spacing.xs,
       children: [
-        for (final type in WorkoutType.values)
-          item(swatch(_workoutTypeColor(type)), loc.t(type.localizationKey)),
         item(swatch(scheme.primary, outlined: true), loc.t('calendar_legend_today')),
         item(swatch(scheme.onSurfaceVariant), loc.t('calendar_legend_planned')),
       ],
