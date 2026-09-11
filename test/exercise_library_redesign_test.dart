@@ -4,7 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
+import 'package:gymflow/src/models/session.dart';
+import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/ui/screens/exercise_library_screen.dart';
+
+/// Una sessione minima con gli esercizi indicati, per i test del filtro Recenti.
+WorkoutSession _sessionWithExercises(DateTime start, List<String> exerciseIds) {
+  return WorkoutSession(
+    id: 's-${start.microsecondsSinceEpoch}',
+    userId: 'u1',
+    workoutTemplateId: 't1',
+    workoutName: 'Test',
+    startTime: start,
+    exercises: [
+      for (final id in exerciseIds)
+        WorkoutExercise(exerciseId: id, exerciseName: id, sets: const []),
+    ],
+  );
+}
 
 void main() {
   group('US-065: Estrazione gruppi muscolari dai dati', () {
@@ -118,7 +135,7 @@ void main() {
       expect(filtered.first.isCustom, isTrue);
     });
 
-    test('segmentato Recenti restituisce lista vuota come dichiarato', () {
+    test('segmentato Recenti senza storico resta vuoto', () {
       final filtered = filterExercises(
         exercises: testExercises,
         searchQuery: '',
@@ -126,6 +143,47 @@ void main() {
       );
 
       expect(filtered, isEmpty);
+    });
+
+    test('segmentato Recenti restituisce solo gli esercizi delle sessioni recenti', () {
+      final recentIds = recentlyUsedExerciseIds([
+        _sessionWithExercises(DateTime.now(), ['1']),
+      ]);
+      final filtered = filterExercises(
+        exercises: testExercises,
+        searchQuery: '',
+        segment: ExerciseSegmentFilter.recent,
+        recentExerciseIds: recentIds,
+      );
+
+      expect(filtered.length, 1);
+      expect(filtered.first.id, '1');
+    });
+
+    test('recentlyUsedExerciseIds raccoglie dalla sessione più recente in poi', () {
+      final now = DateTime.now();
+      final ids = recentlyUsedExerciseIds([
+        _sessionWithExercises(now, ['1']),
+        _sessionWithExercises(now.subtract(const Duration(days: 1)), ['2']),
+      ]);
+
+      expect(ids, {'1', '2'});
+    });
+
+    test('recentlyUsedExerciseIds ignora le sessioni oltre la finestra recente', () {
+      final now = DateTime.now();
+      final sessions = [
+        for (var i = 0; i < kRecentSessionsWindow; i++)
+          _sessionWithExercises(now.subtract(Duration(days: i)), ['recent-$i']),
+        _sessionWithExercises(
+          now.subtract(const Duration(days: kRecentSessionsWindow + 1)),
+          ['vecchio'],
+        ),
+      ];
+
+      final ids = recentlyUsedExerciseIds(sessions);
+
+      expect(ids.contains('vecchio'), isFalse);
     });
 
     test('combina ricerca testo, segmentato e gruppo muscolare', () {

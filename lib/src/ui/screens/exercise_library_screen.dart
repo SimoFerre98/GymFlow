@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gymflow/src/core/providers/dashboard_provider.dart';
 import 'package:gymflow/src/core/providers/exercise_provider.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
+import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/screens/exercise_detail_screen.dart';
@@ -134,6 +136,7 @@ List<Exercise> filterExercises({
   required String searchQuery,
   required ExerciseSegmentFilter segment,
   String? selectedMuscleGroup,
+  Set<String> recentExerciseIds = const {},
 }) {
   final query = searchQuery.trim().toLowerCase();
   return exercises.where((e) {
@@ -142,7 +145,7 @@ List<Exercise> filterExercises({
     final matchesSegment = switch (segment) {
       ExerciseSegmentFilter.all => true,
       ExerciseSegmentFilter.mine => e.isCustom,
-      ExerciseSegmentFilter.recent => false,
+      ExerciseSegmentFilter.recent => recentExerciseIds.contains(e.id),
     };
     final matchesMuscle = selectedMuscleGroup == null ||
         selectedMuscleGroup.isEmpty ||
@@ -151,6 +154,23 @@ List<Exercise> filterExercises({
         );
     return matchesSearch && matchesSegment && matchesMuscle;
   }).toList();
+}
+/// Quante sessioni contano per il filtro "Recenti": un numero fisso di
+/// allenamenti, non un intervallo di giorni — un intervallo lascerebbe fuori
+/// chi si allena una volta a settimana.
+const int kRecentSessionsWindow = 5;
+/// Gli ID degli esercizi comparsi nelle ultime [kRecentSessionsWindow]
+/// sessioni, dalla più recente in poi.
+Set<String> recentlyUsedExerciseIds(List<WorkoutSession> sessions) {
+  final sorted = List<WorkoutSession>.from(sessions)
+    ..sort((a, b) => b.startTime.compareTo(a.startTime));
+  final ids = <String>{};
+  for (final session in sorted.take(kRecentSessionsWindow)) {
+    for (final exercise in session.exercises) {
+      ids.add(exercise.exerciseId);
+    }
+  }
+  return ids;
 }
 /// Costruisce la stringa di dettaglio per l'esercizio.
 ///
@@ -195,9 +215,8 @@ class _ExerciseLibraryScreenState
   ExerciseSegmentFilter _selectedSegment = ExerciseSegmentFilter.all;
   String? _selectedMuscleGroup;
   bool _sortAlphabetically = false;
-  /// Titolo della sezione elenco: dice davvero cosa si sta guardando invece
-  /// di scrivere "usati di recente" quando il filtro Recenti e uno stub che
-  /// restituisce sempre vuoto (vedi `filterExercises`).
+  /// Titolo della sezione elenco: il nome del gruppo muscolare, se scelto,
+  /// altrimenti quello del segmentato attivo.
   String _sectionLabel(Localization loc) {
     if (_selectedMuscleGroup != null) return _selectedMuscleGroup!;
     return switch (_selectedSegment) {
@@ -219,6 +238,9 @@ class _ExerciseLibraryScreenState
     final allExercises = snapshot.value ?? const <Exercise>[];
     final muscleGroups = extractMuscleGroups(allExercises);
     final topGroups = muscleGroups.take(3).toList();
+    final recentIds = recentlyUsedExerciseIds(
+      ref.watch(dashboardSessionsProvider).value ?? const [],
+    );
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -434,6 +456,7 @@ class _ExerciseLibraryScreenState
                   searchQuery: _searchQuery,
                   segment: _selectedSegment,
                   selectedMuscleGroup: _selectedMuscleGroup,
+                  recentExerciseIds: recentIds,
                 );
                 if (_sortAlphabetically) {
                   exercises.sort((a, b) => a.name.compareTo(b.name));
