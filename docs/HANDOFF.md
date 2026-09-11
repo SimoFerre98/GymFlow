@@ -1,14 +1,12 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-09 · **Commit:** `d5b2327` su `recovery/immersivo-toxic-forest`
-(pushato, **non ancora mergiato in `main`**). `main`/`dev` sono fermi a `ab08290` (14 agosto).
+**Aggiornato:** 2026-09-12 · **Commit:** `11afe10` su `main` (`dev` allineato in fast-forward).
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
 macchina Linux personale, non più sul PC Windows citato nelle versioni precedenti di questo file,
-**perso** nel frattempo (vedi sezione 1). Contiene ciò che **non si deduce leggendo il repository**:
-decisioni prese a voce, trappole dell'ambiente, il livello di rigore atteso, e — questa volta — la
-storia di come una settimana di lavoro quasi persa è stata recuperata.
+**perso** nel frattempo (vedi sezione 1, ora chiusa). Contiene ciò che **non si deduce leggendo il
+repository**: decisioni prese a voce, trappole dell'ambiente, il livello di rigore atteso.
 
 ## Cosa leggere, e cosa non leggere
 
@@ -17,84 +15,63 @@ storia di come una settimana di lavoro quasi persa è stata recuperata.
 | **Questo file**, per intero | È il più corto che contenga tutto |
 | [`../AGENTS.md`](../AGENTS.md) | Le regole che fanno fallire una consegna |
 | [`WORKFLOW.md`](WORKFLOW.md) | Il ciclo in 8 fasi — **attualmente sospeso**, vedi sezione 2 |
-| [`DESIGN-SPEC.md`](DESIGN-SPEC.md) | ⚠️ **Stale**: descrive la direzione precedente (Material 3 Expressive/Indigo), non quella oggi nel codice. Non riscritto ancora — vedi sezione 2 |
+| [`DESIGN-SPEC.md`](DESIGN-SPEC.md) | Riscritto il 2026-09-09 dal codice recuperato (`app_palette.dart`, `immersivo_tokens.dart`): oggi allineato, non più storico |
 
-⚠️ **`docs/design/` ha oggi un solo file**, `GymFlow Immersivo Impostazioni.html` (un estratto di
-conversazione con Claude Design, "Turno 3", non un mockup nel formato dei tre precedenti). I tre
-mockup storici (`01-direzione-visiva.html`, `02-schermate-app.html`, `03-timer-e-movimento.html`,
-direzione Material 3 Expressive/Indigo) sono stati **rimossi dal repository** il 2026-09-09: la
-direzione che descrivevano è superata. Il mockup che dovrebbe sostituirli come fonte autorevole,
-`docs/design/05-immersivo-toxic-forest.html`, e l'ADR che lo accompagna,
-`docs/adr/002-immersivo-toxic-forest.md`, sono **citati per nome dal codice ma non recuperabili**:
-non sono mai stati committati e non sono file compilati in un APK, quindi il trucco della sezione 1
-non può ritrovarli. Cercare nella conversazione "Turno 3" su Claude Design (turni 1 e 2 della stessa
-conversazione, non ancora ritrovati) prima di rassegnarsi a riscriverli da zero.
+**`docs/design/` ha due file**: `06-inventario-app.html` (atlante fotografico di tutte le schermate,
+scritto per l'audit del 2026-09-09 — vedi [[gymflow-audit-schermate]] in memoria) e
+`GymFlow Immersivo Impostazioni.html` (estratto "Turno 3" di una conversazione Claude Design). I tre
+mockup storici Material 3 Expressive/Indigo sono stati rimossi il 2026-09-09, direzione superata.
+`docs/design/05-immersivo-toxic-forest.html` e `docs/adr/002-immersivo-toxic-forest.md` restano
+**non recuperati** — citati nel codice ma mai committati, la ricerca nella conversazione Claude
+Design ("Turno 3", turni 1-2 non ancora trovati) è **sospesa su richiesta esplicita dell'utente**,
+non fallita: riprenderla solo se richiesto di nuovo.
 
-⚠️ **`BACKLOG.md` è 3455 righe, 110 storie, 64 `✅ DONE`** (contato il 2026-09-09 con
-`grep -c "^#### US-"` e `grep -c "✅ DONE"` — **non fidarsi dell'intestazione del file**, che dice
-ancora "81 storie" ed è ferma al 6 agosto: mai aggiornata nonostante il footer del file stesso dica
-110). Si consulta cercando, non leggendo tutto: `grep -n "^#### US-0XX" docs/BACKLOG.md`.
+**`BACKLOG.md` è 110 storie, 65 `✅ DONE`** (ricontare con `grep -c "^#### US-"` e
+`grep -c "✅ DONE" docs/BACKLOG.md` — il numero di `DONE` cambia più spesso di quanto questo file
+venga aggiornato, non fidarsene oltre l'ordine di grandezza). Si consulta cercando, non leggendo
+tutto: `grep -n "^#### US-0XX" docs/BACKLOG.md`.
 
 ---
 
-## 1. Dove siamo: il codice di una settimana intera era quasi perso
+## 1. Il redesign "Immersivo" — recuperato, integrato, ora in cura ordinaria
 
-**Il fatto più importante di questa consegna.** Tra il 14 e il 21 agosto 2026 è stato scritto,
-sul PC Windows dell'utente, un redesign visivo completo dell'app — cambio di nome, cambio di
-identità: **"Immersivo / Toxic Forest"**, che sostituisce integralmente Material 3 Expressive e la
-palette Indigo (ADR-001, `DESIGN-SPEC.md`). Quel PC è andato perso. **Nessun commit di quel lavoro
-è mai arrivato su GitHub**: `main`/`dev` si fermano al 14 agosto (`ab08290`), l'APK installato sul
-telefono (`RFGL10YZ5RX`) era del 21 agosto — sette giorni di lavoro reale, a rischio di sparire per
-sempre.
+**Riassunto per chi non ha la sezione storica**: tra il 14 e il 21 agosto 2026 è stato scritto, sul
+PC Windows dell'utente (poi perso), un redesign visivo completo — **"Immersivo / Toxic Forest"**,
+che sostituisce Material 3 Expressive e la palette Indigo (`DESIGN-SPEC.md`). Nessun commit era mai
+arrivato su GitHub. Recuperato il 2026-09-09 per via forense dal Dart Kernel di un APK debug
+installato sul telefono (109 file su 111 integrali, il dettaglio tecnico del metodo resta nel
+commit `ff893a5` e in memoria [[gymflow-immersivo-toxic-forest]] se serve replicarlo altrove).
 
-### Come è stato recuperato
+**Da allora, chiuso**:
+- Branch `recovery/immersivo-toxic-forest` **mergiato in `main`/`dev`** con via libera esplicito.
+- `DESIGN-SPEC.md` **riscritto** dal codice recuperato (`app_palette.dart`, `immersivo_tokens.dart`).
+- **Audit completo delle 27 schermate** (`docs/AUDIT-SCHERMATE.md`, atlante fotografico in
+  `docs/design/06-inventario-app.html`): il ciclo centrale (Home, esercizi, sessione, riepilogo,
+  schede, statistiche, timer, calendario, aspetto, login) era già solido; 6 schermate periferiche
+  sistemate allo stesso standard (`health_detail`, `program_creator`, `connect_friend`,
+  `friend_detail`, `gym_settings`, `timer_settings`).
+- **Traguardi/Obiettivi**: risolta la collisione di nome fra `GoalsScreen` e `gamification_screen.dart`
+  (entrambe si chiamavano "Obiettivi" in italiano) e l'assenza di un ingresso permanente alla prima.
+- **Palestra/Recupero completati** secondo il mockup "Turno 3": schermo sempre acceso durante la
+  sessione (`wakelock_plus`), conto alla rovescia vocale (`flutter_tts`), statistiche
+  sessioni/ore/anno per palestra. Il promemoria d'arrivo (geolocalizzazione in background) è stato
+  **esplicitamente lasciato fuori** — non riprenderlo senza che l'utente lo richieda di nuovo.
+- **Coerenza visiva verificata sul telefono vero** (non solo su `flutter test`): bottone indietro
+  della libreria esercizi uniformato alle altre 16 schermate (incapsulava `BackPill` in un `AppBar`
+  vero invece della stessa riga con titolo e filetto); interruttori squadrati (`ImmersivoSwitch`,
+  `lib/src/ui/widgets/immersivo_switch.dart`) al posto di `Switch`/`SwitchListTile` di Material,
+  strutturalmente tondi e non tematizzabili ad angoli vivi.
+- **Build APK funzionante su questa macchina Linux** — vedi sezione 3, non più un problema aperto.
 
-L'APK installato era una build **debug** (mai release, per prassi del progetto). Le build debug
-Flutter incorporano nel Dart Kernel (`assets/flutter_assets/kernel_blob.bin` dentro l'APK) il
-**testo sorgente originale** di ogni file `.dart` compilato — serve al debugger per "view source".
-Estratto l'APK dal telefono via `adb`, cercando nel dump di `strings` i marcatori
-`file:///C:/Users/s.ferrero/Code/GymFlow/lib/....dart` (il percorso reale sul PC perduto), il testo
-fra un marcatore e il successivo è il contenuto quasi letterale di quel file, commenti italiani
-compresi. **109 file su 111 recuperati integralmente**, con parentesi bilanciate; gli altri due
-sistemati a mano (uno rigenerato con `build_runner`, un altro con una coda di rumore binario tagliata
-dopo verifica). Sei file sono del tutto nuovi rispetto a quanto era su GitHub: `immersivo_tokens.dart`
-e quattro sotto-schermate delle impostazioni (`appearance_`, `general_`, `gym_`,
-`timer_settings_screen.dart`) più `ticker_marquee.dart`.
-
-Il codice recuperato vive sul branch **`recovery/immersivo-toxic-forest`** (pushato, non mergiato):
-- `flutter analyze` su `lib/`: **zero errori**. Due interventi manuali oltre al recupero automatico
-  sono stati necessari — vedi commit `ff893a5` per il dettaglio (rumore binario tagliato in
-  `expressive_segmented_control.dart`; `healthServiceProvider` rinominato in
-  `healthServiceProviderProvider` in 3 punti, perché la classe `HealthServiceProvider` finisce già in
-  "Provider" e **questa** versione di `riverpod_generator` genera il nome doppio — la stessa trappola
-  già in sezione 3 dalle versioni precedenti di questo file, ricomparsa per lo stesso motivo).
-- `flutter test`: **873/873 verdi** (commit `d5b2327`), dopo aver aggiornato 17 file di test che
-  usavano l'API precedente di `AppPalette` (`amber`/`salmon`/`indigo900`, rimossi) o assumevano una
-  struttura di schermata che il redesign ha cambiato o eliminato del tutto (l'intera `SliverAppBar`
-  con saluto e cassetto della dashboard non esiste più; il widget condiviso `WorkoutReceipt` non è
-  più usato da `WorkoutSummaryScreen`).
-
-  ⚠️ **Segnalazione da portare in review, non richiusa**: la nuova `_RecordBar` in
-  `workout_summary_screen.dart` non mostra più né le ripetizioni della serie che ha stabilito il
-  record né la data del massimale precedente. È un cambiamento di **contenuto**, non solo di stile —
-  va deciso con l'utente se è voluto o una perdita da recuperare.
-
-### Cosa manca ancora, di questa storia
-
-1. **Decidere quando/come portare `recovery/immersivo-toxic-forest` in `main`.** Per ora è solo
-   pushato. Nessun merge senza via libera esplicito (vale la regola di sempre, ora più che mai: è
-   un branch enorme, 107+ file).
-2. **Ritrovare, o riscrivere dichiarandolo, `ADR-002` e `docs/design/05-immersivo-toxic-forest.html`**
-   — vedi il box in cima al file.
-3. **Riscrivere `DESIGN-SPEC.md`** sulla base del codice ora recuperato (`app_palette.dart`,
-   `immersivo_tokens.dart` sono la fonte più affidabile oggi, insieme agli screenshot presi
-   dall'app installata). Finché non è fatto, `DESIGN-SPEC.md` va trattato come **storico**, non come
-   riferimento.
-4. **Aggiornare i numeri stantii** in `BACKLOG.md` (intestazione) e in `../CLAUDE.md` ("Stato del
-   progetto" diceva 94 storie/40 completate; sono 110/64).
-5. Due segnalazioni minori spawnate come task separati durante l'aggiornamento dei test: un commento
-   ormai stantio in `exercise_row.dart` sui raggi Material 3 Expressive, e il sospetto che
-   `WorkoutReceipt` sia codice morto (usato solo dai suoi stessi test).
+**Ancora aperto, genuinamente**:
+1. **Ritrovare `ADR-002`/`docs/design/05-immersivo-toxic-forest.html`** — sospeso su richiesta
+   dell'utente, non fallito. Vedi il box in cima al file.
+2. **Decisione di prodotto, non tecnica**: la `_RecordBar` in `workout_summary_screen.dart` non
+   mostra più le ripetizioni della serie né la data del massimale precedente — voluto o da
+   recuperare? Segnalato da `docs/AUDIT-SCHERMATE.md`, mai deciso con l'utente.
+3. **Decisione di prodotto, non tecnica**: il filtro "Recenti" nella libreria esercizi
+   (`ExerciseSegmentFilter.recent`) è uno stub che restituisce sempre lista vuota — implementarlo o
+   toglierlo dal segmentato?
 
 ---
 
@@ -130,9 +107,24 @@ sezione va riscritta da capo: non ereditarla.
 | Strumento | Stato |
 |---|---|
 | Flutter | Via **snap** (`/snap/bin/flutter`, 3.47.2 stable) — non nel PATH di sistema per gli script, ma `flutter`/`dart` funzionano da shell interattiva |
-| Android SDK | `/usr/lib/android-sdk`, **manca `cmdline-tools`**: `flutter build apk` non è stato verificato qui. `flutter analyze` e `flutter test` **non ne hanno bisogno** e funzionano pienamente |
-| `adb` | Installato via `apt` (richiede `sudo`, vedi sotto). Telefono riconosciuto: `RFGL10YZ5RX`, Samsung S26 Ultra (`SM_S948B`) |
+| Android SDK | **Funzionante**: SDK utente in `/home/sta0135/Android/Sdk` (non più `/usr/lib/android-sdk`, root-owned), `sdk.dir` in `android/local.properties` (gitignored) punta lì. `cmdline-tools`, `platform-tools`, `build-tools`, `platforms`, `ndk` installati, licenze accettate (`sdkmanager --licenses`). `flutter build apk --debug` **verificato funzionante** su questa macchina |
+| `adb` | Installato via `apt`. Telefono riconosciuto: `RFGL10YZ5RX`, Samsung S26 Ultra (`SM_S948B`) |
 | `gh` (GitHub CLI) | Autenticato come `SimoFerre98`; `git push`/`pull` funzionano tramite le sue credenziali |
+
+**Trappole specifiche della build APK, trovate il 2026-09-10:**
+- L'URL corretto per scaricare i `cmdline-tools` è `https://dl.google.com/android/repository/...`
+  — **non** `/android/repo/...` (percorso plausibile ma sbagliato: sembra un blocco di rete, non lo
+  è). Verificare su developer.android.com se il link cambia ancora.
+- AGP 8+ rifiuta `isar_flutter_libs 3.1.0+1` con "Namespace not specified" (dichiarava il pacchetto
+  solo nel proprio `AndroidManifest.xml`, come si usava prima di AGP8). Risolto in
+  `android/build.gradle.kts` con un blocco generico che eredita il namespace da lì per qualunque
+  plugin ne sia privo — non nominato a `isar_flutter_libs` in particolare, resta valido anche se
+  cambia il plugin che ha il problema.
+- Una build fatta con una keystore di debug locale nuova **non è compatibile** con un APK firmato
+  da un'altra macchina (qui: il PC Windows perso): `adb install -r` fallisce con
+  `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Serve disinstallare e reinstallare (perdita dati locali,
+  Firestore sopravvive) **solo la prima volta**: le build successive da questa stessa macchina
+  condividono la stessa keystore di debug, quindi `adb install -r` normale.
 
 **`sudo` non può mai essere lanciato dall'assistente**: questo ambiente non ha un terminale
 interattivo a cui `sudo` possa chiedere la password, a prescindere dai permessi concessi. Per comandi
@@ -224,8 +216,8 @@ versione precedente (US-STYLE) è sparito da lì.
 disegnano con un filetto (bordo sottile), non con l'elevazione. `radiusFull` resta solo per elementi
 genuinamente circolari (avatar). **Bagliori (`glow`)** — liste di `BoxShadow` colorate — al posto
 delle ombre neutre. **Font Anton** (Google Fonts), condensato e maiuscolo, per titoli e numeri: non
-più la scala Material 3 "emphasized". Vedi `lib/src/core/theme/immersivo_tokens.dart`, il file più
-affidabile su questa direzione finché `DESIGN-SPEC.md` non è riscritto.
+più la scala Material 3 "emphasized". Vedi `lib/src/core/theme/immersivo_tokens.dart` e
+`DESIGN-SPEC.md` (riscritto, allineato).
 
 ### Trainer e schede: l'ordine deciso resta valido
 
@@ -235,10 +227,10 @@ US-083/086/087 nel backlog prima di assumerlo ancora vero.
 
 ### Verifica tramite APK
 
-Il ciclo **non esegue l'app**: produce un APK, l'utente prova sul telefono. Su questa macchina Linux,
-`flutter build apk` non è stato testato per l'assenza di `cmdline-tools` — se serve una build,
-verificare prima se conviene completare quel setup o tornare a una macchina con toolchain Android
-completa.
+Il ciclo **non esegue l'app**: produce un APK, l'utente prova sul telefono. Su questa macchina la
+build funziona (sezione 3): `flutter build apk --debug`, poi `adb install -r` sul percorso generato.
+Per modifiche solo visive, l'utente ha chiesto di vederle davvero installate prima di considerarle
+concluse — non fermarsi a `flutter test` verde.
 
 ---
 
@@ -246,10 +238,11 @@ completa.
 
 Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo file:
 
-1. **Chiudere i punti aperti della sezione 1**: decidere il merge di `recovery/immersivo-toxic-forest`,
-   la ricerca di ADR-002/mockup 05, la riscrittura di `DESIGN-SPEC.md`, la card del record.
-2. **Riallineare `BACKLOG.md` e `CLAUDE.md`** ai numeri veri (110 storie, 64 `✅ DONE`).
-3. **Solo dopo**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
+1. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
+   dell'utente — chiederle prima di implementare qualcosa, non indovinare.
+2. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
+   ("Turno 3", turni 1-2 mancanti).
+3. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
    scritto qui**: si ricava con `grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md`, una storia è
    pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
 
@@ -272,11 +265,9 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
 git status --porcelain
 git branch -a                                        # quali branch esistono davvero, oggi
 git log --oneline -5
-git rev-list --left-right --count main...recovery/immersivo-toxic-forest
 adb devices -l                                        # il telefono è ancora la fonte più aggiornata
 ```
 
 ---
 
-_Documento di passaggio · GymFlow · riscritto il 2026-09-09 sul commit `d5b2327`,
-branch `recovery/immersivo-toxic-forest`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-12 sul commit `11afe10`, branch `main`_
