@@ -45,16 +45,17 @@ void main() {
     });
 
     test(
-      'main_screen.dart ha quattro voci (non piu ProgramListScreen fra loro)',
+      'main_screen.dart ha quattro voci (Schede al posto di Crea)',
       () {
         // US-025 voleva `ProgramListScreen` come terza voce di una barra a
-        // tre. Il redesign Immersivo l'ha riscritta a quattro voci fisse —
-        // Home, Calendario, Crea, Impostazioni (`_NavBar` in
-        // main_screen.dart) — e ha spostato Schede (insieme a Statistiche,
-        // Obiettivi, Cronometro, Amici) fra i riquadri raggiungibili dalla
-        // Home (`_ShortcutRow` in dashboard_screen.dart). Il criterio si
-        // sposta con lei, non sparisce: `ProgramListScreen` deve restare
-        // raggiungibile da qualche parte, solo non piu da qui.
+        // tre. Il redesign Immersivo l'aveva riscritta a quattro voci fisse
+        // con Crea al posto di Schede (Home, Calendario, Crea, Impostazioni),
+        // spostando Schede fra i riquadri della Home. Segnalato dall'utente:
+        // Crea era una voce permanente per un'azione che si fa ogni tanto,
+        // non una destinazione da controllare spesso — Schede torna in
+        // barra, e la creazione di un programma si fa da un pulsante dentro
+        // Schede stessa (`_buildNewProgramCta` in program_list_screen.dart),
+        // non da una voce a se.
         final mainScreenFile = File('lib/src/ui/screens/main_screen.dart');
         expect(mainScreenFile.existsSync(), isTrue);
 
@@ -97,20 +98,22 @@ void main() {
         );
         expect(voci[0], contains('DashboardScreen'));
         expect(voci[1], contains('CalendarScreen'));
-        expect(voci[2], contains('WorkoutCreatorScreen'));
+        expect(voci[2], contains('ProgramListScreen'));
         expect(voci[3], contains('SettingsScreen'));
 
         expect(
           content,
-          isNot(contains('ProgramListScreen')),
-          reason: 'ProgramListScreen non e piu una voce della barra in basso',
+          isNot(contains('WorkoutCreatorScreen')),
+          reason: 'WorkoutCreatorScreen non e piu una voce della barra in basso',
         );
         final dashboardContent =
             File('lib/src/ui/screens/dashboard_screen.dart').readAsStringSync();
         expect(
           dashboardContent,
-          contains('ProgramListScreen'),
-          reason: 'ProgramListScreen deve restare raggiungibile, ora dalla Home',
+          isNot(contains('ProgramListScreen')),
+          reason:
+              'ProgramListScreen e tornata in barra: ridondante tenerla anche '
+              'fra i riquadri della Home',
         );
       },
     );

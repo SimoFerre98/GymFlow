@@ -20,7 +20,6 @@ import 'connect_friend_screen.dart';
 import 'gamification_screen.dart';
 import 'goals_screen.dart';
 import 'program_creator_screen.dart';
-import 'program_list_screen.dart';
 import 'statistics_screen.dart';
 import 'time_tools_screen.dart';
 /// Misure del mockup 1d Home. Il telaio del mockup e gia largo 384px quanto
@@ -36,7 +35,7 @@ const double _kCtaIconSide = 46;
 const double _kMuscleDotSide = 5;
 const double _kGoalTrackWidth = 56;
 const double _kGoalTrackHeight = 5;
-/// Colonne della griglia di scorciatoie: 6 destinazioni, 3 per riga, due righe.
+/// Colonne della griglia di scorciatoie: 3 per riga, righe quante servono.
 const int _kShortcutColumns = 3;
 const double _kShortcutAspectRatio = 84 / 92;
 /// La Home del mockup Immersivo (`1d Home`): foto a piena larghezza che sfuma
@@ -558,11 +557,13 @@ class _NumberedRow extends StatelessWidget {
     );
   }
 }
-/// Le 6 destinazioni che il cassetto teneva, ora riquadri raggiungibili dalla
-/// Home invece che da un cassetto ad amburger. Riquadri a filo (`Border.all`,
-/// nessun riempimento) per restare fedeli al linguaggio "solo filetti" della
-/// Home — non `ExpressiveCard`, che qui darebbe una superficie piena che il
-/// mockup 1d non disegna da nessuna parte in questa schermata.
+/// Le destinazioni che il cassetto teneva, ora riquadri raggiungibili dalla
+/// Home invece che da un cassetto ad amburger — tranne Schede, tornata voce
+/// permanente della barra di navigazione (`main_screen.dart`): restava
+/// ridondante tenerla anche qui. Riquadri a filo (`Border.all`, nessun
+/// riempimento) per restare fedeli al linguaggio "solo filetti" della Home —
+/// non `ExpressiveCard`, che qui darebbe una superficie piena che il mockup
+/// 1d non disegna da nessuna parte in questa schermata.
 ///
 /// Griglia, non riga scorrevole: tutte le destinazioni visibili insieme,
 /// nessuna nascosta a scorrimento orizzontale finche non ci si inciampa.
@@ -577,11 +578,6 @@ class _ShortcutRow extends StatelessWidget {
         icon: Icons.bar_chart_rounded,
         label: loc.t('data_tab'),
         builder: (_) => const StatisticsScreen(),
-      ),
-      _Shortcut(
-        icon: Icons.view_list_rounded,
-        label: loc.t('programs_tab'),
-        builder: (_) => const ProgramListScreen(),
       ),
       _Shortcut(
         icon: Icons.emoji_events_outlined,

@@ -10,6 +10,16 @@ import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/widgets/expressive_card.dart';
 import 'package:gymflow/src/ui/widgets/ticker_marquee.dart';
+/// Barra "Nuovo programma" in fondo: stesso trattamento del "+ Nuovo
+/// esercizio" di `exercise_library_screen.dart` — testo pieno e riquadro
+/// icona, non un FAB fluttuante estraneo al linguaggio Immersivo.
+///
+/// Serve perche' Schede e' tornata voce di navigazione al posto di Crea
+/// (segnalato dall'utente: due modi di "creare" non avevano senso): senza
+/// questo pulsante, l'unico posto da cui nasceva un programma nuovo era lo
+/// stato vuoto della Home, buono solo per il primissimo programma.
+const double _kCtaFontSize = 20;
+const double _kCtaIconBoxSide = 42;
 class ProgramListScreen extends ConsumerWidget {
   const ProgramListScreen({super.key});
   @override
@@ -83,7 +93,49 @@ class ProgramListScreen extends ConsumerWidget {
                 },
               ),
             ),
+            _buildNewProgramCta(context, loc, t, scheme),
           ],
+        ),
+      ),
+    );
+  }
+  Widget _buildNewProgramCta(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+  ) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, t.spacing.md),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ProgramCreatorScreen()),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(t.spacing.xs),
+          color: scheme.primary,
+          child: Row(
+            children: [
+              SizedBox(width: t.spacing.md),
+              Expanded(
+                child: Text(
+                  loc.t('new_program').toUpperCase(),
+                  style: t.typography.title?.copyWith(
+                    fontSize: _kCtaFontSize,
+                    color: scheme.onPrimary,
+                  ),
+                ),
+              ),
+              Container(
+                width: _kCtaIconBoxSide,
+                height: _kCtaIconBoxSide,
+                alignment: Alignment.center,
+                color: scheme.onPrimary,
+                child: Icon(Icons.add, color: scheme.primary),
+              ),
+            ],
+          ),
         ),
       ),
     );

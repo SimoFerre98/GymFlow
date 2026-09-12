@@ -4,8 +4,8 @@ import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/screens/calendar_screen.dart';
 import 'package:gymflow/src/ui/screens/dashboard_screen.dart';
+import 'package:gymflow/src/ui/screens/program_list_screen.dart';
 import 'package:gymflow/src/ui/screens/settings_screen.dart';
-import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:gymflow/src/ui/widgets/spring_page_transition.dart';
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -17,7 +17,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   final List<Widget> _screens = const [
     DashboardScreen(),
     CalendarScreen(),
-    WorkoutCreatorScreen(),
+    ProgramListScreen(),
     SettingsScreen(),
   ];
   @override
@@ -38,7 +38,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         items: [
           _NavItem(icon: Icons.home_rounded, label: loc.t('home')),
           _NavItem(icon: Icons.calendar_month_rounded, label: loc.t('calendar_tab')),
-          _NavItem(icon: Icons.add_rounded, label: loc.t('create_tab')),
+          _NavItem(icon: Icons.view_list_rounded, label: loc.t('programs_tab')),
           _NavItem(icon: Icons.settings_rounded, label: loc.t('settings_title')),
         ],
       ),
@@ -70,6 +70,13 @@ const double _kNavBarHeight = 76;
 /// coi quattro item HOME/SCHEDE/CREA/DATI): striscia a piena larghezza,
 /// filetto superiore, icona + etichetta sotto — non piu il dock fluttuante
 /// arrotondato del mockup 02 (direzione precedente).
+///
+/// Le quattro voci di oggi (Home/Calendario/Schede/Impostazioni) non sono
+/// quelle del mockup: Crea ci era rimasto al posto di Schede, una voce
+/// permanente per un'azione che si fa ogni tanto, non una destinazione da
+/// controllare spesso. Schede torna in barra (segnalato dall'utente), la
+/// creazione si fa da dentro Schede stessa con un pulsante, non da una voce a
+/// se — coerente con l'intenzione originale del mockup.
 ///
 /// Voce attiva: filetto superiore di 2px in accento invece dell'1px comune, e
 /// colore d'accento su icona ed etichetta. Le altre restano a `paper` al 45%
