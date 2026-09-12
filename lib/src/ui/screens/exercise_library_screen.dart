@@ -254,8 +254,13 @@ class _ExerciseLibraryScreenState
             ),
             child: Row(
               children: [
+                // `Flexible`, non un figlio libero: senza, il pill si prende
+                // la sua larghezza naturale e basta un `backLabel` un po'
+                // lungo ("Nuovo giorno") a far traboccare la riga — l'ellissi
+                // che `BackPill` gia sa fare non scatta mai se nessuno gli
+                // dice quanto puo restringersi (segnalato dall'utente).
                 if (widget.backLabel != null) ...[
-                  BackPill(label: widget.backLabel!),
+                  Flexible(child: BackPill(label: widget.backLabel!)),
                   SizedBox(width: t.spacing.md),
                 ],
                 Text(
