@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-12 · **Commit:** `11afe10` su `main` (`dev` allineato in fast-forward).
+**Aggiornato:** 2026-09-12 · **Commit:** `1a60331` su `main` (`dev` allineato in fast-forward).
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -62,6 +62,28 @@ commit `ff893a5` e in memoria [[gymflow-immersivo-toxic-forest]] se serve replic
   `lib/src/ui/widgets/immersivo_switch.dart`) al posto di `Switch`/`SwitchListTile` di Material,
   strutturalmente tondi e non tematizzabili ad angoli vivi.
 - **Build APK funzionante su questa macchina Linux** — vedi sezione 3, non più un problema aperto.
+- **Cinque difetti segnalati dall'utente su creazione/modifica schede e Home, sistemati il
+  2026-09-12** (commit `bfdb68b`..`522776a`, poi `1a60331` per la pulizia del repo):
+  - Etichette illeggibili ("Se...", "Rip...", "P...") nella configurazione di serie/ripetizioni/peso
+    di un esercizio — l'etichetta di Material dentro il campo era troppo stretta; spostata sopra il
+    campo come in `_buildNameField`, stesso file.
+  - Riordinare i giorni di un programma trascinandoli poteva far crashare l'app: la logica operava
+    su `workoutIds` (la sorgente Firestore) usando indici presi da `programWorkouts` (la lista
+    mostrata, che include "orfani" non in `workoutIds`) — due liste di lunghezza diversa, indici non
+    intercambiabili. **Diagnosticato per lettura del codice, non riprodotto dal vivo** — coordinate
+    di tocco sbagliate durante la prova hanno impedito una riproduzione affidabile.
+  - La riga durata/serie/volume nell'editor di un giorno usciva dallo schermo con numeri di volume
+    grandi — le tre colonne non erano vincolate (`Expanded`).
+  - **Non c'era modo di eliminare un giorno da un programma**, solo riordinarlo: aggiunto swipe con
+    conferma, stesso schema già in uso per gli esercizi e per gli eventi del calendario
+    (`Dismissible` + `confirmDismiss`).
+  - **La Home proponeva sempre lo stesso allenamento** (il passo successivo del ciclo del programma),
+    ignorando la programmazione del giorno. Nuova funzione pura testata `selectHeroWorkout` in
+    `dashboard_screen.dart`: sessione già avviata > allenamento programmato per oggi non ancora fatto
+    > ciclo del programma > primo modello disponibile. Il badge ora distingue "OGGI" (c'è una
+    programmazione o una ripresa) da "SUGGERITO" (fallback sul ciclo).
+  - Bottone indietro della libreria esercizi che andava in overflow con `backLabel` lunghi
+    (`Flexible` invece di figlio non vincolato in un `Row`).
 
 **Ancora aperto, genuinamente**:
 1. **Ritrovare `ADR-002`/`docs/design/05-immersivo-toxic-forest.html`** — sospeso su richiesta
@@ -72,6 +94,10 @@ commit `ff893a5` e in memoria [[gymflow-immersivo-toxic-forest]] se serve replic
 3. **Decisione di prodotto, non tecnica**: il filtro "Recenti" nella libreria esercizi
    (`ExerciseSegmentFilter.recent`) è uno stub che restituisce sempre lista vuota — implementarlo o
    toglierlo dal segmentato?
+4. **La nuova logica della Home (`selectHeroWorkout`) non è stata ancora vista dall'utente
+   sul telefono** — coperta da 6 test unitari e installata il 2026-09-12, ma non confermata dal
+   vivo. Verificarla appena possibile: badge "OGGI" quando c'è una programmazione per oggi o una
+   sessione da riprendere, "SUGGERITO" quando arriva dal ciclo del programma.
 
 ---
 
@@ -238,11 +264,13 @@ concluse — non fermarsi a `flutter test` verde.
 
 Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo file:
 
-1. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
+1. **Far confermare all'utente sul telefono la nuova logica della Home** (punto 4 della lista sopra)
+   — installata il 2026-09-12, non ancora vista dal vivo.
+2. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
    dell'utente — chiederle prima di implementare qualcosa, non indovinare.
-2. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
+3. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
    ("Turno 3", turni 1-2 mancanti).
-3. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
+4. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
    scritto qui**: si ricava con `grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md`, una storia è
    pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
 
@@ -270,4 +298,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-12 sul commit `11afe10`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-12 sul commit `1a60331`, branch `main`_
