@@ -631,33 +631,44 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
     return Row(
       children: [
         for (var i = 0; i < stats.length; i++)
-          Padding(
-            padding: EdgeInsets.only(left: i > 0 ? t.spacing.md : 0),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: i > 0
-                    ? Border(left: BorderSide(color: scheme.outline))
-                    : null,
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(left: i > 0 ? t.spacing.md : 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      stats[i].$1.toUpperCase(),
-                      style: t.typography.eyebrow?.copyWith(
-                        color: scheme.onSurfaceVariant,
+          // `Expanded`: senza, le tre colonne prendevano solo la larghezza
+          // del loro contenuto, e un volume a molte cifre spingeva la riga
+          // oltre il bordo dello schermo invece di restare dentro (segnalato
+          // dall'utente). Un terzo a testa, con l'ellissi come rete di
+          // sicurezza se anche un terzo di schermo non bastasse.
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: i > 0 ? t.spacing.md : 0),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: i > 0
+                      ? Border(left: BorderSide(color: scheme.outline))
+                      : null,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(left: i > 0 ? t.spacing.md : 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        stats[i].$1.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.typography.eyebrow?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    Text(
-                      stats[i].$2,
-                      style: t.typography.headline?.copyWith(
-                        fontSize: _kStatFontSize,
-                        color: scheme.onSurface,
+                      Text(
+                        stats[i].$2,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.typography.headline?.copyWith(
+                          fontSize: _kStatFontSize,
+                          color: scheme.onSurface,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
