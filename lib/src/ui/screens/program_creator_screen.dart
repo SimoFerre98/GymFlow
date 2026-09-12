@@ -306,18 +306,29 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                           ReorderableListView(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
+                            // Riordina `programWorkouts`, non
+                            // `currentProgram.workoutIds` direttamente: sono
+                            // due liste che possono avere lunghezze diverse
+                            // (sopra, "trova orfani" ne aggiunge, un id
+                            // spuntato ne toglie), e oldIndex/newIndex sono
+                            // posizioni nella lista mostrata. Applicarli a
+                            // un'altra lista, più corta, poteva far uscire
+                            // dai limiti e far crashare l'app; scrivere
+                            // sempre workoutIds da qui, per intero, risana
+                            // anche l'eventuale disallineamento invece di
+                            // perpetuarlo.
                             onReorderItem: (oldIndex, newIndex) async {
-                              final ids = List<String>.from(
-                                currentProgram.workoutIds,
+                              final reordered = List<WorkoutTemplate>.from(
+                                programWorkouts,
                               );
-                              final item = ids.removeAt(oldIndex);
-                              ids.insert(newIndex, item);
+                              final item = reordered.removeAt(oldIndex);
+                              reordered.insert(newIndex, item);
                               final updated = WorkoutProgram(
                                 id: currentProgram.id,
                                 userId: currentProgram.userId,
                                 name: currentProgram.name,
                                 description: currentProgram.description,
-                                workoutIds: ids,
+                                workoutIds: reordered.map((w) => w.id).toList(),
                                 isActive: currentProgram.isActive,
                                 createdAt: currentProgram.createdAt,
                                 startDate: currentProgram.startDate,
