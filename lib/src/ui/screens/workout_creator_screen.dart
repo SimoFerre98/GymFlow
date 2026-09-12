@@ -889,6 +889,12 @@ class _ExerciseConfigurationSheetState
     _notesController.dispose();
     super.dispose();
   }
+  /// Stessa etichetta-sopra-il-campo di `_buildNameField`, non la
+  /// `labelText` di Material dentro il campo: con tre campi affiancati
+  /// (serie/ripetizioni/peso) l'etichetta interna non aveva la larghezza per
+  /// il testo intero e Flutter la troncava a due o tre lettere ("Se...",
+  /// "Rip...", "P..." — non si capiva più cosa fosse cosa, segnalato
+  /// dall'utente). Sopra il campo l'etichetta ha tutta la colonna per sé.
   Widget _buildSheetInput({
     required TextEditingController controller,
     required String label,
@@ -896,20 +902,46 @@ class _ExerciseConfigurationSheetState
   }) {
     final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: t.sizing.iconSm),
-        filled: true,
-        fillColor: scheme.surfaceContainerHigh,
-        isDense: true,
-        border: OutlineInputBorder(
-          borderRadius: t.shape.cornerSm,
-          borderSide: BorderSide.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: t.sizing.iconSm, color: scheme.onSurfaceVariant),
+            SizedBox(width: t.spacing.xs),
+            Expanded(
+              child: Text(
+                label.toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ),
+          ],
         ),
-      ),
+        SizedBox(height: t.spacing.xs),
+        Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHigh,
+            border: Border(left: BorderSide(color: scheme.primary, width: 3)),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: t.spacing.sm,
+                vertical: t.spacing.sm,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
   @override
