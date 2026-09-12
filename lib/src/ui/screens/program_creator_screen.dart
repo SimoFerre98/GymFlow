@@ -97,6 +97,73 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+  /// Elimina un giorno dal programma: prima non c'era alcun modo di farlo,
+  /// solo spostarlo avanti e indietro (segnalato dall'utente).
+  ///
+  /// Scrive `workoutIds` per intero da `remainingWorkouts`, non toglie un
+  /// solo id dalla lista di `currentProgram`: stessa ragione del riordino,
+  /// risana un eventuale disallineamento invece di perpetuarlo. Cancella
+  /// anche la scheda stessa — restare come giorno "orfano", ne' nel
+  /// programma ne' altrove, non e' quello che l'utente chiede quando dice
+  /// "elimina".
+  Future<void> _deleteDay(
+    WorkoutProgram currentProgram,
+    List<WorkoutTemplate> remainingWorkouts,
+    WorkoutTemplate removed,
+  ) async {
+    final loc = ref.read(localizationNotifierProvider);
+    try {
+      final updated = WorkoutProgram(
+        id: currentProgram.id,
+        userId: currentProgram.userId,
+        name: currentProgram.name,
+        description: currentProgram.description,
+        workoutIds: remainingWorkouts.map((w) => w.id).toList(),
+        isActive: currentProgram.isActive,
+        createdAt: currentProgram.createdAt,
+        startDate: currentProgram.startDate,
+        endDate: currentProgram.endDate,
+        color: currentProgram.color,
+      );
+      await FirestoreService().saveProgram(updated);
+      await FirestoreService().deleteWorkout(removed.id);
+      if (mounted) {
+        ToastUtils.showInfo(context, loc.t('day_deleted'));
+      }
+    } catch (e) {
+      if (mounted) {
+        ToastUtils.showError(
+          context,
+          '${loc.t('program_save_error')}: $e',
+        );
+      }
+    }
+  }
+  Future<bool> _confirmDeleteDay(WorkoutTemplate workout) async {
+    final loc = ref.read(localizationNotifierProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.t('delete_day_title')),
+        content: Text(
+          '${loc.t('delete_day_body_prefix')} "${workout.name}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(loc.t('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: scheme.error),
+            child: Text(loc.t('delete')),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
   @override
   Widget build(BuildContext context) {
     final loc = ref.watch(localizationNotifierProvider);
@@ -339,8 +406,22 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                             },
                             children: [
                               for (final workout in programWorkouts)
-                                DecoratedBox(
+                                Dismissible(
                                   key: ValueKey(workout.id),
+                                  direction: DismissDirection.endToStart,
+                                  confirmDismiss: (_) => _confirmDeleteDay(workout),
+                                  onDismissed: (_) => _deleteDay(
+                                    currentProgram,
+                                    programWorkouts.where((w) => w.id != workout.id).toList(),
+                                    workout,
+                                  ),
+                                  background: Container(
+                                    color: scheme.error,
+                                    alignment: Alignment.centerRight,
+                                    padding: EdgeInsets.only(right: t.spacing.md),
+                                    child: Icon(Icons.delete, color: scheme.onError),
+                                  ),
+                                  child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     border: Border(top: BorderSide(color: scheme.outline)),
                                   ),
@@ -394,6 +475,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                                         ],
                                       ),
                                     ),
+                                  ),
                                   ),
                                 ),
                             ],
