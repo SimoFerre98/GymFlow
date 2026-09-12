@@ -10,6 +10,7 @@ import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
+import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
@@ -42,11 +43,6 @@ Map<String, int> resolveColorByTemplateId(
 const double _kMonthTitleFontSize = 30;
 const double _kNavIconBoxSide = 34;
 const double _kWeekDayNumberFontSize = 19;
-/// Il pallino che segnala un allenamento programmato (non ancora fatto)
-/// nell'angolo della cella: un riempimento pieno, non un filetto — un bordo
-/// sottile su una cella gia piccola si perdeva nello sfondo (segnalato
-/// dall'utente).
-const double _kEventDotSide = 5;
 /// Quanti colori distinti al massimo si affiancano nella cella: oltre,
 /// le fasce diventerebbero troppo strette per essere lette in una cella
 /// larga quanto un settimo dello schermo.
@@ -284,17 +280,24 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final key = DateTime(day.year, day.month, day.day);
       final inMonth = day.month == _focusedMonth.month;
       final events = eventsMap[key] ?? const [];
-      final doneSessions = events.whereType<WorkoutSession>().toList();
-      final hasScheduled = events.any((e) => e is ScheduledWorkout);
+      // Fatto o solo programmato conta lo stesso qui: il quadrato si colora
+      // dell'allenamento appena lo si mette su un giorno, non solo quando lo
+      // si è concluso (segnalato dall'utente — prima un allenamento
+      // programmato per la settimana prossima non colorava niente).
+      final dayWorkouts = events
+          .where((e) => e is WorkoutSession || e is ScheduledWorkout)
+          .toList();
       final isToday = key == todayKey;
-      // I colori distinti fatti quel giorno, nell'ordine in cui compaiono la
+      // I colori distinti di quel giorno, nell'ordine in cui compaiono la
       // prima volta: due allenamenti dello stesso programma restano un solo
       // colore (il badge del conteggio sotto dice comunque che sono due),
       // due di programmi diversi diventano due fasce affiancate.
       final doneColorList = <int>[];
-      for (final session in doneSessions) {
-        final raw = colorByTemplateId[session.workoutTemplateId] ??
-            AppPalette.defaultProgramColor;
+      for (final workout in dayWorkouts) {
+        final templateId = workout is WorkoutSession
+            ? workout.workoutTemplateId
+            : (workout as ScheduledWorkout).workoutTemplateId;
+        final raw = colorByTemplateId[templateId] ?? AppPalette.defaultProgramColor;
         if (!doneColorList.contains(raw)) doneColorList.add(raw);
       }
       final stripeColorList = doneColorList.take(_kMaxStripeColors).map(Color.new).toList();
@@ -311,8 +314,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           child: Padding(
             padding: EdgeInsets.all(t.spacing.xs / 2),
             child: InkWell(
-              onTap: () =>
-                  _showScheduleDialog(context, userId, loc, initialDate: key),
+              onTap: () => events.isEmpty
+                  ? _showScheduleDialog(context, userId, loc, initialDate: key)
+                  : _showDayDetail(context, loc, t, scheme, userId, key, events),
               child: Opacity(
                 opacity: inMonth ? 1 : 0.4,
                 child: Container(
@@ -325,6 +329,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       if (stripeColorList.isNotEmpty)
                         Positioned.fill(
                           child: Row(
+                            // Senza stretch, ogni `Expanded` da al suo
+                            // `ColoredBox` un vincolo di altezza libero (0..H):
+                            // un `ColoredBox` senza figlio si dimensiona al
+                            // piu piccolo consentito, cioe altezza zero — la
+                            // fascia spariva del tutto pur avendo il colore
+                            // giusto. `stretch` forza l'altezza piena.
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               for (final color in stripeColorList)
                                 Expanded(child: ColoredBox(color: color)),
@@ -347,7 +358,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           ),
                         ),
                       ),
-                      if (doneSessions.length > 1)
+                      if (dayWorkouts.length > 1)
                         Positioned(
                           bottom: t.spacing.xs / 2,
                           left: t.spacing.xs / 2,
@@ -361,23 +372,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                               child: Padding(
                                 padding: EdgeInsets.all(t.spacing.xs / 2),
                                 child: Text(
-                                  '${doneSessions.length}',
+                                  '${dayWorkouts.length}',
                                   style: t.typography.eyebrow?.copyWith(color: scheme.onSurface),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                      if (hasScheduled)
-                        Positioned(
-                          top: t.spacing.xs / 2,
-                          right: t.spacing.xs / 2,
-                          child: Container(
-                            width: _kEventDotSide,
-                            height: _kEventDotSide,
-                            color: stripeColorList.isEmpty
-                                ? scheme.onSurfaceVariant
-                                : scheme.onSurface,
                           ),
                         ),
                     ],
@@ -425,16 +424,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
       ],
     );
-    // Niente voce "fatto": il colore del giorno non e piu un ruolo fisso del
-    // tema (forza/cardio/...) ma quello scelto dall'utente per il programma
-    // — non c'e una singola tinta da spiegare qui, e il tipo di allenamento
-    // si legge comunque aprendo il giorno.
+    // Solo "oggi": il colore del giorno non e piu un ruolo fisso del tema
+    // (forza/cardio/...) ma quello scelto dall'utente per il programma, fatto
+    // o solo programmato che sia — non c'e piu una singola tinta "fatto" o
+    // "pianificato" da spiegare qui, e il dettaglio si legge aprendo il
+    // giorno.
     return Wrap(
       spacing: t.spacing.md,
       runSpacing: t.spacing.xs,
       children: [
         item(swatch(scheme.primary, outlined: true), loc.t('calendar_legend_today')),
-        item(swatch(scheme.onSurfaceVariant), loc.t('calendar_legend_planned')),
       ],
     );
   }
@@ -522,6 +521,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       (e) => e is WorkoutSession,
       orElse: () => events.first,
     );
+    return _buildEventRow(
+      context,
+      loc,
+      t,
+      scheme,
+      userId,
+      day,
+      event,
+      isToday: isToday,
+      dayAbbrev: dayAbbrev,
+    );
+  }
+  /// Una riga per un singolo evento (fatto o programmato) di un giorno:
+  /// usata sia dalla lista "Questa settimana" (un evento per giorno, il piu
+  /// rilevante) sia dal dettaglio di un giorno aperto dalla griglia del mese
+  /// (tutti gli eventi di quel giorno, uno per riga) — stessa riga, stesso
+  /// swipe-per-eliminare, cosi un allenamento vecchio o lontano nel tempo si
+  /// puo cancellare da li come da qui.
+  Widget _buildEventRow(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    String userId,
+    DateTime day,
+    dynamic event, {
+    required bool isToday,
+    required String dayAbbrev,
+  }) {
     final isSession = event is WorkoutSession;
     final ownerId = isSession
         ? (event).userId
@@ -572,6 +600,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             color: scheme.secondary,
             size: t.sizing.iconSm,
           ),
+          onTap: () => _openSession(event),
         ),
       );
     }
@@ -631,6 +660,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             size: t.sizing.iconSm,
           ),
         ),
+        onTap: () => _rescheduleWorkout(context, loc, scheduled),
       ),
     );
   }
@@ -716,6 +746,146 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
       );
     }
+  }
+  /// Riguarda un allenamento gia fatto: la stessa schermata che lo mostra
+  /// aprendolo dallo storico o appena concluso, non una vista dedicata al
+  /// calendario.
+  void _openSession(WorkoutSession session) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => WorkoutSummaryScreen(session: session)),
+    );
+  }
+  /// Sposta un allenamento non ancora fatto a un'altra data: l'unica forma
+  /// di "modifica" che ha senso da qui — cambiare gli esercizi di una
+  /// programmazione futura si fa nella scheda, non nel calendario. Aggiorna
+  /// lo stesso documento (stesso id): non ne crea uno nuovo.
+  Future<void> _rescheduleWorkout(
+    BuildContext context,
+    Localization loc,
+    ScheduledWorkout scheduled,
+  ) async {
+    final newDate = await showDatePicker(
+      context: context,
+      initialDate: scheduled.scheduledDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+    );
+    if (newDate == null || !context.mounted) return;
+    final updated = ScheduledWorkout(
+      id: scheduled.id,
+      userId: scheduled.userId,
+      workoutTemplateId: scheduled.workoutTemplateId,
+      workoutName: scheduled.workoutName,
+      scheduledDate: DateTime(
+        newDate.year,
+        newDate.month,
+        newDate.day,
+        scheduled.scheduledDate.hour,
+        scheduled.scheduledDate.minute,
+      ),
+      isCompleted: scheduled.isCompleted,
+    );
+    await ref.read(firestoreServiceProvider).scheduleWorkout(updated);
+    if (context.mounted) {
+      ToastUtils.showInfo(context, loc.t('workout_rescheduled'));
+    }
+  }
+  /// Il dettaglio di un giorno che ha gia qualcosa: elenca tutti gli eventi
+  /// (non solo il piu rilevante, come nella lista "Questa settimana"), cosi
+  /// un allenamento programmato oltre la settimana corrente o uno vecchio di
+  /// mesi ha un posto da cui essere eliminato o spostato — prima non c'era
+  /// nessuna via se non rientrava nei 7 giorni della lista sotto (segnalato
+  /// dall'utente).
+  void _showDayDetail(
+    BuildContext context,
+    Localization loc,
+    ImmersivoTokens t,
+    ColorScheme scheme,
+    String userId,
+    DateTime day,
+    List<dynamic> events,
+  ) {
+    final dayAbbrev = DateFormat(
+      'EEE',
+      loc.locale.languageCode,
+    ).format(day).toUpperCase();
+    final isToday = _isSameDay(day, DateTime.now());
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.7,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(sheetContext).scaffoldBackgroundColor,
+            border: Border(top: BorderSide(color: scheme.outline)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(t.spacing.md),
+                child: Container(
+                  width: t.sizing.thumbnailSm,
+                  height: t.spacing.xs,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: t.spacing.md),
+                child: Text(
+                  DateFormat('d MMMM', loc.locale.languageCode).format(day),
+                  style: t.typography.title?.copyWith(color: scheme.onSurface),
+                ),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final event in events)
+                      _buildEventRow(
+                        context,
+                        loc,
+                        t,
+                        scheme,
+                        userId,
+                        day,
+                        event,
+                        isToday: isToday,
+                        dayAbbrev: dayAbbrev,
+                      ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(t.spacing.md),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _showScheduleDialog(context, userId, loc, initialDate: day);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, color: scheme.primary, size: t.sizing.iconSm),
+                      SizedBox(width: t.spacing.xs),
+                      Text(
+                        loc.t('add_another_workout').toUpperCase(),
+                        style: t.typography.eyebrow?.copyWith(color: scheme.primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
   void _showScheduleDialog(
     BuildContext context,
