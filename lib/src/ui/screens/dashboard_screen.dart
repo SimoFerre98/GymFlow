@@ -14,6 +14,7 @@ import '../../models/exercise.dart';
 import '../../core/providers/exercise_provider.dart';
 import '../../core/providers/active_session_provider.dart';
 import '../../core/providers/goals_provider.dart';
+import '../../models/scheduled_workout.dart';
 import '../../models/session.dart';
 import '../../models/user_goal.dart';
 import 'connect_friend_screen.dart';
@@ -38,6 +39,109 @@ const double _kGoalTrackHeight = 5;
 /// Colonne della griglia di scorciatoie: 3 per riga, righe quante servono.
 const int _kShortcutColumns = 3;
 const double _kShortcutAspectRatio = 84 / 92;
+/// Quale allenamento proporre in Home, e con quale grado di certezza.
+///
+/// [scheduledWorkoutIdForAction] e' non nullo solo quando [targetWorkout]
+/// viene da un allenamento davvero programmato per oggi (calendario): serve
+/// ad avviarlo collegato alla sua programmazione, non solo a un modello, e a
+/// scegliere fra l'etichetta "OGGI" e "SUGGERITO" nell'intestazione.
+typedef HeroWorkoutSelection = ({
+  WorkoutTemplate? targetWorkout,
+  WorkoutTemplate? nextWorkout,
+  String? scheduledWorkoutIdForAction,
+});
+/// Sceglie l'allenamento della Home, in ordine di certezza decrescente:
+///
+/// 1. Una sessione gia' avviata (`activeSessionWorkout`) — si riprende,
+///    non si ricalcola nulla.
+/// 2. Un allenamento programmato per **oggi** (calendario) non ancora
+///    fatto — e' quello che l'utente ha davvero deciso di fare, non una
+///    supposizione.
+/// 3. Il passo successivo del ciclo del programma attivo, calcolato
+///    dall'ultima sessione fatta in quel programma.
+/// 4. Il primo modello disponibile, se non c'e' nemmeno un programma.
+///
+/// Prima di questa funzione, la Home ignorava il calendario del tutto: il
+/// passo 3 veniva applicato sempre, anche quando l'utente aveva
+/// esplicitamente programmato altro per oggi (segnalato dall'utente: "è
+/// l'ultimo, il prossimo che devo fare? quale sarebbe?" — la schermata non
+/// se lo chiedeva).
+HeroWorkoutSelection selectHeroWorkout({
+  required WorkoutProgram? activeProgram,
+  required List<WorkoutSession> sessions,
+  required List<WorkoutTemplate> workouts,
+  required List<ScheduledWorkout> scheduledWorkouts,
+  required WorkoutTemplate? activeSessionWorkout,
+}) {
+  if (activeSessionWorkout != null) {
+    return (
+      targetWorkout: activeSessionWorkout,
+      nextWorkout: null,
+      scheduledWorkoutIdForAction: null,
+    );
+  }
+  final now = DateTime.now();
+  final todaysScheduled = scheduledWorkouts
+      .where(
+        (s) =>
+            !s.isCompleted &&
+            s.scheduledDate.year == now.year &&
+            s.scheduledDate.month == now.month &&
+            s.scheduledDate.day == now.day,
+      )
+      .toList()
+    ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+  final todaysScheduledWorkout = todaysScheduled.firstOrNull;
+  final scheduledTemplate = todaysScheduledWorkout == null
+      ? null
+      : workouts
+            .where((w) => w.id == todaysScheduledWorkout.workoutTemplateId)
+            .firstOrNull;
+  if (scheduledTemplate != null) {
+    return (
+      targetWorkout: scheduledTemplate,
+      nextWorkout: null,
+      scheduledWorkoutIdForAction: todaysScheduledWorkout!.id,
+    );
+  }
+  if (activeProgram != null && activeProgram.workoutIds.isNotEmpty) {
+    final programSet = activeProgram.workoutIds.toSet();
+    final lastSession = sessions
+        .where((s) => programSet.contains(s.workoutTemplateId))
+        .firstOrNull;
+    var targetIndex = 0;
+    if (lastSession != null) {
+      final lastIdx = activeProgram.workoutIds.indexOf(
+        lastSession.workoutTemplateId,
+      );
+      if (lastIdx != -1) {
+        targetIndex = (lastIdx + 1) % activeProgram.workoutIds.length;
+      }
+    }
+    final targetId = activeProgram.workoutIds[targetIndex];
+    final targetWorkout =
+        workouts.where((w) => w.id == targetId).firstOrNull ??
+        workouts.firstOrNull;
+    // "Prossima" del mockup: la scheda dopo quella di oggi nello stesso
+    // ciclo — non inventata, e il passo successivo dello stesso calcolo.
+    WorkoutTemplate? nextWorkout;
+    if (activeProgram.workoutIds.length > 1) {
+      final nextIndex = (targetIndex + 1) % activeProgram.workoutIds.length;
+      final nextId = activeProgram.workoutIds[nextIndex];
+      nextWorkout = workouts.where((w) => w.id == nextId).firstOrNull;
+    }
+    return (
+      targetWorkout: targetWorkout,
+      nextWorkout: nextWorkout,
+      scheduledWorkoutIdForAction: null,
+    );
+  }
+  return (
+    targetWorkout: workouts.firstOrNull,
+    nextWorkout: null,
+    scheduledWorkoutIdForAction: null,
+  );
+}
 /// La Home del mockup Immersivo (`1d Home`): foto a piena larghezza che sfuma
 /// nel fondo, titolo in Anton, striscia scorrevole, due righe numerate.
 ///
@@ -86,14 +190,21 @@ class _HomeBody extends riverpod.ConsumerWidget {
               stream: firestore.getUserWorkouts(userId),
               builder: (context, workoutSnap) {
                 final workouts = workoutSnap.data ?? [];
-                final activeSession = ref.watch(activeSessionNotifierProvider);
-                return _buildContent(
-                  context,
-                  ref,
-                  activeProgram: activeProgram,
-                  sessions: sessions,
-                  workouts: workouts,
-                  activeSession: activeSession,
+                return StreamBuilder<List<ScheduledWorkout>>(
+                  stream: firestore.getUserScheduledWorkouts(userId),
+                  builder: (context, scheduledSnap) {
+                    final scheduledWorkouts = scheduledSnap.data ?? [];
+                    final activeSession = ref.watch(activeSessionNotifierProvider);
+                    return _buildContent(
+                      context,
+                      ref,
+                      activeProgram: activeProgram,
+                      sessions: sessions,
+                      workouts: workouts,
+                      scheduledWorkouts: scheduledWorkouts,
+                      activeSession: activeSession,
+                    );
+                  },
                 );
               },
             );
@@ -108,41 +219,22 @@ class _HomeBody extends riverpod.ConsumerWidget {
     required WorkoutProgram? activeProgram,
     required List<WorkoutSession> sessions,
     required List<WorkoutTemplate> workouts,
+    required List<ScheduledWorkout> scheduledWorkouts,
     required ActiveSessionState activeSession,
   }) {
     final t = context.immersivo;
-    WorkoutTemplate? targetWorkout;
-    WorkoutTemplate? nextWorkout;
-    if (activeSession.isActive) {
-      targetWorkout = activeSession.workout;
-    } else if (activeProgram != null && activeProgram.workoutIds.isNotEmpty) {
-      final programSet = activeProgram.workoutIds.toSet();
-      final lastSession = sessions
-          .where((s) => programSet.contains(s.workoutTemplateId))
-          .firstOrNull;
-      var targetIndex = 0;
-      if (lastSession != null) {
-        final lastIdx = activeProgram.workoutIds.indexOf(
-          lastSession.workoutTemplateId,
-        );
-        if (lastIdx != -1) {
-          targetIndex = (lastIdx + 1) % activeProgram.workoutIds.length;
-        }
-      }
-      final targetId = activeProgram.workoutIds[targetIndex];
-      targetWorkout =
-          workouts.where((w) => w.id == targetId).firstOrNull ??
-          workouts.firstOrNull;
-      // "Prossima" del mockup: la scheda dopo quella di oggi nello stesso
-      // ciclo — non inventata, e il passo successivo dello stesso calcolo.
-      if (activeProgram.workoutIds.length > 1) {
-        final nextIndex = (targetIndex + 1) % activeProgram.workoutIds.length;
-        final nextId = activeProgram.workoutIds[nextIndex];
-        nextWorkout = workouts.where((w) => w.id == nextId).firstOrNull;
-      }
-    } else {
-      targetWorkout = workouts.firstOrNull;
-    }
+    final selection = selectHeroWorkout(
+      activeProgram: activeProgram,
+      sessions: sessions,
+      workouts: workouts,
+      scheduledWorkouts: scheduledWorkouts,
+      activeSessionWorkout: activeSession.isActive
+          ? activeSession.workout
+          : null,
+    );
+    final targetWorkout = selection.targetWorkout;
+    final nextWorkout = selection.nextWorkout;
+    final scheduledWorkoutIdForAction = selection.scheduledWorkoutIdForAction;
     if (targetWorkout == null) {
       return _EmptyHome(loc: loc);
     }
@@ -160,14 +252,17 @@ class _HomeBody extends riverpod.ConsumerWidget {
             workout: targetWorkout,
             streak: streak,
             isResuming: activeSession.isActive,
+            isScheduledForToday: scheduledWorkoutIdForAction != null,
             loc: loc,
             onAction: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => ActiveSessionScreen(
-                    workout: targetWorkout!,
-                    scheduledWorkoutId: activeSession.scheduledWorkoutId,
+                    workout: targetWorkout,
+                    scheduledWorkoutId: activeSession.isActive
+                        ? activeSession.scheduledWorkoutId
+                        : scheduledWorkoutIdForAction,
                   ),
                 ),
               );
@@ -277,12 +372,20 @@ class _HeroSection extends riverpod.ConsumerWidget {
     required this.workout,
     required this.streak,
     required this.isResuming,
+    required this.isScheduledForToday,
     required this.loc,
     required this.onAction,
   });
   final WorkoutTemplate workout;
   final int streak;
   final bool isResuming;
+  /// Vero solo se `workout` e' un allenamento davvero programmato per oggi
+  /// (calendario), non una supposizione ricavata dal ciclo del programma
+  /// attivo: distingue "OGGI" (un impegno preso) da "SUGGERITO" (un'ipotesi),
+  /// cosi l'etichetta non promette piu' di quanto sappia per certo
+  /// (segnalato dall'utente: non capiva se quello mostrato fosse l'ultimo
+  /// fatto o il prossimo davvero in programma).
+  final bool isScheduledForToday;
   final Localization loc;
   final VoidCallback onAction;
   @override
@@ -385,7 +488,7 @@ class _HeroSection extends riverpod.ConsumerWidget {
                         ),
                         color: scheme.primary,
                         child: Text(
-                          '${loc.t('home_today_badge_prefix')} · ${workout.exercises.length} '
+                          '${loc.t(isResuming || isScheduledForToday ? 'home_today_badge_prefix' : 'home_suggested_badge_prefix')} · ${workout.exercises.length} '
                               '${loc.t(workout.exercises.length == 1 ? 'home_exercise_one' : 'home_exercises')}'
                           .toUpperCase(),
                           style: Theme.of(context).textTheme.labelSmall

@@ -12,6 +12,7 @@ import 'package:gymflow/src/services/firestore_service.dart' as svc;
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/workout.dart';
 import 'package:gymflow/src/models/exercise.dart';
+import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/session.dart';
 
 /// Il saluto della home non finisce sotto le icone della barra.
@@ -63,6 +64,9 @@ class FakeFirestoreService implements svc.FirestoreService {
       Stream.value([]);
   @override
   Stream<List<WorkoutSession>> getUserSessions(String userId) =>
+      Stream.value([]);
+  @override
+  Stream<List<ScheduledWorkout>> getUserScheduledWorkouts(String userId) =>
       Stream.value([]);
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
