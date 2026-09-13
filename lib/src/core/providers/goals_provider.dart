@@ -82,10 +82,18 @@ class UserGoalsNotifier extends _$UserGoalsNotifier {
           achievedAt: achieved ? (goal.achievedAt ?? now) : null,
         );
       } else if (goal.type == GoalType.targetLoad) {
+        // Senza un esercizio specifico, "il carico più alto" non ha un
+        // significato: prima veniva calcolato comunque sul massimo di
+        // *qualunque* esercizio di *qualunque* sessione — un obiettivo
+        // "Corri 10 km" (creato da goals_screen.dart, che oggi non lascia
+        // scegliere il tipo o l'esercizio) risultava "raggiunto al 100%"
+        // sollevando 60 kg in uno squat. Meglio non muovere il progresso
+        // che mostrarne uno inventato.
+        if (goal.exerciseId == null) return goal;
         double maxLoad = goal.currentValue;
         for (final session in sessions) {
           for (final exercise in session.exercises) {
-            if (goal.exerciseId != null && exercise.exerciseId != goal.exerciseId) continue;
+            if (exercise.exerciseId != goal.exerciseId) continue;
             for (final set in exercise.sets) {
               if (set.isCompleted && set.weight > maxLoad) {
                 maxLoad = set.weight;
