@@ -64,6 +64,9 @@ class ProgramListScreen extends ConsumerWidget {
                   final attivi = programs.where((p) => p.isActive).length;
                   return Column(
                     children: [
+                      // Segnalato dall'utente: senza questo spazio il banner
+                      // scorrevole finiva a filo col titolo "Schede" sopra.
+                      SizedBox(height: context.immersivo.spacing.sm),
                       // La striscia del mockup ("TOTALE N PROGRAMMI / ..."), con
                       // i dati che questa schermata gia interroga.
                       TickerMarquee(
