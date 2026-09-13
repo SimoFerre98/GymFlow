@@ -1,8 +1,9 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `aaa7cf5` su `main` (`dev` allineato in fast-forward,
-entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate; sei difetti minori
-segnalati durante la prova di US-111 sono già stati sistemati — vedi sezione 6.
+**Aggiornato:** 2026-09-13 · **Commit:** `6a41d36` su `main` (`dev` allineato in fast-forward,
+entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate; dei sette difetti minori
+segnalati durante la prova di US-111, sei erano già stati sistemati e il settimo (foto profilo
+offline) è stato chiuso in questa sessione — vedi sezione 6.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -272,8 +273,9 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
    dall'API. Piano e review di entrambe in `docs/planning/`. US-089 e US-092 (EP-017) sono ora
    eseguibili.
 2. **Provando US-111 sul telefono, l'utente ha segnalato 7 difetti minori (2026-09-13), estranei a
-   quella storia — sistemati 6 in una sessione di correzioni rapide (commit `6614c8c`..`aaa7cf5`),
-   diretti su `main`, stesso schema dei cinque difetti del 2026-09-12**:
+   quella storia — sistemati tutti e sette in due sessioni di correzioni rapide (commit
+   `6614c8c`..`aaa7cf5` per i primi sei, poi `6a41d36`), diretti su `main`, stesso schema dei cinque
+   difetti del 2026-09-12**:
    - ✅ Colore secondario del tema chiaro (`app_theme.dart` usava un tono da scuro)
    - ✅ Selettore data dell'abbonamento che non si apriva più (initialDate nel passato violava
      l'assert di `showDatePicker` con un abbonamento già scaduto)
@@ -282,23 +284,36 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
      modificare e swipe-per-cancellare)
    - ✅ Banner scorrevole a filo col titolo in Schede (spaziatura mancante)
    - ✅ Titolo lungo nella Home diventava un blocco enorme (dimensione ora dipende dalla lunghezza)
-   - ⬜ **Foto profilo non carica offline** — resta aperto: serve un pacchetto nuovo
-     (`cached_network_image` o simile), dipendenza da approvare esplicitamente prima di aggiungerla,
-     come da regola. **Chiesto esplicitamente all'utente, risposta non ancora arrivata quando questo
-     file è stato scritto** — controllare se nel frattempo ha risposto prima di aggiungere la
-     dipendenza.
-   - **APK con i sei fix installata sul telefono il 2026-09-13** (`firstInstallTime` invariato, dati
-     conservati) — **non ancora confermata dall'utente sul dispositivo**: verificare appena possibile
-     che i sei fix funzionino davvero prima di considerarli chiusi per bene (regola generale di
-     questo progetto: l'APK prova, non `flutter test`).
-3. **Sezione 8 qui sotto**: le altre priorità dell'utente dal 2026-09-13, ancora da pianificare —
+   - ✅ **Foto profilo non caricava offline** — sistemato (commit `6a41d36`). `cached_network_image`
+     **non era una dipendenza nuova**: era già in `pubspec.yaml:72`, aggiunta in precedenza per le
+     immagini degli esercizi (`exercise_image.dart`), solo mai usata per la foto profilo — la nota
+     precedente in questo file era disallineata su questo punto. Approvazione comunque chiesta
+     esplicitamente all'utente prima di procedere (regola "chiedi sempre prima di aggiungere una
+     dipendenza"), anche se di fatto non serviva aggiungerne una. Modificati i due punti reali che
+     mostrano la foto — `profile_screen.dart` (righe ~211 e ~295) e `settings_screen.dart` (riga
+     ~273) — sostituendo `NetworkImage` con `CachedNetworkImageProvider`; l'eviction dopo il cambio
+     foto usa `CachedNetworkImage.evictFromCache`, che svuota sia la cache in memoria sia quella su
+     disco. **Un terzo `NetworkImage` esiste in `app_drawer.dart:38`, non toccato**: quel widget è
+     codice morto, nessun file lo importa in tutta la codebase — segnalato a parte, non è questo il
+     difetto segnalato dall'utente.
+   - **APK con tutti e sette i fix installata sul telefono il 2026-09-13** (`firstInstallTime`
+     invariato, dati conservati) — **nessuno dei sette ancora confermato dall'utente sul
+     dispositivo**: verificare appena possibile che funzionino davvero prima di considerarli chiusi
+     per bene (regola generale di questo progetto: l'APK prova, non `flutter test`).
+3. **`../CLAUDE.md` ha un numero disallineato, trovato verificando l'analyzer per il fix del punto
+   2**: dice "il baseline è 6, tutti `deprecated_member_use`, US-102 resta aperta per quelli" — ma
+   `docs/BACKLOG.md:2988` segna **US-102 ✅ DONE** e `flutter analyze` su `main` (`6a41d36`) dà
+   **davvero 0 avvisi**, verificato di persona. Non corretto qui: `CLAUDE.md` è un file di regole
+   condiviso, va proposto all'utente prima di riscriverlo. Il vero baseline da usare nelle prossime
+   review è **0**, non 6.
+4. **Sezione 8 qui sotto**: le altre priorità dell'utente dal 2026-09-13, ancora da pianificare —
    notifiche/promemoria, backup/esportazione, uso dell'RPE, sostituzione esercizi/infortuni,
    accessibilità, eliminazione account (+ accesso Google, da valutare la fattibilità).
-4. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
+5. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
    dell'utente — chiederle prima di implementare qualcosa, non indovinare.
-5. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
+6. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
    ("Turno 3", turni 1-2 mancanti).
-6. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
+7. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
    scritto qui**: si ricava con `grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md`, una storia è
    pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
 
@@ -425,4 +440,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `aaa7cf5`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `6a41d36`, branch `main`_
