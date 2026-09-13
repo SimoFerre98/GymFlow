@@ -200,7 +200,32 @@ class FirestoreService {
       return WorkoutProgram.fromMap(doc.data()!, doc.id);
     });
   }
+  /// Salva un programma. Se `isActive`, disattiva prima ogni altro
+  /// programma dello stesso utente che risultasse già attivo.
+  ///
+  /// "Attivo" significa "quello su cui ti stai allenando adesso" (vedi il
+  /// badge in `program_list_screen.dart`) — un solo programma alla volta,
+  /// non un elenco. Senza questo, ogni programma nuovo nasceva attivo
+  /// (`ProgramCreatorScreen._saveProgram`) senza disattivare quelli
+  /// esistenti: la Home (`dashboard_screen.dart`, `.where((p) =>
+  /// p.isActive).firstOrNull`) sceglieva arbitrariamente il primo dei due,
+  /// e la lista schede mostrava più badge "ATTIVA" insieme.
   Future<void> saveProgram(WorkoutProgram program) async {
+    if (program.isActive) {
+      final altriAttivi = await _db
+          .collection('programs')
+          .where('userId', isEqualTo: program.userId)
+          .where('isActive', isEqualTo: true)
+          .get();
+      final daDisattivare = altriAttivi.docs.where((doc) => doc.id != program.id);
+      if (daDisattivare.isNotEmpty) {
+        final batch = _db.batch();
+        for (final doc in daDisattivare) {
+          batch.update(doc.reference, {'isActive': false});
+        }
+        await batch.commit();
+      }
+    }
     if (program.id.isEmpty) {
       final doc = _db.collection('programs').doc();
       // Ensure we set the ID in the map if the model expects it,
