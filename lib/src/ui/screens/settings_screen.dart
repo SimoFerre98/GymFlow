@@ -41,9 +41,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final loc = ref.read(localizationNotifierProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    // Un abbonamento già scaduto ha una data nel passato: usarla come
+    // initialDate con firstDate: today fa fallire l'assert di showDatePicker
+    // (initialDate deve stare fra firstDate e lastDate) e il selettore non si
+    // apre affatto, senza nessun errore visibile — il difetto segnalato.
+    final existingExpiry = profile?.subscriptionExpiry;
+    final initialDate = (existingExpiry != null && existingExpiry.isAfter(today))
+        ? existingExpiry
+        : today.add(const Duration(days: 30));
     final picked = await showDatePicker(
       context: context,
-      initialDate: profile?.subscriptionExpiry ?? today.add(const Duration(days: 30)),
+      initialDate: initialDate,
       firstDate: today,
       lastDate: today.add(const Duration(days: 365 * 5)),
     );
