@@ -33,47 +33,56 @@ class AuthService {
     required String displayName,
     UserRole role = UserRole.athlete,
   }) async {
+    // 1. Create Auth User
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final user = credential.user;
+    if (user == null) return null;
     try {
-      // 1. Create Auth User
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      // 2. Generate Friend Code (6 uppercase chars)
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      final rnd = Random();
+      String friendCode = String.fromCharCodes(
+        Iterable.generate(
+          6,
+          (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
+        ),
       );
-      final user = credential.user;
-      if (user != null) {
-        // 2. Generate Friend Code (6 uppercase chars)
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        final rnd = Random();
-        String friendCode = String.fromCharCodes(
-          Iterable.generate(
-            6,
-            (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
-          ),
-        );
-        // 3. Create User Profile in Firestore
-        final newUserProfile = UserProfile(
-          id: user.uid,
-          email: email,
-          displayName: displayName,
-          friendCode: friendCode,
-          role: role,
-          createdAt: DateTime.now(),
-        );
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .set(newUserProfile.toMap());
-        // 4. Update Auth display name
-        await user.updateDisplayName(displayName);
-        // 5. Pubblica lo specchio pubblico del codice (US-087): senza,
-        // nessuno può trovare questo utente per invitarlo, perché il
-        // documento utente resta leggibile solo dal proprietario.
-        await _publishInviteCode(friendCode, user.uid, displayName);
-      }
-      return user;
+      // 3. Create User Profile in Firestore
+      final newUserProfile = UserProfile(
+        id: user.uid,
+        email: email,
+        displayName: displayName,
+        friendCode: friendCode,
+        role: role,
+        createdAt: DateTime.now(),
+      );
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(newUserProfile.toMap());
+      // 4. Update Auth display name
+      await user.updateDisplayName(displayName);
+      // 5. Pubblica lo specchio pubblico del codice (US-087): senza,
+      // nessuno può trovare questo utente per invitarlo, perché il
+      // documento utente resta leggibile solo dal proprietario.
+      await _publishInviteCode(friendCode, user.uid, displayName);
     } catch (e) {
+      // L'account Auth esiste già ed è già autenticato: lasciarlo così
+      // blocca l'utente per sempre — getUserProfile() non troverà mai un
+      // documento, e un nuovo tentativo con la stessa email fallirà con
+      // "email-already-in-use", senza alcuna schermata che ritenti solo
+      // la creazione del profilo. Si elimina l'account appena creato,
+      // così il fallimento si comporta come se la registrazione non
+      // fosse mai iniziata e l'utente possa semplicemente riprovare.
+      try {
+        await user.delete();
+      } catch (_) {}
       rethrow;
     }
+    return user;
   }
   // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
