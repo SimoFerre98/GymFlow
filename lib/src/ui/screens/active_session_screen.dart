@@ -444,7 +444,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                   children: [
                     BackPill(
                       label: loc.t('cancel'),
-                      // Stessa ragione del PopScope qui sotto: durante il
+                      // Stessa ragione del PopScope qui sopra: durante il
                       // salvataggio non ha più senso proporre di eliminare
                       // l'allenamento che si sta chiudendo.
                       onTap: _isSaving ? () {} : () => _confirmExitSession(context),
