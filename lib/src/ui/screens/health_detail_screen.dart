@@ -10,6 +10,38 @@ import '../widgets/back_pill.dart';
 import '../widgets/expressive_card.dart';
 import '../widgets/expressive_segmented_control.dart';
 const double _kTitleFontSize = 26;
+/// Riempie ogni giorno del periodo con il dato letto, o con `0.0` solo se
+/// [riempiZero] è vero.
+///
+/// Passi/calorie/acqua/distanza/sonno sono conteggi del giorno: un giorno
+/// senza dato è davvero zero, e riempirlo mantiene l'asse del grafico
+/// regolare. Battito e peso sono misurazioni puntuali e sparse (spesso una
+/// volta al giorno o meno, non tutti i giorni): riempire a zero i giorni
+/// senza lettura falsava sia la media in `_calculateSummary` (`total /
+/// _data.length`, con `_data.length` sempre il numero di giorni del
+/// periodo, mai i giorni con un dato vero — un solo peso registrato su
+/// sette faceva scendere la "media" a un settimo del valore reale) sia il
+/// grafico a linea (`minY` finiva sempre a 0 per via dello zero
+/// artificiale, schiacciando la variazione vera).
+///
+/// Sta fuori dalla schermata perché `HealthDetailScreen` non si monta in un
+/// test — istanzia `HealthService` nel proprio `State`, debito di US-008.
+Map<DateTime, double> riempiDatiSalute({
+  required Map<DateTime, double> dati,
+  required List<DateTime> giorni,
+  required bool riempiZero,
+}) {
+  final risultato = <DateTime, double>{};
+  for (final giorno in giorni) {
+    final valore = dati[giorno];
+    if (valore != null) {
+      risultato[giorno] = valore;
+    } else if (riempiZero) {
+      risultato[giorno] = 0.0;
+    }
+  }
+  return risultato;
+}
 class HealthDetailScreen extends ConsumerStatefulWidget {
   final HealthDataType dataType;
   final String title;
@@ -62,31 +94,23 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
       start,
       end,
     );
-    // Fill in missing dates with 0 (or null if line chart needs it, but 0 is usually safer for steps)
-    // For heart rate maybe we don't want 0?
-    // Let's iterate and fill
-    Map<DateTime, double> fullData = {};
+    final riempiConZero =
+        widget.dataType != HealthDataType.HEART_RATE && widget.dataType != HealthDataType.WEIGHT;
+    final List<DateTime> giorni;
     if (_isWeekly) {
-      for (int i = 0; i < 7; i++) {
-        DateTime d = end.subtract(Duration(days: i));
-        d = DateTime(d.year, d.month, d.day);
-        // Find matching in data (dates in data should be normalized to midnight)
-        // We'll normalize keys in data map when we get it
-        fullData[d] = data[d] ?? 0.0;
-      }
+      giorni = List.generate(7, (i) {
+        final d = end.subtract(Duration(days: i));
+        return DateTime(d.year, d.month, d.day);
+      });
     } else {
-      // Loop from day 1 to end day
-      int daysInMonth = DateTime(
-        _currentDate.year,
-        _currentDate.month + 1,
-        0,
-      ).day;
-      for (int i = 1; i <= daysInMonth; i++) {
-        DateTime d = DateTime(_currentDate.year, _currentDate.month, i);
-        if (d.isAfter(DateTime.now())) break;
-        fullData[d] = data[d] ?? 0.0;
-      }
+      final daysInMonth = DateTime(_currentDate.year, _currentDate.month + 1, 0).day;
+      giorni = [
+        for (int i = 1; i <= daysInMonth; i++)
+          if (!DateTime(_currentDate.year, _currentDate.month, i).isAfter(DateTime.now()))
+            DateTime(_currentDate.year, _currentDate.month, i),
+      ];
     }
+    final fullData = riempiDatiSalute(dati: data, giorni: giorni, riempiZero: riempiConZero);
     // Sort by date
     var sortedKeys = fullData.keys.toList()..sort((a, b) => a.compareTo(b));
     Map<DateTime, double> sortedData = {
@@ -98,6 +122,22 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
         _isLoading = false;
       });
     }
+  }
+  /// Se la freccia "avanti" ha ancora senso.
+  ///
+  /// In vista mensile `_currentDate` e sempre il giorno 1 del mese mostrato
+  /// (`_changePeriod` lo fissa cosi): confrontarlo con "ieri" com'era prima
+  /// lo trovava quasi sempre vero anche sul mese corrente (il giorno 1 e
+  /// prima di ieri per tutto il mese, tranne i primi uno o due giorni), e la
+  /// freccia restava attiva anche a mese corrente gia mostrato.
+  bool get _puoAndareAvanti {
+    final now = DateTime.now();
+    if (_isWeekly) {
+      return _currentDate.isBefore(now.subtract(const Duration(days: 1)));
+    }
+    final meseMostrato = DateTime(_currentDate.year, _currentDate.month);
+    final meseCorrente = DateTime(now.year, now.month);
+    return meseMostrato.isBefore(meseCorrente);
   }
   void _changePeriod(int offset) {
     setState(() {
@@ -195,10 +235,7 @@ class _HealthDetailScreenState extends ConsumerState<HealthDetailScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
-                  onPressed:
-                      _currentDate.isBefore(
-                        DateTime.now().subtract(const Duration(days: 1)),
-                      )
+                  onPressed: _puoAndareAvanti
                       ? () => _changePeriod(1)
                       : null, // Disattivato se e gia oggi.
                 ),
