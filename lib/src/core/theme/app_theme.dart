@@ -272,6 +272,16 @@ class AppTheme {
           side: BorderSide(color: scheme.outline, width: 1),
         ),
       ),
+      // showDatePicker non eredita dialogTheme: ha un suo shape di default
+      // (angoli molto arrotondati) che DialogThemeData non tocca.
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: shape.cornerXs,
+          side: BorderSide(color: scheme.outline, width: 1),
+        ),
+      ),
       sliderTheme: SliderThemeData(
         activeTrackColor: scheme.primary,
         inactiveTrackColor: scheme.surfaceContainerHigh,
