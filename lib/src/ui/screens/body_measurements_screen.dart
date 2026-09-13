@@ -86,6 +86,11 @@ class _BodyMeasurementsScreenState
   /// una misura nuova. Prima non esisteva alcun modo di correggere o
   /// cancellare un dato già salvato — segnalato dall'utente.
   String? _editingMeasurementId;
+  /// La data originale della misura in modifica: senza conservarla, salvare
+  /// una correzione la spostava a "adesso", facendola sparire dal punto
+  /// giusto della cronologia e ricomparire in cima come se fosse appena
+  /// stata presa.
+  DateTime? _editingMeasurementDate;
   @override
   void initState() {
     super.initState();
@@ -111,7 +116,7 @@ class _BodyMeasurementsScreenState
         // id, se presente.
         id: _editingMeasurementId ?? '',
         userId: _userId,
-        date: DateTime.now(),
+        date: _editingMeasurementDate ?? DateTime.now(),
         weight: _currentWeight,
         height: valore('height'),
         chest: valore('chest'),
@@ -136,7 +141,10 @@ class _BodyMeasurementsScreenState
         for (final c in _controllers.values) {
           c.clear();
         }
-        setState(() => _editingMeasurementId = null);
+        setState(() {
+          _editingMeasurementId = null;
+          _editingMeasurementDate = null;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -152,6 +160,7 @@ class _BodyMeasurementsScreenState
   void _startEditing(BodyMeasurement measurement) {
     setState(() {
       _editingMeasurementId = measurement.id;
+      _editingMeasurementDate = measurement.date;
       _currentWeight = measurement.weight ?? _currentWeight;
       _controllers['height']!.text = measurement.height?.toString() ?? '';
       _controllers['chest']!.text = measurement.chest?.toString() ?? '';
@@ -168,6 +177,7 @@ class _BodyMeasurementsScreenState
   void _cancelEditing() {
     setState(() {
       _editingMeasurementId = null;
+      _editingMeasurementDate = null;
       for (final c in _controllers.values) {
         c.clear();
       }

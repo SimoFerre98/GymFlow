@@ -167,9 +167,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       });
                     },
                   ),
-                  validator: (value) => value != null && value.length >= 6
+                  // Non la stessa regola della registrazione (minimo 6
+                  // caratteri): quel vincolo lo impone Firebase solo alla
+                  // creazione dell'account. Il login (signInWithEmailAndPassword)
+                  // non ha alcun requisito di lunghezza — un account con
+                  // password più corta (creato da console, o precedente a
+                  // questa regola) non riusciva mai ad autenticarsi da qui,
+                  // bloccato da una validazione locale prima ancora di
+                  // interpellare Firebase.
+                  validator: (value) => value != null && value.isNotEmpty
                       ? null
-                      : loc.t('password_too_short'),
+                      : loc.t('password_required'),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
