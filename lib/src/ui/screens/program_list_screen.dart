@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/core/providers/firestore_provider.dart';
+import 'package:gymflow/src/core/providers/program_provider.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
 import 'package:intl/intl.dart';
@@ -41,31 +42,25 @@ class ProgramListScreen extends ConsumerWidget {
               child: _buildHeader(context, loc, t, scheme),
             ),
             Expanded(
-              child: StreamBuilder<List<WorkoutProgram>>(
-                stream: ref.watch(firestoreServiceProvider).getUserPrograms(userId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(context.immersivo.spacing.md),
-                        child: Text(
-                          '${loc.t('error_loading_programs')}: ${snapshot.error}', // Technical error message usually kept in English or generic error key
-                          textAlign: TextAlign.center,
-                          // `error` e il ruolo che significa «qualcosa non ha
-                          // funzionato», e nel tema scuro non e il rosso acceso che
-                          // era scritto qui.
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
-                        ),
-                      ),
-                    );
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              child: ref.watch(localProgramsProvider).when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(context.immersivo.spacing.md),
+                    child: Text(
+                      '${loc.t('error_loading_programs')}: $error', // Technical error message usually kept in English or generic error key
+                      textAlign: TextAlign.center,
+                      // `error` e il ruolo che significa «qualcosa non ha
+                      // funzionato», e nel tema scuro non e il rosso acceso che
+                      // era scritto qui.
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ),
+                ),
+                data: (programs) {
+                  if (programs.isEmpty) {
                     return _buildEmptyState(context, loc);
                   }
-                  final programs = snapshot.data!;
                   final attivi = programs.where((p) => p.isActive).length;
                   return Column(
                     children: [

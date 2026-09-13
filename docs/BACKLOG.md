@@ -3277,6 +3277,42 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 
 ---
 
+### EP-018: Persistenza locale-first per allenamenti, programmi e misure
+
+> Estendere ad allenamenti, programmi, allenamenti programmati e misure corporee lo stesso schema
+> locale-first già in produzione per le sessioni (`sync_provider.dart` → Isar →
+> `dashboard_provider.dart`): Isar come fonte di lettura per la UI, Firestore come sorgente di
+> verità sincronizzata in background. Nasce da una richiesta diretta dell'utente il 2026-09-12: i
+> dati si "riscaricano" visibilmente ogni volta che l'app si ricollega, perché fuori dalle sessioni
+> ogni schermata legge `.snapshots()` Firestore creati dentro `build()`.
+> **Scope:** MVP | **Stories:** 1 | **Story Points:** 8
+
+#### US-111: Isar come cache locale per allenamenti, programmi, misure e programmazione
+
+**Epic:** EP-018 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** 🔍 IN REVIEW
+
+**Story**
+Come atleta che usa GymFlow con una connessione instabile,
+voglio che allenamenti, programmi, misure corporee e allenamenti programmati restino visibili istantaneamente quando riapro l'app o mi ricollego,
+così da non vedere ricaricare da zero dati che avevo già scaricato.
+
+**Demonstrates**
+Dopo questa storia: disattivando la rete dopo il primo avvio, Home, calendario, elenco schede e misure mostrano gli stessi dati di prima senza spinner di ricaricamento; riattivando la rete, gli eventuali aggiornamenti arrivano in background senza un ricaricamento visibile a schermo.
+
+**Acceptance Criteria**
+- [ ] Esistono 4 nuove collection Isar — allenamenti, programmi, allenamenti programmati, misure corporee — con mapper `toLocal()`/`toDomain()` testati in round-trip (dati completi, dati minimi, valori limite)
+- [ ] Un provider Riverpod per ciascuna delle 4 entità legge da Isar con `.watch(fireImmediately: true)`, non da uno stream Firestore diretto
+- [ ] Un provider di sincronizzazione per ciascuna entità tiene Isar allineato a Firestore in background, gestendo sia le scritture sia le cancellazioni lato Firestore (un record rimosso da Firestore sparisce anche da Isar)
+- [ ] `dashboard_screen.dart`, `calendar_screen.dart`, `program_list_screen.dart`, `program_creator_screen.dart`, `workout_creator_screen.dart`, `body_measurements_screen.dart`, `body_measurements_chart.dart`, `profile_screen.dart` leggono le proprie 4 entità dai nuovi provider, non più da `FirestoreService().getX(...)` né da `ref.watch(firestoreServiceProvider).getX(...)` per i dati dell'utente corrente
+- [ ] I dati di un altro utente (amici, in `calendar_screen.dart` e `friend_detail_screen.dart`) restano esplicitamente fuori: continuano a leggere da Firestore direttamente, non entrano nella cache locale
+- [ ] Il comportamento funzionale di ogni schermata coinvolta è invariato: stessi dati, stesso ordinamento dove già definito da un `orderBy`
+- [ ] `flutter analyze` non introduce alcun nuovo avviso rispetto a `main`
+- [ ] `flutter test` verde, inclusi i nuovi test dei mapper
+
+---
+
 ## Backlog Assumptions & Open Questions
 
 > _Questa sezione elenca le assunzioni fatte durante la generazione del backlog e le domande che restano aperte per il team._

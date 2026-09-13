@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/providers/workout_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -380,6 +381,10 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
   ) {
     final userId = AuthService().currentUser?.uid;
     if (userId == null) return const SizedBox.shrink();
+    final templates =
+        (ref.watch(localWorkoutsProvider).value ?? const <WorkoutTemplate>[])
+            .take(2)
+            .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -388,37 +393,30 @@ class _WorkoutCreatorScreenState extends ConsumerState<WorkoutCreatorScreen> {
           style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
         ),
         SizedBox(height: t.spacing.sm),
-        StreamBuilder<List<WorkoutTemplate>>(
-          stream: FirestoreService().getUserWorkouts(userId),
-          builder: (context, snapshot) {
-            final templates =
-                (snapshot.data ?? const <WorkoutTemplate>[]).take(2).toList();
-            return SizedBox(
-              height: _kQuickStartTileHeight,
-              child: Row(
-                children: [
-                  for (final template in templates) ...[
-                    Expanded(
-                      child: _QuickStartTile(
-                        title: template.name,
-                        subtitle:
-                            '${template.exercises.length} ${loc.t('exercises_section').toLowerCase()} · ${template.category.name.toUpperCase()}',
-                        onTap: () => _applyTemplate(template),
-                      ),
-                    ),
-                    SizedBox(width: t.spacing.sm),
-                  ],
-                  Expanded(
-                    child: _QuickStartTile(
-                      title: loc.t('quick_start_blank'),
-                      subtitle: loc.t('quick_start_blank_hint').toUpperCase(),
-                      onTap: () {},
-                    ),
+        SizedBox(
+          height: _kQuickStartTileHeight,
+          child: Row(
+            children: [
+              for (final template in templates) ...[
+                Expanded(
+                  child: _QuickStartTile(
+                    title: template.name,
+                    subtitle:
+                        '${template.exercises.length} ${loc.t('exercises_section').toLowerCase()} · ${template.category.name.toUpperCase()}',
+                    onTap: () => _applyTemplate(template),
                   ),
-                ],
+                ),
+                SizedBox(width: t.spacing.sm),
+              ],
+              Expanded(
+                child: _QuickStartTile(
+                  title: loc.t('quick_start_blank'),
+                  subtitle: loc.t('quick_start_blank_hint').toUpperCase(),
+                  onTap: () {},
+                ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ],
     );

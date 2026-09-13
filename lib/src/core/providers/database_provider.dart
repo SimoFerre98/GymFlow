@@ -2,6 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../models/local/local_workout_session.dart';
+import '../../models/local/local_workout_template.dart';
+import '../../models/local/local_workout_program.dart';
+import '../../models/local/local_scheduled_workout.dart';
+import '../../models/local/local_body_measurement.dart';
 part 'database_provider.g.dart';
 @Riverpod(keepAlive: true)
 class IsarDatabase extends _$IsarDatabase {
@@ -14,7 +18,13 @@ class IsarDatabase extends _$IsarDatabase {
       return existingInstance;
     }
     return await Isar.open(
-      [LocalWorkoutSessionSchema],
+      [
+        LocalWorkoutSessionSchema,
+        LocalWorkoutTemplateSchema,
+        LocalWorkoutProgramSchema,
+        LocalScheduledWorkoutSchema,
+        LocalBodyMeasurementSchema,
+      ],
       directory: dir.path,
       inspector: true,
     );

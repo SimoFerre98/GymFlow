@@ -1,14 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../../core/providers/firestore_provider.dart';
+import '../../../core/providers/body_measurement_provider.dart';
 import '../../../core/providers/localization_provider.dart';
 import '../../../core/theme/immersivo_tokens.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/body_measurement.dart';
 class BodyMeasurementsChart extends ConsumerStatefulWidget {
-  final String userId;
-  const BodyMeasurementsChart({super.key, required this.userId});
+  const BodyMeasurementsChart({super.key});
   @override
   ConsumerState<BodyMeasurementsChart> createState() =>
       _BodyMeasurementsChartState();
@@ -68,58 +67,53 @@ class _BodyMeasurementsChartState extends ConsumerState<BodyMeasurementsChart> {
   }
   @override
   Widget build(BuildContext context) {
-    final firestore = ref.read(firestoreServiceProvider);
     final loc = ref.watch(localizationNotifierProvider);
-    return StreamBuilder<List<BodyMeasurement>>(
-      stream: firestore.getBodyMeasurements(widget.userId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Column(
-            children: [
-              _buildMetricSelector(loc),
-              const Expanded(child: Center(child: CircularProgressIndicator())),
-            ],
-          );
-        }
-        final allData = snapshot.data ?? [];
-        final dataPoints = allData
-            .where((m) => _getValue(m, _selectedMetric) != null)
-            .toList();
-        dataPoints.sort((a, b) => a.date.compareTo(b.date));
-        if (dataPoints.isEmpty) {
-          return Column(
-            children: [
-              _buildMetricSelector(loc),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    loc.t('no_data'),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+    final measurementsAsync = ref.watch(localBodyMeasurementsProvider);
+    if (measurementsAsync.isLoading) {
+      return Column(
+        children: [
+          _buildMetricSelector(loc),
+          const Expanded(child: Center(child: CircularProgressIndicator())),
+        ],
+      );
+    }
+    final allData = measurementsAsync.value ?? const <BodyMeasurement>[];
+    final dataPoints = allData
+        .where((m) => _getValue(m, _selectedMetric) != null)
+        .toList();
+    dataPoints.sort((a, b) => a.date.compareTo(b.date));
+    if (dataPoints.isEmpty) {
+      return Column(
+        children: [
+          _buildMetricSelector(loc),
+          Expanded(
+            child: Center(
+              child: Text(
+                loc.t('no_data'),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-              ),
-            ],
-          );
-        }
-        return Column(
-          children: [
-            _buildMetricSelector(loc),
-            SizedBox(height: context.immersivo.spacing.sm),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: context.immersivo.spacing.md,
-                  top: context.immersivo.spacing.lg,
-                  bottom: context.immersivo.spacing.sm,
-                ),
-                child: LineChart(_buildChartData(dataPoints, context, loc)),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      );
+    }
+    return Column(
+      children: [
+        _buildMetricSelector(loc),
+        SizedBox(height: context.immersivo.spacing.sm),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: context.immersivo.spacing.md,
+              top: context.immersivo.spacing.lg,
+              bottom: context.immersivo.spacing.sm,
+            ),
+            child: LineChart(_buildChartData(dataPoints, context, loc)),
+          ),
+        ),
+      ],
     );
   }
   Widget _buildMetricSelector(Localization loc) {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import '../../core/providers/firestore_provider.dart';
 import '../../core/theme/immersivo_tokens.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/providers/auth_provider.dart';
@@ -13,6 +12,10 @@ import '../widgets/exercise_image.dart';
 import '../../models/exercise.dart';
 import '../../core/providers/exercise_provider.dart';
 import '../../core/providers/active_session_provider.dart';
+import '../../core/providers/dashboard_provider.dart';
+import '../../core/providers/program_provider.dart';
+import '../../core/providers/workout_provider.dart';
+import '../../core/providers/scheduled_workout_provider.dart';
 import '../../core/providers/goals_provider.dart';
 import '../../models/scheduled_workout.dart';
 import '../../models/session.dart';
@@ -176,41 +179,21 @@ class _HomeBody extends riverpod.ConsumerWidget {
   final Localization loc;
   @override
   Widget build(BuildContext context, riverpod.WidgetRef ref) {
-    final firestore = ref.watch(firestoreServiceProvider);
-    return StreamBuilder<List<WorkoutProgram>>(
-      stream: firestore.getUserPrograms(userId),
-      builder: (context, programSnap) {
-        final programs = programSnap.data ?? [];
-        final activeProgram = programs.where((p) => p.isActive).firstOrNull;
-        return StreamBuilder<List<WorkoutSession>>(
-          stream: firestore.getUserSessions(userId),
-          builder: (context, sessionSnap) {
-            final sessions = sessionSnap.data ?? [];
-            return StreamBuilder<List<WorkoutTemplate>>(
-              stream: firestore.getUserWorkouts(userId),
-              builder: (context, workoutSnap) {
-                final workouts = workoutSnap.data ?? [];
-                return StreamBuilder<List<ScheduledWorkout>>(
-                  stream: firestore.getUserScheduledWorkouts(userId),
-                  builder: (context, scheduledSnap) {
-                    final scheduledWorkouts = scheduledSnap.data ?? [];
-                    final activeSession = ref.watch(activeSessionNotifierProvider);
-                    return _buildContent(
-                      context,
-                      ref,
-                      activeProgram: activeProgram,
-                      sessions: sessions,
-                      workouts: workouts,
-                      scheduledWorkouts: scheduledWorkouts,
-                      activeSession: activeSession,
-                    );
-                  },
-                );
-              },
-            );
-          },
-        );
-      },
+    final programs = ref.watch(localProgramsProvider).value ?? const <WorkoutProgram>[];
+    final activeProgram = programs.where((p) => p.isActive).firstOrNull;
+    final sessions = ref.watch(dashboardSessionsProvider).value ?? const <WorkoutSession>[];
+    final workouts = ref.watch(localWorkoutsProvider).value ?? const <WorkoutTemplate>[];
+    final scheduledWorkouts =
+        ref.watch(localScheduledWorkoutsProvider).value ?? const <ScheduledWorkout>[];
+    final activeSession = ref.watch(activeSessionNotifierProvider);
+    return _buildContent(
+      context,
+      ref,
+      activeProgram: activeProgram,
+      sessions: sessions,
+      workouts: workouts,
+      scheduledWorkouts: scheduledWorkouts,
+      activeSession: activeSession,
     );
   }
   Widget _buildContent(

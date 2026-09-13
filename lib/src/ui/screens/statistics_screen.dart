@@ -419,7 +419,7 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
                     title: loc.t('body_progress_chart'),
                     child: SizedBox(
                       height: kAltezzaGraficoStatistiche,
-                      child: BodyMeasurementsChart(userId: userId),
+                      child: const BodyMeasurementsChart(),
                     ),
                   ),
                 ),

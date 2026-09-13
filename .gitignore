@@ -94,3 +94,8 @@ macos/flutter/ephemeral/
 firestore-tests/node_modules/
 firestore-tests/firebase-debug.log
 firestore-tests/firestore-debug.log
+
+# Binario nativo di Isar scaricato da Isar.initializeIsarCore(download: true)
+# nei test che aprono un'istanza reale (US-111): si rigenera da solo, non va
+# committato.
+/libisar.so

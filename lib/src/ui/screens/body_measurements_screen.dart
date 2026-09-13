@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/providers/localization_provider.dart';
+import '../../core/providers/body_measurement_provider.dart';
 import '../../core/theme/immersivo_tokens.dart';
 import '../../models/body_measurement.dart';
 import '../../services/auth_service.dart';
@@ -253,8 +254,6 @@ class _BodyMeasurementsScreenState
                       style: t.typography.eyebrow?.copyWith(color: scheme.onSurfaceVariant),
                     ),
                     _WeightHistory(
-                      userId: _userId,
-                      firestoreService: _firestoreService,
                       emptyText: loc.t('no_measurements'),
                     ),
                     SizedBox(height: t.spacing.xl),
@@ -373,49 +372,39 @@ class _MeasureField extends StatelessWidget {
 /// Widget separato per evitare di creare lo stream dentro `build` della
 /// schermata principale: lo stream vive qui, viene creato una volta sola
 /// e non si ricrea a ogni ricostruzione dell'albero.
-class _WeightHistory extends StatelessWidget {
-  const _WeightHistory({
-    required this.userId,
-    required this.firestoreService,
-    required this.emptyText,
-  });
-  final String userId;
-  final FirestoreService firestoreService;
+class _WeightHistory extends ConsumerWidget {
+  const _WeightHistory({required this.emptyText});
   final String emptyText;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final t = context.immersivo;
-    return StreamBuilder<List<BodyMeasurement>>(
-      stream: firestoreService.getBodyMeasurements(userId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: t.spacing.xl),
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
-        final all = snapshot.data ?? [];
-        final recent = all.take(10).toList();
-        if (recent.isEmpty) {
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: t.spacing.xl),
-            child: Center(
-              child: Text(
-                emptyText,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
+    final measurementsAsync = ref.watch(localBodyMeasurementsProvider);
+    if (measurementsAsync.isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: t.spacing.xl),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final all = measurementsAsync.value ?? const <BodyMeasurement>[];
+    final recent = all.take(10).toList();
+    if (recent.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: t.spacing.xl),
+        child: Center(
+          child: Text(
+            emptyText,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
-          );
-        }
-        return Column(
-          children: [
-            for (final m in recent) _HistoryTile(measurement: m),
-          ],
-        );
-      },
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final m in recent) _HistoryTile(measurement: m),
+      ],
     );
   }
 }

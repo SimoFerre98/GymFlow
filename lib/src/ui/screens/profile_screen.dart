@@ -6,7 +6,7 @@ import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/body_measurement.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
+import 'package:gymflow/src/core/providers/body_measurement_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:gymflow/src/ui/widgets/sparkline.dart';
@@ -35,7 +35,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final AuthService _auth = AuthService();
-  final FirestoreService _firestore = FirestoreService();
   late TextEditingController _nameController;
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
@@ -263,26 +262,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           _applyProfile(profile);
-          return StreamBuilder<List<BodyMeasurement>>(
-            stream: _firestore.getBodyMeasurements(profile.id),
-            builder: (context, measurementsSnapshot) {
-              final measurements = measurementsSnapshot.data ?? const <BodyMeasurement>[];
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHero(context, loc, t, scheme, profile),
-                    _buildStatsTrio(context, loc, t, scheme, measurements),
-                    _buildWeightTrend(context, loc, t, scheme, measurements),
-                    _buildDati(context, loc, t, scheme, profile, measurements),
-                    Padding(
-                      padding: EdgeInsets.all(t.spacing.md),
-                      child: _buildSaveCta(context, loc, t, scheme),
-                    ),
-                  ],
+          final measurements =
+              ref.watch(localBodyMeasurementsProvider).value ?? const <BodyMeasurement>[];
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHero(context, loc, t, scheme, profile),
+                _buildStatsTrio(context, loc, t, scheme, measurements),
+                _buildWeightTrend(context, loc, t, scheme, measurements),
+                _buildDati(context, loc, t, scheme, profile, measurements),
+                Padding(
+                  padding: EdgeInsets.all(t.spacing.md),
+                  child: _buildSaveCta(context, loc, t, scheme),
                 ),
-              );
-            },
+              ],
+            ),
           );
         },
       ),

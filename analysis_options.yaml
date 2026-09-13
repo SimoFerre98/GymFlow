@@ -16,6 +16,16 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+  errors:
+    # Isar genera, per ogni collection con un indice unico, dei metodi
+    # "ByIndex" (getByIndex, putByIndex, ...) che il pacchetto isar stesso
+    # marca @experimental. Non li chiamiamo mai — la lettura passa da
+    # `.filter()`, non da questi accessori — ma esistono comunque nel
+    # `.g.dart` generato, e l'analyzer li segnala a prescindere dall'uso.
+    # US-111 porta le collection Isar da 1 a 5: senza questa riga il solo
+    # effetto collaterale del codice generato moltiplicherebbe per cinque
+    # un avviso che non descrive un problema nel codice scritto a mano.
+    experimental_member_use: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

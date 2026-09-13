@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
+import 'package:gymflow/src/core/providers/workout_provider.dart';
 import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/models/workout.dart';
@@ -11,7 +12,6 @@ import 'package:gymflow/src/ui/widgets/back_pill.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/screens/workout_creator_screen.dart';
 import 'package:intl/intl.dart';
-import 'package:rxdart/rxdart.dart';
 /// Altezza della fila di pastiglie colore: geometria di questa schermata.
 const double _kAltezzaSelettoreColore = 50;
 const double _kTitleFontSize = 26;
@@ -324,23 +324,15 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
               SizedBox(height: t.spacing.xl),
               // Days Section (Workouts)
               if (widget.program != null)
-                StreamBuilder<
-                  ({WorkoutProgram program, List<WorkoutTemplate> workouts})
-                >(
-                  stream: Rx.combineLatest2(
-                    FirestoreService().getProgramStream(widget.program!.id),
-                    FirestoreService().getUserWorkouts(
-                      AuthService().currentUser!.uid,
-                    ),
-                    (program, workouts) =>
-                        (program: program, workouts: workouts),
-                  ),
+                StreamBuilder<WorkoutProgram>(
+                  stream: FirestoreService().getProgramStream(widget.program!.id),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    final currentProgram = snapshot.data!.program;
-                    final allWorkouts = snapshot.data!.workouts;
+                    final currentProgram = snapshot.data!;
+                    final allWorkouts =
+                        ref.watch(localWorkoutsProvider).value ?? const <WorkoutTemplate>[];
                     final programWorkouts = <WorkoutTemplate>[];
                     final workoutMap = {for (var w in allWorkouts) w.id: w};
                     // 1. Get ordered workouts from explicit list

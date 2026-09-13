@@ -2,6 +2,11 @@ import 'dart:collection';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:gymflow/src/core/providers/firestore_provider.dart';
+import 'package:gymflow/src/core/providers/dashboard_provider.dart';
+import 'package:gymflow/src/core/providers/program_provider.dart';
+import 'package:gymflow/src/core/providers/workout_provider.dart';
+import 'package:gymflow/src/core/providers/scheduled_workout_provider.dart';
+import 'package:gymflow/src/core/providers/shared_calendar_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/models/session.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
@@ -11,7 +16,6 @@ import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 import 'package:gymflow/src/ui/screens/active_session_screen.dart';
 import 'package:gymflow/src/ui/screens/workout_summary_screen.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
@@ -65,61 +69,55 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   // Combine sessions and schedules into one stream, insieme a schede e
   // programmi (servono solo per risalire al colore scelto dall'utente, vedi
   // `_colorByTemplateId`).
-  Stream<({Map<DateTime, List<dynamic>> events, Map<String, int> colorByTemplateId})>
-      _getCalendarEvents(String userId) {
-    final firestore = ref.watch(firestoreServiceProvider);
-    return Rx.combineLatest6(
-      firestore.getUserSessions(userId),
-      firestore.getUserScheduledWorkouts(userId),
-      firestore.getSharedSessions(userId),
-      firestore.getSharedScheduledWorkouts(userId),
-      firestore.getUserWorkouts(userId),
-      firestore.getUserPrograms(userId),
-      (
-        List<WorkoutSession> mySessions,
-        List<ScheduledWorkout> mySchedules,
-        List<WorkoutSession> sharedSessions,
-        List<ScheduledWorkout> sharedSchedules,
-        List<WorkoutTemplate> templates,
-        List<WorkoutProgram> programs,
-      ) {
-        final Map<DateTime, List<dynamic>> events = LinkedHashMap(
-          equals: _isSameDay,
-          hashCode: (DateTime key) {
-            return key.day * 1000000 + key.month * 10000 + key.year;
-          },
-        );
-        void addEvents(List<dynamic> list) {
-          for (var item in list) {
-            DateTime date;
-            if (item is WorkoutSession) {
-              date = DateTime(
-                item.startTime.year,
-                item.startTime.month,
-                item.startTime.day,
-              );
-            } else if (item is ScheduledWorkout) {
-              date = DateTime(
-                item.scheduledDate.year,
-                item.scheduledDate.month,
-                item.scheduledDate.day,
-              );
-            } else {
-              continue;
-            }
-            if (events[date] == null) events[date] = [];
-            events[date]!.add(item);
-          }
-        }
-        addEvents(mySessions);
-        addEvents(mySchedules);
-        addEvents(sharedSessions); // Friend sessions
-        addEvents(sharedSchedules); // Friend schedules
-        return (
-          events: events,
-          colorByTemplateId: resolveColorByTemplateId(templates, programs),
-        );
+  /// Combina in un'unica mappa gli eventi del calendario: allenamenti e
+  /// programmazione **propri** (letti da Isar, non da Firestore — vedi
+  /// `build()`) insieme a quelli **condivisi** dagli amici (questi restano
+  /// su Firestore diretto: non sono dati dell'utente corrente, non entrano
+  /// nella cache locale).
+  ({Map<DateTime, List<dynamic>> events, Map<String, int> colorByTemplateId})
+      _buildCalendarEvents({
+    required List<WorkoutSession> mySessions,
+    required List<ScheduledWorkout> mySchedules,
+    required List<WorkoutSession> sharedSessions,
+    required List<ScheduledWorkout> sharedSchedules,
+    required List<WorkoutTemplate> templates,
+    required List<WorkoutProgram> programs,
+  }) {
+    final Map<DateTime, List<dynamic>> events = LinkedHashMap(
+      equals: _isSameDay,
+      hashCode: (DateTime key) {
+        return key.day * 1000000 + key.month * 10000 + key.year;
       },
+    );
+    void addEvents(List<dynamic> list) {
+      for (var item in list) {
+        DateTime date;
+        if (item is WorkoutSession) {
+          date = DateTime(
+            item.startTime.year,
+            item.startTime.month,
+            item.startTime.day,
+          );
+        } else if (item is ScheduledWorkout) {
+          date = DateTime(
+            item.scheduledDate.year,
+            item.scheduledDate.month,
+            item.scheduledDate.day,
+          );
+        } else {
+          continue;
+        }
+        if (events[date] == null) events[date] = [];
+        events[date]!.add(item);
+      }
+    }
+    addEvents(mySessions);
+    addEvents(mySchedules);
+    addEvents(sharedSessions); // Friend sessions
+    addEvents(sharedSchedules); // Friend schedules
+    return (
+      events: events,
+      colorByTemplateId: resolveColorByTemplateId(templates, programs),
     );
   }
   @override
@@ -131,37 +129,45 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (userId == null) {
       return Scaffold(body: Center(child: Text(loc.t('login_required'))));
     }
+    final mySessions = ref.watch(dashboardSessionsProvider).value ?? const <WorkoutSession>[];
+    final mySchedules =
+        ref.watch(localScheduledWorkoutsProvider).value ?? const <ScheduledWorkout>[];
+    final templates = ref.watch(localWorkoutsProvider).value ?? const <WorkoutTemplate>[];
+    final programs = ref.watch(localProgramsProvider).value ?? const <WorkoutProgram>[];
+    final shared = ref.watch(sharedCalendarEventsProvider).value;
+    final combined = _buildCalendarEvents(
+      mySessions: mySessions,
+      mySchedules: mySchedules,
+      sharedSessions: shared?.sessions ?? const <WorkoutSession>[],
+      sharedSchedules: shared?.schedules ?? const <ScheduledWorkout>[],
+      templates: templates,
+      programs: programs,
+    );
+    final eventsMap = combined.events;
+    final colorByTemplateId = combined.colorByTemplateId;
     return Scaffold(
       body: SafeArea(
-        child: StreamBuilder<
-            ({Map<DateTime, List<dynamic>> events, Map<String, int> colorByTemplateId})>(
-        stream: _getCalendarEvents(userId),
-        builder: (context, snapshot) {
-          final eventsMap = snapshot.data?.events ?? {};
-          final colorByTemplateId = snapshot.data?.colorByTemplateId ?? {};
-          return SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: t.spacing.md,
-              right: t.spacing.md,
-              top: t.spacing.sm,
-              bottom: t.spacing.bottomInset + t.spacing.md,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMonthHeader(context, t, scheme),
-                SizedBox(height: t.spacing.sm),
-                _buildWeekdayRow(context, loc, t, scheme),
-                SizedBox(height: t.spacing.xs),
-                _buildMonthGrid(context, loc, t, scheme, eventsMap, colorByTemplateId, userId),
-                SizedBox(height: t.spacing.sm),
-                _buildLegend(context, loc, t, scheme),
-                SizedBox(height: t.spacing.xl),
-                _buildWeekSection(context, loc, t, scheme, eventsMap, userId),
-              ],
-            ),
-          );
-        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: t.spacing.md,
+            right: t.spacing.md,
+            top: t.spacing.sm,
+            bottom: t.spacing.bottomInset + t.spacing.md,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMonthHeader(context, t, scheme),
+              SizedBox(height: t.spacing.sm),
+              _buildWeekdayRow(context, loc, t, scheme),
+              SizedBox(height: t.spacing.xs),
+              _buildMonthGrid(context, loc, t, scheme, eventsMap, colorByTemplateId, userId),
+              SizedBox(height: t.spacing.sm),
+              _buildLegend(context, loc, t, scheme),
+              SizedBox(height: t.spacing.xl),
+              _buildWeekSection(context, loc, t, scheme, eventsMap, userId),
+            ],
+          ),
         ),
       ),
     );
@@ -924,26 +930,24 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder<List<WorkoutTemplate>>(
-                  stream: ref.read(firestoreServiceProvider).getUserWorkouts(userId),
-                  builder: (context, workoutsSnapshot) {
-                    if (!workoutsSnapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
+                child: Builder(
+                  builder: (context) {
+                    // Lettura sincrona, non uno stream: il foglio si apre da
+                    // questa stessa schermata, che tiene già vivi i provider
+                    // Isar di allenamenti e programmi (vedi `build()`), quindi
+                    // il valore è già disponibile senza una nuova query.
+                    final workouts =
+                        ref.read(localWorkoutsProvider).value ?? const <WorkoutTemplate>[];
+                    final programs =
+                        ref.read(localProgramsProvider).value ?? const <WorkoutProgram>[];
+                    if (workouts.isEmpty) {
+                      return Center(
+                        child: Text(loc.t('no_workouts_create_first')),
+                      );
                     }
-                    return StreamBuilder<List<WorkoutProgram>>(
-                      stream: ref.read(firestoreServiceProvider).getUserPrograms(userId),
-                      builder: (context, programsSnapshot) {
-                        // We don't block on loading programs, just show default if not ready
-                        final programs = programsSnapshot.data ?? [];
-                        final workouts = workoutsSnapshot.data!;
-                        if (workouts.isEmpty) {
-                          return Center(
-                            child: Text(loc.t('no_workouts_create_first')),
-                          );
-                        }
-                        // Map programId -> Program for fast lookup
-                        final programMap = {for (var p in programs) p.id: p};
-                        return ListView.separated(
+                    // Map programId -> Program for fast lookup
+                    final programMap = {for (var p in programs) p.id: p};
+                    return ListView.separated(
                           padding: EdgeInsets.all(t.spacing.md),
                           itemCount: workouts.length,
                           separatorBuilder: (_, _) =>
@@ -1059,12 +1063,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           },
                         );
                       },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+                    ),
+                  ),
+              ],
+            ),
         );
       },
     );
