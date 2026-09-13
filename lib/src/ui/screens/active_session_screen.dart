@@ -370,7 +370,12 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
+        // Mentre _finishWorkout sta salvando, uscire e scegliere "elimina"
+        // non elimina più niente: la sessione è già in scrittura su
+        // Firestore, e ref.read nel suo finally esploderebbe su un widget
+        // già smontato (StateError, mai la vera cancellazione). Si blocca il
+        // pop invece di offrire una scelta che non manterrebbe la promessa.
+        if (!didPop && !_isSaving) {
           _confirmExitSession(context);
         }
       },
@@ -402,7 +407,10 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
                   children: [
                     BackPill(
                       label: loc.t('cancel'),
-                      onTap: () => _confirmExitSession(context),
+                      // Stessa ragione del PopScope qui sotto: durante il
+                      // salvataggio non ha più senso proporre di eliminare
+                      // l'allenamento che si sta chiudendo.
+                      onTap: _isSaving ? () {} : () => _confirmExitSession(context),
                     ),
                     SizedBox(width: expressive.spacing.md),
                     Expanded(
