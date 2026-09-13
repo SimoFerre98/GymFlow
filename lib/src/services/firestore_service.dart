@@ -211,10 +211,25 @@ class FirestoreService {
       await _db.collection('programs').doc(program.id).update(program.toMap());
     }
   }
+  /// Cancella il programma e le schede che gli appartengono.
+  ///
+  /// Prima lasciava le schede orfane su Firestore: restavano proponibili
+  /// (es. nel selettore del calendario) come se il programma esistesse
+  /// ancora, perché continuavano a esistere per davvero — non un difetto
+  /// della cache, un difetto di questo metodo, segnalato dall'utente.
+  /// Le sessioni già fatte non si toccano: sono lo storico dell'atleta, non
+  /// appartengono al programma.
   Future<void> deleteProgram(String programId) async {
-    // Optional: Also delete workouts associated with it?
-    // For now, simple delete.
-    await _db.collection('programs').doc(programId).delete();
+    final workouts = await _db
+        .collection('workouts')
+        .where('parentProgramId', isEqualTo: programId)
+        .get();
+    final batch = _db.batch();
+    for (final doc in workouts.docs) {
+      batch.delete(doc.reference);
+    }
+    batch.delete(_db.collection('programs').doc(programId));
+    await batch.commit();
   }
   Future<void> addWorkoutToProgram(String programId, String workoutId) async {
     await _db.collection('programs').doc(programId).update({
