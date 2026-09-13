@@ -17,10 +17,17 @@ faceva risultare "raggiunti" obiettivi utente completamente scollegati dall'alle
 sezione 6, punto 2d. Terza passata (dodici schermate fra impostazioni, timer, autenticazione e
 programmi): **altri dodici difetti**, tre dei quali potevano far perdere dati reali dell'utente
 (riordino di un programma annullato salvando, data di una misura corporea spostata, account
-registrato senza profilo e senza via d'uscita) — vedi sezione 6, punto 2e. **Nessuno dei
-trentaquattro fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha rilevato
-il device per gran parte di questa sessione — build, test e commit sono comunque proseguiti, ma la
-prova reale resta da fare appena il telefono torna raggiungibile.
+registrato senza profilo e senza via d'uscita) — vedi sezione 6, punto 2e.
+
+**A questo punto la revisione ha coperto tutte le 27 schermate del progetto** (verificato contando
+`ls lib/src/ui/screens/`), oltre a una rilettura trasversale dei tre file toccati più volte oggi
+(`settings_screen.dart`, `active_session_screen.dart`, `firestore_service.dart`, nessuna
+regressione trovata fra loro, solo un riferimento invertito in un commento). Due difetti finali,
+trovati in quell'ultimo giro (l'anteprima della palette attiva in Aspetto, e la card obiettivo in
+Home che mostrava "Raggiunto!" per obiettivi mancati o ancora aperti) — vedi sezione 6, punto 2f.
+**Nessuno dei trentasei fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha
+rilevato il device per gran parte di questa sessione — build, test e commit sono comunque
+proseguiti, ma la prova reale resta da fare appena il telefono torna raggiungibile.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -489,6 +496,25 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
      nel dialog) non sembrava valerne la pena per un effetto così minore.
    - **Nessuno di questi dodici fix è stato ancora installato sul telefono**: stesso stato dei punti
      precedenti.
+2f. **Rilettura trasversale + le ultime due schermate mai riviste** (`dashboard_screen.dart`,
+   `main_screen.dart`), a chiusura della copertura completa delle 27 schermate:
+   - ✅ **L'anteprima della palette attiva in Aspetto non rifletteva il colore d'azione scelto**
+     (commit `98c4567`, `appearance_settings_screen.dart`) — `_PaletteTile` mostrava sempre il preset
+     di default della palette come quarta tinta, anche per quella selezionata: scegliendo un accento
+     diverso dal primo preset, l'anteprima mentiva su quale fosse davvero applicato al resto
+     dell'app. **Non testato con un widget test**: `_PaletteTile` è una classe privata, non
+     referenziabile da un file di test separato.
+   - ✅ **La card obiettivo in Home mostrava "Raggiunto!" per obiettivi mancati o ancora aperti**
+     (commit `128df37`, `dashboard_screen.dart`) — la funzione è chiamata solo su obiettivi già
+     filtrati come non raggiunti, ma riusava la stringa "Raggiunto!" sia per una scadenza già passata
+     sia per una entro le prossime 24 ore (`Duration.inDays` tronca verso zero). Estratta da metodo
+     privato a funzione top-level (`daysLeftLabel`, stesso schema di `selectHeroWorkout` in questo
+     file) per poterla testare da un file esterno. Tre test, verificati rossi col codice precedente.
+   - `main_screen.dart` (shell di navigazione a `IndexedStack`) e il resto di `dashboard_screen.dart`
+     (inclusa la verifica esplicita che non ripeta l'incongruenza Isar/Firestore già trovata in
+     `gamification_screen.dart`): nessun altro difetto concreto trovato.
+   - **Nessuno di questi due fix è stato ancora installato sul telefono**: stesso stato dei punti
+     precedenti.
 3. **`../CLAUDE.md` ha un numero disallineato, trovato verificando l'analyzer per il fix del punto
    2**: dice "il baseline è 6, tutti `deprecated_member_use`, US-102 resta aperta per quelli" — ma
    `docs/BACKLOG.md:2988` segna **US-102 ✅ DONE** e `flutter analyze` su `main` (`6a41d36`) dà
@@ -645,4 +671,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `c748169`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `128df37`, branch `main`_
