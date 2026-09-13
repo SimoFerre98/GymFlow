@@ -3291,7 +3291,8 @@ Dopo questa storia: il badge della action è verde e l'URL di Firebase Hosting s
 
 **Epic:** EP-018 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 🔍 IN REVIEW
+**Status:** ✅ DONE — mergiata in `main` il 2026-09-13, confermata sul telefono dall'utente. Piano e
+review in `docs/planning/US-111.md`/`US-111-review.md`
 
 **Story**
 Come atleta che usa GymFlow con una connessione instabile,
@@ -3302,14 +3303,21 @@ così da non vedere ricaricare da zero dati che avevo già scaricato.
 Dopo questa storia: disattivando la rete dopo il primo avvio, Home, calendario, elenco schede e misure mostrano gli stessi dati di prima senza spinner di ricaricamento; riattivando la rete, gli eventuali aggiornamenti arrivano in background senza un ricaricamento visibile a schermo.
 
 **Acceptance Criteria**
-- [ ] Esistono 4 nuove collection Isar — allenamenti, programmi, allenamenti programmati, misure corporee — con mapper `toLocal()`/`toDomain()` testati in round-trip (dati completi, dati minimi, valori limite)
-- [ ] Un provider Riverpod per ciascuna delle 4 entità legge da Isar con `.watch(fireImmediately: true)`, non da uno stream Firestore diretto
-- [ ] Un provider di sincronizzazione per ciascuna entità tiene Isar allineato a Firestore in background, gestendo sia le scritture sia le cancellazioni lato Firestore (un record rimosso da Firestore sparisce anche da Isar)
-- [ ] `dashboard_screen.dart`, `calendar_screen.dart`, `program_list_screen.dart`, `program_creator_screen.dart`, `workout_creator_screen.dart`, `body_measurements_screen.dart`, `body_measurements_chart.dart`, `profile_screen.dart` leggono le proprie 4 entità dai nuovi provider, non più da `FirestoreService().getX(...)` né da `ref.watch(firestoreServiceProvider).getX(...)` per i dati dell'utente corrente
-- [ ] I dati di un altro utente (amici, in `calendar_screen.dart` e `friend_detail_screen.dart`) restano esplicitamente fuori: continuano a leggere da Firestore direttamente, non entrano nella cache locale
-- [ ] Il comportamento funzionale di ogni schermata coinvolta è invariato: stessi dati, stesso ordinamento dove già definito da un `orderBy`
-- [ ] `flutter analyze` non introduce alcun nuovo avviso rispetto a `main`
-- [ ] `flutter test` verde, inclusi i nuovi test dei mapper
+- [x] Esistono 4 nuove collection Isar — allenamenti, programmi, allenamenti programmati, misure corporee — con mapper `toLocal()`/`toDomain()` testati in round-trip (dati completi, dati minimi, valori limite)
+- [x] Un provider Riverpod per ciascuna delle 4 entità legge da Isar con `.watch(fireImmediately: true)`, non da uno stream Firestore diretto
+- [x] Un provider di sincronizzazione per ciascuna entità tiene Isar allineato a Firestore in background, gestendo sia le scritture sia le cancellazioni lato Firestore (un record rimosso da Firestore sparisce anche da Isar)
+- [x] `dashboard_screen.dart`, `calendar_screen.dart`, `program_list_screen.dart`, `program_creator_screen.dart`, `workout_creator_screen.dart`, `body_measurements_screen.dart`, `body_measurements_chart.dart`, `profile_screen.dart` leggono le proprie 4 entità dai nuovi provider, non più da `FirestoreService().getX(...)` né da `ref.watch(firestoreServiceProvider).getX(...)` per i dati dell'utente corrente
+- [x] I dati di un altro utente (amici, in `calendar_screen.dart` e `friend_detail_screen.dart`) restano esplicitamente fuori: continuano a leggere da Firestore direttamente, non entrano nella cache locale
+- [x] Il comportamento funzionale di ogni schermata coinvolta è invariato: stessi dati, stesso ordinamento dove già definito da un `orderBy` — **confermato sul telefono il 2026-09-13**
+- [x] `flutter analyze` non introduce alcun nuovo avviso rispetto a `main`
+- [x] `flutter test` verde, inclusi i nuovi test dei mapper
+
+**Nota di chiusura**: durante la prova sul telefono l'utente ha segnalato 7 difetti minori (colori
+del tema chiaro, foto profilo offline, form abbonamento, modifica/cancellazione misure, spaziatura
+in Schede, titolo lungo in Home, allenamenti orfani dopo l'eliminazione di un programma) —
+**nessuno causato da questa storia**, tutti debito pre-esistente verificato nel codice. Non aprono
+nuove US: si sistemano in una sessione di correzioni rapide, stesso schema dei cinque difetti del
+2026-09-12.
 
 ---
 
