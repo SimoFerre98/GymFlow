@@ -771,11 +771,22 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     Localization loc,
     ScheduledWorkout scheduled,
   ) async {
+    // Una programmazione più vecchia di un anno (mai completata né
+    // cancellata) ha una data fuori da [firstDate, lastDate]: usarla come
+    // initialDate viola l'assert di showDatePicker e il selettore non si
+    // apre, senza nessun errore visibile — lo stesso difetto già visto con
+    // la data dell'abbonamento. Si aggancia al bordo più vicino invece di
+    // fallire in silenzio.
+    final firstDate = DateTime.now().subtract(const Duration(days: 365));
+    final lastDate = DateTime.now().add(const Duration(days: 365 * 2));
+    final initialDate = scheduled.scheduledDate.isBefore(firstDate)
+        ? firstDate
+        : (scheduled.scheduledDate.isAfter(lastDate) ? lastDate : scheduled.scheduledDate);
     final newDate = await showDatePicker(
       context: context,
-      initialDate: scheduled.scheduledDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (newDate == null || !context.mounted) return;
     final updated = ScheduledWorkout(
