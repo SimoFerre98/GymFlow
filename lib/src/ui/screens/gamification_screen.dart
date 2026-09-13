@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gymflow/src/core/providers/firestore_provider.dart';
+import 'package:gymflow/src/core/providers/dashboard_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -85,7 +85,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    final firestore = ref.read(firestoreServiceProvider);
     final loc = ref.watch(localizationNotifierProvider);
     final userId = AuthService().currentUser?.uid ?? '';
     final t = context.immersivo;
@@ -108,7 +107,7 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
                   padding: EdgeInsets.fromLTRB(t.spacing.lg, t.spacing.sm, t.spacing.lg, 0),
                   child: _buildHeader(context, loc, t, scheme),
                 ),
-                Expanded(child: _buildBody(context, loc, userId, firestore, t)),
+                Expanded(child: _buildBody(context, loc, userId, t)),
               ],
             ),
           ),
@@ -173,7 +172,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
     BuildContext context,
     Localization loc,
     String userId,
-    dynamic firestore,
     ImmersivoTokens t,
   ) {
     return StreamBuilder<UserProfile?>(
@@ -186,14 +184,18 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
           }
           final userProfile = userSnapshot.data;
           final friendCount = userProfile?.friends.length ?? 0;
-          return StreamBuilder<List<WorkoutSession>>(
-            stream: firestore.getUserSessions(userId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final sessions = snapshot.data ?? [];
-              final streak = StatisticsHelper.calculateCurrentStreak(sessions);
+          // ref.watch, non lo stream diretto di FirestoreService: streak e
+          // badge devono contare le stesse sessioni di Home e Statistiche
+          // (dashboardSessionsProvider, cache locale Isar offline-first, US-111),
+          // non una lettura Firestore separata che può restare indietro rispetto
+          // alla sincronizzazione — un allenamento appena chiuso o fatto offline
+          // sbloccava un badge in Home ma non ancora qui.
+          final sessionsAsync = ref.watch(dashboardSessionsProvider);
+          if (sessionsAsync.isLoading && !sessionsAsync.hasValue) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final sessions = sessionsAsync.value ?? const <WorkoutSession>[];
+          final streak = StatisticsHelper.calculateCurrentStreak(sessions);
               final unlockedBadges = GamificationService.getUnlockedBadges(
                 sessions,
                 friendCount: friendCount,
@@ -284,8 +286,6 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
                   ],
                 ),
               );
-            },
-          );
         },
       );
   }
