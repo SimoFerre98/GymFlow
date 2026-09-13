@@ -88,3 +88,9 @@ macos/flutter/ephemeral/
 
 # Claude Code - impostazioni locali/personali, non condivise
 .claude/settings.local.json
+
+# Harness Node per testare le regole Firestore (US-087) — non fa parte
+# dell'app Flutter.
+firestore-tests/node_modules/
+firestore-tests/firebase-debug.log
+firestore-tests/firestore-debug.log

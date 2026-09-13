@@ -1,79 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
-import 'package:gymflow/src/core/theme/app_palette.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
-import 'package:gymflow/src/models/user_profile.dart';
-import 'package:gymflow/src/models/workout_program.dart';
-import 'package:gymflow/src/models/session.dart';
-import 'package:gymflow/src/services/auth_service.dart';
-import 'package:gymflow/src/services/firestore_service.dart';
 import 'package:gymflow/src/ui/widgets/back_pill.dart';
-import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:intl/intl.dart';
-/// Altezza della barra a pillola delle scheda: geometria di questa
-/// schermata, non una misura condivisa.
-const double _kAltezzaBarraTab = 50;
-/// Raggio del ritratto grande in cima al profilo dell'amico.
+/// Raggio del ritratto grande in cima al profilo della connessione.
 const double _kRaggioAvatarProfilo = 60;
 const double _kTitleFontSize = 24;
-class FriendDetailScreen extends ConsumerStatefulWidget {
-  final UserProfile friend;
-  const FriendDetailScreen({super.key, required this.friend});
+/// Il profilo di una connessione accettata (amico o cliente, US-087).
+///
+/// Prima di questa storia prendeva un [UserProfile] intero e mostrava tab
+/// calendario/schede condivisi — mai stati funzionanti, perché
+/// `getUserSessions(friend.id)`/`getUserPrograms(friend.id)` sono negati
+/// dalle stesse regole che l'invito sostituisce (vedi `firestore.rules`).
+/// Restano fuori da questa storia deliberatamente: si ricollegano quando un
+/// passo successivo apre la lettura dei dati condivisi in base a un invito
+/// accettato. Qui basta ciò che l'invito stesso porta con sé: nome e data.
+class FriendDetailScreen extends ConsumerWidget {
+  final String connectionId;
+  final String displayName;
+  final DateTime since;
+  const FriendDetailScreen({
+    super.key,
+    required this.connectionId,
+    required this.displayName,
+    required this.since,
+  });
   @override
-  ConsumerState<FriendDetailScreen> createState() => _FriendDetailScreenState();
-}
-class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool _canViewCalendar = false;
-  bool _canViewPrograms = false;
-  String? _currentUserId;
-  @override
-  void initState() {
-    super.initState();
-    _currentUserId = AuthService().currentUser?.uid;
-    _checkPermissions();
-    _tabController = TabController(length: _calculateTabCount(), vsync: this);
-  }
-  void _checkPermissions() {
-    if (_currentUserId == null) return;
-    setState(() {
-      _canViewCalendar = widget.friend.calendarSharedWith.contains(
-        _currentUserId,
-      );
-      _canViewPrograms = widget.friend.programsSharedWith.contains(
-        _currentUserId,
-      );
-    });
-  }
-  int _calculateTabCount() {
-    int count = 1; // Profile always visible
-    if (_canViewCalendar) count++;
-    if (_canViewPrograms) count++;
-    return count;
-  }
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final loc = ref.watch(localizationNotifierProvider);
     final t = context.immersivo;
     final scheme = Theme.of(context).colorScheme;
-    // Re-calc tabs in build in case permissions change (though passed in widget is const)
-    // For now assuming static permissions for this session
-    final tabs = <Widget>[Tab(text: loc.t('profile_tab'))];
-    final views = <Widget>[_buildProfileTab()];
-    if (_canViewCalendar) {
-      tabs.add(Tab(text: loc.t('calendar_tab')));
-      views.add(_buildCalendarTab());
-    }
-    if (_canViewPrograms) {
-      tabs.add(Tab(text: loc.t('programs_tab')));
-      views.add(_buildProgramsTab());
-    }
-    // Update controller if count changed (unlikely in this flow but good practice)
-    if (_tabController.length != tabs.length) {
-      _tabController = TabController(length: tabs.length, vsync: this);
-    }
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -87,7 +44,7 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
                   SizedBox(width: t.spacing.md),
                   Flexible(
                     child: Text(
-                      widget.friend.displayName.toUpperCase(),
+                      displayName.toUpperCase(),
                       style: t.typography.headline?.copyWith(
                         fontSize: _kTitleFontSize,
                         color: scheme.onSurface,
@@ -103,305 +60,43 @@ class _FriendDetailScreenState extends ConsumerState<FriendDetailScreen>
                 ],
               ),
             ),
-            // Pill TabBar
-            if (tabs.length > 1)
-              Container(
-                height: _kAltezzaBarraTab,
-                margin: EdgeInsets.all(t.spacing.md),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHigh,
-                  border: Border.all(color: scheme.outline),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(color: scheme.primary),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: scheme.onPrimary,
-                  unselectedLabelColor: scheme.onSurfaceVariant,
-                  labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  unselectedLabelStyle: Theme.of(context).textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                  dividerColor: Colors.transparent,
-                  tabs: tabs,
-                ),
-              ),
-            // Content
             Expanded(
-              child: tabs.length > 1
-                  ? TabBarView(controller: _tabController, children: views)
-                  : _buildProfileTab(),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(t.spacing.xl),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: _kRaggioAvatarProfilo,
+                      child: Text(
+                        displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                        style: Theme.of(context).textTheme.displaySmall,
+                      ),
+                    ),
+                    SizedBox(height: t.spacing.xl),
+                    Text(
+                      displayName.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: t.typography.headline?.copyWith(
+                        fontSize: _kTitleFontSize + 6,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    SizedBox(height: t.spacing.sm),
+                    Text(
+                      loc.t('connection_since').replaceFirst(
+                        '%s',
+                        DateFormat.yMMMd(loc.locale.languageCode).format(since),
+                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-  Widget _buildProfileTab() {
-    final loc = ref.watch(localizationNotifierProvider);
-    final t = context.immersivo;
-    final scheme = Theme.of(context).colorScheme;
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(t.spacing.xl),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: _kRaggioAvatarProfilo,
-            backgroundImage: widget.friend.photoUrl != null
-                ? NetworkImage(widget.friend.photoUrl!)
-                : null,
-            child: widget.friend.photoUrl == null
-                ? Text(
-                    widget.friend.displayName.isNotEmpty
-                        ? widget.friend.displayName[0].toUpperCase()
-                        : '?',
-                    style: Theme.of(context).textTheme.displaySmall,
-                  )
-                : null,
-          ),
-          SizedBox(height: t.spacing.xl),
-          Text(
-            widget.friend.displayName.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: t.typography.headline?.copyWith(
-              fontSize: _kTitleFontSize + 6,
-              color: scheme.onSurface,
-            ),
-          ),
-          if (widget.friend.gymName != null) ...[
-            SizedBox(height: t.spacing.sm),
-            Text(
-              '${loc.t('gym_label')}: ${widget.friend.gymName}',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-          SizedBox(height: t.spacing.xxl),
-          _buildStatCard(
-            context,
-            loc.t('streak_label'),
-            '${widget.friend.streakDays} ${loc.t('days_label')}',
-            Icons.local_fire_department,
-            AppPalette.categoryOrange,
-          ),
-          SizedBox(height: t.spacing.md),
-          if (!_canViewCalendar && !_canViewPrograms)
-            Padding(
-              padding: EdgeInsets.only(top: t.spacing.xl),
-              child: Text(
-                loc
-                    .t('friend_no_shared_content')
-                    .replaceFirst('%s', widget.friend.displayName),
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-  Widget _buildCalendarTab() {
-    final t = context.immersivo;
-    final scheme = Theme.of(context).colorScheme;
-    return StreamBuilder<List<WorkoutSession>>(
-      stream: FirestoreService().getUserSessions(widget.friend.id),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final sessions = snapshot.data ?? [];
-        if (sessions.isEmpty) {
-          return Center(child: Text(ref.read(localizationNotifierProvider).t('no_history_shared')));
-        }
-        return ListView.builder(
-          padding: EdgeInsets.all(t.spacing.md),
-          itemCount: sessions.length,
-          itemBuilder: (context, index) {
-            final session = sessions[index];
-            return Padding(
-              padding: EdgeInsets.only(bottom: t.spacing.sm),
-              child: DecoratedBox(
-                decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
-                child: Padding(
-                  padding: EdgeInsets.all(t.spacing.md),
-                  child: Row(
-                    children: [
-                      Icon(Icons.history, color: scheme.onSurfaceVariant),
-                      SizedBox(width: t.spacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              session.workoutName,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              DateFormat('MMM dd, yyyy - HH:mm').format(session.startTime),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        '${session.durationSeconds ~/ 60}m',
-                        style: t.typography.metricSmall?.copyWith(color: scheme.onSurface),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-  Widget _buildProgramsTab() {
-    final t = context.immersivo;
-    final scheme = Theme.of(context).colorScheme;
-    return StreamBuilder<List<WorkoutProgram>>(
-      stream: FirestoreService().getUserPrograms(widget.friend.id),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final programs = snapshot.data ?? [];
-        if (programs.isEmpty) {
-          return Center(child: Text(ref.read(localizationNotifierProvider).t('no_programs_shared')));
-        }
-        return ListView.builder(
-          padding: EdgeInsets.all(t.spacing.md),
-          itemCount: programs.length,
-          itemBuilder: (context, index) {
-            final program = programs[index];
-            final loc = ref.read(localizationNotifierProvider);
-            return Padding(
-              padding: EdgeInsets.only(bottom: t.spacing.sm),
-              child: DecoratedBox(
-                decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
-                child: Padding(
-                  padding: EdgeInsets.all(t.spacing.md),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              program.name,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              '${program.workoutIds.length} ${loc.t('days_label')}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.download_rounded, color: scheme.primary),
-                        onPressed: () => _importProgram(program),
-                        tooltip: loc.t('import_program_tooltip'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-  Future<void> _importProgram(WorkoutProgram program) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(ref.read(localizationNotifierProvider).t('import_program_title')),
-        content: Text(
-          ref
-              .read(localizationNotifierProvider)
-              .t('import_program_confirm')
-              .replaceFirst('%s', program.name),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(ref.read(localizationNotifierProvider).t('cancel_caps')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(ref.read(localizationNotifierProvider).t('import_caps')),
-          ),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      if (_currentUserId == null) return;
-      try {
-        await FirestoreService().importSharedProgram(program, _currentUserId!);
-        if (mounted) {
-          ToastUtils.showSuccess(context, ref.read(localizationNotifierProvider).t('program_imported_success'));
-        }
-      } catch (e) {
-        if (mounted) {
-          ToastUtils.showError(
-            context,
-            '${ref.read(localizationNotifierProvider).t('import_failed')}: $e',
-          );
-        }
-      }
-    }
-  }
-  Widget _buildStatCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    final t = context.immersivo;
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: EdgeInsets.all(t.spacing.md),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        border: Border.all(color: scheme.outline),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(t.spacing.sm),
-            color: color.withValues(alpha: 0.1),
-            child: Icon(icon, color: color, size: t.sizing.iconLg),
-          ),
-          SizedBox(width: t.spacing.md),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title.toUpperCase(),
-                style: t.typography.eyebrow?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                value,
-                style: t.typography.metricMedium?.copyWith(color: color),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

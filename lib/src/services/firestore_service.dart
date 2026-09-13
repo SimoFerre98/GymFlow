@@ -8,78 +8,119 @@ import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/body_measurement.dart';
 import 'package:gymflow/src/models/user_profile.dart';
-import 'package:gymflow/src/services/auth_service.dart';
+import 'package:gymflow/src/models/invite.dart';
 import 'package:rxdart/rxdart.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
     databaseId: 'gymflow',
   );
-  Future<bool> addFriendByCode(String code) async {
-    final currentUser = AuthService().currentUser;
-    if (currentUser == null) return false;
-    // 1. Find friend by code
-    final snapshot = await _db
-        .collection('users')
-        .where('friendCode', isEqualTo: code)
-        .limit(1)
-        .get();
-    if (snapshot.docs.isEmpty) return false;
-    final friendDoc = snapshot.docs.first;
-    final friendId = friendDoc.id;
-    if (friendId == currentUser.uid) return false; // Can't add self
-    // 2. Add Friend Mutual
-    final batch = _db.batch();
-    // Add friend to my list
-    batch.update(_db.collection('users').doc(currentUser.uid), {
-      'friends': FieldValue.arrayUnion([friendId]),
-    });
-    // Add me to friend's list
-    batch.update(_db.collection('users').doc(friendId), {
-      'friends': FieldValue.arrayUnion([currentUser.uid]),
-    });
-    await batch.commit();
-    return true;
+  // --- Inviti (US-087) ---
+  //
+  // Sostituisce l'amico per codice, che scriveva sul documento di un altro
+  // utente e cercava leggendo tutti i documenti utente: entrambe negate
+  // dalle regole attuali, di proposito (vedi `firestore.rules`). Un solo
+  // meccanismo per il legame amico↔amico e per l'invito trainer→cliente:
+  // cambia solo `relationshipType`.
+  /// Cerca la persona da invitare per codice (un `get()` su `invite_codes`,
+  /// mai una query su `users`) e crea l'invito. Restituisce `null` se il
+  /// codice non esiste o appartiene a chi sta invitando.
+  Future<Invite?> createInvite({
+    required String code,
+    required String fromUserId,
+    required String fromDisplayName,
+    required String fromRole,
+    required RelationshipType relationshipType,
+    Duration validFor = const Duration(days: 7),
+  }) async {
+    final codeDoc = await _db.collection('invite_codes').doc(code).get();
+    if (!codeDoc.exists) return null;
+    final toUserId = codeDoc.data()!['userId'] as String;
+    if (toUserId == fromUserId) return null;
+    final toDisplayName = codeDoc.data()!['displayName'] as String? ?? 'User';
+    final now = DateTime.now();
+    final invite = Invite(
+      id: '',
+      fromUserId: fromUserId,
+      fromDisplayName: fromDisplayName,
+      fromRole: fromRole,
+      toUserId: toUserId,
+      toDisplayName: toDisplayName,
+      code: code,
+      relationshipType: relationshipType,
+      status: InviteStatus.pending,
+      createdAt: now,
+      expiresAt: now.add(validFor),
+    );
+    final docRef = await _db.collection('invites').add(invite.toMap());
+    return Invite(
+      id: docRef.id,
+      fromUserId: invite.fromUserId,
+      fromDisplayName: invite.fromDisplayName,
+      fromRole: invite.fromRole,
+      toUserId: invite.toUserId,
+      toDisplayName: invite.toDisplayName,
+      code: invite.code,
+      relationshipType: invite.relationshipType,
+      status: invite.status,
+      createdAt: invite.createdAt,
+      expiresAt: invite.expiresAt,
+    );
   }
-  Future<void> toggleFriendAccess(
-    String friendId,
-    String type,
-    bool allow,
-  ) async {
-    final user = AuthService().currentUser;
-    if (user == null) return;
-    final field = type == 'calendar'
-        ? 'calendarSharedWith'
-        : 'programsSharedWith';
-    if (allow) {
-      await _db.collection('users').doc(user.uid).update({
-        field: FieldValue.arrayUnion([friendId]),
-      });
-    } else {
-      await _db.collection('users').doc(user.uid).update({
-        field: FieldValue.arrayRemove([friendId]),
-      });
-    }
-  }
-  Stream<List<UserProfile>> getFriendsStream(List<String> friendIds) {
-    if (friendIds.isEmpty) return Stream.value([]);
-    // Firestore 'where in' is limited to 10 items.
-    // For simplicity/MVP, we'll just fetch chunks or valid IDs.
-    // Given the complexity of robust where-in, and MVP nature:
-    // We can just listen to collection where documentId whereIn friendIds (chunked)
-    // Or for MVP just fetch them all if list is small.
-    // Let's implement a simple fetch for now since Stream with varying list is complex.
-    // Actually, 'users' collection might be large, so we MUST filter.
-    // Let's just do a Future-based fetch for the list view for now, or stream limited to 10.
-    // Better approach: simple Future fetch for the list.
+  /// Inviti ricevuti, ancora in sospeso.
+  Stream<List<Invite>> incomingInvites(String userId) {
     return _db
-        .collection('users')
-        .where(FieldPath.documentId, whereIn: friendIds.take(10).toList())
+        .collection('invites')
+        .where('toUserId', isEqualTo: userId)
         .snapshots()
-        .map(
-          (s) =>
-              s.docs.map((d) => UserProfile.fromMap(d.data(), d.id)).toList(),
-        );
+        .map((s) => s.docs
+            .map((d) => Invite.fromMap(d.data(), d.id))
+            .where((i) => i.status == InviteStatus.pending)
+            .toList());
+  }
+  /// Inviti mandati da me, ancora in sospeso.
+  Stream<List<Invite>> outgoingInvites(String userId) {
+    return _db
+        .collection('invites')
+        .where('fromUserId', isEqualTo: userId)
+        .snapshots()
+        .map((s) => s.docs
+            .map((d) => Invite.fromMap(d.data(), d.id))
+            .where((i) => i.status == InviteStatus.pending)
+            .toList());
+  }
+  /// Le connessioni accettate, in entrambe le direzioni.
+  Stream<List<Invite>> acceptedRelationships(String userId) {
+    return Rx.combineLatest2(
+      _db
+          .collection('invites')
+          .where('fromUserId', isEqualTo: userId)
+          .snapshots(),
+      _db
+          .collection('invites')
+          .where('toUserId', isEqualTo: userId)
+          .snapshots(),
+      (QuerySnapshot<Map<String, dynamic>> mine,
+              QuerySnapshot<Map<String, dynamic>> theirs) =>
+          [...mine.docs, ...theirs.docs]
+              .map((d) => Invite.fromMap(d.data(), d.id))
+              .where((i) => i.status == InviteStatus.accepted)
+              .toList(),
+    );
+  }
+  Future<void> respondToInvite(String inviteId, bool accept) async {
+    await _db.collection('invites').doc(inviteId).update({
+      'status': accept ? InviteStatus.accepted.toMap() : InviteStatus.declined.toMap(),
+      'respondedAt': Timestamp.now(),
+    });
+  }
+  /// Annulla un invito ancora in sospeso (chi ha invitato) o scioglie un
+  /// legame già accettato (entrambe le parti): la regola distingue i due
+  /// casi da chi chiama e dallo stato attuale, il codice qui è lo stesso.
+  Future<void> revokeInvite(String inviteId) async {
+    await _db.collection('invites').doc(inviteId).update({
+      'status': InviteStatus.revoked.toMap(),
+    });
   }
   Future<List<UserProfile>> getUsers(List<String> userIds) async {
     if (userIds.isEmpty) return [];
@@ -316,47 +357,6 @@ class FirestoreService {
         .collection('measurements')
         .doc(measurementId)
         .delete();
-  }
-  /// Deep copy a program and all its workouts to the current user
-  Future<void> importSharedProgram(
-    WorkoutProgram originalProgram,
-    String targetUserId,
-  ) async {
-    WriteBatch batch = _db.batch();
-    List<String> newWorkoutIds = [];
-    // Clone each workout
-    for (String oldWorkoutId in originalProgram.workoutIds) {
-      final docSnap = await _db.collection('workouts').doc(oldWorkoutId).get();
-      if (!docSnap.exists) continue;
-      final newWorkoutRef = _db.collection('workouts').doc();
-      final oldData = docSnap.data();
-      if (oldData == null) continue;
-      final newData = Map<String, dynamic>.from(oldData);
-      newData['id'] = newWorkoutRef.id;
-      newData['userId'] = targetUserId;
-      // Temporarily empty until we generate program ID, or we can update later
-      newData['parentProgramId'] = '';
-      batch.set(newWorkoutRef, newData);
-      newWorkoutIds.add(newWorkoutRef.id);
-    }
-    // Clone the program
-    final newProgramRef = _db.collection('programs').doc();
-    final newProgram = originalProgram.copyWith(
-      id: newProgramRef.id,
-      userId: targetUserId,
-      workoutIds: newWorkoutIds,
-      createdAt: DateTime.now(),
-      startDate: null,
-      endDate: null,
-    );
-    batch.set(newProgramRef, newProgram.toMap());
-    // Update parentProgramId in all new workouts
-    for (String newWorkoutId in newWorkoutIds) {
-      batch.update(_db.collection('workouts').doc(newWorkoutId), {
-        'parentProgramId': newProgramRef.id,
-      });
-    }
-    await batch.commit();
   }
   // --- Shared Calendar ---
   /// Get sessions from friends who shared their calendar with me

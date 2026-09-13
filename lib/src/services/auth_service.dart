@@ -65,6 +65,10 @@ class AuthService {
             .set(newUserProfile.toMap());
         // 4. Update Auth display name
         await user.updateDisplayName(displayName);
+        // 5. Pubblica lo specchio pubblico del codice (US-087): senza,
+        // nessuno può trovare questo utente per invitarlo, perché il
+        // documento utente resta leggibile solo dal proprietario.
+        await _publishInviteCode(friendCode, user.uid, displayName);
       }
       return user;
     } catch (e) {
@@ -124,9 +128,14 @@ class AuthService {
     final doc = await docRef.get();
     if (!doc.exists) return null;
     final data = doc.data() as Map<String, dynamic>;
+    final displayName = (data['displayName'] as String?) ?? 'User';
     if (data['friendCode'] != null &&
         (data['friendCode'] as String).isNotEmpty) {
-      return data['friendCode'] as String;
+      final existingCode = data['friendCode'] as String;
+      // Backfill anche per chi ha già un codice ma non ha ancora lo
+      // specchio pubblico (utenti creati prima di US-087).
+      await _publishInviteCode(existingCode, user.uid, displayName);
+      return existingCode;
     }
     // Generate new code
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -135,6 +144,21 @@ class AuthService {
       Iterable.generate(6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))),
     );
     await docRef.update({'friendCode': friendCode});
+    await _publishInviteCode(friendCode, user.uid, displayName);
     return friendCode;
+  }
+  /// Specchio pubblico e minimo del codice (US-087): solo `userId` e
+  /// `displayName`, leggibile da chiunque sia autenticato — mai il profilo
+  /// intero, che resta privato. Vedi `firestore.rules`, collezione
+  /// `invite_codes`.
+  Future<void> _publishInviteCode(
+    String code,
+    String userId,
+    String displayName,
+  ) async {
+    await _firestore.collection('invite_codes').doc(code).set({
+      'userId': userId,
+      'displayName': displayName,
+    }, SetOptions(merge: true));
   }
 }

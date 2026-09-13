@@ -2541,8 +2541,8 @@ Dopo questa storia: un profilo può essere trainer, e chi non lo è non vede nul
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** US-086 | **Blocks:** US-088, US-089, US-090, US-091, US-092, US-080
-**Status:** 📋 PLANNED — ⚠️ **non delegabile**: è il cuore del modello e delle regole. Piano in
-`docs/planning/US-087.md`
+**Status:** 🔍 IN REVIEW — verdetto APPROVATA (`docs/planning/US-087-review.md`), deploy delle
+regole in attesa del via libera dell'utente
 
 > **È la storia che decide se questa epica sta in piedi.** Le regole di US-018 danno a ogni utente **solo i propri dati**, e non esiste modo sicuro di concedere a un altro utente la scrittura sui tuoi senza un patto registrato. L'invito **è** quel patto: vive in una collezione propria, chi invita crea, chi è invitato accetta, e da quel momento le regole guardano il patto invece della lista di amici sul documento utente.
 >

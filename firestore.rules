@@ -5,14 +5,18 @@
 // al 24 febbraio 2026 — negavano ogni lettura e ogni scrittura a chiunque da
 // quasi sei mesi.
 //
-// ⚠️ **La condivisione con gli amici non funziona con queste regole, ed è
-// voluto.** Il codice attuale, per aggiungere un amico, **scrive sul documento
-// di un altro utente** (`friends` di entrambi) e per trovarlo dal codice
-// **legge i documenti utente di tutti**. Permetterlo significherebbe rendere
-// ogni documento utente leggibile da qualunque utente autenticato, perché
-// Firestore non sa limitare i campi restituiti da una query.
+// ⚠️ **Il vecchio modello di amicizia (`friends`/`calendarSharedWith`/
+// `programsSharedWith` su `users/{uid}`) non ha mai funzionato con queste
+// regole, ed era voluto**: aggiungere un amico scriveva sul documento di un
+// altro utente, e trovarlo dal codice richiedeva leggere i documenti utente
+// di tutti. US-087 lo sostituisce con `invites`/`invite_codes` qui sotto — i
+// tre campi restano sul modello `UserProfile` ma inutilizzati, debito
+// dichiarato in `docs/planning/US-087.md`, non ripulito in questa storia.
 //
-// Quel modello va rifatto: vedi **US-080** nel backlog.
+// **US-087 non riapre la lettura di `sessions`/`programs`/ecc. fra utenti
+// diversi**: costruisce solo il patto (l'invito). Farne uso per vedere
+// davvero il calendario o le schede di chi si è accettato resta un passo
+// successivo, deliberatamente fuori da questa storia.
 //
 // Come si legge una regola qui:
 //   - le collezioni di primo livello appartengono a chi ha scritto `userId`
@@ -109,6 +113,84 @@ service cloud.firestore {
       allow create: if loCreoMio();
       allow update: if eMio() && proprietarioInvariato();
       allow delete: if eMio();
+    }
+
+    // ── L'invito (US-087) ───────────────────────────────────────────────────
+    //
+    // Sostituisce l'amico per codice, che con queste regole non ha mai
+    // funzionato (vedi la nota in cima al file): cercare qualcuno leggendo
+    // tutti i documenti utente, e scrivere sul documento di un altro, sono
+    // entrambi negati sopra, di proposito. Un invito e' il patto che manca:
+    // vive qui, non sul documento utente, e nessuna regola concede l'accesso
+    // ai dati di un altro utente se non attraverso un invito accettato.
+    //
+    // Le altre collezioni (workouts, programs, sessions, scheduled_workouts,
+    // users) restano owner-only come sopra: questa storia non apre nulla la'.
+
+    // Specchio pubblico e minimo del codice amico/invito: solo cio' che
+    // serve a trovare la persona, mai il suo profilo intero.
+    match /invite_codes/{code} {
+      allow read: if autenticato();
+      // Creare un codice nuovo: basta dichiarare se stesso come proprietario.
+      allow create: if autenticato()
+          && request.resource.data.userId == request.auth.uid;
+      // Aggiornare un codice esistente (es. il nome e' cambiato): **solo**
+      // se era gia' mio. Senza il controllo su `resource.data.userId`,
+      // chiunque avrebbe potuto dirottare il codice di un altro scrivendoci
+      // sopra il proprio uid — lo stesso genere di furto che questa storia
+      // esiste per evitare, spostato di una collezione.
+      allow update: if autenticato()
+          && resource.data.userId == request.auth.uid
+          && request.resource.data.userId == request.auth.uid;
+      allow delete: if autenticato() && resource.data.userId == request.auth.uid;
+    }
+
+    // Nessun campo, oltre a `status` e `respondedAt`, puo' cambiare dopo la
+    // creazione: chi ha invitato, chi e' invitato e il tipo di legame sono
+    // decisi una volta sola.
+    function soloStatoERisposta() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'respondedAt']);
+    }
+
+    match /invites/{inviteId} {
+      // Solo le due parti coinvolte leggono l'invito. Chiunque altro: niente.
+      allow read: if autenticato() && (
+          request.auth.uid == resource.data.fromUserId ||
+          request.auth.uid == resource.data.toUserId);
+
+      // Chi invita crea, dichiarando se stesso come mittente. Non si puo'
+      // invitare se stessi, e nasce sempre in sospeso.
+      allow create: if autenticato()
+          && request.resource.data.fromUserId == request.auth.uid
+          && request.resource.data.toUserId is string
+          && request.resource.data.toUserId != request.auth.uid
+          && request.resource.data.status == 'pending'
+          && request.resource.data.expiresAt is timestamp;
+
+      allow update: if autenticato() && (
+          // Il destinatario accetta (solo se non scaduto) o rifiuta.
+          (resource.data.status == 'pending'
+            && request.auth.uid == resource.data.toUserId
+            && request.resource.data.status in ['accepted', 'declined']
+            && (request.resource.data.status != 'accepted'
+                || resource.data.expiresAt > request.time)
+            && soloStatoERisposta())
+          // Chi ha invitato puo' annullare un invito ancora in sospeso.
+          || (resource.data.status == 'pending'
+            && request.auth.uid == resource.data.fromUserId
+            && request.resource.data.status == 'revoked'
+            && soloStatoERisposta())
+          // Un legame accettato si scioglie da entrambe le parti.
+          || (resource.data.status == 'accepted'
+            && (request.auth.uid == resource.data.fromUserId
+                || request.auth.uid == resource.data.toUserId)
+            && request.resource.data.status == 'revoked'
+            && soloStatoERisposta()));
+
+      // Si scioglie cambiando stato, non si cancella: la storia del legame
+      // resta leggibile da entrambe le parti anche dopo.
+      allow delete: if false;
     }
 
     // ── Tutto il resto e' negato ───────────────────────────────────────────

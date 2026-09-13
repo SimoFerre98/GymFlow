@@ -41,5 +41,10 @@
       "database": "gymflow",
       "rules": "firestore.rules"
     }
-  ]
+  ],
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    }
+  }
 }
