@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/models/exercise.dart';
 import 'package:gymflow/src/models/scheduled_workout.dart';
 import 'package:gymflow/src/models/session.dart';
@@ -142,6 +144,28 @@ void main() {
 
       expect(result.targetWorkout?.id, 'a');
       expect(result.scheduledWorkoutIdForAction, isNull);
+    });
+  });
+
+  group('daysLeftLabel — chiamata solo su obiettivi non raggiunti', () {
+    const loc = Localization(Locale('it'));
+
+    test('scadenza passata: "scaduta", non "Raggiunto!"', () {
+      final scaduta = DateTime.now().subtract(const Duration(days: 2));
+      expect(daysLeftLabel(scaduta, loc), loc.t('goal_deadline_passed'));
+    });
+
+    test('scadenza fra poche ore, ancora nel futuro: "oggi", non "Raggiunto!"', () {
+      // Duration.inDays tronca verso zero: senza il controllo esplicito su
+      // "oggi", questo caso finiva nello stesso ramo di una scadenza già
+      // passata.
+      final fraPocheOre = DateTime.now().add(const Duration(hours: 3));
+      expect(daysLeftLabel(fraPocheOre, loc), loc.t('today_label'));
+    });
+
+    test('scadenza fra 5 giorni: il conteggio reale', () {
+      final fraCinqueGiorni = DateTime.now().add(const Duration(days: 5, hours: 1));
+      expect(daysLeftLabel(fraCinqueGiorni, loc), '5 ${loc.t('days_label').toLowerCase()}');
     });
   });
 }

@@ -154,6 +154,20 @@ HeroWorkoutSelection selectHeroWorkout({
     scheduledWorkoutIdForAction: null,
   );
 }
+/// Quanto manca alla scadenza di un obiettivo, per la card obiettivo della
+/// Home. Chiamata solo su obiettivi già filtrati come non raggiunti
+/// (`!g.isAchieved`): "Raggiunto!" qui sarebbe sempre falso, per una
+/// scadenza passata tanto quanto per una ancora aperta.
+String daysLeftLabel(DateTime deadline, Localization loc) {
+  final now = DateTime.now();
+  if (deadline.isBefore(now)) return loc.t('goal_deadline_passed');
+  final days = deadline.difference(now).inDays;
+  // `Duration.inDays` tronca verso zero: una scadenza fra tre ore dava
+  // comunque 0, che senza questo controllo sarebbe finito nello stesso ramo
+  // di "Raggiunto!" — un obiettivo ancora aperto etichettato come concluso.
+  if (days == 0) return loc.t('today_label');
+  return '$days ${loc.t('days_label').toLowerCase()}';
+}
 /// La Home del mockup Immersivo (`1d Home`): foto a piena larghezza che sfuma
 /// nel fondo, titolo in Anton, striscia scorrevole, due righe numerate.
 ///
@@ -293,7 +307,7 @@ class _HomeBody extends riverpod.ConsumerWidget {
                   title: bestGoal.title,
                   subtitle:
                       '${(bestGoal.progressFraction * 100).round()}%'
-                      '${bestGoal.deadline == null ? '' : ' · ${_daysLeftLabel(bestGoal.deadline!, loc)}'}',
+                      '${bestGoal.deadline == null ? '' : ' · ${daysLeftLabel(bestGoal.deadline!, loc)}'}',
                   trailing: SizedBox(
                     width: _kGoalTrackWidth,
                     height: _kGoalTrackHeight,
@@ -326,12 +340,6 @@ class _HomeBody extends riverpod.ConsumerWidget {
         ),
       ],
     );
-  }
-  String _daysLeftLabel(DateTime deadline, Localization loc) {
-    final days = deadline.difference(DateTime.now()).inDays;
-    return days <= 0
-        ? loc.t('goals_achieved')
-        : '$days ${loc.t('days_label').toLowerCase()}';
   }
   /// Solo dati che questa schermata gia interroga: volume e record personale
   /// del mockup non sono disponibili qui senza una nuova interrogazione, e
