@@ -68,6 +68,47 @@ bool esercizioFinito(WorkoutExercise esercizio) {
   if (esercizio.sets.isEmpty) return false;
   return esercizio.sets.every((serie) => serie.isCompleted);
 }
+/// Precompila peso/ripetizioni della sessione in corso con quelli
+/// dell'ultima volta che questo allenamento è stato fatto, **solo sulle
+/// serie non ancora spuntate**.
+///
+/// La lettura da Firestore che porta questi dati è più lenta di un tocco:
+/// se nel frattempo una serie è già stata segnata come fatta — qui, o
+/// riprendendo una sessione lasciata attiva in background, che rimonta la
+/// schermata da capo e richiama questa funzione — sovrascrivere comunque
+/// peso/reps rimpiazzerebbe in silenzio il numero appena sollevato con
+/// quello dell'allenamento precedente, spunta verde compresa.
+///
+/// Muta [sessionExercises] sul posto (stessi oggetti `WorkoutSet`, come
+/// richiede lo stato di `ActiveSessionScreen`), non ne crea una copia.
+///
+/// Sta fuori dalla schermata per lo stesso motivo di [esercizioFinito]:
+/// `ActiveSessionScreen` non si monta in un test — istanzia `FirestoreService`
+/// nel proprio `State`, debito di US-008.
+void applicaPesiUltimaSessione(
+  List<WorkoutExercise> sessionExercises,
+  WorkoutSession lastSession,
+) {
+  for (final currentEx in sessionExercises) {
+    final lastEx = lastSession.exercises.firstWhere(
+      (e) => e.exerciseId == currentEx.exerciseId,
+      orElse: () => WorkoutExercise(exerciseId: '', exerciseName: '', sets: []),
+    );
+    if (lastEx.sets.isEmpty) continue;
+    for (var j = 0; j < currentEx.sets.length; j++) {
+      if (currentEx.sets[j].isCompleted) continue;
+      if (j < lastEx.sets.length) {
+        currentEx.sets[j].weight = lastEx.sets[j].weight;
+        currentEx.sets[j].reps = lastEx.sets[j].reps;
+      } else {
+        // Se questa volta ci sono più serie, usa il peso dell'ultima serie
+        // della volta precedente.
+        currentEx.sets[j].weight = lastEx.sets.last.weight;
+        currentEx.sets[j].reps = lastEx.sets.last.reps;
+      }
+    }
+  }
+}
 class ActiveSessionScreen extends ConsumerStatefulWidget {
   final WorkoutTemplate workout;
   final String? scheduledWorkoutId;
@@ -156,29 +197,7 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     );
     if (lastSession != null && mounted) {
       setState(() {
-        for (var i = 0; i < _sessionExercises.length; i++) {
-          final currentEx = _sessionExercises[i];
-          // Find matching exercise in last session
-          final lastEx = lastSession.exercises.firstWhere(
-            (e) => e.exerciseId == currentEx.exerciseId,
-            orElse: () =>
-                WorkoutExercise(exerciseId: '', exerciseName: '', sets: []),
-          );
-          if (lastEx.sets.isNotEmpty) {
-            // Update weights/reps but keep isCompleted false
-            // We try to match set counts, or take the last set's weight if we have more sets now
-            for (var j = 0; j < currentEx.sets.length; j++) {
-              if (j < lastEx.sets.length) {
-                currentEx.sets[j].weight = lastEx.sets[j].weight;
-                currentEx.sets[j].reps = lastEx.sets[j].reps;
-              } else {
-                // If we have more sets now, use the last set's weight of prev session
-                currentEx.sets[j].weight = lastEx.sets.last.weight;
-                currentEx.sets[j].reps = lastEx.sets.last.reps;
-              }
-            }
-          }
-        }
+        applicaPesiUltimaSessione(_sessionExercises, lastSession);
       });
       final loc = ref.read(localizationNotifierProvider);
       ScaffoldMessenger.of(context).showSnackBar(
