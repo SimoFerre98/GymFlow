@@ -425,6 +425,17 @@ quanto lo sarebbero altrimenti, in particolare la sezione ⚠️ più sotto.
    quello. Nota tecnica ancora valida: `docs/BACKLOG.md` ha una **voce duplicata e contraddittoria di
    US-084** (una `✅ DONE`, una `⬜ TODO`) — la prima è quella vera (`superSetGroup` esiste nel
    codice), la seconda va ripulita quando si torna a toccare quella sezione.
+   **Trovata il 2026-09-13 rivedendo il resto dell'app**: `_FriendsAtGym` in `gym_settings_screen.dart`
+   (righe 464-484) chiama `FirestoreService.getUsers(profile.friends)`, che interroga `users` con
+   `whereIn` sul documento — negato dalle stesse regole (`users/{userId}`: solo `request.auth.uid ==
+   userId` legge), esattamente come `getSharedSessions`/`getSharedScheduledWorkouts` più sotto in
+   quel file, già commentati come tali. **Non è una regressione da sistemare oggi**: `profile.friends`
+   non viene più scritto da nessuno dopo US-087 (stesso debito già noto, "i tre campi restano sul
+   modello ma inutilizzati"), quindi la condizione che attiverebbe questa query (`friends` non vuoto)
+   non si verifica più per un utente nuovo — resta silenziosa. A differenza dei due metodi sorella,
+   qui manca il `.onErrorReturnWith` con `debugPrint` che spiega perché non succede nulla: se si
+   riprende US-080, vale la pena decidere lì se questo widget va rifatto sull'invito accettato o tolto
+   insieme al campo `friends`.
 
 ### ⚠️ Rilevante proprio perché si vuole condividere l'app con altre persone
 
