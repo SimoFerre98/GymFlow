@@ -376,6 +376,12 @@ Non ancora decisioni, solo fatti da conoscere prima di distribuire l'app a chi n
 - **Catalogo esercizi curati sbilanciato**: 43 esercizi totali, di cui 42 forza e **zero cardio**.
   Tricipiti il gruppo più esile (4 esercizi, 1 senza immagine); petto il peggiore per immagini
   mancanti (3 su 9). Fonte: `assets/data/exercises_seed.json`.
+  **Aggiunto il 2026-09-13**: mancano anche le varianti per presa (es. lat machine — presa larga,
+  stretta, inversa, neutra/V), oggi accorpate sotto un solo titolo. Deciso con l'utente: **un
+  esercizio per presa**, non un attributo su un esercizio solo — coerente con come il catalogo già
+  distingue varianti (panca piana/inclinata) e senza toccare lo schema: `Exercise` ha già solo
+  un'immagine/video/lista muscoli a testa, separare per presa è pura estensione di contenuto, non
+  un cambio tecnico. Stessa categoria di lavoro della riga sopra, non una voce a parte.
 - **Il form "Nuovo esercizio" personalizzato esiste ma è incompleto**: si può già creare un
   esercizio proprio (`exercise_library_screen.dart:555` → `AddExerciseDialog`), ma il form fa
   compilare solo nome e tipo — niente gruppo muscolare (salvato vuoto), niente immagine, niente
