@@ -1154,6 +1154,10 @@ class _ExerciseConfigurationSheetState
                   targetDurationSeconds: durationSeconds,
                   restSeconds: rest,
                   notes: notes,
+                  // Questo foglio non ha (ancora) un modo di assegnare una
+                  // superserie: senza riportarlo esplicitamente, modificare
+                  // un esercizio che la aveva già la perderebbe in silenzio.
+                  superSetGroup: existing?.superSetGroup,
                 );
                 Navigator.of(context).pop();
                 widget.onSave(result);
