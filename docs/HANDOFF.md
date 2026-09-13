@@ -1,7 +1,8 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `667f3c0` su `main` (`dev` allineato in fast-forward). US-111
-è aperta su un branch di storia non ancora mergiato, vedi sezione 6.
+**Aggiornato:** 2026-09-13 · **Commit:** `b432d74` su `main` (`dev` allineato in fast-forward,
+entrambi pubblicati su `origin`). US-111 resta aperta su un branch di storia non ancora mergiato,
+vedi sezione 6.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -272,12 +273,16 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
    a mano**: nessuno spinner di ricaricamento riattivando la rete dopo un uso offline, e
    comportamento invariato su Home/calendario/schede/misure/profilo. Solo dopo quella conferma
    chiedere il via libera al merge (fase 6 di `WORKFLOW.md`) — non è stato ancora dato.
-2. **Sezione 8 qui sotto**: audit di copertura funzionale con le priorità dell'utente. Il 2026-09-13
-   l'utente ha chiesto di pianificare e implementare tutto quell'elenco, in aggiunta a US-111.
-   **Si parte da US-087** (invito trainer↔cliente, EP-017): chiude *insieme* i punti 3 (trainer/
-   clienti) e 8 (funzionalità amico) della sezione 8, è già eseguibile (dipende solo da US-086,
-   `✅ DONE`), ma è segnata "non delegabile per intero: regole Firestore" — fermarsi e chiedere
-   conferma prima di modificare `firestore.rules`, come da regola generale.
+2. **US-087 (invito trainer↔cliente/amico) è `✅ DONE`, mergiata in `main` il 2026-09-13.** Chiudeva
+   *insieme* i punti 3 (trainer/clienti) e 8 (funzionalità amico) della sezione 8 — vedi
+   `docs/planning/US-087.md`/`US-087-review.md`. Le regole sono **già pubblicate** su `gymflow-d5d09`
+   e verificate dall'API (`firestore-tests/verify-deploy.mjs`). **Resta esplicitamente fuori**, per
+   scelta dichiarata nel piano: ricollegare la lettura vera di calendario/schede a un invito
+   accettato — è quel che resta di US-080 (ridotta, non più assorbita per intero: vedi la sua voce
+   nel backlog). US-089 e US-092 (EP-017) sono ora eseguibili, dipendevano da US-087.
+   **Sezione 8 qui sotto**: le altre priorità dell'utente dal 2026-09-13, ancora da pianificare —
+   notifiche/promemoria, backup/esportazione, uso dell'RPE, sostituzione esercizi/infortuni,
+   accessibilità, eliminazione account (+ accesso Google, da valutare la fattibilità).
 3. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
    dell'utente — chiederle prima di implementare qualcosa, non indovinare.
 4. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
@@ -319,10 +324,11 @@ quanto lo sarebbero altrimenti, in particolare la sezione ⚠️ più sotto.
    allenamento programmato (`scheduled_workout.dart`) non genera mai un avviso.
 2. **Backup/esportazione dati** — non esiste affatto. Nessun CSV/PDF/JSON esportabile, nessun
    backup/ripristino manuale, in nessuna schermata.
-3. **Trainer/clienti (EP-017)** — priorità alta, motivata dall'uso reale imminente. Solo **US-086**
-   (ruolo trainer/atleta sul profilo) è `✅ DONE`. Le sei storie che contano — invito (US-087, QR
-   US-088), elenco clienti (US-089), scheda cliente (US-090), andamento (US-091), consenso/revoca
-   (US-092) — sono tutte `⬜ TODO`, nessuna schermata cliente esiste ancora nel codice.
+3. ✅ **Trainer/clienti (EP-017) — il fondamento è fatto.** US-086 e **US-087 (invito, 2026-09-13)**
+   sono `✅ DONE`: il patto che lega due utenti esiste, testato e con le regole pubblicate. Restano
+   `⬜ TODO`, ora **eseguibili**: QR (US-088, cancello esplicito su due dipendenze nuove), elenco
+   clienti (US-089), scheda cliente (US-090, dipende anche da US-089), andamento (US-091, dipende
+   anche da US-092), consenso/revoca (US-092). Nessuna schermata cliente esiste ancora nel codice.
 4. **Usare l'RPE che già raccogliamo** — `WorkoutSet.rpe` (`workout.dart:12`) si raccoglie ad ogni
    serie e c'è già una funzione scritta **e testata** (`StatisticsHelper.calculateAverageRPE`,
    `statistics_helper.dart:137`, `test/statistics_helper_test.dart`) — ma **nessuna schermata la
@@ -338,19 +344,15 @@ quanto lo sarebbero altrimenti, in particolare la sezione ⚠️ più sotto.
    `login_screen.dart`, `register_screen.dart`). Google richiederebbe il pacchetto `google_sign_in`
    (dipendenza nuova, da approvare) **e** una configurazione lato Firebase Console (provider Google,
    impronta SHA del certificato Android) che non si fa da riga di comando dentro questo repository.
-8. **Aggiunta il 2026-09-13 — Sistemare la funzionalità amico** ("assolutamente", parole
-   dell'utente). **Scoperta importante mettendo insieme i due punti**: questo **non è un lavoro
-   separato dal punto 3 (Trainer/clienti)**. `docs/BACKLOG.md:2513` lo dice esplicitamente: **«US-087
-   sostituisce e assorbe US-080»** — il meccanismo di invito che serve al trainer per legarsi a un
-   cliente è lo stesso che risolve la falla dell'amico per codice (chi cerca legge i documenti di
-   tutti gli utenti). Non vanno pianificati due volte: fare US-087 chiude entrambi i punti.
-   **US-087 dipende da US-086, già `✅ DONE`, quindi è già eseguibile oggi** nonostante l'epica
-   dichiari una dipendenza da EP-016 — verificato: **EP-016 è completa nella sostanza** (US-083 e
-   US-084 sono `✅ DONE` nel codice — `superSetGroup` esiste già in `WorkoutTemplateExercise`,
-   `workout.dart` — anche se `docs/BACKLOG.md` ha una **voce duplicata e contraddittoria di US-084**,
-   una `✅ DONE` riga 2428 e una `⬜ TODO` riga 2456: la seconda è stale, non corretta finora, va
-   ripulita quando si torna a toccare quella sezione). US-085 (import schede vere) resta `⬜ TODO` ma
-   non blocca nulla (`Blocks: — nessuna`).
+8. ✅ **Sistemare la funzionalità amico — fatta insieme al punto 3, da US-087** ("assolutamente",
+   parole dell'utente). Era **lo stesso lavoro** del trainer/clienti, non un secondo modello:
+   `docs/BACKLOG.md` lo diceva già esplicitamente prima di iniziare («US-087 sostituisce e assorbe
+   US-080»). `connect_friend_screen.dart` è stata riscritta sul nuovo invito (invita/accetta/
+   rifiuta/sciogli). **Resta un pezzo, non tutto**: la condivisione vera di calendario/schede non è
+   ancora ricollegata all'invito accettato — è la parte rimasta di US-080 nel backlog, ridotta a
+   quello. Nota tecnica ancora valida: `docs/BACKLOG.md` ha una **voce duplicata e contraddittoria di
+   US-084** (una `✅ DONE`, una `⬜ TODO`) — la prima è quella vera (`superSetGroup` esiste nel
+   codice), la seconda va ripulita quando si torna a toccare quella sezione.
 
 ### ⚠️ Rilevante proprio perché si vuole condividere l'app con altre persone
 
@@ -406,4 +408,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `667f3c0`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `b432d74`, branch `main`_
