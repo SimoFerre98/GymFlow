@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
@@ -206,9 +207,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         await storageRef.putFile(_imageFile!);
         photoUrl = await storageRef.getDownloadURL();
         // Il nome del file non cambia piu tra un salvataggio e il successivo,
-        // quindi neanche l'URL: senza svuotare la cache delle immagini, la
+        // quindi neanche l'URL: senza svuotare la cache (memoria e disco), la
         // vecchia foto resterebbe a schermo finche l'app non riparte.
-        if (mounted) await NetworkImage(photoUrl).evict();
+        if (mounted) await CachedNetworkImage.evictFromCache(photoUrl);
       } catch (e) {
         if (mounted) ToastUtils.showError(context, '${loc.t('upload_failed')}: $e');
         setState(() => _isSaving = false);
@@ -292,7 +293,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   ) {
     final imageProvider = _imageFile != null
         ? FileImage(_imageFile!) as ImageProvider
-        : (profile.photoUrl != null ? NetworkImage(profile.photoUrl!) : null);
+        : (profile.photoUrl != null
+              ? CachedNetworkImageProvider(profile.photoUrl!)
+              : null);
     final months = _monthsSince(profile.createdAt);
     return Stack(
       children: [

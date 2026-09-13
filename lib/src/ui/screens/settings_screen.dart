@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/localization_provider.dart';
@@ -270,7 +271,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ColorScheme scheme,
     UserProfile? profile,
   ) {
-    final imageProvider = profile?.photoUrl != null ? NetworkImage(profile!.photoUrl!) : null;
+    final imageProvider =
+        profile?.photoUrl != null ? CachedNetworkImageProvider(profile!.photoUrl!) : null;
     final subscriptionActive = profile?.subscriptionExpiry?.isAfter(DateTime.now()) ?? false;
     return Container(
       padding: EdgeInsets.all(t.spacing.md),
