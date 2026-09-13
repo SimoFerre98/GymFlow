@@ -272,8 +272,12 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
    a mano**: nessuno spinner di ricaricamento riattivando la rete dopo un uso offline, e
    comportamento invariato su Home/calendario/schede/misure/profilo. Solo dopo quella conferma
    chiedere il via libera al merge (fase 6 di `WORKFLOW.md`) — non è stato ancora dato.
-2. **Sezione 9 qui sotto**: audit di copertura funzionale con le priorità dell'utente per i prossimi
-   passi dopo US-111 — leggerla prima di proporre la prossima storia.
+2. **Sezione 8 qui sotto**: audit di copertura funzionale con le priorità dell'utente. Il 2026-09-13
+   l'utente ha chiesto di pianificare e implementare tutto quell'elenco, in aggiunta a US-111.
+   **Si parte da US-087** (invito trainer↔cliente, EP-017): chiude *insieme* i punti 3 (trainer/
+   clienti) e 8 (funzionalità amico) della sezione 8, è già eseguibile (dipende solo da US-086,
+   `✅ DONE`), ma è segnata "non delegabile per intero: regole Firestore" — fermarsi e chiedere
+   conferma prima di modificare `firestore.rules`, come da regola generale.
 3. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
    dell'utente — chiederle prima di implementare qualcosa, non indovinare.
 4. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
@@ -328,6 +332,25 @@ quanto lo sarebbero altrimenti, in particolare la sezione ⚠️ più sotto.
 6. **Accessibilità** — scarsa. `Semantics(` presente solo in 6 widget minori, assente in Home e
    nella schermata di allenamento attivo. La scala dei caratteri di sistema
    (`MediaQuery.textScaler`) non è mai gestita, né rispettata né bloccata: semplicemente ignorata.
+7. **Aggiunta il 2026-09-13 — Eliminazione account** (+ **accesso con Google, da valutare la
+   fattibilità**). Nessuna delle due esiste oggi: la cancellazione è negata di proposito a livello
+   di regole (vedi ⚠️ sotto), l'accesso è solo email/password (`auth_service.dart`,
+   `login_screen.dart`, `register_screen.dart`). Google richiederebbe il pacchetto `google_sign_in`
+   (dipendenza nuova, da approvare) **e** una configurazione lato Firebase Console (provider Google,
+   impronta SHA del certificato Android) che non si fa da riga di comando dentro questo repository.
+8. **Aggiunta il 2026-09-13 — Sistemare la funzionalità amico** ("assolutamente", parole
+   dell'utente). **Scoperta importante mettendo insieme i due punti**: questo **non è un lavoro
+   separato dal punto 3 (Trainer/clienti)**. `docs/BACKLOG.md:2513` lo dice esplicitamente: **«US-087
+   sostituisce e assorbe US-080»** — il meccanismo di invito che serve al trainer per legarsi a un
+   cliente è lo stesso che risolve la falla dell'amico per codice (chi cerca legge i documenti di
+   tutti gli utenti). Non vanno pianificati due volte: fare US-087 chiude entrambi i punti.
+   **US-087 dipende da US-086, già `✅ DONE`, quindi è già eseguibile oggi** nonostante l'epica
+   dichiari una dipendenza da EP-016 — verificato: **EP-016 è completa nella sostanza** (US-083 e
+   US-084 sono `✅ DONE` nel codice — `superSetGroup` esiste già in `WorkoutTemplateExercise`,
+   `workout.dart` — anche se `docs/BACKLOG.md` ha una **voce duplicata e contraddittoria di US-084**,
+   una `✅ DONE` riga 2428 e una `⬜ TODO` riga 2456: la seconda è stale, non corretta finora, va
+   ripulita quando si torna a toccare quella sezione). US-085 (import schede vere) resta `⬜ TODO` ma
+   non blocca nulla (`Blocks: — nessuna`).
 
 ### ⚠️ Rilevante proprio perché si vuole condividere l'app con altre persone
 
