@@ -1,9 +1,15 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `6a41d36` su `main` (`dev` allineato in fast-forward,
-entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate; dei sette difetti minori
-segnalati durante la prova di US-111, sei erano già stati sistemati e il settimo (foto profilo
-offline) è stato chiuso in questa sessione — vedi sezione 6.
+**Aggiornato:** 2026-09-13 · **Commit:** `8c479c2` su `main` (`dev` allineato in fast-forward,
+entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate. Dei sette difetti minori
+segnalati durante la prima prova di US-111, tutti e sette sono sistemati nel codice. Una seconda
+prova sullo stesso APK (prima che i sette fix fossero confermati uno per uno) ha segnalato **altri
+cinque difetti**: quattro sistemati nel codice in questa sessione, uno (colore secondario ancora
+sbagliato in modalità chiara) resta **non individuato** — vedi sezione 6, punto 2b. **Nessuno dei
+dodici fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha rilevato il
+device per gran parte di questa sessione — build e commit sono comunque proseguiti (l'utente ha
+chiesto esplicitamente di non fermarsi ad aspettarlo), ma la prova reale resta da fare appena il
+telefono torna raggiungibile.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -300,6 +306,46 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
      invariato, dati conservati) — **nessuno dei sette ancora confermato dall'utente sul
      dispositivo**: verificare appena possibile che funzionino davvero prima di considerarli chiusi
      per bene (regola generale di questo progetto: l'APK prova, non `flutter test`).
+2b. **Prima ancora che i sette fossero confermati, una seconda prova sullo stesso APK ha segnalato
+   altri cinque difetti (2026-09-13, stesso giorno)**. L'utente ha poi chiesto di proseguire in
+   autonomia (anche a telefono scollegato) invece di fermarsi a chiedere conferma passo per passo —
+   quattro sono stati sistemati in questa sessione, uno resta aperto:
+   - ⬜ **Colore secondario ancora sbagliato in modalità chiara** — **non individuato**. Il fix del
+     punto 2 (commit `6614c8c`) aveva corretto `AppTheme.lightTheme` (usava `style.darkSurfaceHigh`,
+     un tono pensato per lo scuro); l'utente segnala che il problema persiste comunque, ma non ha
+     indicato la schermata/elemento esatto. Verificato che il valore attuale
+     (`style.tertiaryOnLight.withValues(alpha: 0.8)`) supera comunque i contrasti già coperti da
+     `test/contrast_test.dart` — ma quel test non copre la coppia `secondary`/`onSecondary`
+     specificamente, quindi un problema di contrasto lì passerebbe inosservato. Non riprodotto:
+     serve la schermata esatta dall'utente, o uno screenshot del telefono, prima di poter
+     continuare a indagare invece di indovinare.
+   - ✅ **Cancellare un programma dava un errore Firebase** (commit `fa2073c`) — `deleteProgram`
+     cercava le sue schede filtrando solo su `parentProgramId`; le regole Firestore richiedono che
+     ogni query dimostri `eMio()` (owner via `userId`), quindi la lettura veniva negata con
+     `permission-denied` prima ancora del batch di cancellazione. Aggiunto un test in
+     `firestore-tests/rules.test.mjs` che riproduce sia la negazione sulla query vecchia sia il
+     successo di quella nuova.
+   - ✅ **Il selettore data aveva ancora gli angoli arrotondati** (commit `ee8247d`) —
+     `showDatePicker` non eredita `dialogTheme`: aveva il suo `DatePickerThemeData` di default,
+     mai agganciato allo stile "angoli vivi".
+   - ✅ **Tasto "esci" dentro le impostazioni lingua** (commit `5538bc4`) — `_buildSignOut` in
+     `GeneralSettingsScreen` era un doppione quasi identico di quello già in `SettingsScreen`,
+     residuo del recupero del redesign Immersivo da bytecode decompilato (commit `ff893a5`), mai
+     voluto lì secondo il commento in testa al file. Rimosso; il logout resta in Impostazioni.
+   - ✅ **Tasto Google Fit silenzioso quando fallisce** (commit `8c479c2`) — `requestPermissions()`
+     torna `false` in silenzio sia quando l'SDK/Health Connect manca sia quando l'utente ha già
+     negato il permesso due volte (Android smette di richiederlo). Aggiunto un toast d'errore che
+     apre le impostazioni dell'app (`openAppSettings`) e un `try/catch` attorno alla chiamata. **Non
+     risolve la causa di fondo**, che resta da confermare sul dispositivo (log `debugPrint('SALUTE:
+     ...')`, o controllare a mano se il permesso Salute risulta negato in modo permanente) — questo
+     fix toglie solo il silenzio, non garantisce che il permesso venga concesso.
+   - **Un terzo `NetworkImage` (non toccato dal fix della foto profilo) vive in `app_drawer.dart`,
+     widget morto** — segnalato come task separato, **avviato dall'utente in una sessione/worktree
+     indipendente** (`modest-benz-04b0fa`) mentre questa sessione proseguiva: non toccare quei file
+     da qui, quella sessione ha già in corso la rimozione.
+   - **Nessuno di questi cinque fix è stato ancora costruito in un APK e installato sul telefono**
+     al momento in cui questa nota è stata scritta: l'`adb` non rilevava il device. Farlo appena
+     torna raggiungibile, insieme alla conferma dei sette fix del punto 2.
 3. **`../CLAUDE.md` ha un numero disallineato, trovato verificando l'analyzer per il fix del punto
    2**: dice "il baseline è 6, tutti `deprecated_member_use`, US-102 resta aperta per quelli" — ma
    `docs/BACKLOG.md:2988` segna **US-102 ✅ DONE** e `flutter analyze` su `main` (`6a41d36`) dà
@@ -440,4 +486,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `6a41d36`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `8c479c2`, branch `main`_
