@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `b35707f` su `main` (`dev` allineato in fast-forward,
+**Aggiornato:** 2026-09-13 · **Commit:** `c748169` su `main` (`dev` allineato in fast-forward,
 entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate. Dei sette difetti minori
 segnalati durante la prima prova di US-111, tutti e sette sono sistemati nel codice. Una seconda
 prova sullo stesso APK (prima che i sette fix fossero confermati uno per uno) ha segnalato **altri
@@ -9,15 +9,18 @@ resta **non individuato** — vedi sezione 6, punto 2b.
 
 **L'utente ha poi chiesto di proseguire in autonomia** (anche a telefono scollegato, aspettando i
 limiti di sessione se esauriti) invece di fermarsi a ogni difetto: la sessione ha continuato a
-rivedere sistematicamente il resto dell'app, non solo quanto segnalato, in due passate successive.
+rivedere sistematicamente il resto dell'app, non solo quanto segnalato, in tre passate successive.
 Prima passata: **sei difetti concreti** in `active_session_screen.dart`, `calendar_screen.dart`,
 `workout_summary_screen.dart` e `firestore_service.dart` — vedi sezione 6, punto 2c. Seconda
 passata (sette schermate mai riviste finora): **altri cinque difetti**, il più grave dei quali
 faceva risultare "raggiunti" obiettivi utente completamente scollegati dall'allenamento fatto — vedi
-sezione 6, punto 2d. **Nessuno dei ventidue fix totali di oggi è stato ancora confermato sul
-telefono**: l'`adb` non ha rilevato il device per gran parte di questa sessione — build, test e
-commit sono comunque proseguiti, ma la prova reale resta da fare appena il telefono torna
-raggiungibile.
+sezione 6, punto 2d. Terza passata (dodici schermate fra impostazioni, timer, autenticazione e
+programmi): **altri dodici difetti**, tre dei quali potevano far perdere dati reali dell'utente
+(riordino di un programma annullato salvando, data di una misura corporea spostata, account
+registrato senza profilo e senza via d'uscita) — vedi sezione 6, punto 2e. **Nessuno dei
+trentaquattro fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha rilevato
+il device per gran parte di questa sessione — build, test e commit sono comunque proseguiti, ma la
+prova reale resta da fare appena il telefono torna raggiungibile.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -438,6 +441,54 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
      (`task_6dd6d8e4`), non toccato da questa sessione.
    - **Nessuno di questi cinque fix è stato ancora installato sul telefono**: stesso stato dei punti
      precedenti.
+2e. **Terza passata, dodici schermate mai riviste** (impostazioni, aspetto, timer, crediti,
+   cronometro, amici, login/registrazione, misure corporee, creazione programma), due agenti in
+   parallelo. Dodici difetti concreti, tutti sistemati; due file (`general_settings_screen.dart`,
+   `timer_settings_screen.dart`) senza nulla di concreto:
+   - ✅ **Stream del profilo ricreato a ogni rebuild, tasto Esci silenzioso in caso di errore**
+     (commit `145e056`, `settings_screen.dart`) — violava la regola del progetto "mai uno Stream
+     dentro build": ogni `setState` (anche solo salvare l'abbonamento) faceva tornare per un istante
+     l'intera schermata ai placeholder. Aggiunto anche un `try/catch` al logout, come già fatto per
+     Google Fit.
+   - ✅ **I pulsanti +/- del recupero potevano far "risorgere" il timer o bloccare l'anello pieno**
+     (commit `9c402b9`, `timer_service.dart`) — "-15s" quasi a zero chiamava `resetTimer()` invece di
+     concludere come uno scadere naturale (niente vibrazione/suono, tempo tornato alla durata
+     piena); "+1m" non allungava `timerDuration`, con l'anello di progresso bloccato pieno oltre la
+     durata originale. Quattro test, verificati rossi col codice precedente.
+   - ✅ **Il login rifiutava password corrette** (commit `2d2e33e`) — validava la stessa regola della
+     registrazione (minimo 6 caratteri), ma Firebase impone quel vincolo solo alla creazione
+     dell'account: un account con password più corta (da console, o precedente a questa regola) non
+     poteva mai autenticarsi da qui.
+   - ✅ **Modificare una misura corporea ne spostava la data a oggi** (commit `2d2e33e`,
+     `body_measurements_screen.dart`) — correggere anche solo un refuso su una misura vecchia la
+     faceva sparire dal punto giusto della cronologia e ricomparire in cima come appena presa.
+   - ✅ **Salvare le info di un programma dopo un riordino annullava il riordino stesso** (commit
+     `1f7606f`, `program_creator_screen.dart`) — `_saveProgram` scriveva `workoutIds` dallo snapshot
+     fisso preso all'apertura dello schermo, non dall'ultimo stato noto: riordinare i giorni e poi
+     toccare "Salva" (es. per correggere il nome) cancellava silenziosamente il riordino appena
+     fatto, o reintroduceva il riferimento a una scheda nel frattempo eliminata. Corretta nello
+     stesso commit anche la convalida del nome (un campo di soli spazi passava come "obbligatorio"
+     compilato) e lo stesso difetto "Stream dentro build" del punto sopra.
+   - ✅ **Un invito poteva essere duplicato, quelli scaduti restavano "in sospeso" per sempre**
+     (commit `6acce90`, `firestore_service.dart` + `connect_friend_screen.dart`) — `createInvite` non
+     controllava un invito pendente preesistente verso la stessa persona; gli inviti in uscita non
+     mostravano mai lo stato scaduto (a differenza di quelli in entrata, che già lo fanno). Test in
+     `firestore-tests/rules.test.mjs` che conferma la query di controllo permessa dalle regole.
+   - ✅ **Un fallimento durante la registrazione lasciava un account autenticato senza profilo, senza
+     modo di riprovare** (commit `c748169`, `auth_service.dart`) — se la scrittura del profilo su
+     Firestore falliva dopo che l'account Firebase Auth era già stato creato (e autenticato), non
+     c'era alcun rollback: l'utente restava bloccato per sempre in uno stato "loggato ma senza
+     profilo", e un nuovo tentativo con la stessa email falliva con `email-already-in-use`. Ora un
+     fallimento in una fase successiva elimina l'account appena creato prima di rilanciare l'errore.
+     **Non testabile** senza un emulatore Firebase Auth (il repo ha solo l'emulatore Firestore) — da
+     confermare sul device, idealmente simulando un errore di rete a metà registrazione.
+   - **Trovato ma non sistemato, per scelta**: nel dialog "Password dimenticata" di
+     `login_screen.dart` il pulsante "Invia" non ha uno stato di caricamento — toccarlo due volte
+     avvia due chiamate concorrenti a `sendPasswordResetEmail`. Conseguenza reale solo una doppia
+     email di reset, non una corruzione di dati: il costo di sistemarlo bene (uno `StatefulBuilder`
+     nel dialog) non sembrava valerne la pena per un effetto così minore.
+   - **Nessuno di questi dodici fix è stato ancora installato sul telefono**: stesso stato dei punti
+     precedenti.
 3. **`../CLAUDE.md` ha un numero disallineato, trovato verificando l'analyzer per il fix del punto
    2**: dice "il baseline è 6, tutti `deprecated_member_use`, US-102 resta aperta per quelli" — ma
    `docs/BACKLOG.md:2988` segna **US-102 ✅ DONE** e `flutter analyze` su `main` (`6a41d36`) dà
@@ -594,4 +645,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `b35707f`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `c748169`, branch `main`_
