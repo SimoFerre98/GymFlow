@@ -1,8 +1,8 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `b432d74` su `main` (`dev` allineato in fast-forward,
-entrambi pubblicati su `origin`). US-111 resta aperta su un branch di storia non ancora mergiato,
-vedi sezione 6.
+**Aggiornato:** 2026-09-13 · **Commit:** `aaa7cf5` su `main` (`dev` allineato in fast-forward,
+entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate; sei difetti minori
+segnalati durante la prova di US-111 sono già stati sistemati — vedi sezione 6.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -266,28 +266,33 @@ concluse — non fermarsi a `flutter test` verde.
 
 Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo file:
 
-1. **US-111 (cache locale Isar per schede/programmi/misure/programmazione) è in `IN REVIEW`, non
-   mergiata.** Branch `feature/US-111-isar-local-first-cache`, verdetto `APPROVATA` (piano e review
-   in `docs/planning/US-111.md`/`US-111-review.md`). APK installata sul telefono il 2026-09-13
-   (`firstInstallTime` invariato, dati conservati) — **in attesa che l'utente confermi due criteri
-   a mano**: nessuno spinner di ricaricamento riattivando la rete dopo un uso offline, e
-   comportamento invariato su Home/calendario/schede/misure/profilo. Solo dopo quella conferma
-   chiedere il via libera al merge (fase 6 di `WORKFLOW.md`) — non è stato ancora dato.
-2. **US-087 (invito trainer↔cliente/amico) è `✅ DONE`, mergiata in `main` il 2026-09-13.** Chiudeva
-   *insieme* i punti 3 (trainer/clienti) e 8 (funzionalità amico) della sezione 8 — vedi
-   `docs/planning/US-087.md`/`US-087-review.md`. Le regole sono **già pubblicate** su `gymflow-d5d09`
-   e verificate dall'API (`firestore-tests/verify-deploy.mjs`). **Resta esplicitamente fuori**, per
-   scelta dichiarata nel piano: ricollegare la lettura vera di calendario/schede a un invito
-   accettato — è quel che resta di US-080 (ridotta, non più assorbita per intero: vedi la sua voce
-   nel backlog). US-089 e US-092 (EP-017) sono ora eseguibili, dipendevano da US-087.
-   **Sezione 8 qui sotto**: le altre priorità dell'utente dal 2026-09-13, ancora da pianificare —
+1. ✅ **US-111 e US-087 sono entrambe `✅ DONE`, mergiate in `main` il 2026-09-13.** US-111 (cache
+   locale Isar) confermata sul telefono dall'utente. US-087 (invito trainer↔cliente/amico) chiudeva
+   *insieme* i punti 3 e 8 della sezione 8 — regole già pubblicate su `gymflow-d5d09` e verificate
+   dall'API. Piano e review di entrambe in `docs/planning/`. US-089 e US-092 (EP-017) sono ora
+   eseguibili.
+2. **Provando US-111 sul telefono, l'utente ha segnalato 7 difetti minori (2026-09-13), estranei a
+   quella storia — sistemati 6 in una sessione di correzioni rapide (commit `6614c8c`..`aaa7cf5`),
+   diretti su `main`, stesso schema dei cinque difetti del 2026-09-12**:
+   - ✅ Colore secondario del tema chiaro (`app_theme.dart` usava un tono da scuro)
+   - ✅ Selettore data dell'abbonamento che non si apriva più (initialDate nel passato violava
+     l'assert di `showDatePicker` con un abbonamento già scaduto)
+   - ✅ Eliminare un programma lasciava le sue schede orfane (`deleteProgram` ora le cancella insieme)
+   - ✅ Nessun modo di correggere/cancellare una misura corporea già salvata (aggiunto tocca-per-
+     modificare e swipe-per-cancellare)
+   - ✅ Banner scorrevole a filo col titolo in Schede (spaziatura mancante)
+   - ✅ Titolo lungo nella Home diventava un blocco enorme (dimensione ora dipende dalla lunghezza)
+   - ⬜ **Foto profilo non carica offline** — resta aperto: serve un pacchetto nuovo
+     (`cached_network_image` o simile), dipendenza da approvare esplicitamente prima di aggiungerla,
+     come da regola. Non ancora chiesto all'utente.
+3. **Sezione 8 qui sotto**: le altre priorità dell'utente dal 2026-09-13, ancora da pianificare —
    notifiche/promemoria, backup/esportazione, uso dell'RPE, sostituzione esercizi/infortuni,
    accessibilità, eliminazione account (+ accesso Google, da valutare la fattibilità).
-3. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
+4. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
    dell'utente — chiederle prima di implementare qualcosa, non indovinare.
-4. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
+5. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
    ("Turno 3", turni 1-2 mancanti).
-5. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
+6. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
    scritto qui**: si ricava con `grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md`, una storia è
    pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
 
@@ -414,4 +419,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `b432d74`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `aaa7cf5`, branch `main`_
