@@ -333,7 +333,13 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
           .map(
             (invite) => _InviteTile(
               title: invite.toDisplayName,
-              subtitle: loc.t('invite_pending_msg'),
+              // Stesso controllo di _buildIncomingInvites: senza, un invito
+              // scaduto (non più accettabile, le regole negano l'accept)
+              // restava "In sospeso" agli occhi di chi l'ha mandato per
+              // sempre, mentre per il destinatario era già segnato scaduto.
+              subtitle: invite.isExpired
+                  ? loc.t('invite_expired_label')
+                  : loc.t('invite_pending_msg'),
               actions: [
                 TextButton(
                   onPressed: () => _cancelOutgoing(invite),

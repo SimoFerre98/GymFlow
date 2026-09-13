@@ -150,6 +150,25 @@ test('creare un invito: solo come se stessi, mai verso se stessi', async () => {
   );
 });
 
+// Regressione: createInvite ora cerca un invito pendente e non scaduto già
+// esistente verso la stessa persona (userId/userId/status, tre uguaglianze —
+// stesso schema già verificato per `workouts` più sotto) prima di crearne
+// uno nuovo, per non duplicare la connessione se lo stesso invito parte due
+// volte. La query deve restare permessa dalle regole.
+test('invites: la query di createInvite per un duplicato pendente è permessa', async () => {
+  await seed('invites/inv1', invitoPendente());
+  const a = testEnv.authenticatedContext('a');
+  const q = query(
+    collection(a.firestore(), 'invites'),
+    where('fromUserId', '==', 'a'),
+    where('toUserId', '==', 'b'),
+    where('status', '==', 'pending'),
+  );
+
+  const risultato = await assertSucceeds(getDocs(q));
+  assert.equal(risultato.size, 1);
+});
+
 test('un utente non invitato non legge ne scrive un invito che non lo riguarda', async () => {
   await seed('invites/inv1', invitoPendente());
   const c = testEnv.authenticatedContext('c');

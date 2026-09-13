@@ -37,6 +37,26 @@ class FirestoreService {
     if (!codeDoc.exists) return null;
     final toUserId = codeDoc.data()!['userId'] as String;
     if (toUserId == fromUserId) return null;
+    // Un invito pendente e non scaduto verso la stessa persona esiste già:
+    // lo si restituisce invece di crearne un secondo. Senza questo, inviare
+    // due volte lo stesso codice (o toccare "Invia" due volte prima che
+    // l'altro risponda) creava due documenti paralleli: se entrambi
+    // venivano accettati, la stessa persona compariva due volte nell'elenco
+    // amici, e sciogliere una connessione lasciava l'altra — identica —
+    // ancora presente. Il filtro sullo stato resta lato client (non nella
+    // query, insieme a un confronto su expiresAt avrebbe richiesto un
+    // indice composito): un invito "pending" ma scaduto non deve bloccare
+    // un nuovo invito, quindi va scartato qui, non nella query.
+    final esistenti = await _db
+        .collection('invites')
+        .where('fromUserId', isEqualTo: fromUserId)
+        .where('toUserId', isEqualTo: toUserId)
+        .where('status', isEqualTo: InviteStatus.pending.toMap())
+        .get();
+    for (final doc in esistenti.docs) {
+      final esistente = Invite.fromMap(doc.data(), doc.id);
+      if (!esistente.isExpired) return esistente;
+    }
     final toDisplayName = codeDoc.data()!['displayName'] as String? ?? 'User';
     final now = DateTime.now();
     final invite = Invite(
