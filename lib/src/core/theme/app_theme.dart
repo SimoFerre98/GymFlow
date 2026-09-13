@@ -79,7 +79,7 @@ class AppTheme {
       onPrimary: AppPalette.paper,
       primaryContainer: accent,
       onPrimaryContainer: style.darkBackground,
-      secondary: style.darkSurfaceHigh,
+      secondary: style.tertiaryOnLight.withValues(alpha: 0.8),
       onSecondary: AppPalette.paper,
       secondaryContainer: style.lightSurfaceAlt,
       onSecondaryContainer: style.darkBackground,
