@@ -42,6 +42,15 @@ const double _kGoalTrackHeight = 5;
 /// Colonne della griglia di scorciatoie: 3 per riga, righe quante servono.
 const int _kShortcutColumns = 3;
 const double _kShortcutAspectRatio = 84 / 92;
+/// Riduce la dimensione del titolo proposto in Home quando il nome
+/// dell'allenamento è lungo: a `_kTitleFontSize` fisso, un nome lungo va a
+/// capo su più righe e diventa un blocco enorme che spinge giù il resto
+/// della card — segnalato dall'utente.
+double _heroTitleFontSize(String name) {
+  if (name.length > 24) return 30;
+  if (name.length > 16) return 40;
+  return _kTitleFontSize;
+}
 /// Quale allenamento proporre in Home, e con quale grado di certezza.
 ///
 /// [scheduledWorkoutIdForAction] e' non nullo solo quando [targetWorkout]
@@ -485,9 +494,11 @@ class _HeroSection extends riverpod.ConsumerWidget {
                       SizedBox(height: t.spacing.sm),
                       Text(
                         workout.name.toUpperCase(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: t.typography.display?.copyWith(
                           color: scheme.onSurface,
-                          fontSize: _kTitleFontSize,
+                          fontSize: _heroTitleFontSize(workout.name),
                         ),
                       ),
                       if (muscleGroups.isNotEmpty) ...[
