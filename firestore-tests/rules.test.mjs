@@ -23,6 +23,10 @@ import {
   updateDoc,
   serverTimestamp,
   Timestamp,
+  collection,
+  query,
+  where,
+  getDocs,
 } from 'firebase/firestore';
 
 const PROJECT_ID = 'demo-gymflow-test';
@@ -272,6 +276,31 @@ test('un invito accettato non apre la lettura di altre collezioni fra utenti div
   // A e B hanno un legame accettato, ma questa storia non tocca le regole
   // di `sessions`: restano owner-only, invariate.
   await assertFails(getDoc(doc(a.firestore(), 'sessions/s1')));
+});
+
+// Regressione: `deleteProgram` cercava le schede di un programma filtrando
+// solo su `parentProgramId`. Le regole richiedono che ogni query dimostri
+// `eMio()` (owner via `userId`): senza quel filtro la lettura veniva negata
+// prima ancora del batch di cancellazione, con un vero errore Firebase per
+// l'utente che provava a eliminare un programma.
+test('workouts: una query senza filtro su userId viene negata, con userId passa', async () => {
+  await seed('workouts/w1', { userId: 'a', parentProgramId: 'p1', name: 'Push' });
+  await seed('workouts/w2', { userId: 'a', parentProgramId: 'p1', name: 'Pull' });
+  const a = testEnv.authenticatedContext('a');
+
+  await assertFails(
+    getDocs(query(collection(a.firestore(), 'workouts'), where('parentProgramId', '==', 'p1'))),
+  );
+
+  await assertSucceeds(
+    getDocs(
+      query(
+        collection(a.firestore(), 'workouts'),
+        where('userId', '==', 'a'),
+        where('parentProgramId', '==', 'p1'),
+      ),
+    ),
+  );
 });
 
 // Prova che il test gira davvero contro l'emulatore, non contro un progetto

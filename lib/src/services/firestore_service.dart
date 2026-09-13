@@ -219,9 +219,13 @@ class FirestoreService {
   /// della cache, un difetto di questo metodo, segnalato dall'utente.
   /// Le sessioni già fatte non si toccano: sono lo storico dell'atleta, non
   /// appartengono al programma.
-  Future<void> deleteProgram(String programId) async {
+  Future<void> deleteProgram(String programId, String userId) async {
+    // Le regole Firestore accettano una query solo se dimostrano che ogni
+    // risultato soddisfa `eMio()`: filtrare solo su `parentProgramId` viene
+    // rifiutato con permission-denied prima ancora di leggere un documento.
     final workouts = await _db
         .collection('workouts')
+        .where('userId', isEqualTo: userId)
         .where('parentProgramId', isEqualTo: programId)
         .get();
     final batch = _db.batch();

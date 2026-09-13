@@ -222,7 +222,7 @@ class ProgramListScreen extends ConsumerWidget {
     if (confirmed == true) {
       // ignore: use_build_context_synchronously
       try {
-        await ref.read(firestoreServiceProvider).deleteProgram(program.id);
+        await ref.read(firestoreServiceProvider).deleteProgram(program.id, program.userId);
         if (context.mounted) {
           ToastUtils.showInfo(context, loc.t('program_deleted'));
         }
