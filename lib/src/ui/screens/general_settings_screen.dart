@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/localization_provider.dart';
-import '../../core/theme/app_palette.dart';
 import '../../core/theme/immersivo_tokens.dart';
-import '../../services/auth_service.dart';
 import '../widgets/back_pill.dart';
 import 'image_credits_screen.dart';
 /// Misure del mockup 3f Lingua e info (telaio 1:1, nessuna conversione
@@ -62,8 +60,6 @@ class GeneralSettingsScreen extends ConsumerWidget {
                   children: [
                     _buildLanguage(context, loc, t, scheme, ref),
                     _buildInfo(context, loc, t, scheme),
-                    SizedBox(height: t.spacing.lg),
-                    _buildSignOut(context, loc, t, scheme),
                     SizedBox(height: t.spacing.xl),
                   ],
                 ),
@@ -231,43 +227,6 @@ class GeneralSettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-  Widget _buildSignOut(
-    BuildContext context,
-    Localization loc,
-    ImmersivoTokens t,
-    ColorScheme scheme,
-  ) {
-    return InkWell(
-      onTap: () async {
-        await AuthService().signOut();
-        if (context.mounted) {
-          Navigator.popUntil(context, (route) => route.isFirst);
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: t.spacing.md),
-        decoration: BoxDecoration(
-          color: AppPalette.danger.withValues(alpha: 0.12),
-          border: Border.all(color: AppPalette.danger.withValues(alpha: 0.55)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.logout, color: AppPalette.danger),
-            SizedBox(width: t.spacing.sm),
-            Text(
-              loc.t('sign_out'),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppPalette.danger,
-              ),
-            ),
-          ],
         ),
       ),
     );
