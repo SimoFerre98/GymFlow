@@ -82,6 +82,10 @@ class _BodyMeasurementsScreenState
     'bodyFat': TextEditingController(),
   };
   bool _isSaving = false;
+  /// L'id Firestore della misura in modifica, o `null` se si sta inserendo
+  /// una misura nuova. Prima non esisteva alcun modo di correggere o
+  /// cancellare un dato già salvato — segnalato dall'utente.
+  String? _editingMeasurementId;
   @override
   void initState() {
     super.initState();
@@ -102,7 +106,10 @@ class _BodyMeasurementsScreenState
       double? valore(String chiave) =>
           double.tryParse(_controllers[chiave]!.text.replaceAll(',', '.'));
       final measurement = BodyMeasurement(
-        id: '',
+        // Un id non vuoto sovrascrive la misura esistente invece di crearne
+        // una nuova: `addBodyMeasurement` fa già un `set` sul doc con questo
+        // id, se presente.
+        id: _editingMeasurementId ?? '',
         userId: _userId,
         date: DateTime.now(),
         weight: _currentWeight,
@@ -120,10 +127,16 @@ class _BodyMeasurementsScreenState
       await _firestoreService.addBodyMeasurement(_userId, measurement);
       if (mounted) {
         final loc = ref.read(localizationNotifierProvider);
-        ToastUtils.showSuccess(context, loc.t('measurements_saved'));
+        ToastUtils.showSuccess(
+          context,
+          _editingMeasurementId != null
+              ? loc.t('measurement_updated')
+              : loc.t('measurements_saved'),
+        );
         for (final c in _controllers.values) {
           c.clear();
         }
+        setState(() => _editingMeasurementId = null);
       }
     } catch (e) {
       if (mounted) {
@@ -132,6 +145,41 @@ class _BodyMeasurementsScreenState
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+  /// Carica una misura già salvata nel modulo, per correggerla: `_save()`
+  /// sovrascrive invece di crearne una nuova finché `_editingMeasurementId`
+  /// resta valorizzato.
+  void _startEditing(BodyMeasurement measurement) {
+    setState(() {
+      _editingMeasurementId = measurement.id;
+      _currentWeight = measurement.weight ?? _currentWeight;
+      _controllers['height']!.text = measurement.height?.toString() ?? '';
+      _controllers['chest']!.text = measurement.chest?.toString() ?? '';
+      _controllers['waist']!.text = measurement.waist?.toString() ?? '';
+      _controllers['hips']!.text = measurement.hips?.toString() ?? '';
+      _controllers['biceps']!.text = measurement.biceps?.toString() ?? '';
+      _controllers['thighs']!.text = measurement.thighs?.toString() ?? '';
+      _controllers['calves']!.text = measurement.calves?.toString() ?? '';
+      _controllers['shoulders']!.text = measurement.shoulders?.toString() ?? '';
+      _controllers['neck']!.text = measurement.neck?.toString() ?? '';
+      _controllers['bodyFat']!.text = measurement.bodyFatPercentage?.toString() ?? '';
+    });
+  }
+  void _cancelEditing() {
+    setState(() {
+      _editingMeasurementId = null;
+      for (final c in _controllers.values) {
+        c.clear();
+      }
+    });
+  }
+  Future<void> _deleteMeasurement(BodyMeasurement measurement) async {
+    final loc = ref.read(localizationNotifierProvider);
+    await _firestoreService.deleteBodyMeasurement(_userId, measurement.id);
+    if (_editingMeasurementId == measurement.id) {
+      _cancelEditing();
+    }
+    if (mounted) ToastUtils.showSuccess(context, loc.t('measurement_deleted'));
   }
   // ── Dialog per inserimento peso da tastiera ───────────────
   void _showWeightDialog() {
@@ -244,6 +292,25 @@ class _BodyMeasurementsScreenState
                       ),
                       SizedBox(height: t.spacing.sm),
                     ],
+                    if (_editingMeasurementId != null) ...[
+                      SizedBox(height: t.spacing.sm),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              loc.t('editing_measurement_notice'),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _cancelEditing,
+                            child: Text(loc.t('cancel')),
+                          ),
+                        ],
+                      ),
+                    ],
                     SizedBox(height: t.spacing.md),
                     // ── Pulsante salva ────────────────────────────
                     _buildSaveCta(context, loc, t, scheme),
@@ -255,6 +322,8 @@ class _BodyMeasurementsScreenState
                     ),
                     _WeightHistory(
                       emptyText: loc.t('no_measurements'),
+                      onEdit: _startEditing,
+                      onDelete: _deleteMeasurement,
                     ),
                     SizedBox(height: t.spacing.xl),
                   ],
@@ -313,7 +382,8 @@ class _BodyMeasurementsScreenState
               )
             else ...[
               Text(
-                loc.t('done').toUpperCase(),
+                (_editingMeasurementId != null ? loc.t('update_action') : loc.t('done'))
+                    .toUpperCase(),
                 style: t.typography.title?.copyWith(color: scheme.onPrimary),
               ),
               SizedBox(width: t.spacing.sm),
@@ -373,8 +443,14 @@ class _MeasureField extends StatelessWidget {
 /// schermata principale: lo stream vive qui, viene creato una volta sola
 /// e non si ricrea a ogni ricostruzione dell'albero.
 class _WeightHistory extends ConsumerWidget {
-  const _WeightHistory({required this.emptyText});
+  const _WeightHistory({
+    required this.emptyText,
+    required this.onEdit,
+    required this.onDelete,
+  });
   final String emptyText;
+  final ValueChanged<BodyMeasurement> onEdit;
+  final ValueChanged<BodyMeasurement> onDelete;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
@@ -403,23 +479,72 @@ class _WeightHistory extends ConsumerWidget {
     }
     return Column(
       children: [
-        for (final m in recent) _HistoryTile(measurement: m),
+        for (final m in recent)
+          _HistoryTile(
+            key: ValueKey(m.id),
+            measurement: m,
+            onEdit: () => onEdit(m),
+            onDelete: () => onDelete(m),
+          ),
       ],
     );
   }
 }
-class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({required this.measurement});
+class _HistoryTile extends ConsumerWidget {
+  const _HistoryTile({
+    super.key,
+    required this.measurement,
+    required this.onEdit,
+    required this.onDelete,
+  });
   final BodyMeasurement measurement;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  Future<bool> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final loc = ref.read(localizationNotifierProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.t('delete_measurement_title')),
+        content: Text(loc.t('delete_measurement_body')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(loc.t('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: scheme.error),
+            child: Text(loc.t('delete')),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final t = context.immersivo;
     final dateText = DateFormat('d MMM yyyy').format(measurement.date);
     final weightText = measurement.weight != null
         ? '${measurement.weight!.toStringAsFixed(1)} kg'
         : '—';
-    return DecoratedBox(
+    return Dismissible(
+      key: ValueKey('dismiss-${measurement.id}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDelete(context, ref),
+      onDismissed: (_) => onDelete(),
+      background: Container(
+        color: scheme.error,
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.symmetric(horizontal: t.spacing.md),
+        child: Icon(Icons.delete, color: scheme.onError),
+      ),
+      child: InkWell(
+        onTap: onEdit,
+        child: DecoratedBox(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: scheme.outline.withValues(alpha: 0.55))),
       ),
@@ -440,6 +565,8 @@ class _HistoryTile extends StatelessWidget {
                   TextStyle(color: scheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ],
+        ),
+      ),
         ),
       ),
     );
