@@ -416,14 +416,31 @@ class TimerNotifier extends _$TimerNotifier with WidgetsBindingObserver {
     final newRemaining = state.timerRemaining + Duration(seconds: seconds);
     final clamped = newRemaining.isNegative ? Duration.zero : newRemaining;
     if (clamped == Duration.zero) {
-      resetTimer();
+      // Come uno scadere naturale (_onTick sopra), non come resetTimer: un
+      // "-15s" che porta il tempo restante a zero deve concludere il
+      // recupero (e avvisare, se era in corso), non farlo "risorgere" alla
+      // durata piena — resetTimer() e il tasto dedicato per quello, un'altra
+      // azione.
+      final eraInCorso = state.isTimerRunning;
+      _timerEndsAt = null;
+      state = state.copyWith(timerRemaining: Duration.zero, isTimerRunning: false);
+      _syncTicker();
+      unawaited(servizioTimer.ferma());
+      if (eraInCorso) segnalaScadenza();
       return;
     }
     if (state.isTimerRunning) {
       _timerEndsAt = DateTime.now().add(clamped);
       unawaited(_avviaServizioSeConsentito(_timerEndsAt!));
     }
-    state = state.copyWith(timerRemaining: clamped);
+    state = state.copyWith(
+      timerRemaining: clamped,
+      // Se si aggiunge tempo oltre la durata originale, il totale cresce con
+      // lui: altrimenti l'anello di progresso (restante/durata) supera 1 e
+      // resta visivamente pieno finche il tempo restante non ridiscende
+      // sotto la durata di partenza, anche se le cifre contano correttamente.
+      timerDuration: clamped > state.timerDuration ? clamped : state.timerDuration,
+    );
   }
   void resetTimer() {
     _timerEndsAt = null;

@@ -150,5 +150,67 @@ void main() {
 
       expect(mock.chiamateScaduto, 0, reason: 'azzerare a mano prima della scadenza non vibra');
     });
+
+    test(
+      'addTimerSeconds che porta il tempo a zero conclude come uno scadere naturale, non come resetTimer',
+      () {
+        // Segnalato rivedendo il codice: "-15s" su un recupero quasi finito
+        // chiamava resetTimer(), che riporta timerRemaining alla durata
+        // piena invece di concludere il conto alla rovescia — il quadrante
+        // "risorgeva" da 0:10 a 0:30 invece di segnare 0:00, e senza vibrare
+        // ne suonare.
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(timerNotifierProvider.notifier);
+        final mock = MockAvvisiTempo();
+        notifier.avvisi = mock;
+
+        notifier.setTimerDuration(const Duration(seconds: 30));
+        notifier.toggleTimer();
+        notifier.addTimerSeconds(-40); // ben oltre lo zero
+
+        final state = container.read(timerNotifierProvider);
+        expect(state.timerRemaining, Duration.zero);
+        expect(state.isTimerRunning, isFalse);
+        expect(
+          state.timerDuration,
+          const Duration(seconds: 30),
+          reason: 'la durata originale non deve tornare come "nuovo" tempo restante',
+        );
+        expect(mock.chiamateScaduto, 1, reason: 'concluso come uno scadere naturale, deve avvisare');
+      },
+    );
+
+    test('addTimerSeconds che porta a zero un timer già in pausa non avvisa', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(timerNotifierProvider.notifier);
+      final mock = MockAvvisiTempo();
+      notifier.avvisi = mock;
+
+      notifier.setTimerDuration(const Duration(seconds: 30));
+      notifier.addTimerSeconds(-40);
+
+      expect(mock.chiamateScaduto, 0, reason: 'non stava scorrendo nulla da concludere');
+    });
+
+    test('addTimerSeconds oltre la durata originale allunga anche timerDuration', () {
+      // Senza questo, l'anello di progresso (restante/durata) superava 1 e
+      // restava visivamente pieno finche il tempo restante non ridiscendeva
+      // sotto la durata di partenza, anche se le cifre contavano bene.
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(timerNotifierProvider.notifier);
+      notifier.setTimerDuration(const Duration(seconds: 30));
+      notifier.toggleTimer();
+      notifier.addTimerSeconds(60);
+
+      final state = container.read(timerNotifierProvider);
+      expect(state.timerRemaining, const Duration(seconds: 90));
+      expect(state.timerDuration, const Duration(seconds: 90));
+    });
   });
 }
