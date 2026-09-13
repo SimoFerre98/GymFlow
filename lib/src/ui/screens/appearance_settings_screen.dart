@@ -210,6 +210,15 @@ class AppearanceSettingsScreen extends ConsumerWidget {
                           selectedColor: scheme.primary,
                           outlineColor: scheme.outline,
                           textColor: scheme.onSurfaceVariant,
+                          // Per la palette attiva, la quarta tinta della
+                          // striscia è il colore d'azione scelto davvero
+                          // dall'utente (theme.primaryColor), non il preset
+                          // di default della palette: senza questo, scegliere
+                          // un accento diverso dal primo preset lasciava la
+                          // striscia qui a mentire su quale fosse l'accento
+                          // realmente applicato al resto dell'app.
+                          activeAccentOverride:
+                              theme.themeStyle == style ? theme.primaryColor : null,
                           onTap: () => notifier.setThemeStyle(style),
                         ),
                       ),
@@ -451,6 +460,7 @@ class _PaletteTile extends StatelessWidget {
     required this.outlineColor,
     required this.textColor,
     required this.onTap,
+    this.activeAccentOverride,
   });
   final AppThemeStyle style;
   final String label;
@@ -459,6 +469,10 @@ class _PaletteTile extends StatelessWidget {
   final Color outlineColor;
   final Color textColor;
   final VoidCallback onTap;
+  /// Il colore d'azione realmente applicato, se questa è la palette attiva
+  /// e l'utente ne ha scelto uno diverso dal preset di default. `null`
+  /// altrove: quelle tinte restano un'anteprima del default della palette.
+  final Color? activeAccentOverride;
   @override
   Widget build(BuildContext context) {
     final t = context.immersivo;
@@ -484,7 +498,7 @@ class _PaletteTile extends StatelessWidget {
                   Expanded(child: Container(color: style.darkBackground)),
                   Expanded(child: Container(color: style.darkSurface)),
                   Expanded(child: Container(color: style.defaultTertiary)),
-                  Expanded(child: Container(color: style.defaultAccent)),
+                  Expanded(child: Container(color: activeAccentOverride ?? style.defaultAccent)),
                 ],
               ),
             ),
