@@ -284,7 +284,13 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
    - ✅ Titolo lungo nella Home diventava un blocco enorme (dimensione ora dipende dalla lunghezza)
    - ⬜ **Foto profilo non carica offline** — resta aperto: serve un pacchetto nuovo
      (`cached_network_image` o simile), dipendenza da approvare esplicitamente prima di aggiungerla,
-     come da regola. Non ancora chiesto all'utente.
+     come da regola. **Chiesto esplicitamente all'utente, risposta non ancora arrivata quando questo
+     file è stato scritto** — controllare se nel frattempo ha risposto prima di aggiungere la
+     dipendenza.
+   - **APK con i sei fix installata sul telefono il 2026-09-13** (`firstInstallTime` invariato, dati
+     conservati) — **non ancora confermata dall'utente sul dispositivo**: verificare appena possibile
+     che i sei fix funzionino davvero prima di considerarli chiusi per bene (regola generale di
+     questo progetto: l'APK prova, non `flutter test`).
 3. **Sezione 8 qui sotto**: le altre priorità dell'utente dal 2026-09-13, ancora da pianificare —
    notifiche/promemoria, backup/esportazione, uso dell'RPE, sostituzione esercizi/infortuni,
    accessibilità, eliminazione account (+ accesso Google, da valutare la fattibilità).
