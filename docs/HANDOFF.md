@@ -1,15 +1,20 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `8c479c2` su `main` (`dev` allineato in fast-forward,
+**Aggiornato:** 2026-09-13 · **Commit:** `2ea55ef` su `main` (`dev` allineato in fast-forward,
 entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate. Dei sette difetti minori
 segnalati durante la prima prova di US-111, tutti e sette sono sistemati nel codice. Una seconda
 prova sullo stesso APK (prima che i sette fix fossero confermati uno per uno) ha segnalato **altri
-cinque difetti**: quattro sistemati nel codice in questa sessione, uno (colore secondario ancora
-sbagliato in modalità chiara) resta **non individuato** — vedi sezione 6, punto 2b. **Nessuno dei
-dodici fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha rilevato il
-device per gran parte di questa sessione — build e commit sono comunque proseguiti (l'utente ha
-chiesto esplicitamente di non fermarsi ad aspettarlo), ma la prova reale resta da fare appena il
-telefono torna raggiungibile.
+cinque difetti**: quattro sistemati, uno (colore secondario ancora sbagliato in modalità chiara)
+resta **non individuato** — vedi sezione 6, punto 2b.
+
+**L'utente ha poi chiesto di proseguire in autonomia** (anche a telefono scollegato, aspettando i
+limiti di sessione se esauriti) invece di fermarsi a ogni difetto: la sessione ha continuato a
+rivedere il resto dell'app, non solo quanto segnalato, trovando e sistemando **altri sei difetti
+concreti** (non stilistici) in `active_session_screen.dart`, `calendar_screen.dart`,
+`workout_summary_screen.dart` e `firestore_service.dart` — vedi sezione 6, punto 2c. **Nessuno dei
+diciotto fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha rilevato il
+device per gran parte di questa sessione — build, test e commit sono comunque proseguiti, ma la
+prova reale resta da fare appena il telefono torna raggiungibile.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -346,6 +351,53 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
    - **Nessuno di questi cinque fix è stato ancora costruito in un APK e installato sul telefono**
      al momento in cui questa nota è stata scritta: l'`adb` non rilevava il device. Farlo appena
      torna raggiungibile, insieme alla conferma dei sette fix del punto 2.
+2c. **Con il telefono ancora scollegato, l'utente ha chiesto di proseguire in autonomia** invece di
+   fermarsi ad aspettarlo: la sessione ha rivisto sistematicamente altre schermate (non solo quelle
+   segnalate), dispacciando un agente di ricerca su `active_session_screen.dart`,
+   `workout_summary_screen.dart`, `exercise_library_screen.dart` e `program_list_screen.dart`, e
+   verificando di persona ogni difetto trovato prima di agire (compreso rileggere il sorgente del
+   plugin `flutter_riverpod` installato per confermare un dettaglio prima di fidarsi). Sei difetti
+   concreti sistemati, tutti con test dove l'architettura lo permetteva, verificati rossi senza il
+   fix:
+   - ✅ **Spostare un allenamento programmato vecchio di oltre un anno non apriva il selettore data**
+     (commit `19a32e2`) — stesso difetto già visto per la data dell'abbonamento (`initialDate` fuori
+     da `[firstDate, lastDate]`), qui in `calendar_screen.dart` (`_rescheduleWorkout`).
+   - ✅ **L'obiettivo "N allenamenti a settimana" non superava mai 1** (commit `c2bf4a2`) —
+     `WorkoutSummaryScreen` aggiornava il progresso passando `[session]` (solo la sessione mostrata)
+     invece di tutte le sessioni recenti; riaprire dallo storico una sessione più vecchia di 7 giorni
+     azzerava anche un progresso vero. Due test in `test/workout_summary_goals_test.dart`.
+   - ✅ **Precompilare i pesi dell'ultima volta poteva sovrascrivere una serie già fatta**
+     (commit `7ce4065`) — la lettura da Firestore in `active_session_screen.dart` è più lenta di un
+     tocco: se una serie era già stata segnata come fatta (anche riprendendo una sessione lasciata
+     attiva in background), il numero veniva rimpiazzato in silenzio da quello della sessione
+     precedente, spunta verde compresa. Estratta `applicaPesiUltimaSessione`, cinque test in
+     `test/applica_pesi_ultima_sessione_test.dart`.
+   - ✅ **Uscire durante il salvataggio di fine allenamento poteva far credere di aver eliminato la
+     sessione** (commit `666968c`) — mentre `_finishWorkout` salva, il pulsante indietro restava
+     attivo: scegliendo "elimina l'allenamento" in quella finestra, la sessione veniva comunque
+     salvata (già in scrittura) e il codice avrebbe sollevato un `StateError` invece di eliminare
+     davvero qualcosa. Bloccato il pop mentre `_isSaving` è vero. **Non testabile** con l'attuale
+     sospensione dei test su questa schermata (debito US-008) — da confermare sul device.
+   - ✅ **Il tempo di recupero era sbagliato se lo stesso esercizio compariva due volte nella scheda**
+     (commit `94e1ada`) — `_onSetCompleted` cercava lo slot della scheda per `exerciseId`, che trova
+     sempre il primo; con lo stesso esercizio due volte (riscaldamento e blocco pesante, per
+     esempio) il secondo prendeva sempre il recupero del primo. Estratta `recuperoDellaSerie`, cerca
+     per posizione. Quattro test in `test/recupero_della_serie_test.dart`.
+   - ✅ **Creare un nuovo programma non disattivava quelli esistenti** (commit `2ea55ef`) — ogni
+     programma nasce con `isActive: true` (`program_creator_screen.dart`) ma nulla disattivava i
+     precedenti: con due o più programmi, tutti restavano "ATTIVA" nella lista e la Home
+     (`dashboard_screen.dart`, `.where((p) => p.isActive).firstOrNull`) sceglieva arbitrariamente il
+     primo, disallineando quale fosse il programma attivo fra le due schermate. `saveProgram` ora
+     disattiva gli altri programmi attivi dello stesso utente prima di salvare quello nuovo. **Non
+     testabile** in Dart con l'attuale `FirestoreService` (debito US-008/US-009) — da confermare sul
+     device.
+   - **Trovato ma non sistemato, per scelta**: combinare il segmento "Miei" con un filtro per gruppo
+     muscolare in `exercise_library_screen.dart` dà sempre lista vuota per gli esercizi
+     personalizzati — sintomo del form "Nuovo esercizio" incompleto (niente gruppo muscolare
+     raccolto), già tracciato più sotto in questo file. La correzione vera è completare il form, non
+     il filtro.
+   - **Nessuno di questi sei fix è stato ancora installato sul telefono**: stesso stato del punto
+     2b, `adb` non ha mai rilevato il device in questa sessione.
 3. **`../CLAUDE.md` ha un numero disallineato, trovato verificando l'analyzer per il fix del punto
    2**: dice "il baseline è 6, tutti `deprecated_member_use`, US-102 resta aperta per quelli" — ma
    `docs/BACKLOG.md:2988` segna **US-102 ✅ DONE** e `flutter analyze` su `main` (`6a41d36`) dà
@@ -470,7 +522,12 @@ Non ancora decisioni, solo fatti da conoscere prima di distribuire l'app a chi n
   compilare solo nome e tipo — niente gruppo muscolare (salvato vuoto), niente immagine, niente
   descrizione (fissa a "Custom exercise"). Un criterio della storia che l'ha introdotta (US-079,
   `BACKLOG.md:2248`) non è mai stato confermato dal vivo: che l'esercizio sopravviva davvero al
-  riavvio dell'app con Firestore vero.
+  riavvio dell'app con Firestore vero. **Sintomo concreto trovato il 2026-09-13**: combinando il
+  segmento "Miei" con un filtro per gruppo muscolare in `exercise_library_screen.dart`, il risultato
+  è sempre vuoto per qualunque esercizio personalizzato (`filterExercises`, `musclesTargeted.any(...)`
+  su una lista sempre vuota è sempre falso) — corretto dato lo stato dei dati, non un bug del filtro,
+  ma confuso per chi lo prova senza saperlo. Non sistemato: la correzione vera è completare il form,
+  non il filtro.
 - **Tipi di allenamento fissi**: `WorkoutType` ha 4 valori (forza, cardio, mobilità, sport),
   calcolati automaticamente dalla categoria dell'esercizio — non scelti liberamente. Nessun modo di
   distinguere bici/corsa/boxe/crossfit come sottotipi: ricadono tutti su "cardio".
@@ -497,4 +554,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `8c479c2`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `2ea55ef`, branch `main`_
