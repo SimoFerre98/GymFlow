@@ -2260,9 +2260,14 @@ Dopo questa storia: «Nuovo esercizio» salva davvero, l'esercizio compare in «
 
 #### US-080: Condividere con un amico senza scrivere sui suoi dati
 
-**Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 5
-**Depends on:** US-018 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — ⚠️ **assorbita da US-087**: il meccanismo di invito di EP-017 risolve lo stesso problema, e non va progettato due volte. Quando US-087 è fatta, questa diventa «gli amici usano gli inviti»
+**Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 2 (ridotta: il modello è già fatto)
+**Depends on:** US-018 (✅), US-087 (✅) | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — ⚠️ **US-087 (2026-09-13) ha già costruito l'invito**: le prime tre righe dei
+criteri sotto sono soddisfatte (collezione propria, niente lettura di tutti i documenti utente,
+niente concessione senza invito accettato — vedi `docs/planning/US-087-review.md`). **Resta solo
+l'ultima**: ricollegare la lettura vera di calendario e schede a un invito accettato, deliberatamente
+lasciata fuori da US-087 per non riaprire anche il tema delle categorie di consenso (US-092). Questa
+storia ora è solo quel pezzo, non il modello intero.
 
 > ⚠️ **Aperta il 2026-08-10**, come conseguenza dichiarata di US-018. La condivisione con gli amici **oggi non funziona**, e le regole pubblicate la lasciano chiusa deliberatamente.
 >
@@ -2282,14 +2287,17 @@ così da allenarmi con lui senza che nessuno possa leggere o modificare i dati d
 Dopo questa storia: si aggiunge un amico e si vedono le sue sessioni condivise, e nessun utente può leggere o scrivere il documento di un altro.
 
 **Acceptance Criteria**
-- [ ] Aggiungere un amico non richiede di scrivere sul suo documento: l'invito vive in una collezione propria, dove chi invita crea e chi è invitato accetta, oppure passa da una Cloud Function
-- [ ] Trovare un utente dal codice amico non richiede di poter leggere i documenti utente: il codice sta in una collezione con i soli campi necessari, oppure la ricerca la fa una Cloud Function
-- [ ] Le regole non contengono nessuna concessione di lettura o scrittura fra utenti diversi che non passi da un invito accettato
+- [x] Aggiungere un amico non richiede di scrivere sul suo documento: l'invito vive in una collezione propria, dove chi invita crea e chi è invitato accetta — fatto da US-087 (`invites`)
+- [x] Trovare un utente dal codice amico non richiede di poter leggere i documenti utente: il codice sta in una collezione con i soli campi necessari — fatto da US-087 (`invite_codes`)
+- [x] Le regole non contengono nessuna concessione di lettura o scrittura fra utenti diversi che non passi da un invito accettato — vero oggi per costruzione: nessuna regola diversa da `invites`/`invite_codes` referenzia il modello di invito
 - [ ] La condivisione del calendario e delle schede funziona di nuovo, con un test che dimostra che un utente non invitato **non** vede i dati
-- [ ] `firestore.rules` è aggiornato nello stesso commit del codice, e il deploy è verificato leggendo il ruleset attivo
+- [ ] `firestore.rules` è aggiornato nello stesso commit del codice che aggiunge quella lettura, e il deploy è verificato leggendo il ruleset attivo
 
 **Note**
-⚠️ **Non delegabile**: tocca le regole Firestore e la disposizione delle collezioni. Se la strada scelta è una Cloud Function, apre un pezzo di progetto che oggi non esiste — e va deciso prima, non durante.
+⚠️ **Non delegabile**: tocca le regole Firestore. Resta da decidere, quando si riprende questa
+storia: la lettura condivisa passa da un flag semplice (come `calendarSharedWith` di un tempo, ma
+verificato contro un invito accettato in `invites` invece che un array sul proprio documento) o
+aspetta le categorie di consenso di US-092? Deciderlo prima di scrivere le regole, non durante.
 
 ---
 
@@ -2541,8 +2549,8 @@ Dopo questa storia: un profilo può essere trainer, e chi non lo è non vede nul
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** US-086 | **Blocks:** US-088, US-089, US-090, US-091, US-092, US-080
-**Status:** 🔍 IN REVIEW — verdetto APPROVATA (`docs/planning/US-087-review.md`), deploy delle
-regole in attesa del via libera dell'utente
+**Status:** ✅ DONE — mergiata in `main` il 2026-09-13, regole pubblicate su `gymflow-d5d09` e
+verificate dall'API. Piano e review in `docs/planning/US-087.md`/`US-087-review.md`
 
 > **È la storia che decide se questa epica sta in piedi.** Le regole di US-018 danno a ogni utente **solo i propri dati**, e non esiste modo sicuro di concedere a un altro utente la scrittura sui tuoi senza un patto registrato. L'invito **è** quel patto: vive in una collezione propria, chi invita crea, chi è invitato accetta, e da quel momento le regole guardano il patto invece della lista di amici sul documento utente.
 >
@@ -2557,14 +2565,20 @@ così da poter lavorare sui suoi dati con il suo consenso, e senza che nessun al
 Dopo questa storia: un trainer invita, il cliente accetta, e le regole Firestore consentono esattamente quel legame e nessun altro.
 
 **Acceptance Criteria**
-- [ ] L'invito vive in una collezione propria: chi invita crea, chi è invitato accetta. Nessuno scrive sul documento utente di un altro
-- [ ] Trovare la persona da invitare **non richiede di leggere i documenti utente**: il codice sta in una collezione con i soli campi necessari
-- [ ] Un invito ha una scadenza, e uno scaduto non lega niente
-- [ ] Un invito si può rifiutare, e un legame si può sciogliere da **entrambe** le parti
-- [ ] Le regole non contengono nessuna concessione fra utenti diversi che non passi da un invito accettato
-- [ ] **Un test dimostra che un utente non invitato NON vede i dati**: è il criterio che conta più di tutti
-- [ ] `firestore.rules` è aggiornato nello stesso commit del codice, e il deploy è verificato leggendo il ruleset attivo dall'API — non fidandosi di «Deploy complete!»
-- [ ] Il meccanismo regge anche il caso amico↔amico, così US-080 non richiede un secondo modello
+- [x] L'invito vive in una collezione propria: chi invita crea, chi è invitato accetta. Nessuno scrive sul documento utente di un altro
+- [x] Trovare la persona da invitare **non richiede di leggere i documenti utente**: il codice sta in una collezione con i soli campi necessari
+- [x] Un invito ha una scadenza, e uno scaduto non lega niente
+- [x] Un invito si può rifiutare, e un legame si può sciogliere da **entrambe** le parti
+- [x] Le regole non contengono nessuna concessione fra utenti diversi che non passi da un invito accettato
+- [x] **Un test dimostra che un utente non invitato NON vede i dati**: è il criterio che conta più di tutti
+- [x] `firestore.rules` è aggiornato nello stesso commit del codice, e il deploy è verificato leggendo il ruleset attivo dall'API — non fidandosi di «Deploy complete!»
+- [x] Il meccanismo regge anche il caso amico↔amico, così US-080 non richiede un secondo modello
+
+**Nota di chiusura**: il meccanismo di invito è pronto e testato; **ricollegare la lettura effettiva
+di calendario/schede condivisi a un invito accettato resta fuori da questa storia** (dichiarato nel
+piano) — le regole di `sessions`/`programs`/`workouts`/`scheduled_workouts` restano owner-only.
+US-080 nel backlog va quindi intesa come "gli amici usano gli inviti", non come una storia a parte
+da pianificare di nuovo.
 
 ---
 
