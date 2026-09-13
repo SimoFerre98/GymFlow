@@ -39,6 +39,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isSavingSubscription = false;
+  // Creato una sola volta, non dentro build(): AuthService().getUserProfileStream()
+  // apre uno Stream nuovo a ogni chiamata, senza initialData — ricrearlo a ogni
+  // rebuild (es. il setState di _isSavingSubscription qui sotto) annullava la
+  // sottoscrizione precedente e faceva tornare per un istante l'intera schermata
+  // ai placeholder, prima che il nuovo stream emettesse il primo valore.
+  late final Stream<UserProfile?> _profileStream = AuthService().getUserProfileStream();
   Future<void> _pickSubscriptionDate(UserProfile? profile) async {
     final loc = ref.read(localizationNotifierProvider);
     final now = DateTime.now();
@@ -94,7 +100,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Positioned.fill(child: TimerAurora()),
           SafeArea(
             child: StreamBuilder<UserProfile?>(
-              stream: AuthService().getUserProfileStream(),
+              stream: _profileStream,
               builder: (context, snapshot) {
                 final profile = snapshot.data;
                 return Column(
@@ -436,7 +442,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildSignOut(BuildContext context, Localization loc, ImmersivoTokens t) {
     return InkWell(
       onTap: () async {
-        await AuthService().signOut();
+        try {
+          await AuthService().signOut();
+        } catch (e) {
+          if (context.mounted) {
+            ToastUtils.showError(context, '${loc.t('error_prefix')}: $e');
+          }
+          return;
+        }
         if (context.mounted) {
           Navigator.popUntil(context, (route) => route.isFirst);
         }
