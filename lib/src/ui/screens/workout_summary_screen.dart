@@ -65,15 +65,26 @@ class WorkoutSummaryScreen extends ConsumerWidget {
       calories: calories,
       avgHeartRate: avgHeartRate,
     );
+    final allSessions = ref.watch(dashboardSessionsProvider).value ?? const <WorkoutSession>[];
     final recordsList = records ??
         PersonalRecord.detectSessionRecords(
           session: session,
-          allSessions: ref.watch(dashboardSessionsProvider).value ?? [],
+          allSessions: allSessions,
         );
+    // L'obiettivo "N allenamenti a settimana" conta le sessioni recenti: con
+    // solo `session` (questa sessione sola) il conteggio non poteva mai
+    // superare 1, e riaprire dallo storico una sessione più vecchia di 7
+    // giorni azzerava un progresso vero. Passando tutte le sessioni note (più
+    // questa, se lo stream locale non l'ha ancora ripresa) il conteggio è
+    // sempre quello reale, sia dopo un allenamento appena concluso sia
+    // riaprendo una sessione passata.
+    final sessionsForGoals = allSessions.any((s) => s.id == session.id)
+        ? allSessions
+        : [session, ...allSessions];
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(userGoalsNotifierProvider.notifier)
-          .updateProgressFromSessions([session]);
+          .updateProgressFromSessions(sessionsForGoals);
     });
     return Scaffold(
       body: SafeArea(
