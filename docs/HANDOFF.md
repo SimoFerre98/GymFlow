@@ -1,6 +1,7 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-12 · **Commit:** `1a60331` su `main` (`dev` allineato in fast-forward).
+**Aggiornato:** 2026-09-13 · **Commit:** `667f3c0` su `main` (`dev` allineato in fast-forward). US-111
+è aperta su un branch di storia non ancora mergiato, vedi sezione 6.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -264,13 +265,20 @@ concluse — non fermarsi a `flutter test` verde.
 
 Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo file:
 
-1. **Far confermare all'utente sul telefono la nuova logica della Home** (punto 4 della lista sopra)
-   — installata il 2026-09-12, non ancora vista dal vivo.
-2. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
+1. **US-111 (cache locale Isar per schede/programmi/misure/programmazione) è in `IN REVIEW`, non
+   mergiata.** Branch `feature/US-111-isar-local-first-cache`, verdetto `APPROVATA` (piano e review
+   in `docs/planning/US-111.md`/`US-111-review.md`). APK installata sul telefono il 2026-09-13
+   (`firstInstallTime` invariato, dati conservati) — **in attesa che l'utente confermi due criteri
+   a mano**: nessuno spinner di ricaricamento riattivando la rete dopo un uso offline, e
+   comportamento invariato su Home/calendario/schede/misure/profilo. Solo dopo quella conferma
+   chiedere il via libera al merge (fase 6 di `WORKFLOW.md`) — non è stato ancora dato.
+2. **Sezione 9 qui sotto**: audit di copertura funzionale con le priorità dell'utente per i prossimi
+   passi dopo US-111 — leggerla prima di proporre la prossima storia.
+3. **Le due decisioni di prodotto della sezione 1** (card del record, filtro Recenti) restano
    dell'utente — chiederle prima di implementare qualcosa, non indovinare.
-3. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
+4. **Se l'utente lo richiede di nuovo**, riprendere la ricerca di ADR-002/mockup 05 su Claude Design
    ("Turno 3", turni 1-2 mancanti).
-4. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
+5. **Altrimenti**, tornare al backlog per la prossima storia eseguibile — **non fidarsi di un elenco
    scritto qui**: si ricava con `grep -n "^#### US-\|^\*\*Status:" docs/BACKLOG.md`, una storia è
    pronta quando tutte quelle in `Depends on` sono `✅ DONE`.
 
@@ -287,7 +295,84 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
 
 ---
 
-## 8. Verifica rapida all'inizio di una sessione
+## 8. Audit di copertura funzionale (2026-09-13) — cosa non copre l'app oggi
+
+Richiesto dall'utente durante la review di US-111, prima di pianificare qualunque storia nuova:
+"stiliamo cosa non copriamo con l'app e cosa potremmo fare". **Non sono ancora storie di backlog**:
+niente `US-XXX`, niente criteri di accettazione — solo la mappa da cui scegliere. Quando una di
+queste diventa una storia vera, va tolta da qui e messa in `BACKLOG.md`, non lasciata doppia.
+
+Verificato leggendo il codice (non la documentazione), il 2026-09-13.
+
+### Priorità dichiarate dall'utente (in quest'ordine, il 2026-09-13)
+
+L'utente vuole dare l'app a un amico e ad altre persone: questo rende alcune voci più urgenti di
+quanto lo sarebbero altrimenti, in particolare la sezione ⚠️ più sotto.
+
+1. **Notifiche/promemoria** — non esiste affatto. Manca perfino la libreria (`flutter_local_notifications`
+   non è in `pubspec.yaml`). Il solo canale di notifica esistente (`timer_notification_channel.dart`)
+   serve al countdown del recupero durante l'allenamento attivo, non a promemoria programmati. Un
+   allenamento programmato (`scheduled_workout.dart`) non genera mai un avviso.
+2. **Backup/esportazione dati** — non esiste affatto. Nessun CSV/PDF/JSON esportabile, nessun
+   backup/ripristino manuale, in nessuna schermata.
+3. **Trainer/clienti (EP-017)** — priorità alta, motivata dall'uso reale imminente. Solo **US-086**
+   (ruolo trainer/atleta sul profilo) è `✅ DONE`. Le sei storie che contano — invito (US-087, QR
+   US-088), elenco clienti (US-089), scheda cliente (US-090), andamento (US-091), consenso/revoca
+   (US-092) — sono tutte `⬜ TODO`, nessuna schermata cliente esiste ancora nel codice.
+4. **Usare l'RPE che già raccogliamo** — `WorkoutSet.rpe` (`workout.dart:12`) si raccoglie ad ogni
+   serie e c'è già una funzione scritta **e testata** (`StatisticsHelper.calculateAverageRPE`,
+   `statistics_helper.dart:137`, `test/statistics_helper_test.dart`) — ma **nessuna schermata la
+   chiama**. Un dato raccolto e mai mostrato come andamento nel tempo.
+5. **Sostituzione esercizi / infortuni** — non esiste affatto. Nessun modo di segnare un esercizio
+   come "da evitare" o di farsi proporre un'alternativa per lo stesso gruppo muscolare.
+6. **Accessibilità** — scarsa. `Semantics(` presente solo in 6 widget minori, assente in Home e
+   nella schermata di allenamento attivo. La scala dei caratteri di sistema
+   (`MediaQuery.textScaler`) non è mai gestita, né rispettata né bloccata: semplicemente ignorata.
+
+### ⚠️ Rilevante proprio perché si vuole condividere l'app con altre persone
+
+Non ancora decisioni, solo fatti da conoscere prima di distribuire l'app a chi non è l'utente stesso:
+
+- **Nessuna cancellazione account, e negata di proposito**: `firestore.rules:60`,
+  `allow delete: if false` su `users/{userId}`, con un commento che lo dichiara intenzionale.
+  Nessun percorso alternativo esiste per farla comunque.
+- **Nessuna esportazione/backup dati, nessun consenso GDPR, nessuna privacy policy in-app.** Il
+  mockup delle impostazioni generali mostra "Privacy e permessi" ed "Elimina account", ma dietro non
+  c'è nessun campo/provider/metodo reale (`general_settings_screen.dart:19-24`, commento esplicito).
+- **`Isar.open(...)` ha sempre `inspector: true`** (`database_provider.dart`), senza distinzione fra
+  debug e release — da verificare se va bene così prima di distribuire l'app a persone esterne.
+- **L'aggiunta di un amico per codice ha una falla architetturale nota**: chi cerca legge i
+  documenti di *tutti* gli utenti (`firestore.rules:8-15`, commento esplicito). **Già tracciata come
+  US-080** nel backlog — non è una scoperta nuova di questo audit, solo un fatto da tenere presente
+  nello stesso contesto.
+
+### Da valutare, non ancora scelte dall'utente
+
+- **Catalogo esercizi curati sbilanciato**: 43 esercizi totali, di cui 42 forza e **zero cardio**.
+  Tricipiti il gruppo più esile (4 esercizi, 1 senza immagine); petto il peggiore per immagini
+  mancanti (3 su 9). Fonte: `assets/data/exercises_seed.json`.
+- **Il form "Nuovo esercizio" personalizzato esiste ma è incompleto**: si può già creare un
+  esercizio proprio (`exercise_library_screen.dart:555` → `AddExerciseDialog`), ma il form fa
+  compilare solo nome e tipo — niente gruppo muscolare (salvato vuoto), niente immagine, niente
+  descrizione (fissa a "Custom exercise"). Un criterio della storia che l'ha introdotta (US-079,
+  `BACKLOG.md:2248`) non è mai stato confermato dal vivo: che l'esercizio sopravviva davvero al
+  riavvio dell'app con Firestore vero.
+- **Tipi di allenamento fissi**: `WorkoutType` ha 4 valori (forza, cardio, mobilità, sport),
+  calcolati automaticamente dalla categoria dell'esercizio — non scelti liberamente. Nessun modo di
+  distinguere bici/corsa/boxe/crossfit come sottotipi: ricadono tutti su "cardio".
+- **Foto di progresso**: non esiste. `image_picker` è già una dipendenza ma serve solo per la foto
+  profilo (`profile_screen.dart:79-80`); le misure corporee restano solo numeri.
+- **Localizzazione cablata a due lingue**: `localization_provider.dart` è due mappe statiche
+  (`_en`/`_it`, ~550 chiavi ciascuna) scelte con un ternario su `languageCode == 'it'`. Aggiungerne
+  una terza richiede modificare quel ternario e tradurre ~550 chiavi a mano, non un file di
+  traduzione da affiancare.
+- **Nessun onboarding guidato**: dopo la registrazione si arriva dritti sulla Home (empty state se
+  non c'è ancora un programma). Nessun wizard profilo/obiettivi, nessuna scheda di esempio
+  precompilata — il primo utente crea tutto da zero.
+
+---
+
+## 9. Verifica rapida all'inizio di una sessione
 
 ```bash
 git status --porcelain
@@ -298,4 +383,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-12 sul commit `1a60331`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `667f3c0`, branch `main`_
