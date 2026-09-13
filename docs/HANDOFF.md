@@ -1,6 +1,6 @@
 # GymFlow — passaggio di consegne
 
-**Aggiornato:** 2026-09-13 · **Commit:** `2ea55ef` su `main` (`dev` allineato in fast-forward,
+**Aggiornato:** 2026-09-13 · **Commit:** `b35707f` su `main` (`dev` allineato in fast-forward,
 entrambi pubblicati su `origin`). US-111 e US-087 sono entrambe mergiate. Dei sette difetti minori
 segnalati durante la prima prova di US-111, tutti e sette sono sistemati nel codice. Una seconda
 prova sullo stesso APK (prima che i sette fix fossero confermati uno per uno) ha segnalato **altri
@@ -9,12 +9,15 @@ resta **non individuato** — vedi sezione 6, punto 2b.
 
 **L'utente ha poi chiesto di proseguire in autonomia** (anche a telefono scollegato, aspettando i
 limiti di sessione se esauriti) invece di fermarsi a ogni difetto: la sessione ha continuato a
-rivedere il resto dell'app, non solo quanto segnalato, trovando e sistemando **altri sei difetti
-concreti** (non stilistici) in `active_session_screen.dart`, `calendar_screen.dart`,
-`workout_summary_screen.dart` e `firestore_service.dart` — vedi sezione 6, punto 2c. **Nessuno dei
-diciotto fix totali di oggi è stato ancora confermato sul telefono**: l'`adb` non ha rilevato il
-device per gran parte di questa sessione — build, test e commit sono comunque proseguiti, ma la
-prova reale resta da fare appena il telefono torna raggiungibile.
+rivedere sistematicamente il resto dell'app, non solo quanto segnalato, in due passate successive.
+Prima passata: **sei difetti concreti** in `active_session_screen.dart`, `calendar_screen.dart`,
+`workout_summary_screen.dart` e `firestore_service.dart` — vedi sezione 6, punto 2c. Seconda
+passata (sette schermate mai riviste finora): **altri cinque difetti**, il più grave dei quali
+faceva risultare "raggiunti" obiettivi utente completamente scollegati dall'allenamento fatto — vedi
+sezione 6, punto 2d. **Nessuno dei ventidue fix totali di oggi è stato ancora confermato sul
+telefono**: l'`adb` non ha rilevato il device per gran parte di questa sessione — build, test e
+commit sono comunque proseguiti, ma la prova reale resta da fare appena il telefono torna
+raggiungibile.
 
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
@@ -398,6 +401,43 @@ Le priorità, in ordine, così come emerse dalla sessione che ha scritto questo 
      il filtro.
    - **Nessuno di questi sei fix è stato ancora installato sul telefono**: stesso stato del punto
      2b, `adb` non ha mai rilevato il device in questa sessione.
+2d. **Ancora col telefono scollegato, una seconda passata dell'agente su sette schermate mai
+   riviste** (`workout_creator_screen.dart`, `exercise_detail_screen.dart`, `gym_settings_screen.dart`,
+   `health_detail_screen.dart`, `statistics_screen.dart`, `gamification_screen.dart`,
+   `goals_screen.dart`) ha trovato altri cinque difetti concreti — due file (`exercise_detail_screen.dart`,
+   `gym_settings_screen.dart`) non ne avevano nessuno, verificato di persona:
+   - ✅ **Il più grave**: un obiettivo utente senza esercizio collegato poteva risultare "raggiunto al
+     100%" per un allenamento completamente scollegato (commit `7827f04`) — `goals_screen.dart`
+     ("Nuovo obiettivo") crea sempre `GoalType.targetLoad`, qualunque titolo/unità scelga l'utente, e
+     non lascia mai associare un esercizio (`exerciseId` sempre nullo). Un obiettivo "Corri 10 km"
+     risultava "100% raggiunto" sollevando 60 kg in uno squat, perché `updateProgressFromSessions`
+     interpretava `exerciseId == null` come "va bene qualunque esercizio". Ora un obiettivo
+     `targetLoad` senza esercizio non viene più toccato — non risolve la causa (manca un selettore di
+     tipo/esercizio in fase di creazione, una decisione di prodotto, non una correzione meccanica).
+     Due test in `test/goals_provider_test.dart`.
+   - ✅ **La media di battito e peso includeva i giorni senza dato come zero** (commit `9a2fc84`) —
+     un peso registrato una volta a settimana faceva scendere la "media" mostrata a un settimo del
+     valore reale, e lo stesso zero artificiale schiacciava sempre a 0 il minimo del grafico a linea.
+     Estratta `riempiDatiSalute` in `health_detail_screen.dart`, tre test. Sistemato nello stesso
+     commit anche un difetto minore collegato: la freccia "mese successivo" restava attiva anche sul
+     mese corrente.
+   - ✅ **Modificare un esercizio con superserie ne perdeva l'assegnazione** (commit `a746d2d`) —
+     `_ExerciseConfigurationSheetState` non riportava `superSetGroup` ricostruendo l'esercizio.
+     **Impatto oggi limitato**: nessuna schermata scrive o mostra `superSetGroup` (verificato con
+     grep su tutto `lib/src/ui/`), quindi riguarda solo dati preesistenti con superserie assegnata
+     altrove — sistemato comunque, costo nullo.
+   - ✅ **Streak e badge in "Traguardi" leggevano una fonte diversa dal resto dell'app** (commit
+     `b35707f`) — `gamification_screen.dart` usava uno `StreamBuilder` diretto su
+     `FirestoreService().getUserSessions`, non `dashboardSessionsProvider` (cache locale Isar
+     offline-first, US-111) come Home e Statistiche: un allenamento appena chiuso o fatto offline
+     comparivano subito altrove ma non ancora qui. **Non testabile** con un widget test — la
+     schermata istanzia `AuthService` direttamente, debito US-008 non coperto da questo fix.
+   - **Trovato ma non sistemato, per scelta**: `WorkoutTypePieChart` (`charts/workout_type_pie_chart.dart`)
+     e `WorkoutReceipt` (`workout_receipt.dart`) risultano codice morto, come `app_drawer.dart` già
+     segnalato prima — nessuna schermata li istanzia più. Segnalato come task separato
+     (`task_6dd6d8e4`), non toccato da questa sessione.
+   - **Nessuno di questi cinque fix è stato ancora installato sul telefono**: stesso stato dei punti
+     precedenti.
 3. **`../CLAUDE.md` ha un numero disallineato, trovato verificando l'analyzer per il fix del punto
    2**: dice "il baseline è 6, tutti `deprecated_member_use`, US-102 resta aperta per quelli" — ma
    `docs/BACKLOG.md:2988` segna **US-102 ✅ DONE** e `flutter analyze` su `main` (`6a41d36`) dà
@@ -554,4 +594,4 @@ adb devices -l                                        # il telefono è ancora la
 
 ---
 
-_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `2ea55ef`, branch `main`_
+_Documento di passaggio · GymFlow · aggiornato il 2026-09-13 sul commit `b35707f`, branch `main`_
