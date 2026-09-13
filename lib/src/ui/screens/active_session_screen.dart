@@ -68,6 +68,43 @@ bool esercizioFinito(WorkoutExercise esercizio) {
   if (esercizio.sets.isEmpty) return false;
   return esercizio.sets.every((serie) => serie.isCompleted);
 }
+/// Il recupero specifico per una serie appena completata, cercando lo slot
+/// della scheda a cui appartiene per **posizione**, non per `exerciseId`.
+///
+/// La stessa scheda può avere lo stesso esercizio due volte — un
+/// riscaldamento leggero e un blocco pesante a fine seduta, per esempio —
+/// con recuperi diversi. Cercare per `exerciseId` trova sempre il primo dei
+/// due slot, dando al secondo il recupero del primo. [sessionExercises] e
+/// [templateExercises] sono costruite l'una dall'altra con una `.map()` 1:1
+/// (vedi `initState`), quindi la stessa posizione corrisponde sempre allo
+/// stesso slot della scheda.
+///
+/// Restituisce `null` se questa serie non ha un recupero specifico: chi
+/// chiama ricade sul recupero generico delle impostazioni.
+///
+/// Sta fuori dalla schermata per lo stesso motivo di [esercizioFinito]:
+/// `ActiveSessionScreen` non si monta in un test, debito di US-008.
+int? recuperoDellaSerie({
+  required List<WorkoutExercise> sessionExercises,
+  required List<WorkoutTemplateExercise> templateExercises,
+  required WorkoutExercise exercise,
+  required WorkoutSet set,
+}) {
+  final exerciseIndex = sessionExercises.indexOf(exercise);
+  final templateExercise = exerciseIndex >= 0 && exerciseIndex < templateExercises.length
+      ? templateExercises[exerciseIndex]
+      : null;
+  if (templateExercise == null) return null;
+  final currentSetIndex = exercise.sets.indexOf(set);
+  if (currentSetIndex >= 0 && currentSetIndex < templateExercise.plannedSets.length) {
+    final perSetRest = templateExercise.plannedSets[currentSetIndex].restSeconds;
+    if (perSetRest != null) return perSetRest;
+  }
+  if (templateExercise.restSeconds != null && templateExercise.restSeconds! > 0) {
+    return templateExercise.restSeconds;
+  }
+  return null;
+}
 /// Precompila peso/ripetizioni della sessione in corso con quelli
 /// dell'ultima volta che questo allenamento è stato fatto, **solo sulle
 /// serie non ancora spuntate**.
@@ -529,25 +566,13 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
     if (!isCompleted) return;
     final timerSettings = ref.read(timerSettingsNotifierProvider);
     if (!timerSettings.autoRestEnabled) return;
-    WorkoutTemplateExercise? templateExercise;
-    for (final e in widget.workout.exercises) {
-      if (e.exerciseId == exercise.exerciseId) {
-        templateExercise = e;
-        break;
-      }
-    }
-    int? perSetRest;
-    final currentSetIndex = exercise.sets.indexOf(set);
-    if (currentSetIndex >= 0 &&
-        templateExercise != null &&
-        currentSetIndex < templateExercise.plannedSets.length) {
-      perSetRest = templateExercise.plannedSets[currentSetIndex].restSeconds;
-    }
-    final restSeconds = perSetRest ??
-        ((templateExercise?.restSeconds != null &&
-                templateExercise!.restSeconds! > 0)
-            ? templateExercise.restSeconds!
-            : timerSettings.restSecondsForReps(set.reps));
+    final restSeconds = recuperoDellaSerie(
+          sessionExercises: _sessionExercises,
+          templateExercises: widget.workout.exercises,
+          exercise: exercise,
+          set: set,
+        ) ??
+        timerSettings.restSecondsForReps(set.reps);
     if (restSeconds > 0) {
       final timerNotifier = ref.read(timerNotifierProvider.notifier);
       timerNotifier.startTimerWithDuration(Duration(seconds: restSeconds));
