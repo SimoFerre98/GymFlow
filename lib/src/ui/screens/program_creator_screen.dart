@@ -30,6 +30,22 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
   DateTime? _endDate;
   int _selectedColor = AppPalette.defaultProgramColor;
   bool _isLoading = false;
+  /// Creato una sola volta, non dentro build(): `FirestoreService().getProgramStream(...)`
+  /// apre uno Stream nuovo a ogni chiamata — ricrearlo a ogni rebuild (es. il
+  /// setState di _isLoading durante il salvataggio) annullerebbe la
+  /// sottoscrizione e mostrerebbe per un istante lo spinner di caricamento al
+  /// posto dei giorni già mostrati, come già successo in settings_screen.dart.
+  /// `late`: valutato solo se `widget.program != null`, l'unico caso in cui è usato.
+  late final Stream<WorkoutProgram> _programStream =
+      FirestoreService().getProgramStream(widget.program!.id);
+  /// L'ultimo programma noto dal vivo (dallo `StreamBuilder` su
+  /// `_programStream`): usato da `_saveProgram` per non sovrascrivere
+  /// `workoutIds` con lo snapshot preso all'apertura dello schermo
+  /// (`widget.program`, fisso), che riordinare/aggiungere/eliminare un
+  /// giorno aggiornano solo su Firestore, mai su `widget.program` stesso —
+  /// senza questo, toccare "Salva" dopo un riordino nella stessa sessione
+  /// annullava silenziosamente il riordino appena fatto.
+  WorkoutProgram? _latestProgram;
   @override
   void initState() {
     super.initState();
@@ -74,7 +90,7 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
         userId: user.uid,
         name: _nameController.text.trim(),
         description: _descController.text.trim(),
-        workoutIds: widget.program?.workoutIds ?? [],
+        workoutIds: _latestProgram?.workoutIds ?? widget.program?.workoutIds ?? [],
         isActive: widget.program?.isActive ?? true,
         createdAt: widget.program?.createdAt ?? DateTime.now(),
         startDate: _startDate,
@@ -227,8 +243,13 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
                     _buildField(
                       controller: _nameController,
                       label: loc.t('program_name'),
-                      validator: (v) =>
-                          v == null || v.isEmpty ? loc.t('name_required') : null,
+                      // .trim(), non v.isEmpty sulla stringa grezza: _saveProgram
+                      // salva name: _nameController.text.trim(), quindi un campo
+                      // di soli spazi passava questa convalida ("obbligatorio")
+                      // e finiva comunque su Firestore con un titolo vuoto.
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? loc.t('name_required')
+                          : null,
                     ),
                     SizedBox(height: t.spacing.md),
                     _buildField(
@@ -325,12 +346,13 @@ class _ProgramCreatorScreenState extends ConsumerState<ProgramCreatorScreen> {
               // Days Section (Workouts)
               if (widget.program != null)
                 StreamBuilder<WorkoutProgram>(
-                  stream: FirestoreService().getProgramStream(widget.program!.id),
+                  stream: _programStream,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     final currentProgram = snapshot.data!;
+                    _latestProgram = currentProgram;
                     final allWorkouts =
                         ref.watch(localWorkoutsProvider).value ?? const <WorkoutTemplate>[];
                     final programWorkouts = <WorkoutTemplate>[];
