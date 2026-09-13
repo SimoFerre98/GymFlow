@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../core/providers/timer_settings_provider.dart';
@@ -242,9 +243,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               subtitle: loc.t('sync_steps'),
                               isLast: true,
                               onTap: () async {
-                                final success = await HealthService().requestPermissions();
-                                if (context.mounted && success) {
+                                bool success;
+                                try {
+                                  success = await HealthService().requestPermissions();
+                                } catch (_) {
+                                  if (context.mounted) {
+                                    ToastUtils.showError(
+                                      context,
+                                      loc.t('permissions_request_failed'),
+                                    );
+                                  }
+                                  return;
+                                }
+                                if (!context.mounted) return;
+                                if (success) {
                                   ToastUtils.showSuccess(context, loc.t('permissions_granted'));
+                                } else {
+                                  // Silenzio altrimenti: `requestPermissions` torna false
+                                  // sia se l'SDK manca sia se l'utente ha gia negato due
+                                  // volte (Android non richiede piu), e in nessuno dei due
+                                  // casi un altro tocco su questo tasto puo bastare da solo.
+                                  ToastUtils.showError(
+                                    context,
+                                    loc.t('permissions_denied_settings'),
+                                  );
+                                  await openAppSettings();
                                 }
                               },
                             ),
