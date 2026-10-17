@@ -499,6 +499,42 @@ test('consenso: solo il cliente cambia i grants, e nient altro del documento', a
   await assertFails(updateDoc(doc(c.firestore(), 'consents/t_c'), { inviteId: 'altro' }));
 });
 
+test('consenso: la scrittura a percorso (`grants.sessions`) usata dall app passa, una categoria alla volta', async () => {
+  // E' esattamente cio' che fa `FirestoreService.setConsentGrant`: scrive la
+  // sola chiave della categoria, cosi' un valore vecchio dell'altra non la
+  // riporta indietro.
+  await legameTrainerCliente();
+  const c = testEnv.authenticatedContext('c');
+  const t = testEnv.authenticatedContext('t');
+
+  await assertSucceeds(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), {
+      'grants.sessions': true,
+      updatedAt: Timestamp.now(),
+    }),
+  );
+  await assertSucceeds(sessioniDi(t, 'c'));
+  await assertFails(misureDi(t, 'c'));
+
+  await assertSucceeds(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), {
+      'grants.measurements': true,
+      updatedAt: Timestamp.now(),
+    }),
+  );
+  // La seconda scrittura non ha toccato la prima.
+  await assertSucceeds(sessioniDi(t, 'c'));
+  await assertSucceeds(misureDi(t, 'c'));
+
+  // Il trainer non puo' farlo, nemmeno con lo stesso percorso.
+  await assertFails(
+    updateDoc(doc(t.firestore(), 'consents/t_c'), {
+      'grants.sessions': false,
+      updatedAt: Timestamp.now(),
+    }),
+  );
+});
+
 test('consenso: dopo lo scioglimento i grants non si possono piu cambiare', async () => {
   await legameTrainerCliente({ sessions: true }, { statoInvito: 'revoked' });
   const c = testEnv.authenticatedContext('c');
