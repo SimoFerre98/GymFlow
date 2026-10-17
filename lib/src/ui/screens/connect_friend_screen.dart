@@ -78,6 +78,10 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
       if (invite != null) {
         ToastUtils.showSuccess(context, loc.t('invite_sent_msg'));
         _codeController.clear();
+        // Si spegne a ogni invio: un invito d'amicizia mandato dopo uno da
+        // cliente non deve partire per sbaglio come invito da cliente, che
+        // chiede al destinatario di decidere cosa condividere.
+        setState(() => _inviteAsClient = false);
       } else {
         ToastUtils.showError(context, loc.t('invite_code_not_found'));
       }

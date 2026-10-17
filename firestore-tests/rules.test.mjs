@@ -474,6 +474,35 @@ test('consenso: lo leggono il cliente e il trainer, nessun altro', async () => {
   await assertFails(getDoc(doc(x.firestore(), 'consents/t_c')));
 });
 
+test('consenso: le query dell app — "i miei consensi" da cliente e da trainer — sono permesse', async () => {
+  // `FirestoreService.consentsOfClient` e' una query, non un `get`: le regole
+  // devono poter dimostrare che ogni risultato e' leggibile da chi chiede.
+  await legameTrainerCliente({ sessions: true });
+  const c = testEnv.authenticatedContext('c');
+  const t = testEnv.authenticatedContext('t');
+  const x = testEnv.authenticatedContext('x');
+
+  const comeCliente = await assertSucceeds(
+    getDocs(query(collection(c.firestore(), 'consents'), where('clientUserId', '==', 'c'))),
+  );
+  assert.equal(comeCliente.size, 1);
+
+  // Il trainer vede i consensi che lo riguardano (serve a US-091).
+  const comeTrainer = await assertSucceeds(
+    getDocs(query(collection(t.firestore(), 'consents'), where('trainerUserId', '==', 't'))),
+  );
+  assert.equal(comeTrainer.size, 1);
+
+  // Nessuno interroga i consensi di un altro, ne' li elenca tutti.
+  await assertFails(
+    getDocs(query(collection(x.firestore(), 'consents'), where('clientUserId', '==', 'c'))),
+  );
+  await assertFails(
+    getDocs(query(collection(c.firestore(), 'consents'), where('clientUserId', '==', 'x'))),
+  );
+  await assertFails(getDocs(collection(c.firestore(), 'consents')));
+});
+
 test('consenso: solo il cliente cambia i grants, e nient altro del documento', async () => {
   await legameTrainerCliente();
   const c = testEnv.authenticatedContext('c');
