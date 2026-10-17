@@ -29,6 +29,39 @@ Home che mostrava "Raggiunto!" per obiettivi mancati o ancora aperti) — vedi s
 rilevato il device per gran parte di questa sessione — build, test e commit sono comunque
 proseguiti, ma la prova reale resta da fare appena il telefono torna raggiungibile.
 
+## Aggiornamento 2026-10-17 — leggere prima del resto di questa intestazione
+
+Scritto dopo un mese di pausa dall'ultimo commit (13/9). Il resto del file è ancora valido salvo dove
+smentito qui.
+
+- **`main` e `dev` sono pubblicati** e allineati. Analyzer a **0 avvisi**, suite verde (1046 test).
+  US-112 (cassetto morto) è mergiata. **Le ~30 correzioni del 13/9 non sono ancora state provate sul
+  telefono**: il 17/10 `adb` ha perso il device (compare su USB in modalità MTP: serve sbloccarlo,
+  riattivare il debug USB, accettare la richiesta).
+- **Il «colore secondario sbagliato in modalità chiara» (punto 2b) era un altro difetto**: nel tema
+  chiaro l'accento scelto dall'utente non guidava `primary` (restava il tono fisso della palette), solo
+  `primaryContainer`. Corretto (commit `6d5c8bb`, `AppThemeStyle.accentOnLightFor`). **Non toccato**: il
+  ruolo `secondary` resta sotto 4,5:1 come testo in tutte le palette (3,7–4,6) e `onSecondary` sul suo
+  fondo nel chiaro è 3,3–4,2.
+- **US-092 (consenso del cliente) è in review** sul branch `feature/US-092-client-consent`, non ancora
+  mergiata. **Decisione: le categorie sono due, non quattro** (sessioni complete; peso e misure),
+  perché una regola Firestore concede un documento intero e `sessions/{id}` contiene date, carichi,
+  RPE e note insieme. Tornare a quattro richiede copie per categoria a ogni sessione (storia nuova).
+  **Le regole sono già pubblicate** su `gymflow-d5d09`; manca la prova sul telefono con **due account**
+  (uno con ruolo trainer). Piano e review: `docs/planning/US-092.md`, `US-092-review.md`.
+- **Trappola, `flutter` non parte** in Claude Code (`snap-confine ... cap_dac_override`, anche dal
+  pannello Terminale: il processo ha `NoNewPrivs`). L'SDK vero è una cartella utente:
+  `export PATH="$HOME/snap/flutter/common/flutter/bin:$PATH"`.
+- **Trappola, il deploy delle regole poteva non fare niente dicendo «Deploy complete!»**: con
+  `firebase.json` a configurazione multi-database, `--only firestore:rules` è letto come un database
+  di nome «rules». Il comando giusto è
+  `firebase deploy --only firestore:gymflow:rules --project gymflow-d5d09` (manca `.firebaserc`). La
+  verifica è `node firestore-tests/verify-deploy.mjs`, che ora confronta il ruleset attivo con
+  `firestore.rules` per intero (prima cercava solo delle stringhe e dava «Verificato» anche a deploy
+  non fatto).
+- `build_runner` cambia l'hash di `goals_provider.g.dart` e `timer_service.g.dart` (i sorgenti furono
+  modificati dai fix di settembre senza rigenerare): rumore, non va committato dentro una storia.
+
 Questo file serve a chi riprende il lavoro **senza la cronologia della conversazione** — umano o
 assistente AI, e su qualunque macchina: la sessione che ha scritto questa versione girava su una
 macchina Linux personale, non più sul PC Windows citato nelle versioni precedenti di questo file,
