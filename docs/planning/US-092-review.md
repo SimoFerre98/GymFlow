@@ -1,9 +1,9 @@
 # Review US-092
 
-**Verdetto: APPROVATA CON RISERVE** — nessun rilievo bloccante sul codice. Le riserve sono tre
-condizioni prima di dire «finita»: il **deploy delle regole** (non fatto, serve il tuo sì), la **prova
-sul telefono con due account** (non fatta, il telefono non è raggiungibile da `adb`), e due decisioni
-di prodotto segnalate sotto.
+**Verdetto: APPROVATA CON RISERVE** — nessun rilievo bloccante sul codice. Le riserve sono due
+condizioni prima di dire «finita»: la **prova sul telefono con due account** (non fatta, il telefono
+non è raggiungibile da `adb`) e due decisioni di prodotto segnalate sotto. **Il deploy delle regole è
+fatto** (2026-10-17, dopo il tuo via libera) e verificato dall'API: vedi «Deploy».
 
 La review è un'**autoverifica**: chi ha scritto il codice è anche chi lo rivede. Per compensare sono
 partito dal diff (`git diff main...HEAD`, 14 file) e ho **rotto di proposito le regole e il codice**
@@ -15,7 +15,7 @@ per vedere i test diventare rossi — vedi «Cosa ha trovato la rottura di propo
 |---|---|---|
 | Il cliente vede chi lo segue e **cosa** vede, in parole | ⬜ **Da confermare sull'APK** | Implementato: riga in elenco («Ti segue come trainer» + «Vede: …») e sezione nel dettaglio. Provato solo `consentSummaryKey` (4 combinazioni, `test/consent_test.dart`) e il foglio come widget. **Non provato**: che `connect_friend_screen.dart` mostri la riga giusta con un consenso vero (la schermata istanzia Firebase, non si monta in un test — debito US-008) |
 | Le categorie si concedono e si revocano una per una | ✅ regole · ⬜ giro a schermo | Emulatore: con solo `sessions` il trainer legge le sessioni e **non** le misure, e viceversa; la scrittura a percorso `grants.sessions` usata dall'app tocca una categoria senza muovere l'altra. Widget: ogni interruttore chiama solo la propria categoria |
-| La revoca ha effetto **nelle regole**, un test dimostra che la lettura viene negata | ✅ sull'emulatore · ⬜ in produzione dopo il deploy | Test «la revoca vale subito»: la **stessa query** che passava ora è negata, per le sessioni e poi per le misure |
+| La revoca ha effetto **nelle regole**, un test dimostra che la lettura viene negata | ✅ sull'emulatore · ✅ regole pubblicate (testo identico, verificato dall'API) | Test «la revoca vale subito»: la **stessa query** che passava ora è negata, per le sessioni e poi per le misure |
 | Sciogliere il legame revoca tutto, il trainer smette di comparire | ✅ sull'emulatore | Due casi: batch completo (invito `revoked` + consenso cancellato) → negato; **solo** invito `revoked` con consenso rimasto → negato comunque (la cintura). La lista dei legami esclude già gli `revoked` (US-087) |
 | Accettando, il cliente vede cosa concede **prima** di confermare | ✅ foglio · ⬜ cablaggio | Widget: il foglio mostra titolo e descrizione di entrambe le categorie e cosa resta privato, gli interruttori partono spenti, «Annulla» restituisce `null` e «Accetta» restituisce ciò che è acceso. **Non provato**: che il tocco su «Accetta» apra il foglio e che la scrittura avvenga solo dopo la conferma |
 
@@ -39,10 +39,9 @@ volta con un test che doveva diventare rosso.
 ### 🔴 Bloccanti
 Nessuno sul codice.
 
-**Una condizione operativa, non un difetto:** finché le regole non sono pubblicate, l'accettazione di
-un invito `trainer_client` dall'APK fallisce con permesso negato (il consenso non ha ancora una regola
-che lo ammetta). Gli inviti fra amici, e tutto il resto, non cambiano. Quindi: **prima il deploy, poi
-l'APK sul telefono**.
+**Una condizione operativa, ora soddisfatta:** senza le regole pubblicate, l'accettazione di un invito
+`trainer_client` dall'APK fallirebbe con permesso negato. Le regole sono pubblicate (vedi «Deploy»),
+quindi l'APK si può provare.
 
 ### 🟡 Da valutare — decisioni tue
 1. **Gli interruttori partono spenti.** Chi accetta e non accende nulla crea un legame in cui il
@@ -76,6 +75,27 @@ l'APK sul telefono**.
 8. `connect_friend_screen.dart` ha ormai quasi 600 righe: l'elenco delle connessioni meriterebbe un
    widget a sé. Non l'ho spostato: sarebbe un rifacimento fuori mandato.
 
+## Deploy (2026-10-17)
+
+Autorizzato esplicitamente dall'utente. Tre cose da sapere:
+
+1. **Il primo deploy non ha fatto niente, e ha detto «Deploy complete!».** Con `firebase.json` a
+   configurazione multi-database (`"firestore": [{"database": "gymflow", ...}]`), `--only
+   firestore:rules` viene letto come un database di nome «rules» e non corrisponde a niente: la CLI
+   controlla solo i permessi sugli indici e finisce. L'ho scoperto perché la verifica dall'API mostrava
+   ancora il ruleset vecchio (stesso identificativo, 8911 caratteri). **Il comando giusto è
+   `firebase deploy --only firestore:gymflow:rules --project gymflow-d5d09`** (nel repository non c'è
+   `.firebaserc`, quindi `--project` serve).
+2. **`verify-deploy.mjs` non verificava niente di nuovo.** Cercava solo le stringhe di US-087, quindi
+   dava «Verificato» **anche prima** del deploy. Ora cerca anche `match /consents/{consentId}` e
+   confronta il ruleset attivo con `firestore.rules` riga per riga: prima del deploy fallisce, dopo
+   passa. È una modifica fuori dai file del piano, fatta perché senza la verifica chiesta dall'utente
+   non avrebbe dimostrato nulla.
+3. **Esito.** Dopo il deploy giusto la release `cloud.firestore/gymflow` punta al ruleset
+   `de1ea62f-2f1c-4226-87bf-00aa6ae2942b` (14236 caratteri), **identico a `firestore.rules`**; era
+   `db618dd7-7e71-44f6-9ac2-314732b9ed59`. Il vecchio ruleset resta come cronologia: un ripristino è
+   `firebase deploy` di una versione precedente del file.
+
 ## Fuori scope rilevato
 
 - Il **`secondary` del tema chiaro** è sotto 4,5:1 come testo, e `onSecondary` su fondo `secondary`
@@ -105,6 +125,7 @@ le regole di `invites`, `invite_codes`, `workouts`, `programs`, `scheduled_worko
   MTP), e il giro completo (invito → foglio → interruttori → revoca → scioglimento) richiede **due
   account**, uno con ruolo trainer. Non verificati: aspetto del foglio, disposizione della riga in
   elenco, comportamento del tema chiaro, lettori di schermo.
-- **Le regole non sono pubblicate.** I test girano contro l'emulatore (`demo-gymflow-test`), mai
-  contro il progetto vero.
+- **Le regole sono pubblicate e verificate per identità del testo, non per comportamento.** I test
+  girano contro l'emulatore (`demo-gymflow-test`); nessun client vero ha ancora esercitato le regole
+  nuove in produzione.
 - Il **costo** dei `get()` nelle regole e il comportamento offline del consenso non sono stati misurati.

@@ -2687,7 +2687,7 @@ Dopo questa storia: il trainer apre un cliente e vede allenamenti, carichi, misu
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5 _(erano 3: il piano ha trovato che le regole non separano i campi di un documento)_
 **Depends on:** US-087 | **Blocks:** US-091
-**Status:** 🔍 IN REVIEW — ⚠️ **non delegabile** (regole Firestore). Piano e review in `docs/planning/US-092.md` / `US-092-review.md`. **Regole non ancora pubblicate**: serve il via libera al deploy.
+**Status:** 🔍 IN REVIEW — ⚠️ **non delegabile** (regole Firestore). Piano e review in `docs/planning/US-092.md` / `US-092-review.md`. **Regole pubblicate il 2026-10-17** su `gymflow-d5d09` (ruleset `de1ea62f…`, identico a `firestore.rules`, verificato dall'API). Manca la prova sul telefono con due account.
 
 > **Viene prima di US-091, non dopo.** Un consenso aggiunto sopra una funzione che già mostra tutto è un consenso finto: le regole devono nascere già per categoria.
 >
@@ -2704,7 +2704,7 @@ Dopo questa storia: il cliente vede cosa condivide, cambia idea quando vuole, e 
 **Acceptance Criteria**
 - [ ] Il cliente vede l'elenco di chi lo segue e **cosa** vede ciascuno, in parole comprensibili — _implementato, da confermare sull'APK_
 - [x] Le due categorie (sessioni complete; peso e misure) si concedono e si revocano una per una — _regole provate sull'emulatore; giro a schermo da confermare sull'APK_
-- [x] La revoca ha effetto **nelle regole**, non solo nell'interfaccia: un test dimostra che la lettura viene negata — _provato sull'emulatore; in produzione dopo il deploy_
+- [x] La revoca ha effetto **nelle regole**, non solo nell'interfaccia: un test dimostra che la lettura viene negata — _provato sull'emulatore; regole pubblicate e verificate dall'API_
 - [x] Sciogliere il legame revoca tutto, e il trainer smette di comparire — _provato sull'emulatore, anche con il consenso rimasto_
 - [ ] Quando accetta un invito, il cliente vede chiaramente cosa sta concedendo prima di confermare — _foglio provato come widget; cablaggio da confermare sull'APK_
 
