@@ -38,6 +38,25 @@ final outgoingInvitesProvider =
 );
 
 typedef _$OutgoingInvites = AutoDisposeStreamNotifier<List<Invite>>;
+String _$consentsOfClientHash() => r'03041f07de18530f26f6d73944ea3d15592e0c2b';
+
+/// I consensi che ho dato da cliente (US-092): a chi, e cosa. Uno per ogni
+/// trainer che mi segue.
+///
+/// Copied from [ConsentsOfClient].
+@ProviderFor(ConsentsOfClient)
+final consentsOfClientProvider =
+    AutoDisposeStreamNotifierProvider<ConsentsOfClient, List<Consent>>.internal(
+  ConsentsOfClient.new,
+  name: r'consentsOfClientProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$consentsOfClientHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ConsentsOfClient = AutoDisposeStreamNotifier<List<Consent>>;
 String _$acceptedRelationshipsHash() =>
     r'f53334c4dffe55c42237484b91024a109cd2eb7f';
 
