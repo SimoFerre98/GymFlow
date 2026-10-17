@@ -2663,7 +2663,7 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 **Depends on:** US-089, US-092 | **Blocks:** —  _(nessuna)_
 **Status:** ⬜ TODO
 
-> Le quattro categorie sono state scelte dall'utente il 2026-08-10: **allenamenti e date, carichi e progressi, peso e misure, note e sensazioni.** Dipende da US-092 e non il contrario: il consenso esiste prima di ciò che ne approfitta.
+> Le quattro categorie scelte dall'utente il 2026-08-10 (**allenamenti e date, carichi e progressi, peso e misure, note e sensazioni**) sono diventate **due il 2026-10-17**, vedi US-092: le regole Firestore non separano i campi di una sessione. Qui valgono le due che le regole sanno applicare: **sessioni complete** e **peso e misure**. Dipende da US-092 e non il contrario: il consenso esiste prima di ciò che ne approfitta.
 
 **Story**
 Come trainer,
@@ -2685,11 +2685,13 @@ Dopo questa storia: il trainer apre un cliente e vede allenamenti, carichi, misu
 
 #### US-092: Il cliente decide cosa condivide, e lo revoca
 
-**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5 _(erano 3: il piano ha trovato che le regole non separano i campi di un documento)_
 **Depends on:** US-087 | **Blocks:** US-091
-**Status:** ⬜ TODO — ⚠️ **non delegabile** (regole Firestore)
+**Status:** 🔵 IN PROGRESS — ⚠️ **non delegabile** (regole Firestore). Piano in `docs/planning/US-092.md`
 
 > **Viene prima di US-091, non dopo.** Un consenso aggiunto sopra una funzione che già mostra tutto è un consenso finto: le regole devono nascere già per categoria.
+>
+> **Decisione del 2026-10-17: le categorie sono due, non quattro.** Una regola Firestore concede un documento intero, mai i suoi campi, e `sessions/{id}` contiene insieme date, carichi, ripetizioni, RPE e note. Le due categorie che le regole sanno davvero distinguere sono **sessioni complete** (date, carichi, note e sensazioni) e **peso e misure**. Tornare a quattro richiede copie per categoria a ogni sessione (~13 punti): storia nuova, non un'aggiunta a questa.
 
 **Story**
 Come cliente di un trainer,
@@ -2701,7 +2703,7 @@ Dopo questa storia: il cliente vede cosa condivide, cambia idea quando vuole, e 
 
 **Acceptance Criteria**
 - [ ] Il cliente vede l'elenco di chi lo segue e **cosa** vede ciascuno, in parole comprensibili
-- [ ] Le quattro categorie si concedono e si revocano una per una
+- [ ] Le due categorie (sessioni complete; peso e misure) si concedono e si revocano una per una
 - [ ] La revoca ha effetto **nelle regole**, non solo nell'interfaccia: un test dimostra che la lettura viene negata
 - [ ] Sciogliere il legame revoca tutto, e il trainer smette di comparire
 - [ ] Quando accetta un invito, il cliente vede chiaramente cosa sta concedendo prima di confermare
