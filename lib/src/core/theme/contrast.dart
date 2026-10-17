@@ -43,6 +43,35 @@ abstract final class Contrast {
     return (hi + 0.05) / (lo + 0.05);
   }
 
+  /// Scurisce [color] — a parita di tinta e saturazione — fino a che supera
+  /// [min] contro **tutti** gli sfondi di [against].
+  ///
+  /// Serve al tema chiaro: i colori d'azione sono scelti per reggere su fondo
+  /// scuro (i preset di `AppThemeStyle.accentPresets` sono validati cosi), e
+  /// sul bianco quasi nessuno arriva a 4,5:1. Invece di costringere l'utente a
+  /// una lista a parte per il chiaro, si parte dal suo colore e se ne ricava
+  /// la versione leggibile: la scelta resta riconoscibile, e non puo produrre
+  /// testo illeggibile.
+  ///
+  /// Se [color] gia passa, torna invariato. Il nero passa contro qualunque
+  /// sfondo chiaro, quindi il ciclo termina sempre.
+  static Color darkenToMeet(
+    Color color,
+    Iterable<Color> against, {
+    double min = aa,
+  }) {
+    bool passes(Color c) => against.every((bg) => ratio(c, bg) >= min);
+    if (passes(color)) return color;
+    final hsl = HSLColor.fromColor(color);
+    var lightness = hsl.lightness;
+    var candidate = color;
+    while (lightness > 0 && !passes(candidate)) {
+      lightness = math.max(0, lightness - 0.01);
+      candidate = hsl.withLightness(lightness).toColor();
+    }
+    return candidate;
+  }
+
   /// Vero se [foreground] su [background] e leggibile per il testo normale.
   static bool meetsAA(Color foreground, Color background) =>
       ratio(foreground, background) >= aa;

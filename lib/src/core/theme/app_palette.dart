@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'contrast.dart';
 /// Colori di GymFlow — direzione "Immersivo / Toxic Forest".
 ///
 /// Scelti dal prodotto con riferimenti visivi (`docs/design/05-immersivo-toxic-forest.html`),
@@ -190,6 +191,24 @@ enum AppThemeStyle {
     AppThemeStyle.toxicForest => AppPalette.accentOnLight,
     AppThemeStyle.deepSeaNeon => const Color(0xFF735800),
   };
+  /// La versione di [accent] adatta ai ruoli d'azione del tema chiaro.
+  ///
+  /// [accent] e il colore che l'utente ha scelto in Aspetto, fra
+  /// [accentPresets]. Per quello predefinito della palette resta il tono
+  /// scelto a mano ([accentOnLight]); per ogni altro preset si ricava
+  /// scurendolo fino a 4,5:1 contro i tre fondi chiari e contro il testo
+  /// `onPrimary` che ci sta sopra. Prima il tema chiaro ignorava la scelta:
+  /// `primary` era sempre [accentOnLight], e l'accento scelto arrivava solo al
+  /// contenitore dei pochi widget che lo usano come fondo.
+  Color accentOnLightFor(Color accent) {
+    if (accent.toARGB32() == defaultAccent.toARGB32()) return accentOnLight;
+    return Contrast.darkenToMeet(accent, <Color>[
+      lightBackground,
+      lightSurface,
+      lightSurfaceAlt,
+      AppPalette.paper,
+    ]);
+  }
   /// Idem per [defaultTertiary].
   Color get tertiaryOnLight => switch (this) {
     AppThemeStyle.classico => const Color(0xFF79554E),

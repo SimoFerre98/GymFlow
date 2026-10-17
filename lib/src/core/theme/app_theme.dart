@@ -66,16 +66,21 @@ class AppTheme {
   ///
   /// Non e un'inversione meccanica: l'accento e il colore dei dati vitali non
   /// hanno contrasto sufficiente per il testo su fondo chiaro in nessuna delle
-  /// 4 palette, quindi i ruoli testuali usano le loro varianti scurite
-  /// ([AppThemeStyle.accentOnLight], [AppThemeStyle.tertiaryOnLight]) e gli
+  /// 4 palette, quindi i ruoli testuali usano le loro varianti scurite e gli
   /// originali finiscono sui contenitori.
+  ///
+  /// Per le azioni la variante scurita segue **l'accento scelto dall'utente**
+  /// ([AppThemeStyle.accentOnLightFor]), come nello scuro `primary` segue
+  /// [accent]: cambiare colore in Aspetto deve cambiare bottoni, interruttori
+  /// e testi d'azione anche col tema chiaro. I dati vitali
+  /// ([AppThemeStyle.tertiaryOnLight]) restano della palette, come nello scuro.
   static ThemeData lightTheme(
     Color accent, {
     AppThemeStyle style = AppThemeStyle.toxicForest,
     bool hapticFeedback = true,
   }) {
     final scheme = ColorScheme.light(
-      primary: style.accentOnLight,
+      primary: style.accentOnLightFor(accent),
       onPrimary: AppPalette.paper,
       primaryContainer: accent,
       onPrimaryContainer: style.darkBackground,
