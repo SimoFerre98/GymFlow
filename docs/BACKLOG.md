@@ -3321,6 +3321,61 @@ nuove US: si sistemano in una sessione di correzioni rapide, stesso schema dei c
 
 ---
 
+#### US-112: Il cassetto di navigazione resta solo nel file, non più nell'app
+
+**Epic:** EP-014 | **Priority:** LOW | **Story Points:** 1
+**Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
+**Status:** 🔍 IN REVIEW — verifica e review in `docs/planning/US-112-review.md`, verdetto APPROVATA
+
+> **Scoperto verificando una nota di `docs/HANDOFF.md`** (segnalata il 2026-09-13 come effetto
+> collaterale del fix della foto profilo offline, che aveva toccato un `NetworkImage` analogo in
+> `app_drawer.dart:38` senza modificarlo): nessuno `Scaffold` in `lib/` costruisce più `AppDrawer`,
+> verificato con `grep -rn "AppDrawer(" lib/` — l'unica occorrenza è la sua stessa dichiarazione.
+>
+> **La git history spiega perché, e conferma che non è una svista recente.** Fino al 2026-08-12
+> (`1dc50ae`, US-103) il cassetto era attivo e cablato in sette schermate (calendario, connetti
+> amico, dashboard, gamification, elenco schede, impostazioni, strumenti tempo) — US-103 lo aveva
+> solo alleggerito, togliendo due voci (Statistiche, Esercizi), non eliminato. Tra il 14 e il 21
+> agosto, sul PC poi perso, è stato scritto per intero il redesign "Immersivo/Toxic Forest" (vedi
+> `HANDOFF.md` sezione 5): quel lavoro, ricostruito il 2026-09-09 da un APK di debug (`ff893a5`,
+> perché mai committato), sostituisce ovunque il cassetto con la barra di navigazione inferiore di
+> `main_screen.dart` e con riquadri diretti sulla Home. `dashboard_screen.dart` lo dice esplicitamente
+> in un commento sopra `_ShortcutRow`: *"Le destinazioni che il cassetto teneva, ora riquadri
+> raggiungibili dalla Home invece che da un cassetto ad amburger"*. Verificato che ognuna delle
+> destinazioni del vecchio cassetto resti raggiungibile da lì: Impostazioni (tab di
+> `main_screen.dart`), Obiettivi/Gamification/Cronometro/Connetti Amico (riquadri di
+> `_ShortcutRow`), Statistiche ed Esercizi (già spostate da US-103). Nessuna regressione di
+> navigazione: `app_drawer.dart` è sopravvissuto al recupero da APK perché il suo sorgente era
+> ancora nel kernel Dart decompilato, non perché qualcuno intendesse tenerlo.
+>
+> **Nota per chi legge US-103**: resta `🟡 IN CORSO` con un criterio ("il menu si legge come un
+> elenco, da confermare sull'APK") che presuppone un cassetto ormai inesistente — non verificabile.
+> Questa storia non la tocca: la segnala, la decisione se chiuderla come superata resta a chi legge
+> il backlog.
+>
+> **Fuori scope, segnalato non risolto**: `expressive_tokens.dart` (i token di Material 3
+> Expressive, sostituiti da `immersivo_tokens.dart`) resta nel repository perché altri quattro
+> widget lo importano ancora — `home_hero_card.dart`, `lifting_icon_button.dart`,
+> `workout_receipt.dart`, `workout_type_pie_chart.dart` — **nessuno dei quattro risulta a sua volta
+> raggiunto da una schermata viva** (verificato con grep mirato su ciascuna classe), ma accertarlo
+> con certezza e pulire l'intero gruppo è un lavoro a parte, non incluso qui.
+
+**Story**
+Come sviluppatore che lavora sul codice di navigazione,
+voglio che non resti in `lib/` un widget che nessuna schermata costruisce più,
+così da non doverne verificare la vivezza ogni volta che tocco quella zona.
+
+**Acceptance Criteria**
+- [x] `lib/src/ui/widgets/app_drawer.dart` non esiste più
+- [x] Nessun test referenzia più il file cancellato — `test/design_system_usage_test.dart` e
+      `test/statistics_screen_test.dart` aggiornati, non solo silenziati
+- [x] `expressive_tokens.dart` resta: è ancora importato da altri quattro widget, esplicitamente
+      fuori scope di questa storia
+- [x] `flutter analyze` non introduce alcun nuovo avviso rispetto a `main` — 0 avvisi, invariato
+- [x] `flutter test` verde — 912/912
+
+---
+
 ## Backlog Assumptions & Open Questions
 
 > _Questa sezione elenca le assunzioni fatte durante la generazione del backlog e le domande che restano aperte per il team._

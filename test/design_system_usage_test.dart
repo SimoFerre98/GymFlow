@@ -39,7 +39,6 @@ void main() {
     'lib/src/ui/widgets/charts/activity_chart.dart',
     'lib/src/ui/widgets/charts/body_measurements_chart.dart',
     'lib/src/ui/widgets/charts/workout_type_pie_chart.dart',
-    'lib/src/ui/widgets/app_drawer.dart',
     'lib/src/ui/screens/settings_screen.dart',
     'lib/src/ui/widgets/workout_receipt.dart',
     'lib/src/ui/screens/workout_summary_screen.dart',

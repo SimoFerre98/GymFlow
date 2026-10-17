@@ -66,14 +66,14 @@ void main() {
   });
 
   test('La schermata è raggiungibile dalla home, non più dal cassetto', () {
-    // L'utente ha chiesto di togliere Statistiche ed Esercizi dal cassetto:
-    // troppe voci che duplicano una via già più diretta. Statistiche resta
-    // raggiungibile dall'icona nella barra della home, che è l'unica via
-    // rimasta — e questo test lo sorveglia cambiando verso, non cancellando
-    // il criterio.
-    final drawerString = righeDiCodice('lib/src/ui/widgets/app_drawer.dart').join('\n');
-    expect(drawerString, isNot(contains('StatisticsScreen')), reason: 'Il cassetto non deve più nominare StatisticsScreen');
-
+    // L'utente aveva chiesto di togliere Statistiche ed Esercizi dal
+    // cassetto (US-103): troppe voci che duplicano una via già più diretta.
+    // Il cassetto stesso (app_drawer.dart) è stato rimosso del tutto in
+    // US-112, sostituito ovunque dalla barra di navigazione inferiore e dai
+    // riquadri diretti sulla Home — quindi non c'è più un file da leggere
+    // per verificare che non nomini più StatisticsScreen: l'assenza è
+    // assoluta, non relativa a una singola voce. Resta verificabile solo
+    // che la home tenga la propria via diretta.
     final dashboardString = righeDiCodice('lib/src/ui/screens/dashboard_screen.dart').join('\n');
     expect(dashboardString, contains('StatisticsScreen'), reason: 'La home deve nominare StatisticsScreen per arrivarci');
   });
