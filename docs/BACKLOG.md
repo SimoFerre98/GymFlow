@@ -2631,7 +2631,7 @@ Dopo questa storia: due telefoni vicini si legano inquadrando uno schermo.
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-086, US-087 | **Blocks:** US-090, US-091
-**Status:** 🔵 IN PROGRESS — piano in `docs/planning/US-089.md` (2026-10-19). Il criterio 4 è stato **riscritto** il 2026-10-19, con l'utente: la forma originale (una query sola, `whereIn` a gruppi di dieci) è inesatta: con un limite perde il cliente fermo da più tempo, senza costa lo storico di tutti. _(La prima stesura aggiungeva «le regole la negano»: era falso, la `whereIn` passa se tutti hanno concesso; corretto il 2026-10-19, vedi `planning/US-089.md`.)_ Soglia «troppo tempo»: 7 giorni. Ingresso: riquadro «CLIENTI» in Home, solo per i trainer.
+**Status:** 🔍 IN REVIEW — piano e review in `docs/planning/US-089.md` / `US-089-review.md` (2026-10-19). Il criterio 4 è stato **riscritto** con l'utente: una query sola è inesatta (con un limite perde il cliente fermo da più tempo, senza costa lo storico di tutti) → una lettura per cliente con consenso. _La prima stesura diceva anche che le regole negano la `whereIn`: era falso, corretto, vedi la review._ Soglia «troppo tempo»: 7 giorni. Ingresso: riquadro «CLIENTI» in Home, solo per i trainer. **Mai visto su un telefono**: l'APK è costruito, non installato.
 
 **Story**
 Come trainer con dieci clienti,
@@ -2642,11 +2642,11 @@ così da sapere con chi devo occuparmi oggi senza aprirli uno per uno.
 Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo allenamento di ciascuno.
 
 **Acceptance Criteria**
-- [ ] L'elenco mostra i clienti con un legame accettato e attivo
-- [ ] Per ciascuno si vede quando si è allenato l'ultima volta
-- [ ] Chi non si allena da troppo tempo si distingue a colpo d'occhio
-- [ ] L'elenco regge dieci clienti, e venticinque, **senza troncare**: una lettura per cliente con consenso (`limit(1)`, una sola volta all'apertura, in parallelo) e un'unica query per i legami. _Riscritto il 2026-10-19: la formulazione originale («senza una query per ciascuno», `whereIn` a gruppi di dieci) è inesatta per un elenco ordinato per inattività, vedi `planning/US-089.md`._
-- [ ] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota
+- [x] L'elenco mostra i clienti con un legame accettato e attivo — _provato sulla funzione e sulla schermata; dati veri da confermare sull'APK_
+- [x] Per ciascuno si vede quando si è allenato l'ultima volta — _provato; query provata sull'emulatore; dati veri da confermare sull'APK_
+- [x] Chi non si allena da troppo tempo si distingue a colpo d'occhio — _provato (7 giorni no, 8 sì); aspetto da confermare sull'APK_
+- [x] L'elenco regge dieci clienti, e venticinque, **senza troncare**: una lettura per cliente con consenso (`limit(1)`, una sola volta all'apertura, in parallelo) e un'unica query per i legami. _Riscritto il 2026-10-19: la formulazione originale («senza una query per ciascuno», `whereIn` a gruppi di dieci) è inesatta per un elenco ordinato per inattività, vedi `planning/US-089.md`._
+- [x] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota — _provato come widget; aspetto da confermare sull'APK_
 
 ---
 
