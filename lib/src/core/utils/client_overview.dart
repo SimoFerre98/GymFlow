@@ -73,23 +73,8 @@ List<ClientRow> buildClientRows({
   required Map<String, DateTime?> lastSessions,
   required DateTime now,
 }) {
-  // Un solo legame per cliente: si può invitare due volte chi è già legato
-  // (US-092, review), e la persona non deve comparire due volte.
-  final perCliente = <String, Invite>{};
-  for (final invite in relationships) {
-    if (invite.status != InviteStatus.accepted) continue;
-    if (invite.relationshipType != RelationshipType.trainerClient) continue;
-    if (invite.fromUserId != trainerId) continue;
-    final attuale = perCliente[invite.toUserId];
-    if (attuale == null || _dal(invite).isAfter(_dal(attuale))) {
-      perCliente[invite.toUserId] = invite;
-    }
-  }
-
-  final concesso = <String, bool>{
-    for (final consent in consents)
-      if (consent.trainerUserId == trainerId) consent.clientUserId: consent.grants.sessions,
-  };
+  final perCliente = _clientiDelTrainer(trainerId, relationships);
+  final concesso = _sessioniConcesse(trainerId, consents);
 
   final righe = <ClientRow>[
     for (final entry in perCliente.entries)
@@ -115,7 +100,120 @@ List<ClientRow> buildClientRows({
   return righe;
 }
 
+/// I legami `trainer_client` accettati dove il trainer è [trainerId], uno per
+/// cliente.
+///
+/// Un solo legame per cliente: si può invitare due volte chi è già legato
+/// (US-092, review), e la persona non deve comparire due volte. Vince il più
+/// recente.
+Map<String, Invite> _clientiDelTrainer(String trainerId, List<Invite> relationships) {
+  final perCliente = <String, Invite>{};
+  for (final invite in relationships) {
+    if (invite.status != InviteStatus.accepted) continue;
+    if (invite.relationshipType != RelationshipType.trainerClient) continue;
+    if (invite.fromUserId != trainerId) continue;
+    final attuale = perCliente[invite.toUserId];
+    if (attuale == null || _dal(invite).isAfter(_dal(attuale))) {
+      perCliente[invite.toUserId] = invite;
+    }
+  }
+  return perCliente;
+}
+
+Map<String, bool> _sessioniConcesse(String trainerId, List<Consent> consents) => {
+  for (final consent in consents)
+    if (consent.trainerUserId == trainerId) consent.clientUserId: consent.grants.sessions,
+};
+
 DateTime _dal(Invite invite) => invite.respondedAt ?? invite.createdAt;
+
+/// I clienti di cui **vale la pena** leggere l'ultima sessione: quelli con un
+/// legame attivo che hanno concesso gli allenamenti. Gli altri non si leggono
+/// affatto — le regole lo negherebbero, e una lettura negata e una lettura
+/// sprecata.
+List<String> clientsWithSharedSessions({
+  required String trainerId,
+  required List<Invite> relationships,
+  required List<Consent> consents,
+}) {
+  final concesso = _sessioniConcesse(trainerId, consents);
+  return [
+    for (final id in _clientiDelTrainer(trainerId, relationships).keys)
+      if (concesso[id] ?? false) id,
+  ];
+}
+
+/// Le regole hanno negato la lettura: di norma il cliente ha revocato gli
+/// allenamenti fra il caricamento dei consensi e la lettura.
+class ClientReadDenied implements Exception {
+  const ClientReadDenied();
+  @override
+  String toString() => 'ClientReadDenied';
+}
+
+/// Da dove [loadClientOverview] prende i dati. Un'interfaccia e non
+/// `FirestoreService` perché la composizione — chi si legge, cosa succede se
+/// una lettura è negata — deve potersi provare senza Firebase.
+abstract interface class ClientOverviewSource {
+  /// I legami accettati dell'utente, di qualunque tipo e direzione.
+  Future<List<Invite>> acceptedRelationships();
+
+  /// I consensi ricevuti dal trainer.
+  Future<List<Consent>> consents();
+
+  /// L'inizio dell'ultima sessione di [clientId], o `null` se non ne ha.
+  /// Lancia [ClientReadDenied] se le regole negano la lettura.
+  Future<DateTime?> lastSessionStart(String clientId);
+}
+
+/// Carica e compone l'elenco dei clienti.
+///
+/// **Una lettura per cliente che condivide gli allenamenti**, tutte insieme e
+/// non una dopo l'altra, e **nessuna** per gli altri. Non c'è un tetto a dieci:
+/// venticinque clienti sono venticinque letture, perché una query unica
+/// perderebbe proprio il cliente fermo da più tempo (vedi `US-089.md`).
+///
+/// Se la lettura di un cliente è negata, quel cliente risulta «non condivide»
+/// e l'elenco non cade: il consenso può essere stato revocato un istante fa.
+/// Qualunque altro errore (la rete, per esempio) si propaga: mostrare «nessun
+/// allenamento» a chi in realtà non si è riusciti a leggere sarebbe una bugia.
+Future<List<ClientRow>> loadClientOverview({
+  required String trainerId,
+  required ClientOverviewSource source,
+  required DateTime now,
+}) async {
+  final relationships = await source.acceptedRelationships();
+  final consents = await source.consents();
+
+  final daLeggere = clientsWithSharedSessions(
+    trainerId: trainerId,
+    relationships: relationships,
+    consents: consents,
+  );
+
+  final ultime = <String, DateTime?>{};
+  final negati = <String>{};
+  await Future.wait([
+    for (final id in daLeggere)
+      () async {
+        try {
+          ultime[id] = await source.lastSessionStart(id);
+        } on ClientReadDenied {
+          negati.add(id);
+        }
+      }(),
+  ]);
+
+  return buildClientRows(
+    trainerId: trainerId,
+    relationships: relationships,
+    // Un consenso revocato nel frattempo non vale più: il cliente passa a
+    // «non condivide» invece di restare «nessun allenamento».
+    consents: [for (final c in consents) if (!negati.contains(c.clientUserId)) c],
+    lastSessions: ultime,
+    now: now,
+  );
+}
 
 int _gruppo(ClientActivity activity) => switch (activity) {
   ClientActivity.overdue => 0,
