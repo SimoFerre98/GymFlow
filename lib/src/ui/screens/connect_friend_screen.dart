@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gymflow/src/services/auth_service.dart';
+import 'package:gymflow/src/models/consent.dart';
 import 'package:gymflow/src/models/invite.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
@@ -9,6 +10,8 @@ import 'package:gymflow/src/core/providers/invite_provider.dart';
 import 'package:gymflow/src/ui/screens/friend_detail_screen.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/ui/widgets/back_pill.dart';
+import 'package:gymflow/src/ui/widgets/consent_sheet.dart';
+import 'package:gymflow/src/ui/widgets/immersivo_switch.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
 /// US-087: l'amico per codice non crea più un'amicizia istantanea (non ha
@@ -25,6 +28,10 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
   final _codeController = TextEditingController();
   final AuthService _auth = AuthService();
   bool _isSending = false;
+  /// Solo chi ha il ruolo trainer lo vede: invita come cliente invece che come
+  /// amico (US-092). È l'ingresso minimo che rende il consenso mostrabile; la
+  /// schermata vera lato trainer, con l'elenco dei clienti, è US-089.
+  bool _inviteAsClient = false;
   String? _myFriendCode;
   @override
   void initState() {
@@ -60,12 +67,21 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
         fromUserId: myProfile.id,
         fromDisplayName: myProfile.displayName,
         fromRole: myProfile.role.name,
-        relationshipType: RelationshipType.friend,
+        // Il controllo sul ruolo ripete quello che nasconde l'interruttore:
+        // se il ruolo cambia mentre la schermata è aperta, non si manda un
+        // invito da trainer a chi non lo è più.
+        relationshipType: _inviteAsClient && myProfile.role.isTrainer
+            ? RelationshipType.trainerClient
+            : RelationshipType.friend,
       );
       if (!mounted) return;
       if (invite != null) {
         ToastUtils.showSuccess(context, loc.t('invite_sent_msg'));
         _codeController.clear();
+        // Si spegne a ogni invio: un invito d'amicizia mandato dopo uno da
+        // cliente non deve partire per sbaglio come invito da cliente, che
+        // chiede al destinatario di decidere cosa condividere.
+        setState(() => _inviteAsClient = false);
       } else {
         ToastUtils.showError(context, loc.t('invite_code_not_found'));
       }
@@ -80,7 +96,16 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
   Future<void> _respond(Invite invite, bool accept) async {
     final loc = ref.read(localizationNotifierProvider);
     try {
-      await ref.read(firestoreServiceProvider).respondToInvite(invite.id, accept);
+      final firestore = ref.read(firestoreServiceProvider);
+      if (accept && invite.relationshipType == RelationshipType.trainerClient) {
+        // Il cliente vede cosa concede **prima** di confermare, e l'invito
+        // si accetta insieme al consenso in un solo batch (US-092).
+        final grants = await showConsentSheet(context, invite.fromDisplayName);
+        if (grants == null) return;
+        await firestore.acceptTrainerInvite(invite, grants);
+      } else {
+        await firestore.respondToInvite(invite.id, accept);
+      }
       if (mounted) {
         ToastUtils.showSuccess(
           context,
@@ -122,7 +147,8 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
     );
     if (confirmed != true || !mounted) return;
     try {
-      await ref.read(firestoreServiceProvider).revokeInvite(invite.id);
+      // Per un legame trainer↔cliente toglie anche il consenso (US-092).
+      await ref.read(firestoreServiceProvider).dissolveRelationship(invite);
       if (mounted) ToastUtils.showSuccess(context, loc.t('connection_dissolved_msg'));
     } catch (e) {
       if (mounted) ToastUtils.showError(context, '${loc.t('error_connecting')}: $e');
@@ -255,6 +281,39 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
             ),
           ),
         ),
+        if (myProfile != null && myProfile.role.isTrainer) ...[
+          SizedBox(height: t.spacing.md),
+          MergeSemantics(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loc.t('invite_as_client'),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        loc.t('invite_as_client_hint'),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: t.spacing.md),
+                ImmersivoSwitch(
+                  value: _inviteAsClient,
+                  onChanged: (value) => setState(() => _inviteAsClient = value),
+                ),
+              ],
+            ),
+          ),
+        ],
         SizedBox(height: t.spacing.xl),
         InkWell(
           onTap: (_isSending || myProfile == null)
@@ -297,7 +356,11 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
               title: invite.fromDisplayName,
               subtitle: invite.isExpired
                   ? loc.t('invite_expired_label')
-                  : loc.t('invited_you_msg').replaceFirst('%s', invite.fromDisplayName),
+                  : loc
+                        .t(invite.relationshipType == RelationshipType.trainerClient
+                            ? 'invited_as_client_msg'
+                            : 'invited_you_msg')
+                        .replaceFirst('%s', invite.fromDisplayName),
               actions: [
                 TextButton(
                   onPressed: () => _respond(invite, false),
@@ -358,6 +421,7 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
     String myUserId,
   ) {
     final invites = ref.watch(acceptedRelationshipsProvider).value ?? const <Invite>[];
+    final consents = ref.watch(consentsOfClientProvider).value ?? const <Consent>[];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -384,6 +448,15 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
               final isFromMe = invite.fromUserId == myUserId;
               final otherId = isFromMe ? invite.toUserId : invite.fromUserId;
               final otherName = isFromMe ? invite.toDisplayName : invite.fromDisplayName;
+              final isTrainerClient = invite.relationshipType == RelationshipType.trainerClient;
+              // `fromUserId` è sempre il trainer: se l'invito è `trainer_client`
+              // e non l'ho mandato io, sono io il cliente (e decido cosa vede).
+              final iAmClient = isTrainerClient && !isFromMe;
+              final grants = consents
+                      .where((c) => c.inviteId == invite.id)
+                      .map((c) => c.grants)
+                      .firstOrNull ??
+                  ConsentGrants.none;
               return DecoratedBox(
                 decoration: BoxDecoration(border: Border.all(color: scheme.outline)),
                 child: InkWell(
@@ -394,6 +467,7 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                         connectionId: otherId,
                         displayName: otherName,
                         since: invite.respondedAt ?? invite.createdAt,
+                        invite: invite,
                       ),
                     ),
                   ),
@@ -407,11 +481,38 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                         ),
                         SizedBox(width: t.spacing.md),
                         Expanded(
-                          child: Text(
-                            otherName,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                otherName,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              // Chi mi segue e cosa vede, a parole: è ciò che
+                              // il cliente deve poter leggere senza aprire nulla.
+                              if (iAmClient) ...[
+                                Text(
+                                  loc.t('consent_follows_you'),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Text(
+                                  loc.t(consentSummaryKey(grants)),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ] else if (isTrainerClient)
+                                Text(
+                                  loc.t('consent_your_client'),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         IconButton(

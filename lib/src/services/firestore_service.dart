@@ -9,6 +9,7 @@ import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/body_measurement.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/invite.dart';
+import 'package:gymflow/src/models/consent.dart';
 import 'package:rxdart/rxdart.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
@@ -141,6 +142,96 @@ class FirestoreService {
     await _db.collection('invites').doc(inviteId).update({
       'status': InviteStatus.revoked.toMap(),
     });
+  }
+
+  // --- Consenso del cliente (US-092) ---
+  //
+  // Per un legame `trainer_client`, `fromUserId` è sempre il trainer e
+  // `toUserId` il cliente: è chi invita a offrire il proprio lavoro, ed è chi
+  // riceve a decidere cosa concedere. Le regole lo verificano così.
+
+  /// Il cliente accetta un invito `trainer_client` e, **nello stesso batch**,
+  /// crea il consenso con ciò che ha scelto di concedere.
+  ///
+  /// Un batch e non due scritture: le regole accettano il consenso solo se lo
+  /// stesso batch porta l'invito ad `accepted` (`getAfter`), quindi un consenso
+  /// non può esistere senza un legame accettato, e un legame accettato non
+  /// resta mai a metà.
+  Future<void> acceptTrainerInvite(Invite invite, ConsentGrants grants) async {
+    final now = DateTime.now();
+    final batch = _db.batch();
+    batch.update(_db.collection('invites').doc(invite.id), {
+      'status': InviteStatus.accepted.toMap(),
+      'respondedAt': Timestamp.fromDate(now),
+    });
+    final consentId = Consent.idFor(invite.fromUserId, invite.toUserId);
+    batch.set(
+      _db.collection('consents').doc(consentId),
+      Consent(
+        id: consentId,
+        trainerUserId: invite.fromUserId,
+        clientUserId: invite.toUserId,
+        inviteId: invite.id,
+        grants: grants,
+        updatedAt: now,
+      ).toMap(),
+    );
+    await batch.commit();
+  }
+
+  /// Concede o revoca **una** categoria. Ha effetto subito nelle regole: la
+  /// prossima lettura del trainer è negata o permessa di conseguenza.
+  ///
+  /// Si scrive la sola chiave `grants.<categoria>` e non l'intera mappa: così
+  /// un valore vecchio dell'altra categoria, letto da uno schermo non ancora
+  /// aggiornato, non la riporta indietro.
+  Future<void> setConsentGrant(
+    String consentId,
+    ConsentCategory category,
+    bool granted,
+  ) async {
+    await _db.collection('consents').doc(consentId).update({
+      'grants.${category.key}': granted,
+      'updatedAt': Timestamp.now(),
+    });
+  }
+
+  /// Scioglie un legame accettato (entrambe le parti). Per un legame
+  /// `trainer_client` toglie anche il consenso, nello stesso batch.
+  ///
+  /// Il consenso non è l'unica difesa: le regole guardano anche lo stato
+  /// dell'invito, quindi un consenso rimasto non dà più accesso. Cancellarlo è
+  /// pulizia, e il motivo per cui non blocca lo scioglimento: se il documento
+  /// non esiste, la cancellazione è negata dalle regole (non c'è nulla da
+  /// valutare) e il batch intero fallirebbe — così si ripiega sul solo invito.
+  Future<void> dissolveRelationship(Invite invite) async {
+    final inviteRef = _db.collection('invites').doc(invite.id);
+    final revoked = {'status': InviteStatus.revoked.toMap()};
+    if (invite.relationshipType != RelationshipType.trainerClient) {
+      await inviteRef.update(revoked);
+      return;
+    }
+    final consentRef = _db
+        .collection('consents')
+        .doc(Consent.idFor(invite.fromUserId, invite.toUserId));
+    try {
+      final batch = _db.batch();
+      batch.update(inviteRef, revoked);
+      batch.delete(consentRef);
+      await batch.commit();
+    } on FirebaseException catch (e) {
+      if (e.code != 'permission-denied') rethrow;
+      await inviteRef.update(revoked);
+    }
+  }
+
+  /// I consensi che ho dato io, da cliente: a chi e cosa.
+  Stream<List<Consent>> consentsOfClient(String clientUserId) {
+    return _db
+        .collection('consents')
+        .where('clientUserId', isEqualTo: clientUserId)
+        .snapshots()
+        .map((s) => s.docs.map((d) => Consent.fromMap(d.data(), d.id)).toList());
   }
   Future<List<UserProfile>> getUsers(List<String> userIds) async {
     if (userIds.isEmpty) return [];

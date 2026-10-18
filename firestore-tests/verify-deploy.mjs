@@ -1,5 +1,12 @@
 // Legge il ruleset attivo di cloud.firestore dall'API, invece di fidarsi del
 // solo "Deploy complete!" (criterio esplicito di US-087).
+//
+// US-092: oltre a cercare le regole attese, confronta il ruleset attivo con
+// `firestore.rules` **riga per riga**. Cercare solo delle stringhe non prova
+// niente su una regola nuova: la versione precedente di questo script dava
+// «Verificato» anche prima del deploy, perche' le stringhe di US-087 c'erano
+// gia'.
+import { readFileSync } from 'node:fs';
 import { requireAuth } from 'firebase-tools/lib/requireAuth.js';
 import { getGlobalDefaultAccount } from 'firebase-tools/lib/auth.js';
 import { listAllReleases, getRulesetContent } from 'firebase-tools/lib/gcp/rules.js';
@@ -28,15 +35,28 @@ async function main() {
 
   const hasInvites = text.includes('match /invites/{inviteId}');
   const hasInviteCodes = text.includes('match /invite_codes/{code}');
+  const hasConsents = text.includes('match /consents/{consentId}');
   console.log('Contiene "match /invites/{inviteId}":', hasInvites);
   console.log('Contiene "match /invite_codes/{code}":', hasInviteCodes);
+  console.log('Contiene "match /consents/{consentId}":', hasConsents);
   console.log('Lunghezza ruleset attivo:', text.length, 'caratteri');
 
-  if (!hasInvites || !hasInviteCodes) {
+  // Stesso testo del file locale, a meno di fine riga e spazi in coda.
+  const normalizza = (t) =>
+    t.replace(/\r\n/g, '\n').split('\n').map((r) => r.trimEnd()).join('\n').trim();
+  const locale = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+  const identico = normalizza(text) === normalizza(locale);
+  console.log('Identico a firestore.rules locale:', identico);
+
+  if (!hasInvites || !hasInviteCodes || !hasConsents) {
     console.error('Il ruleset attivo NON contiene le regole attese.');
     process.exit(1);
   }
-  console.log('Verificato: il ruleset attivo sul progetto reale contiene le nuove regole.');
+  if (!identico) {
+    console.error('Il ruleset attivo e\' DIVERSO da firestore.rules locale.');
+    process.exit(1);
+  }
+  console.log('Verificato: il ruleset attivo sul progetto reale e\' identico a firestore.rules.');
 }
 
 main().catch((e) => {

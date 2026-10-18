@@ -18,6 +18,11 @@
 // davvero il calendario o le schede di chi si è accettato resta un passo
 // successivo, deliberatamente fuori da questa storia.
 //
+// **US-092 apre la lettura di due sole cose, e solo a un trainer con il
+// consenso del cliente**: `sessions` e `users/{uid}/measurements`, per
+// categoria (vedi `consents` piu' sotto). Tutto il resto resta owner-only, e
+// il trainer non scrive mai nulla sui dati del cliente.
+//
 // Come si legge una regola qui:
 //   - le collezioni di primo livello appartengono a chi ha scritto `userId`
 //     dentro il documento, ed è il campo su cui l'app filtra tutte le query;
@@ -52,6 +57,33 @@ service cloud.firestore {
       return request.resource.data.userId == resource.data.userId;
     }
 
+    // ── Il consenso del cliente (US-092) ────────────────────────────────────
+    //
+    // Le regole non fanno ricerche: per sapere se il trainer puo' leggere i
+    // dati di un cliente devono costruire il percorso di UN documento noto.
+    // Per questo il consenso ha id deterministico `trainer_cliente`.
+
+    function percorsoConsenso(clienteId) {
+      return /databases/$(database)/documents/consents/$(request.auth.uid + '_' + clienteId);
+    }
+
+    // Chi chiede e' il trainer di `clienteId` e il cliente gli ha concesso la
+    // `categoria` ('sessions' o 'measurements').
+    //
+    // Si guardano **due** cose, non una: il consenso (cosa e' concesso) e
+    // l'invito che lo regge (il legame esiste ancora). Il secondo controllo e'
+    // la cintura: se il trainer scioglie il legame ma il consenso resta —
+    // perche' un client difettoso non l'ha cancellato, o perche' non e' suo
+    // da cancellare — l'accesso finisce comunque.
+    function consensoDi(clienteId, categoria) {
+      return autenticato()
+          && clienteId is string
+          && exists(percorsoConsenso(clienteId))
+          && get(percorsoConsenso(clienteId)).data.grants.get(categoria, false) == true
+          && get(/databases/$(database)/documents/invites/$(get(percorsoConsenso(clienteId)).data.inviteId))
+               .data.status == 'accepted';
+    }
+
     // ── Il profilo, e le misure corporee che gli stanno sotto ──────────────
     //
     // Qui il proprietario e' il **nome del documento**, non un campo.
@@ -63,8 +95,12 @@ service cloud.firestore {
       // evita che un difetto la renda possibile per sbaglio.
       allow delete: if false;
 
+      // Le misure le scrive solo il proprietario. Le legge anche il suo
+      // trainer, **se** il cliente ha concesso la categoria `measurements`.
       match /measurements/{measurementId} {
-        allow read, write: if autenticato() && request.auth.uid == userId;
+        allow read: if (autenticato() && request.auth.uid == userId)
+            || consensoDi(userId, 'measurements');
+        allow write: if autenticato() && request.auth.uid == userId;
       }
 
       // Qualunque altra sotto-collezione futura resta chiusa finche' non ha una
@@ -87,8 +123,12 @@ service cloud.firestore {
       allow delete: if eMio();
     }
 
+    // Le sessioni le scrive solo il proprietario. Le legge anche il suo
+    // trainer, **se** il cliente ha concesso la categoria `sessions`: e' un
+    // documento intero (date, carichi, ripetizioni, RPE, note), che una regola
+    // non sa dividere — per questo la categoria e' una sola.
     match /sessions/{sessionId} {
-      allow read: if eMio();
+      allow read: if eMio() || consensoDi(resource.data.userId, 'sessions');
       allow create: if loCreoMio();
       allow update: if eMio() && proprietarioInvariato();
       allow delete: if eMio();
@@ -191,6 +231,62 @@ service cloud.firestore {
       // Si scioglie cambiando stato, non si cancella: la storia del legame
       // resta leggibile da entrambe le parti anche dopo.
       allow delete: if false;
+    }
+
+    // ── Il consenso del cliente (US-092) ────────────────────────────────────
+    //
+    // `consents/{trainer}_{cliente}`: cosa il cliente concede al suo trainer.
+    // Lo scrive **solo il cliente**. Se potesse scriverlo il trainer, il
+    // consenso sarebbe un'autoconcessione.
+
+    function grantsValidi() {
+      return request.resource.data.grants is map
+          && request.resource.data.grants.keys().hasOnly(['sessions', 'measurements'])
+          && request.resource.data.grants.sessions is bool
+          && request.resource.data.grants.measurements is bool;
+    }
+
+    match /consents/{consentId} {
+      // Il cliente, e il trainer che deve sapere cosa gli e' concesso.
+      allow read: if autenticato() && (
+          request.auth.uid == resource.data.clientUserId ||
+          request.auth.uid == resource.data.trainerUserId);
+
+      // Nasce solo insieme all'accettazione: lo stesso batch che porta
+      // l'invito a `accepted` (`getAfter`) lo crea. Il consenso e' del cliente
+      // dell'invito, l'invito e' `trainer_client` (un amico non ne ha) e l'id
+      // e' `trainer_cliente`, l'unico che `consensoDi` sa ricostruire.
+      allow create: if autenticato()
+          && request.resource.data.clientUserId == request.auth.uid
+          && consentId == request.resource.data.trainerUserId + '_' + request.resource.data.clientUserId
+          && request.resource.data.keys().hasOnly(
+               ['trainerUserId', 'clientUserId', 'inviteId', 'grants', 'updatedAt'])
+          && grantsValidi()
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId))
+               .data.status in ['pending', 'accepted']
+          && getAfter(/databases/$(database)/documents/invites/$(request.resource.data.inviteId))
+               .data.status == 'accepted'
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId))
+               .data.toUserId == request.auth.uid
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId))
+               .data.fromUserId == request.resource.data.trainerUserId
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteId))
+               .data.relationshipType == 'trainer_client';
+
+      // Concedere e revocare: solo il cliente, solo `grants` e `updatedAt`, e
+      // solo finche' il legame esiste. Chi e' il trainer e quale invito regge
+      // il consenso non cambiano dopo la creazione.
+      allow update: if autenticato()
+          && request.auth.uid == resource.data.clientUserId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['grants', 'updatedAt'])
+          && grantsValidi()
+          && get(/databases/$(database)/documents/invites/$(resource.data.inviteId))
+               .data.status == 'accepted';
+
+      // Cancellarlo toglie accesso, mai ne da: lo possono fare entrambi.
+      allow delete: if autenticato() && (
+          request.auth.uid == resource.data.clientUserId ||
+          request.auth.uid == resource.data.trainerUserId);
     }
 
     // ── Tutto il resto e' negato ───────────────────────────────────────────

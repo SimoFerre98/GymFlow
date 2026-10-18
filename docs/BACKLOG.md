@@ -21,15 +21,15 @@
 
 ### Stato verificato nel codice — 2026-10-18
 
-> **Riordino fatto leggendo `lib/`, `test/`, `docs/planning/` e il `git log` di `main` (`42320d9`), non fidandosi degli Status scritti prima.** Le 44 storie che erano `⬜ TODO` o `🟡 IN CORSO` sono state riverificate una per una — US-092 esclusa, che ha modifiche su un altro branch — e ogni Status riporta ora la prova (file, riga, commit). Il motivo: il processo formale è stato saltato più volte (`HANDOFF.md` sezione 2) e il backlog non era più uno specchio del codice.
+> **Riordino fatto leggendo `lib/`, `test/`, `docs/planning/` e il `git log` di `main` (`42320d9`), non fidandosi degli Status scritti prima.** Le 44 storie che erano `⬜ TODO` o `🟡 IN CORSO` sono state riverificate una per una — US-092 esclusa, che aveva modifiche su un altro branch e poi è stata mergiata (2026-10-19) — e ogni Status riporta ora la prova (file, riga, commit). Il motivo: il processo formale è stato saltato più volte (`HANDOFF.md` sezione 2) e il backlog non era più uno specchio del codice.
 >
-> **Conteggio vero: 111 storie** (la voce duplicata e contraddittoria di US-084 è stata tolta) — **70** `✅ DONE`, **11** `🟡 PARZIALE`, **18** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **3** `⏸ ACCANTONATA`, **3** `🔍 IN REVIEW`. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
+> **Conteggio vero: 111 storie** (la voce duplicata e contraddittoria di US-084 è stata tolta) — **72** `✅ DONE`, **11** `🟡 PARZIALE`, **17** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **3** `⏸ ACCANTONATA`, **2** `🔍 IN REVIEW` _(aggiornato il 2026-10-19 con la chiusura di US-092 e US-112)_. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
 >
 > **Gli Status nuovi:** `✅ DONE (nei fatti)` = il codice c'è e i criteri sono soddisfatti, magari senza che nessuno l'avesse scritto qui; restano solo le conferme che richiedono un dispositivo, dichiarate. `🟡 PARZIALE` = una parte è fatta e le caselle dicono quale; non sostituisce `🟡 IN CORSO`, che non esiste più. `↪ SUPERATA` / `↪ ASSORBITA` = la storia descrive qualcosa che l'app non ha più (direzione Immersivo, cassetto rimosso, inviti al posto degli amici). `⏸ ACCANTONATA` = EP-008, nessun lavoro fatto.
 >
 > **Quello che il codice non può dire** (va guardato su un telefono): la conferma sull'APK di US-106, US-107, US-108; il comportamento di `TimerForegroundService` fuori dall'app (US-053) e il suo consumo di batteria; la vibrazione vera di US-048; la misura dei 500 KB di US-015; la Now Bar di US-054. Dichiarato nelle singole storie, non spuntato.
 
-**Le storie che restano davvero aperte**, per epica e priorità (`⬜` da fare, `🟡` da finire; US-092 è in review su `feature/US-092-client-consent` e qui non è stata toccata):
+**Le storie che restano davvero aperte**, per epica e priorità (`⬜` da fare, `🟡` da finire; US-092 è ora `✅ DONE`):
 
 | Epica | Storia | Priorità | Stato | Cosa manca davvero |
 |---|---|---|---|---|
@@ -58,13 +58,12 @@
 | EP-015 | US-069 | MEDIUM | ⬜ | primo avvio guidato, per intero |
 | EP-016 | US-085 | HIGH | ⬜ | importatore delle quattro schede; bloccata dalla parte mancante di US-084 |
 | EP-016 | US-084 | MEDIUM | 🟡 | c'è solo il campo `superSetGroup`: manca raggruppare, eseguire alternando, recuperare a fine giro |
-| EP-017 | US-089 | HIGH | ⬜ | elenco dei clienti; per vedere l'ultimo allenamento servono le regole di US-092 |
+| EP-017 | US-089 | HIGH | ⬜ | elenco dei clienti; le regole di lettura di US-092 sono già pubblicate |
 | EP-017 | US-090 | HIGH | ⬜ | il trainer scrive la scheda di un cliente (dopo US-089; regole di scrittura da fondare) |
-| EP-017 | US-091 | HIGH | ⬜ | andamento del cliente (dopo US-089 e US-092) |
-| EP-017 | US-092 | HIGH | ⬜ qui · 🔍 altrove | `⬜` su questo branch, `🔍 IN REVIEW` su `feature/US-092-client-consent` (regole pubblicate, manca la prova sul telefono): non toccata |
+| EP-017 | US-091 | HIGH | ⬜ | andamento del cliente (dopo US-089; il consenso di US-092 è fatto) |
 | EP-017 | US-088 | MEDIUM | ⬜ | QR code: due dipendenze nuove da approvare prima di iniziare |
 
-**Chiuse nei fatti da questo riordino:** US-010, US-015, US-064 (riformulata: colore per programma), US-106, US-107, US-108. **Superate o assorbite:** US-011, US-019, US-035, US-037, US-103, e US-080 per il modello. **Accantonate:** US-002, US-003, US-004 (EP-008, Web).
+**Chiuse nei fatti da questo riordino:** US-092 (mergiata il 2026-10-19), US-112 (mergiata il 2026-10-17, Status non aggiornato), US-010, US-015, US-064 (riformulata: colore per programma), US-106, US-107, US-108. **Superate o assorbite:** US-011, US-019, US-035, US-037, US-103, e US-080 per il modello. **Accantonate:** US-002, US-003, US-004 (EP-008, Web).
 
 | Epic | Title | Stories | Story Points | Scope |
 |---|---|---|---|---|
@@ -2680,9 +2679,9 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-089, US-092 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna schermata. Dipende da US-089 e US-092 (quest'ultima in review su `feature/US-092-client-consent`, non mergiata).
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna schermata. Dipende da US-089 e US-092 (quest'ultima `✅ DONE`, mergiata il 2026-10-19: restano da fare solo US-089 e la schermata).
 
-> Le quattro categorie sono state scelte dall'utente il 2026-08-10: **allenamenti e date, carichi e progressi, peso e misure, note e sensazioni.** Dipende da US-092 e non il contrario: il consenso esiste prima di ciò che ne approfitta.
+> Le quattro categorie scelte dall'utente il 2026-08-10 (**allenamenti e date, carichi e progressi, peso e misure, note e sensazioni**) sono diventate **due il 2026-10-17**, vedi US-092: le regole Firestore non separano i campi di una sessione. Qui valgono le due che le regole sanno applicare: **sessioni complete** e **peso e misure**. Dipende da US-092 e non il contrario: il consenso esiste prima di ciò che ne approfitta.
 
 **Story**
 Come trainer,
@@ -2704,11 +2703,13 @@ Dopo questa storia: il trainer apre un cliente e vede allenamenti, carichi, misu
 
 #### US-092: Il cliente decide cosa condivide, e lo revoca
 
-**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5 _(erano 3: il piano ha trovato che le regole non separano i campi di un documento)_
 **Depends on:** US-087 | **Blocks:** US-091
-**Status:** ⬜ TODO — ⚠️ **non delegabile** (regole Firestore)
+**Status:** ✅ DONE — mergiata in `main` il 2026-10-19 (squash dal branch `feature/US-092-client-consent`). ⚠️ **Non delegabile** (regole Firestore). Piano e review in `docs/planning/US-092.md` / `US-092-review.md`. **Regole pubblicate il 2026-10-17** su `gymflow-d5d09` (ruleset `de1ea62f…`, identico a `firestore.rules`, verificato dall'API). **Provata sul telefono con due account (uno trainer) e confermata dall'utente in chat il 2026-10-19**: foglio con gli interruttori spenti, riga «Vede: …», interruttori nel dettaglio, scioglimento. Restano le due decisioni di prodotto della review (interruttori spenti di default; la frase «nessuno può modificare i tuoi dati» da riscrivere in US-090).
 
 > **Viene prima di US-091, non dopo.** Un consenso aggiunto sopra una funzione che già mostra tutto è un consenso finto: le regole devono nascere già per categoria.
+>
+> **Decisione del 2026-10-17: le categorie sono due, non quattro.** Una regola Firestore concede un documento intero, mai i suoi campi, e `sessions/{id}` contiene insieme date, carichi, ripetizioni, RPE e note. Le due categorie che le regole sanno davvero distinguere sono **sessioni complete** (date, carichi, note e sensazioni) e **peso e misure**. Tornare a quattro richiede copie per categoria a ogni sessione (~13 punti): storia nuova, non un'aggiunta a questa.
 
 **Story**
 Come cliente di un trainer,
@@ -2719,11 +2720,11 @@ così da farmi seguire senza cedere tutto per sempre.
 Dopo questa storia: il cliente vede cosa condivide, cambia idea quando vuole, e la revoca ha effetto subito.
 
 **Acceptance Criteria**
-- [ ] Il cliente vede l'elenco di chi lo segue e **cosa** vede ciascuno, in parole comprensibili
-- [ ] Le quattro categorie si concedono e si revocano una per una
-- [ ] La revoca ha effetto **nelle regole**, non solo nell'interfaccia: un test dimostra che la lettura viene negata
-- [ ] Sciogliere il legame revoca tutto, e il trainer smette di comparire
-- [ ] Quando accetta un invito, il cliente vede chiaramente cosa sta concedendo prima di confermare
+- [x] Il cliente vede l'elenco di chi lo segue e **cosa** vede ciascuno, in parole comprensibili — _confermato dall'utente sul telefono, 2026-10-19_
+- [x] Le due categorie (sessioni complete; peso e misure) si concedono e si revocano una per una — _regole provate sull'emulatore; confermato dall'utente sul telefono, 2026-10-19_
+- [x] La revoca ha effetto **nelle regole**, non solo nell'interfaccia: un test dimostra che la lettura viene negata — _provato sull'emulatore; regole pubblicate e verificate dall'API_
+- [x] Sciogliere il legame revoca tutto, e il trainer smette di comparire — _provato sull'emulatore, anche con il consenso rimasto_
+- [x] Quando accetta un invito, il cliente vede chiaramente cosa sta concedendo prima di confermare — _foglio provato come widget; cablaggio confermato dall'utente sul telefono, 2026-10-19_
 
 ---
 
@@ -3344,7 +3345,7 @@ nuove US: si sistemano in una sessione di correzioni rapide, stesso schema dei c
 
 **Epic:** EP-014 | **Priority:** LOW | **Story Points:** 1
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 🔍 IN REVIEW — verifica e review in `docs/planning/US-112-review.md`, verdetto APPROVATA
+**Status:** ✅ DONE — mergiata in `main` il 2026-10-17 (`45ce743`, squash). Verifica e review in `docs/planning/US-112-review.md`, verdetto APPROVATA. _Lo Status era rimasto `IN REVIEW` per due giorni dopo il merge: la chiusura non era stata riportata qui._
 
 > **Scoperto verificando una nota di `docs/HANDOFF.md`** (segnalata il 2026-09-13 come effetto
 > collaterale del fix della foto profilo offline, che aveva toccato un `NetworkImage` analogo in
