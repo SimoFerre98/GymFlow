@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// È un test **sul sorgente**: queste schermate istanziano Firebase e non si
 /// montano in un test (debito US-008). Legge la lista dei riquadri da
-/// `_ShortcutRow`, cosi una destinazione aggiunta domani e controllata senza
+/// `HomeShortcutRow`, cosi una destinazione aggiunta domani e controllata senza
 /// toccare questo file.
 ///
 /// **Limite dichiarato**: verifica che la pillola sia scritta nella classe
@@ -53,7 +53,7 @@ void main() {
   }
 
   final dashboard = leggi('lib/src/ui/screens/dashboard_screen.dart');
-  final riquadri = testoDellaClasse(dashboard, '_ShortcutRow');
+  final riquadri = testoDellaClasse(dashboard, 'HomeShortcutRow');
   final destinazioni = RegExp(r'builder: \(_\) => const (\w+)\(\)')
       .allMatches(riquadri)
       .map((m) => m[1]!)
@@ -61,7 +61,7 @@ void main() {
       .toList();
 
   test('la Home ha dei riquadri, e il test li ha trovati', () {
-    // Se la forma di `_ShortcutRow` cambia e la ricerca non trova piu niente,
+    // Se la forma di `HomeShortcutRow` cambia e la ricerca non trova piu niente,
     // il ciclo qui sotto non controllerebbe nulla e il test passerebbe lo
     // stesso: questo lo impedisce.
     expect(destinazioni.length, greaterThanOrEqualTo(4));
