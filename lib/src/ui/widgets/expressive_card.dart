@@ -25,6 +25,8 @@ class ExpressiveCard extends StatelessWidget {
     this.title,
     this.onTap,
     this.padding,
+    this.borderColor,
+    this.glow,
   });
   final Widget child;
   /// Titolo della card. Assente significa nessuno spazio occupato.
@@ -36,6 +38,16 @@ class ExpressiveCard extends StatelessWidget {
   /// sempre. Esiste per le righe compatte (il cassetto) che vogliono restare
   /// la stessa card, non un'altra decorazione scritta a mano.
   final EdgeInsetsGeometry? padding;
+
+  /// Colore del filetto. Assente, `outline`: il valore di sempre. Serve a una
+  /// card che si distingue dalle altre per il suo stato (la scheda attiva),
+  /// senza diventare un'altra decorazione scritta a mano.
+  final Color? borderColor;
+
+  /// Bagliore colorato attorno alla card, dai token (`elevation.levelN`).
+  /// Assente, nessuno. Non e l'ombra neutra di Material: e il bagliore di
+  /// Immersivo, riservato a cio che e «attivo adesso».
+  final List<BoxShadow>? glow;
   @override
   Widget build(BuildContext context) {
     final t = context.immersivo;
@@ -50,8 +62,10 @@ class ExpressiveCard extends StatelessWidget {
         // l'elevazione di Material 3 Expressive, non il linguaggio di
         // Immersivo/Toxic Forest, dove ogni riquadro (le nuove schermate di
         // Impostazioni, il profilo) si chiude con un bordo sottile su
-        // `scheme.outline`, mai con un `boxShadow`.
-        border: Border.all(color: scheme.outline),
+        // `scheme.outline`. Un bagliore compare solo se chi usa la card lo
+        // chiede con [glow], per uno stato attivo.
+        border: Border.all(color: borderColor ?? scheme.outline),
+        boxShadow: glow,
       ),
       child: Material(
         // Nessun colore da scegliere: serve solo la superficie che disegna

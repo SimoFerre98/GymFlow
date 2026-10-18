@@ -199,8 +199,12 @@ void main() {
     // di qui avrebbe fatto sparire la guardia insieme al problema, e il criterio
     // e «usa la card condivisa», non «scrive quella parola».
     const viaDiretta = 'ExpressiveCard';
+    //
+    // Anche la lista delle schede delega: la riga e `ProgramCard`, costruita
+    // su `ExpressiveCard` con la striscia del colore e il bagliore dell'attiva.
     const perDelega = <String, String>{
       'lib/src/ui/screens/dashboard_screen.dart': 'HomeHeroCard',
+      'lib/src/ui/screens/program_list_screen.dart': 'ProgramCard',
     };
 
     for (final percorso in const [

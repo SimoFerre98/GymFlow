@@ -5,11 +5,10 @@ import 'package:gymflow/src/core/providers/firestore_provider.dart';
 import 'package:gymflow/src/core/providers/program_provider.dart';
 import 'package:gymflow/src/core/providers/auth_provider.dart';
 import 'package:gymflow/src/ui/screens/program_creator_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:gymflow/src/ui/widgets/toast_utils.dart';
 import 'package:gymflow/src/core/providers/localization_provider.dart';
 import 'package:gymflow/src/core/theme/immersivo_tokens.dart';
-import 'package:gymflow/src/ui/widgets/expressive_card.dart';
+import 'package:gymflow/src/ui/widgets/program_card.dart';
 import 'package:gymflow/src/ui/widgets/ticker_marquee.dart';
 /// Barra "Nuovo programma" in fondo: stesso trattamento del "+ Nuovo
 /// esercizio" di `exercise_library_screen.dart` — testo pieno e riquadro
@@ -240,142 +239,17 @@ class ProgramListScreen extends ConsumerWidget {
     Localization loc,
   ) {
     final t = context.immersivo;
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.only(bottom: t.spacing.md),
-      // La card condivisa porta con se fondo, raggio, ombra e padding: quello
-      // che qui era una `Card` con elevazione 4 e raggio 16 scritti a mano.
-      child: ExpressiveCard(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProgramCreatorScreen(program: program),
-            ),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      program.name,
-                      style: t.typography.title?.copyWith(
-                        color: scheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // La pillola resta un `Container`: non sta facendo una
-                      // card, e la card condivisa non deve crescere per
-                      // coprirla.
-                      //
-                      // «Attiva» e la scheda su cui ti stai allenando adesso,
-                      // quindi porta l'ambra, che nella palette significa
-                      // esattamente «cosa fare adesso». Il verde acceso che
-                      // c'era qui non e in palette.
-                      if (program.isActive)
-                        Container(
-                          margin: EdgeInsets.only(right: t.spacing.sm),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: t.spacing.sm,
-                            vertical: t.spacing.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.20),
-                            borderRadius: t.shape.cornerXs,
-                            border: Border.all(color: scheme.primary),
-                          ),
-                          child: Text(
-                            loc.t('active_caps'),
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (value) {
-                          if (value == 'delete') {
-                            _confirmDelete(context, ref, program, loc);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.delete_outline,
-                                  color: scheme.error,
-                                ),
-                                SizedBox(width: t.spacing.sm),
-                                Text(
-                                  loc.t('delete'),
-                                  style: TextStyle(color: scheme.error),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              if (program.description != null &&
-                  program.description!.isNotEmpty) ...[
-                SizedBox(height: t.spacing.sm),
-                Text(
-                  program.description!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              SizedBox(height: t.spacing.md),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: t.spacing.md,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  SizedBox(width: t.spacing.xs),
-                  Text(
-                    program.startDate != null
-                        ? '${DateFormat.yMMMd(loc.locale.languageCode).format(program.startDate!)} - ${program.endDate != null ? DateFormat.yMMMd(loc.locale.languageCode).format(program.endDate!) : loc.t('ongoing')}'
-                        : loc.t('no_dates'),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    Icons.layers,
-                    size: t.spacing.md,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  SizedBox(width: t.spacing.xs),
-                  Text(
-                    '${program.workoutIds.length} ${loc.t('days_label')}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-          ],
+      child: ProgramCard(
+        program: program,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProgramCreatorScreen(program: program),
+          ),
         ),
+        onDelete: () => _confirmDelete(context, ref, program, loc),
       ),
     );
   }

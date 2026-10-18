@@ -163,6 +163,9 @@ class Localization {
     'ongoing': 'Ongoing',
     'no_dates': 'No dates set',
     'days_label': 'Days',
+    'program_stat_week': 'Week',
+    'program_stat_to_start': 'Days to start',
+    'program_stat_ended_weeks': 'Weeks · ended',
     'exercises_label': 'exercises',
     // Dashboard
     'dashboard_title': 'Dashboard',
@@ -703,6 +706,9 @@ class Localization {
     'ongoing': 'In corso',
     'no_dates': 'Nessuna data',
     'days_label': 'Giorni',
+    'program_stat_week': 'Settimana',
+    'program_stat_to_start': 'Giorni all\'inizio',
+    'program_stat_ended_weeks': 'Settimane · conclusa',
     'exercises_label': 'esercizi',
     // Dashboard
     'dashboard_title': 'Dashboard',
