@@ -19,6 +19,53 @@
 > 2026-09-09:** `grep -c "^#### US-" docs/BACKLOG.md` → **110 storie**; `grep -c "✅ DONE"` → **64
 > completate**. Non fidarsi di nessuno dei due numeri scritti più sotto senza ricontare.
 
+### Stato verificato nel codice — 2026-10-18
+
+> **Riordino fatto leggendo `lib/`, `test/`, `docs/planning/` e il `git log` di `main` (`42320d9`), non fidandosi degli Status scritti prima.** Le 44 storie che erano `⬜ TODO` o `🟡 IN CORSO` sono state riverificate una per una — US-092 esclusa, che ha modifiche su un altro branch — e ogni Status riporta ora la prova (file, riga, commit). Il motivo: il processo formale è stato saltato più volte (`HANDOFF.md` sezione 2) e il backlog non era più uno specchio del codice.
+>
+> **Conteggio vero: 111 storie** (la voce duplicata e contraddittoria di US-084 è stata tolta) — **70** `✅ DONE`, **11** `🟡 PARZIALE`, **18** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **3** `⏸ ACCANTONATA`, **3** `🔍 IN REVIEW`. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
+>
+> **Gli Status nuovi:** `✅ DONE (nei fatti)` = il codice c'è e i criteri sono soddisfatti, magari senza che nessuno l'avesse scritto qui; restano solo le conferme che richiedono un dispositivo, dichiarate. `🟡 PARZIALE` = una parte è fatta e le caselle dicono quale; non sostituisce `🟡 IN CORSO`, che non esiste più. `↪ SUPERATA` / `↪ ASSORBITA` = la storia descrive qualcosa che l'app non ha più (direzione Immersivo, cassetto rimosso, inviti al posto degli amici). `⏸ ACCANTONATA` = EP-008, nessun lavoro fatto.
+>
+> **Quello che il codice non può dire** (va guardato su un telefono): la conferma sull'APK di US-106, US-107, US-108; il comportamento di `TimerForegroundService` fuori dall'app (US-053) e il suo consumo di batteria; la vibrazione vera di US-048; la misura dei 500 KB di US-015; la Now Bar di US-054. Dichiarato nelle singole storie, non spuntato.
+
+**Le storie che restano davvero aperte**, per epica e priorità (`⬜` da fare, `🟡` da finire; US-092 è in review su `feature/US-092-client-consent` e qui non è stata toccata):
+
+| Epica | Storia | Priorità | Stato | Cosa manca davvero |
+|---|---|---|---|---|
+| EP-002 | US-009 | MEDIUM | ⬜ | 41 istanziazioni dirette di servizi in 14 file di `lib/src/ui` |
+| EP-003 | US-081 | HIGH | ⬜ | l'assertion `_dependents.isEmpty` non è mai stata riprodotta: serve lo stack, da un dispositivo |
+| EP-003 | US-012 | MEDIUM | ⬜ | 4 stream creati dentro `build()`: profilo, traguardi, collega amici, palestra |
+| EP-003 | US-016 | MEDIUM | 🟡 | `_applyProfile` ancora dentro il builder di `gym_settings_screen.dart` (si chiude con US-012) |
+| EP-003 | US-017 | LOW | ⬜ | statistiche ricalcolate in `build` in tre schermate, nessun provider derivato |
+| EP-004 | US-080 | MEDIUM | ↪ residuo | la lettura condivisa di calendario e schede su un invito accettato (criteri 4-5); si decide con US-092 |
+| EP-004 | US-020 | MEDIUM | ⬜ bloccata | i blocchi da dieci vanno scritti dentro la nuova lettura di US-080, non prima |
+| EP-004 | US-078 | MEDIUM | ⬜ | nessuna protezione contro un campo dimenticato nei cinque mapper |
+| EP-007 | US-032 | LOW | ⬜ | test di login→principale, di una serie nella sessione attiva, della Home vuota; bloccata da US-009 |
+| EP-010 | US-048 | MEDIUM | 🟡 | il «+30 s» dalla pillola del tempo (oggi solo nella schermata del tempo e nella notifica) |
+| EP-010 | US-074 | LOW | ⬜ | record per ripetizioni: prima va decisa la regola (massimale stimato o secondo tipo di record) |
+| EP-011 | US-051 | HIGH | 🟡 | corona di tacche, altezza adattiva, test su animazioni ridotte e testo ingrandito |
+| EP-011 | US-053 | HIGH | 🟡 | spiegazione del permesso notifiche, batteria misurata, prova su dispositivo reale |
+| EP-011 | US-054 | MEDIUM | ⬜ | stile a progresso di Android 16 / Now Bar: serve un telefono con One UI 8 |
+| EP-012 | US-055 | HIGH | 🟡 | calcolo `bodyWeight`, sincronizzazione (oggi solo `SharedPreferences`), obiettivi predefiniti inventati |
+| EP-012 | US-056 | MEDIUM | 🟡 | ordinamento, scadenza, data di raggiungimento, modifica di un obiettivo |
+| EP-012 | US-057 | LOW | ⬜ | sfide mensili vere: oggi solo tre soglie fisse da Salute, senza storico |
+| EP-012 | US-058 | LOW | 🟡 | record personale accanto alla serie, badge più vicino, riscontro allo sblocco |
+| EP-013 | US-060 | MEDIUM | 🟡 | ritmo e distanza non mostrati da nessuna schermata, battito, import da Salute |
+| EP-013 | US-061 | LOW | ⬜ | campi propri per mobilità e sport (posizione, lato, intensità, note) |
+| EP-014 | US-063 | MEDIUM | 🟡 | stato per giorno (completato / in corso / da fare) nella scheda |
+| EP-014 | US-067 | LOW | 🟡 | ridurre le animazioni; decidere se il raggruppamento attuale basta |
+| EP-015 | US-069 | MEDIUM | ⬜ | primo avvio guidato, per intero |
+| EP-016 | US-085 | HIGH | ⬜ | importatore delle quattro schede; bloccata dalla parte mancante di US-084 |
+| EP-016 | US-084 | MEDIUM | 🟡 | c'è solo il campo `superSetGroup`: manca raggruppare, eseguire alternando, recuperare a fine giro |
+| EP-017 | US-089 | HIGH | ⬜ | elenco dei clienti; per vedere l'ultimo allenamento servono le regole di US-092 |
+| EP-017 | US-090 | HIGH | ⬜ | il trainer scrive la scheda di un cliente (dopo US-089; regole di scrittura da fondare) |
+| EP-017 | US-091 | HIGH | ⬜ | andamento del cliente (dopo US-089 e US-092) |
+| EP-017 | US-092 | HIGH | ⬜ qui · 🔍 altrove | `⬜` su questo branch, `🔍 IN REVIEW` su `feature/US-092-client-consent` (regole pubblicate, manca la prova sul telefono): non toccata |
+| EP-017 | US-088 | MEDIUM | ⬜ | QR code: due dipendenze nuove da approvare prima di iniziare |
+
+**Chiuse nei fatti da questo riordino:** US-010, US-015, US-064 (riformulata: colore per programma), US-106, US-107, US-108. **Superate o assorbite:** US-011, US-019, US-035, US-037, US-103, e US-080 per il modello. **Accantonate:** US-002, US-003, US-004 (EP-008, Web).
+
 | Epic | Title | Stories | Story Points | Scope |
 |---|---|---|---|---|
 | EP-001 | Stabilità della build e della pipeline | 3 | 4 | MVP |
@@ -399,7 +446,7 @@ Dopo questa storia: le tre schermate più usate dell'app non contengono più alc
 
 **Epic:** EP-002 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-008 | **Blocks:** US-010, US-012, US-015, US-016, US-019, US-032
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: restano 41 istanziazioni dirette di `FirestoreService()`/`AuthService()`/`HealthService()` in 14 file di `lib/src/ui` (le più dense: `workout_creator_screen.dart` e `program_creator_screen.dart` con 6 ciascuno, `settings_screen.dart`, `gym_settings_screen.dart` e `active_session_screen.dart` con 5). Il criterio sul provider di `HealthService` è a metà: esiste (`live_metrics_provider.dart:90`) ma `settings_screen.dart`, `gamification_screen.dart` e `health_detail_screen.dart` istanziano ancora `HealthService()`.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -428,7 +475,7 @@ Dopo questa storia: una ricerca di `FirestoreService()` in `lib/src/ui` non prod
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-009 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE (nei fatti) — chiusa come conseguenza di US-072 e US-065, non per iniziativa (`planning/US-072-review.md`, «La libreria non crea più lo stream dentro `build`»). **Verificata il 2026-10-18**: `exercise_library_screen.dart:236` legge `ref.watch(exercisesProvider)`; il campo di ricerca non ha un controller e `onChanged` aggiorna solo `_searchQuery` (righe 310-319); `exerciseLibraryViewFor` tiene la lista durante una ricarica (`test/exercise_library_flicker_test.dart`) e `filterExercises` è coperta da `test/exercise_library_redesign_test.dart`. ⚠️ Nessun test prova direttamente «nessuna nuova sottoscrizione» né «nessuna girella mentre si digita»: verificati per lettura del codice.
 
 **Story**
 Come atleta che cerca un esercizio nella libreria,
@@ -439,11 +486,11 @@ così da trovare quello che cerco senza sfarfallii né attese.
 Dopo questa storia: digitando "bench" nella ricerca, la lista si filtra senza spinner intermedi e senza nuove letture da Firestore.
 
 **Acceptance Criteria**
-- [ ] Lo stream degli esercizi è creato una sola volta e non dentro il metodo `build`
-- [ ] Digitando nella barra di ricerca non viene aperta alcuna nuova sottoscrizione Firestore
-- [ ] Il filtro per testo e per tipo di esercizio produce gli stessi risultati di oggi
-- [ ] Durante la digitazione non compare l'indicatore di caricamento
-- [ ] Il `TextEditingController` della ricerca viene rilasciato alla chiusura della schermata
+- [x] Lo stream degli esercizi è creato una sola volta e non dentro il metodo `build`
+- [x] Digitando nella barra di ricerca non viene aperta alcuna nuova sottoscrizione Firestore
+- [x] Il filtro per testo e per tipo di esercizio produce gli stessi risultati di oggi
+- [x] Durante la digitazione non compare l'indicatore di caricamento
+- [x] Il `TextEditingController` della ricerca viene rilasciato alla chiusura della schermata
 
 ---
 
@@ -451,7 +498,7 @@ Dopo questa storia: digitando "bench" nella ricerca, la lista si filtra senza sp
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-008 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ↪ SUPERATA — **verificata il 2026-10-18**: il menu di avvio rapido della Home non esiste più (redesign Immersivo) e il difetto N+1 è sparito con US-111: `dashboard_screen.dart` aveva 4 `StreamBuilder` prima di `e7de6cf` e ne ha 0 dopo. L'avvio rapido rimasto (`workout_creator_screen.dart:376`, «Parti da una scheda») legge un solo `localWorkoutsProvider` e mostra le prime due schede, non più raggruppate per programma. I criteri sotto descrivono un menu che non c'è: non sono da implementare.
 
 **Story**
 Come atleta che apre l'avvio rapido dalla dashboard,
@@ -474,7 +521,7 @@ Dopo questa storia: aprendo l'avvio rapido con più programmi attivi viene esegu
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-009 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: ridotta a quattro punti dove uno stream nasce dentro `build()`: `profile_screen.dart:259`, `gamification_screen.dart:182`, `connect_friend_screen.dart:168` e `gym_settings_screen.dart:156` (tutti `AuthService().getUserProfileStream()`). Già a posto: calendario (US-111 + `shared_calendar_provider.dart`) e impostazioni (`145e056`, `_profileStream` in `settings_screen.dart:47`). Un solo provider del profilo chiude questa, US-016 e parte di US-009.
 
 **Story**
 Come atleta che usa l'app quotidianamente,
@@ -487,7 +534,7 @@ Dopo questa storia: interagire con filtri e controlli in calendario, amici, impo
 **Acceptance Criteria**
 - [ ] Nessuno `StreamBuilder` in `lib/src/ui` riceve uno stream costruito dentro `build`
 - [ ] Gli stream sono creati in `initState` o esposti da provider
-- [ ] Cambiando mese nel calendario non viene riaperta la sottoscrizione agli eventi
+- [x] Cambiando mese nel calendario non viene riaperta la sottoscrizione agli eventi — `calendar_screen.dart` legge solo provider (`sharedCalendarEventsProvider`, `localScheduledWorkoutsProvider`)
 - [ ] Il comportamento funzionale di tutte le schermate coinvolte è invariato
 
 ---
@@ -541,7 +588,7 @@ Dopo questa storia: aprire e chiudere ripetutamente il creatore di allenamenti n
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-009 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE (nei fatti) — fatta dentro `44d8e8a` (2026-08-12, «La foto profilo non accumula più file abbandonati su Storage»), mai riportata qui. **Verificata il 2026-10-18**: `profile_screen.dart:89-91` limita a 1024×1024 con qualità 85; il caricamento ha `try`/`catch` con toast e chiude lo stato di attesa (righe 206-217); in `lib/` non c'è nessun `print(`. ⚠️ **Non misurato** il criterio 2 (meno di 500 KB da una foto da 8 MP): nessuno l'ha provato.
 
 **Story**
 Come atleta che imposta la propria foto profilo,
@@ -552,11 +599,11 @@ così da non dover attendere l'invio di una foto a piena risoluzione.
 Dopo questa storia: caricando una foto da 8 MB, il file trasferito su Storage è di poche centinaia di kilobyte.
 
 **Acceptance Criteria**
-- [ ] La selezione dell'immagine applica un limite di dimensione e un livello di qualità
-- [ ] Un'immagine sorgente da 8 MP produce un caricamento inferiore a 500 KB
-- [ ] L'avatar resta nitido alle dimensioni con cui è mostrato nell'app
-- [ ] In caso di errore di caricamento viene mostrato un messaggio e lo stato di attesa viene chiuso
-- [ ] Le chiamate a `print` nel flusso di caricamento sono sostituite da logging appropriato
+- [x] La selezione dell'immagine applica un limite di dimensione e un livello di qualità — `profile_screen.dart:89-91`
+- [ ] Un'immagine sorgente da 8 MP produce un caricamento inferiore a 500 KB — ⚠️ non misurato
+- [ ] L'avatar resta nitido alle dimensioni con cui è mostrato nell'app — ⚠️ non verificato a occhio
+- [x] In caso di errore di caricamento viene mostrato un messaggio e lo stato di attesa viene chiuso — `profile_screen.dart:206-217`
+- [x] Le chiamate a `print` nel flusso di caricamento sono sostituite da logging appropriato — nessun `print(` in `lib/`
 
 ---
 
@@ -564,7 +611,7 @@ Dopo questa storia: caricando una foto da 8 MB, il file trasferito su Storage è
 
 **Epic:** EP-003 | **Priority:** MEDIUM | **Story Points:** 2
 **Depends on:** US-009 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — **verificata il 2026-10-18**: `_isLoading` non esiste più (US-102), in `lib/` non c'è nessun `print(`, e `_applyProfile` (`gym_settings_screen.dart:48-56`) ha la guardia `_loaded`: il testo digitato non viene sovrascritto. Resta il criterio 1 alla lettera: `_applyProfile` è chiamato dentro il builder dello `StreamBuilder` (riga 159), una volta sola ma pur sempre in `build`. Si chiude insieme a US-012 (stesso stream, `gym_settings_screen.dart:156`).
 
 **Story**
 Come atleta che modifica i dati della propria palestra,
@@ -575,11 +622,11 @@ così da poter salvare le modifiche in modo affidabile.
 Dopo questa storia: modificando il nome della palestra e attendendo un aggiornamento dal server, il testo digitato non viene perso.
 
 **Acceptance Criteria**
-- [ ] I campi di testo delle impostazioni non vengono popolati dentro il metodo `build`
-- [ ] L'inizializzazione dei campi dal profilo avviene una sola volta, alla prima disponibilità dei dati
-- [ ] Digitando in un campo e ricevendo un aggiornamento del profilo, il testo inserito non viene sovrascritto
-- [ ] Il campo `_isLoading` inutilizzato viene rimosso o collegato all'indicatore di salvataggio
-- [ ] Le chiamate a `print` nel salvataggio sono sostituite da logging appropriato
+- [ ] I campi di testo delle impostazioni non vengono popolati dentro il metodo `build` — ⚠️ alla lettera no: vedi Status
+- [x] L'inizializzazione dei campi dal profilo avviene una sola volta, alla prima disponibilità dei dati — guardia `_loaded`
+- [x] Digitando in un campo e ricevendo un aggiornamento del profilo, il testo inserito non viene sovrascritto — per lettura (la guardia `_loaded`); nessun test
+- [x] Il campo `_isLoading` inutilizzato viene rimosso o collegato all'indicatore di salvataggio — rimosso da US-102
+- [x] Le chiamate a `print` nel salvataggio sono sostituite da logging appropriato — nessun `print(` in `lib/`
 
 ---
 
@@ -587,7 +634,7 @@ Dopo questa storia: modificando il nome della palestra e attendendo un aggiornam
 
 **Epic:** EP-003 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-008 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: `StatisticsHelper.calculateCurrentStreak`/`calculateTotalVolume` sono chiamati dentro `build` in `dashboard_screen.dart:247`, `statistics_screen.dart:190-199` e `gamification_screen.dart:202`; non esiste nessun provider derivato. Fatto solo il criterio 5 (i confronti sempre veri, da US-102). La soglia di 55 fps con 500 sessioni non è mai stata misurata.
 
 **Story**
 Come atleta con centinaia di allenamenti registrati,
@@ -602,7 +649,7 @@ Dopo questa storia: con 500 sessioni caricate, scorrere la dashboard non provoca
 - [ ] I valori sono esposti da provider derivati e non ricalcolati a ogni `build`
 - [ ] Con 500 sessioni di prova, lo scorrimento della dashboard resta sopra i 55 fps in profile mode
 - [ ] I valori mostrati coincidono con quelli calcolati oggi
-- [ ] I confronti sempre veri segnalati dall'analyzer in `statistics_helper.dart` sono rimossi
+- [x] I confronti sempre veri segnalati dall'analyzer in `statistics_helper.dart` sono rimossi — verificato: `dart analyze lib/src/core/utils/statistics_helper.dart` non segnala nulla (2026-10-18)
 
 ---
 
@@ -641,7 +688,7 @@ Dopo questa storia: le regole sono nel repository, applicate al database corrett
 
 **Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-009 | **Blocks:** US-020
-**Status:** ⬜ TODO
+**Status:** ↪ SUPERATA da US-087 — **verificata il 2026-10-18**: l'elenco degli amici non nasce più da `profile.friends` ma dagli inviti accettati (`connect_friend_screen.dart:360`, `acceptedRelationshipsProvider`): due query su `invites` con `isEqualTo`, senza `whereIn` (`firestore_service.dart:113-127`). `profile.friends` non viene più scritto. `FirestoreService.getUsers` è già a blocchi di dieci (`firestore_service.dart:148-158`), ma l'unico chiamante rimasto, `_FriendsAtGym` (`gym_settings_screen.dart:479`), è negato dalle regole e resta silenzioso. Il limite dei dieci tornerà a contare solo nella lettura condivisa che ricollegherà US-080.
 
 **Story**
 Come atleta con più di dieci amici collegati,
@@ -664,7 +711,7 @@ Dopo questa storia: un utente con 25 amici li vede tutti e 25 nella schermata am
 
 **Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-018, US-019 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **bloccata da US-080 (residuo)**, **verificata il 2026-10-18**: `getSharedSessions`/`getSharedScheduledWorkouts` (`firestore_service.dart:455,492`) tagliano ancora a `take(10)` ma leggono `users.calendarSharedWith`, una query che le regole negano: il calendario riceve una lista vuota (`onErrorReturnWith`, US-098). Suddividere in blocchi di dieci una lettura che non funziona non prova niente: va fatto dentro la nuova lettura condivisa di US-080, non prima.
 
 **Story**
 Come atleta che si allena con un gruppo numeroso,
@@ -809,7 +856,7 @@ Dopo questa storia: esiste un widget card riutilizzabile che legge i propri valo
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-033 | **Blocks:** US-022, US-037, US-051
-**Status:** ⬜ TODO
+**Status:** ↪ SUPERATA — **verificata il 2026-10-18**: la direzione Material 3 Expressive è stata sostituita da «Immersivo / Toxic Forest» (`HANDOFF.md` sezioni 1 e 5, `CLAUDE.md`): angoli vivi (`ImmersivoShape`, quasi tutti i raggi a 0), non le 35 forme Expressive. Nel codice non c'è nessuna libreria di forme (pill, cookie, sunny, pentagon, oval: `grep` vuoto). Non da implementare. `docs/adr/001-material-3-expressive.md` resta come storia della scelta precedente; l'ADR della direzione nuova (`ADR-002`) non è mai stato recuperato.
 
 **Story**
 Come atleta che usa l'app,
@@ -886,7 +933,7 @@ Dopo questa storia: le tre schermate principali sono indistinguibili per stile e
 
 **Epic:** EP-005 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-035, US-036 | **Blocks:** US-023
-**Status:** ⬜ TODO
+**Status:** ↪ SUPERATA — **verificata il 2026-10-18**, stessa ragione di US-035 da cui dipendeva: nessun componente Expressive nel codice (gruppo di pulsanti connessi, indicatore con morphing, pulsante diviso: `grep` vuoto). Quelli che esistono con il nome storico (`ExpressiveCard`, `ExpressiveSegmentedControl`, `ExpressiveCtaButton`) sono versioni Immersivo. Non da implementare.
 
 **Story**
 Come atleta che registra un allenamento,
@@ -1168,7 +1215,7 @@ Dopo questa storia: modificare il calcolo della serie di giorni consecutivi fa f
 
 **Epic:** EP-007 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-009, US-031 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessun test monta login→schermata principale (`LoginScreen` è montata solo in `localization_live_switch_test.dart`), nessuno registra una serie sulla schermata attiva (`active_session_test.dart` prova solo il notifier: avvio, ripresa, `endSession`), nessuno prova lo stato vuoto della Home. Fatto solo il criterio 5 (`widget_test.dart` rimosso da US-029). Resta bloccata da US-009: `ActiveSessionScreen` istanzia i servizi nel proprio `State` e non si monta.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -1183,7 +1230,7 @@ Dopo questa storia: rimuovere per errore il pulsante di login fa fallire un test
 - [ ] Esiste un test che verifica la registrazione di una serie nella sessione attiva
 - [ ] Esiste un test che verifica lo stato vuoto della dashboard senza sessioni
 - [ ] I servizi esterni sono sostituiti da doppi, senza chiamate di rete reali
-- [ ] Il `widget_test.dart` predefinito è sostituito o rimosso
+- [x] Il `widget_test.dart` predefinito è sostituito o rimosso — il file non esiste più (US-029)
 - [ ] I test passano con `flutter test`
 
 ---
@@ -1388,7 +1435,7 @@ Dopo questa storia: il pannello della sessione mostra cronometro, calorie e batt
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-046, US-052 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE (5 criteri su 6) — implementata in `34f911d` (2026-08-13, «US-048: avvio automatico del recupero alla spunta della serie e preferenze in Impostazioni»), mai chiusa qui. **Verificata il 2026-10-18**: `_onSetCompleted` → `recuperoDellaSerie` (`active_session_screen.dart:560-578`); `TimerSettings` con durata predefinita, avvio automatico, vibrazione e suono (`timer_settings_provider.dart`, `timer_settings_screen.dart`); test in `test/timer_settings_test.dart`, `test/recupero_della_serie_test.dart`, `test/timer_vibration_test.dart`. Manca il criterio 5 a metà: dalla pillola (`timer_overlay.dart`) si mette in pausa e si azzera ma **non si prolunga**; il +30 s sta solo nella schermata del tempo (`time_tools_screen.dart:404`) e nella notifica di US-053. La vibrazione vera resta da confermare sul dispositivo (US-099).
 
 **Story**
 Come atleta che ha appena chiuso una serie,
@@ -1399,12 +1446,12 @@ così da non perdere il conto del tempo né dover toccare il telefono fra le ser
 Dopo questa storia: chiudendo una serie il recupero parte con la durata prevista, e alla fine il telefono vibra.
 
 **Acceptance Criteria**
-- [ ] Chiudendo una serie il recupero parte con la durata dell'esercizio, o con quella predefinita
-- [ ] La durata predefinita è configurabile nelle impostazioni
-- [ ] Alla fine del recupero il dispositivo vibra; il riscontro sonoro è disattivabile
-- [ ] L'avvio automatico si può disattivare dalle impostazioni
-- [ ] Il recupero è prolungabile e interrompibile senza aprire la schermata del timer
-- [ ] Il recupero prosegue passando all'esercizio successivo
+- [x] Chiudendo una serie il recupero parte con la durata dell'esercizio, o con quella predefinita — `recuperoDellaSerie`, `test/recupero_della_serie_test.dart`
+- [x] La durata predefinita è configurabile nelle impostazioni — `timer_settings_screen.dart:148-162`
+- [x] Alla fine del recupero il dispositivo vibra; il riscontro sonoro è disattivabile — `segnalaScadenza` (`timer_service.dart:303`), `test/timer_vibration_test.dart`; ⚠️ la vibrazione vera è da confermare sul dispositivo
+- [x] L'avvio automatico si può disattivare dalle impostazioni — `timer_settings_screen.dart:70`
+- [ ] Il recupero è prolungabile e interrompibile senza aprire la schermata del timer — ⚠️ a metà: dalla pillola si pausa e si azzera, **non si prolunga** (+30 s solo nella schermata del tempo e nella notifica)
+- [x] Il recupero prosegue passando all'esercizio successivo — il tempo vive in `TimerNotifier`, non nella schermata
 
 ---
 
@@ -1469,7 +1516,7 @@ Dopo questa storia: chiudendo una serie che supera il massimo precedente, l'app 
 
 **Epic:** EP-011 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-035, US-036 | **Blocks:** US-053
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — la schermata del tempo esiste nella forma Immersivo (`65dda71`, `3ac2bc1`, 2026-08-11; US-035 non serve più). **Verificata il 2026-10-18**: anello che si svuota, cifre che rotolano, pulsante che cambia forma, onde concentriche e segmentato che scorre ci sono (`time_dial.dart`, `time_tools_screen.dart`). Mancano: la corona di tacche (il painter `_AnelloTempo` non ne disegna), l'adattamento all'altezza (il quadrante è a misura fissa, `kRaggioQuadrante`), e nessun test copre animazioni ridotte o testo ingrandito. Test: `test/time_tools_screen_test.dart` (4, solo rendering e comandi).
 
 **Story**
 Come atleta che controlla il recupero da tre metri di distanza,
@@ -1480,14 +1527,14 @@ così da sapere quanto tempo resta con un'occhiata, mentre sono sotto il bilanci
 Dopo questa storia: il quadrante occupa lo spazio disponibile, con anello, tacche e cifre che rotolano.
 
 **Acceptance Criteria**
-- [ ] Il quadrante occupa lo spazio fra intestazione e comandi, adattandosi all'altezza del dispositivo
-- [ ] L'anello si svuota in proporzione al tempo rimanente, con corona di tacche
-- [ ] Le cifre che cambiano scorrono; quelle invariate restano ferme
-- [ ] Il pulsante principale cambia forma fra avvio e pausa
-- [ ] Durante il conteggio, onde concentriche segnalano che il tempo scorre
-- [ ] Cambiando modalità, il selettore scorre e il colore del quadrante cambia
-- [ ] Con le animazioni di sistema ridotte, tutto degrada a cambi immediati
-- [ ] Il quadrante resta leggibile con dimensioni di testo di sistema ingrandite
+- [ ] Il quadrante occupa lo spazio fra intestazione e comandi, adattandosi all'altezza del dispositivo — ⚠️ misura fissa (`kRaggioQuadrante` ≈ 284 dp con il margine), non si adatta all'altezza
+- [ ] L'anello si svuota in proporzione al tempo rimanente, con corona di tacche — anello ✅ (`_AnelloTempo`); ❌ la corona di tacche non è disegnata
+- [x] Le cifre che cambiano scorrono; quelle invariate restano ferme — `_CifreRotanti` (`time_dial.dart`)
+- [x] Il pulsante principale cambia forma fra avvio e pausa — `TimeControls`, `AnimatedContainer`
+- [x] Durante il conteggio, onde concentriche segnalano che il tempo scorre — `_OndeConcentriche`
+- [x] Cambiando modalità, il selettore scorre e il colore del quadrante cambia — `3ac2bc1` e `65dda71`; il colore vira in recupero (`coloreArco`)
+- [ ] Con le animazioni di sistema ridotte, tutto degrada a cambi immediati — ⚠️ onde e aurora rispettano `disableAnimations`; per le cifre rotolanti e il pulsante non risulta nessun controllo, e nessun test lo prova
+- [ ] Il quadrante resta leggibile con dimensioni di testo di sistema ingrandite — ⚠️ `FittedBox` evita il taglio delle cifre; nessun test con testo ingrandito
 
 ---
 
@@ -1519,7 +1566,7 @@ Dopo questa storia: la pillola compare in una posizione fissa in alto su ogni sc
 
 **Epic:** EP-011 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-051 | **Blocks:** US-054
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — implementata in `848e93a` (2026-08-11, «il recupero prosegue e resta visibile fuori dall'app»): `TimerForegroundService.kt` con orario di fine assoluto e azioni Pausa/+30 s/Stop, `timer_notification_channel.dart`, `test/timer_notification_test.dart` (10 test, solo il lato Dart). **Verificata il 2026-10-18** per lettura. **Aperti e dichiarati dal commit stesso**: (a) il permesso notifiche si chiede senza spiegare a cosa serve (`timer_service.dart:380-386`), criterio 4; (b) il consumo di batteria in un'ora non è stato misurato, criterio 8; (c) nessuno l'ha provata su un dispositivo reale (tipo `specialUse`, ottimizzazione batteria di One UI, aspetto della notifica).
 
 **Story**
 Come atleta che durante il recupero guarda un messaggio o mette la musica,
@@ -1530,14 +1577,14 @@ così da non perdere il recupero solo perché ho cambiato applicazione.
 Dopo questa storia: uscendo dall'app il timer prosegue e resta visibile in una notifica con i comandi.
 
 **Acceptance Criteria**
-- [ ] Il conteggio prosegue con l'app in background e a schermo bloccato
-- [ ] Una notifica persistente mostra il tempo che scorre
-- [ ] La notifica porta i comandi di pausa e prolungamento
-- [ ] Il permesso notifiche è richiesto spiegando a cosa serve
-- [ ] Negato il permesso, il timer funziona comunque dentro l'app
-- [ ] Alla fine del recupero la notifica si aggiorna e il dispositivo vibra
-- [ ] Chiudendo il timer la notifica scompare: nessun servizio resta attivo
-- [ ] Il consumo di batteria in un'ora di servizio attivo è misurato e riportato
+- [ ] Il conteggio prosegue con l'app in background e a schermo bloccato — implementato (orario di fine assoluto); ⚠️ mai provato su dispositivo
+- [ ] Una notifica persistente mostra il tempo che scorre — implementata (`TimerForegroundService.kt:242-252`); ⚠️ aspetto non visto
+- [ ] La notifica porta i comandi di pausa e prolungamento — Pausa/Riprendi e +30 s (`TimerForegroundService.kt:250-251`)
+- [ ] Il permesso notifiche è richiesto spiegando a cosa serve — ❌ si chiede senza spiegazione (`timer_service.dart:380-386`, lo dichiara il commento)
+- [x] Negato il permesso, il timer funziona comunque dentro l'app — `test/timer_notification_test.dart:78,96`
+- [ ] Alla fine del recupero la notifica si aggiorna e il dispositivo vibra — ⚠️ in background non verificato
+- [ ] Chiudendo il timer la notifica scompare: nessun servizio resta attivo — lato Dart provato (`test/timer_notification_test.dart:115,123`); ⚠️ lato nativo non provato, quindi non spuntato
+- [ ] Il consumo di batteria in un'ora di servizio attivo è misurato e riportato — ❌ non misurato
 
 ---
 
@@ -1545,7 +1592,7 @@ Dopo questa storia: uscendo dall'app il timer prosegue e resta visibile in una n
 
 **Epic:** EP-011 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-053 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: la notifica di US-053 è una `NotificationCompat` ordinaria (`CATEGORY_STOPWATCH`, testo `MM:SS` aggiornato ogni secondo, `TimerForegroundService.kt:242-252`); non c'è lo stile a progresso di Android 16 né la richiesta di notifica promossa per la Now Bar. Si fa con in mano un dispositivo Android 16 / One UI 8: i criteri chiedono verifica reale.
 
 **Story**
 Come atleta con un telefono Samsung recente,
@@ -1578,7 +1625,7 @@ Dopo questa storia: il timer compare nella Now Bar sul blocco, nel chip della ba
 
 **Epic:** EP-012 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** US-056, US-057, US-058, US-069
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — implementata in `65c03f4` (2026-08-13, «US-055: implementa UX/UI completamento allenamento, timer e obiettivi utente»): `user_goal.dart`, `goals_provider.dart`, test in `test/user_goals_test.dart`, `test/goals_provider_test.dart`, `test/workout_summary_goals_test.dart`. **Verificata il 2026-10-18**: il modello copre i tre tipi e la scadenza, e l'obiettivo raggiunto conserva `achievedAt`. Mancano: il calcolo per `bodyWeight` (`updateProgressFromSessions` lo restituisce intatto) e la sincronizzazione fra dispositivi — gli obiettivi stanno solo in `SharedPreferences` (`user_goals_v1`), con `userId` sempre `'local'`, mai su Firestore. ⚠️ **Trovato strada facendo**: gli obiettivi predefiniti (`_defaultGoals`, `goals_provider.dart`) mostrano a chi non ne ha creati «3 Allenamenti a settimana» già a 1/3 e «Spinta Panca 80 kg» a 60/80, e quest'ultimo non si muove mai (nessun `exerciseId`): dati inventati presentati come veri.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -1589,12 +1636,12 @@ così da poter costruire sopra di esso la schermata e le notifiche di traguardo 
 Dopo questa storia: un obiettivo si crea, si persiste e sa dire da solo quanto è stato completato.
 
 **Acceptance Criteria**
-- [ ] Il modello copre almeno: numero di allenamenti a settimana, carico su un esercizio, peso corporeo
-- [ ] Ogni obiettivo ha un valore da raggiungere, uno attuale e una scadenza opzionale
-- [ ] L'avanzamento è calcolato dai dati esistenti, senza inserimenti manuali
-- [ ] Un obiettivo raggiunto resta nello storico con la data
-- [ ] Il calcolo per ciascun tipo è coperto da test, compreso il caso di dati assenti
-- [ ] Gli obiettivi si sincronizzano fra dispositivi
+- [x] Il modello copre almeno: numero di allenamenti a settimana, carico su un esercizio, peso corporeo — `GoalType` in `user_goal.dart`
+- [x] Ogni obiettivo ha un valore da raggiungere, uno attuale e una scadenza opzionale — `targetValue`, `currentValue`, `deadline`
+- [ ] L'avanzamento è calcolato dai dati esistenti, senza inserimenti manuali — ⚠️ per due tipi su tre: `bodyWeight` non ha nessun calcolo; `targetLoad` solo con un `exerciseId`, che la schermata di creazione non assegna mai
+- [x] Un obiettivo raggiunto resta nello storico con la data — `achievedAt`
+- [ ] Il calcolo per ciascun tipo è coperto da test, compreso il caso di dati assenti — ⚠️ `workoutFrequency` e `targetLoad` sì; `bodyWeight` no (non esiste)
+- [ ] Gli obiettivi si sincronizzano fra dispositivi — ❌ solo `SharedPreferences`, locale al dispositivo
 
 ---
 
@@ -1602,7 +1649,7 @@ Dopo questa storia: un obiettivo si crea, si persiste e sa dire da solo quanto �
 
 **Epic:** EP-012 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-055, US-021 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — la schermata esiste (`goals_screen.dart`, `65c03f4`, ripristinata in `ff893a5`). **Verificata il 2026-10-18**: ogni obiettivo mostra valore, traguardo e avanzamento; si crea e si elimina; lo stato vuoto propone di crearne uno. Mancano: nessun obiettivo della settimana in posizione primaria e nessun ordinamento (i raggiunti non vanno in fondo), nessuna data di raggiungimento mostrata, nessuna scadenza né tempo rimanente (la Home ha `daysLeftLabel`, questa schermata no), nessuna modifica di un obiettivo esistente. Test: solo `test/goals_screen_test.dart` (rendering).
 
 **Story**
 Come atleta che si allena per un motivo preciso,
@@ -1613,12 +1660,12 @@ così da sapere se sto andando dove volevo o se mi sono perso per strada.
 Dopo questa storia: la schermata mostra gli obiettivi attivi con l'avanzamento, e quelli già raggiunti.
 
 **Acceptance Criteria**
-- [ ] L'obiettivo della settimana in corso occupa la posizione primaria
-- [ ] Ogni obiettivo mostra valore attuale, traguardo e avanzamento visivo
-- [ ] Gli obiettivi con scadenza indicano il tempo rimanente
-- [ ] Quelli raggiunti restano visibili in fondo con la data
-- [ ] Senza obiettivi, la schermata propone di crearne uno invece di restare vuota
-- [ ] Un obiettivo si crea, modifica ed elimina dalla stessa schermata
+- [ ] L'obiettivo della settimana in corso occupa la posizione primaria — ❌ nessun ordinamento: segue l'ordine di inserimento
+- [x] Ogni obiettivo mostra valore attuale, traguardo e avanzamento visivo — barra e «valore / traguardo unità»
+- [ ] Gli obiettivi con scadenza indicano il tempo rimanente — ❌ la schermata non ha né il campo né l'etichetta
+- [ ] Quelli raggiunti restano visibili in fondo con la data — ❌ restano in lista ma non in fondo, e `achievedAt` non è mostrato
+- [x] Senza obiettivi, la schermata propone di crearne uno invece di restare vuota — testo e pulsante «aggiungi» in fondo
+- [ ] Un obiettivo si crea, modifica ed elimina dalla stessa schermata — creare ✅, eliminare ✅, modificare ❌ (nessun `updateGoal`)
 
 ---
 
@@ -1626,7 +1673,7 @@ Dopo questa storia: la schermata mostra gli obiettivi attivi con l'avanzamento, 
 
 **Epic:** EP-012 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-055 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: esiste solo una versione minima preesistente nelle Traguardi (`gamification_screen.dart:31-37`): tre sfide mensili da Salute — passi 180.000, calorie 15.000, distanza 50 km — con soglie fisse, senza storico, senza sfide di allenamenti o di volume, senza proiezione di metà mese. Non è la storia: è il punto di partenza.
 
 **Story**
 Come atleta che ha bisogno di uno stimolo esterno,
@@ -1649,7 +1696,7 @@ Dopo questa storia: ogni mese propone una sfida, con l'avanzamento aggiornato da
 
 **Epic:** EP-012 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-055, US-021 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — **verificata il 2026-10-18**: la serie di giorni consecutivi è già la prima cosa della schermata (`_buildStreakHero`, mockup 2c) e i badge bloccati mostrano cosa serve per sbloccarli (`badge_desc_*`). Mancano: il record personale accanto alla serie, l'indicazione del badge più vicino, il riscontro visibile allo sblocco; i badge sono quadrati con icona Material (`badge.icon`), non forme del design system — e con US-035 superata il criterio sulle forme va riscritto per l'estetica Immersivo.
 
 **Story**
 Come atleta che accumula costanza,
@@ -1660,10 +1707,10 @@ così da sapere qual è il dato che devo proteggere.
 Dopo questa storia: la schermata dei traguardi apre con la serie in corso, poi la sfida, poi i badge.
 
 **Acceptance Criteria**
-- [ ] La serie di giorni consecutivi occupa la posizione primaria, con il record personale accanto
-- [ ] I badge bloccati dichiarano cosa serve per sbloccarli
-- [ ] Il badge successivo più vicino è indicato
-- [ ] Sbloccare un badge produce un riscontro visibile al momento
+- [ ] La serie di giorni consecutivi occupa la posizione primaria, con il record personale accanto — serie ✅ (`_buildStreakHero`), ❌ il record personale accanto non c'è
+- [x] I badge bloccati dichiarano cosa serve per sbloccarli — `_buildBadgeCard` mostra `badge_desc_*` anche per i bloccati
+- [ ] Il badge successivo più vicino è indicato — ❌
+- [ ] Sbloccare un badge produce un riscontro visibile al momento — ❌
 - [ ] I badge usano forme e colori del design system, non icone generiche
 
 ---
@@ -1706,7 +1753,7 @@ Dopo questa storia: scegliendo il tipo di allenamento, i campi da compilare camb
 
 **Epic:** EP-013 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-059 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — **verificata il 2026-10-18**: le serie cardio registrano distanza e durata (`active_session_screen.dart:620-681`), il ritmo si calcola da quelle (`WorkoutSet.paceMinPerKm`, `workout.dart:17`, test in `test/workout_types_test.dart:84-103`) e il volume esclude il cardio (US-059). Mancano: nessuna schermata mostra il ritmo; `StatisticsHelper.calculateTotalDistance`/`calculateAveragePace` esistono ma senza chiamanti né test, quindi le Statistiche non riportano distanza e ritmo; nessun campo battito nel modello della sessione (`session.dart`, `workout.dart`) e nessun import di distanza/battito da Salute; solo le Statistiche distinguono i tipi per colore, il calendario colora per programma.
 
 **Story**
 Come atleta che corre oltre ad allenarsi in palestra,
@@ -1717,12 +1764,12 @@ così da tenere in un posto solo tutto ciò che faccio, non solo la palestra.
 Dopo questa storia: una corsa si registra con i propri campi e compare nello storico accanto agli allenamenti in palestra.
 
 **Acceptance Criteria**
-- [ ] La sessione cardio registra distanza, durata, ritmo medio e battito
-- [ ] Il ritmo è calcolato da distanza e durata, non inserito a mano
-- [ ] Distanza e battito arrivano da Salute quando disponibili
-- [ ] Lo storico distingue il cardio dalla palestra con colore e icona
-- [ ] Le statistiche riportano distanza totale e ritmo medio del periodo
-- [ ] Il volume in chilogrammi non include il cardio
+- [ ] La sessione cardio registra distanza, durata, ritmo medio e battito — distanza e durata ✅; ritmo calcolato ma non mostrato; ❌ battito
+- [x] Il ritmo è calcolato da distanza e durata, non inserito a mano — `paceMinPerKm` (`workout.dart:17`), ma nessuna schermata lo mostra
+- [ ] Distanza e battito arrivano da Salute quando disponibili — ❌ nessun import nella sessione
+- [ ] Lo storico distingue il cardio dalla palestra con colore e icona — ❌ solo le Statistiche (`statistics_screen.dart:484-488`); il calendario colora per programma
+- [ ] Le statistiche riportano distanza totale e ritmo medio del periodo — ❌ gli helper esistono ma nessuno li chiama
+- [x] Il volume in chilogrammi non include il cardio — US-059, `calculateTotalVolume` solo sulla forza
 
 ---
 
@@ -1730,7 +1777,7 @@ Dopo questa storia: una corsa si registra con i propri campi e compare nello sto
 
 **Epic:** EP-013 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-059 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: esiste solo l'enum `WorkoutType` con `mobility` e `sport` (`workout_type.dart`), ricavato dalla categoria dell'esercizio. Nessun campo per posizione, lato, intensità percepita o note libere; le serie `timed`/`isometric` registrano solo la durata. La serie di giorni consecutivi conta già qualunque sessione (`calculateCurrentStreak` non guarda il tipo): il criterio 3 vale per costruzione. Il calendario non distingue i tipi.
 
 **Story**
 Come atleta che fa stretching e gioca a calcetto,
@@ -1787,7 +1834,7 @@ Dopo questa storia: la home apre con la scheda in corso, l'avanzamento del ciclo
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-021, US-059 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — **verificata il 2026-10-18**: nel programma i giorni sono numerati e si modificano, riordinano ed eliminano dalla stessa schermata (`program_creator_screen.dart:436-470`), e la Home propone il passo successivo del ciclo ripartendo dal primo (`selectHeroWorkout`, `dashboard_screen.dart`, `test/dashboard_hero_selection_test.dart`). Manca lo stato per giorno (completato / in corso / da fare) e il giorno in corso distinto: la card della scheda mostra le settimane (`ProgramCard`, `242676b`), non i giorni. Da un giorno si apre l'editor, non la sessione.
 
 **Story**
 Come atleta a metà di un ciclo di allenamento,
@@ -1798,12 +1845,12 @@ così da sapere qual è il prossimo giorno senza dovermelo ricordare.
 Dopo questa storia: la scheda elenca i giorni numerati con lo stato: completati, in corso, da fare.
 
 **Acceptance Criteria**
-- [ ] I giorni sono numerati e mostrano lo stato: completato, in corso, da fare
-- [ ] Il giorno in corso è distinto dagli altri
+- [ ] I giorni sono numerati e mostrano lo stato: completato, in corso, da fare — numerati ✅, ❌ nessuno stato
+- [ ] Il giorno in corso è distinto dagli altri — ❌ (la Home sa qual è il prossimo, l'elenco no)
 - [ ] Un giorno può essere di tipo diverso dalla palestra e resta coerente nell'elenco
-- [ ] Da ogni giorno si raggiunge la sessione corrispondente
-- [ ] La scheda si modifica dalla stessa schermata
-- [ ] Completato l'ultimo giorno, il ciclo riparte dal primo
+- [ ] Da ogni giorno si raggiunge la sessione corrispondente — ⚠️ il tocco apre l'editor del giorno, non la sessione
+- [x] La scheda si modifica dalla stessa schermata — `program_creator_screen.dart`
+- [x] Completato l'ultimo giorno, il ciclo riparte dal primo — per lettura: `% workoutIds.length` in `selectHeroWorkout`
 
 ---
 
@@ -1811,7 +1858,7 @@ Dopo questa storia: la scheda elenca i giorni numerati con lo stato: completati,
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-021, US-059 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ✅ DONE (nei fatti, **riformulata**) — il calendario non distingue più i tipi ma i **programmi**: `bedd470` (2026-09-12) ha sostituito il colore per tipo con quello scelto per il programma e ha tolto apposta la legenda tipo-colore; `46da2b8`, `3eb2342`, `ebee8d3` completano. **Verificata il 2026-10-18**: la cella si riempie col colore del programma (fino a tre fasce, badge col conteggio), il tocco apre il dettaglio del giorno (`_showDayDetail`), il mese cambia senza riaprire sottoscrizioni (provider, US-111), gli eventi degli amici portano l'etichetta «amico» nel dettaglio (`calendar_screen.dart:578`), il programmato ha il suo pallino. I criteri 1-2 («un pallino per tipo», «una legenda dei colori») sono **decaduti per scelta**, non soddisfatti: la legenda spiega solo «oggi». Test: `test/calendar_month_grid_test.dart`.
 
 **Story**
 Come atleta che vuole capire quanto è costante,
@@ -1883,7 +1930,7 @@ Dopo questa storia: peso e circonferenze stanno nella stessa schermata, con il p
 
 **Epic:** EP-014 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-021, US-027 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** 🟡 PARZIALE — **verificata il 2026-10-18**: le impostazioni sono in sezioni (account, palestra, app) con il valore corrente accanto alla voce (recupero automatico/manuale con la durata, lingua, abbonamento, nome della palestra); durata predefinita e avvio automatico del recupero esistono (`timer_settings_screen.dart:70,148`); `_isLoading` non esiste più e lo stream non nasce più in `build` (`145e056`). Manca l'impostazione per ridurre le animazioni oltre a quella di sistema (nessun riscontro nel codice), e il raggruppamento non è quello della storia (allenamento / aspetto / dati / account): decisione di prodotto se serve davvero.
 
 **Story**
 Come atleta che cerca un'impostazione,
@@ -1894,13 +1941,13 @@ così da cambiare ciò che mi serve senza esplorare tutto il menu.
 Dopo questa storia: le impostazioni sono raggruppate per motivo e mostrano il valore corrente accanto a ogni voce.
 
 **Acceptance Criteria**
-- [ ] Le voci sono raggruppate per intenzione: allenamento, aspetto, dati, account
-- [ ] Il valore corrente è visibile accanto alla voce, senza dover entrare
-- [ ] Esiste l'impostazione della durata predefinita del recupero
-- [ ] Esiste l'interruttore per l'avvio automatico del recupero
-- [ ] Esiste l'impostazione per ridurre le animazioni, oltre a quella di sistema
-- [ ] Il campo `_isLoading` inutilizzato è rimosso o collegato allo stato di salvataggio
-- [ ] Nessun effetto collaterale dentro il metodo di costruzione
+- [ ] Le voci sono raggruppate per intenzione: allenamento, aspetto, dati, account — ⚠️ raggruppate (account / palestra / app), ma non con queste quattro etichette
+- [x] Il valore corrente è visibile accanto alla voce, senza dover entrare — `settings_screen.dart:218-236`
+- [x] Esiste l'impostazione della durata predefinita del recupero — `timer_settings_screen.dart:148`
+- [x] Esiste l'interruttore per l'avvio automatico del recupero — `timer_settings_screen.dart:70`
+- [ ] Esiste l'impostazione per ridurre le animazioni, oltre a quella di sistema — ❌
+- [x] Il campo `_isLoading` inutilizzato è rimosso o collegato allo stato di salvataggio — rimosso (US-102)
+- [x] Nessun effetto collaterale dentro il metodo di costruzione — `145e056`
 
 ---
 
@@ -1940,7 +1987,7 @@ Dopo questa storia: aprendo un esercizio si vedono foto, video, andamento dei ca
 
 **Epic:** EP-015 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-055, US-062 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessun percorso di primo avvio (`auth_wrapper.dart` porta dritto alla Home), nessuna scheda precompilata, nessun obiettivo iniziale (lo conferma `HANDOFF.md` sezione 8). Dipendeva da US-055, ora parziale: l'obiettivo settimanale iniziale si potrebbe creare con il modello che c'è.
 
 **Story**
 Come persona che ha appena creato un account,
@@ -2071,7 +2118,7 @@ Dopo questa storia: miniature, segnaposto, indicatore video e card corrispondono
 
 **Epic:** EP-010 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-050 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: `PersonalRecord` (`personal_record.dart:59`) dichiara che «stesso carico con più ripetizioni → non è un record di carico»; nessun record di ripetizioni. Resta la decisione di prodotto della nota sotto (massimale stimato o secondo tipo di record).
 
 > ⚠️ **Aperta il 2026-08-07**, dalla review di US-050. Il criterio «il confronto tiene conto sia del carico sia delle ripetizioni» era fra quelli di US-050 e **non è stato soddisfatto**: il piano di US-050 ha scelto deliberatamente la regola più semplice — è record il carico più alto sollevato per almeno una ripetizione — e ha dichiarato il resto come limite. La scelta è motivata: «record» deve essere una parola che l'utente capisce senza spiegazioni, e un massimale stimato sposterebbe la soglia a ogni cambio di ripetizioni. Il criterio resta però scoperto, e questa storia è il posto dove decidere se coprirlo.
 
@@ -2193,7 +2240,7 @@ Dopo questa storia: le schede con le date si vedono, e le date sono nella lingua
 
 **Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-031 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna protezione automatica contro un campo dimenticato nel mapper (né generazione, né `freezed`, né un test sul sorgente); i test di andata e ritorno (`session_mapper_test.dart`, `workout_mapper_test.dart`, `body_measurement_mapper_test.dart`, `program_mapper_test.dart`, `scheduled_workout_mapper_test.dart`) coprono solo i campi che conoscono. Con US-111 i mapper sono saliti a cinque: il rischio è cresciuto.
 
 > ⚠️ **Aperta il 2026-08-07**, dall'osservazione dell'esecutore di US-031 durante la sua stessa consegna: *«il mapper fa cascate di assegnazioni dirette. Un campo aggiunto al modello e dimenticato nel mapper non produce errori di compilazione»*.
 >
@@ -2262,12 +2309,7 @@ Dopo questa storia: «Nuovo esercizio» salva davvero, l'esercizio compare in «
 
 **Epic:** EP-004 | **Priority:** MEDIUM | **Story Points:** 2 (ridotta: il modello è già fatto)
 **Depends on:** US-018 (✅), US-087 (✅) | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — ⚠️ **US-087 (2026-09-13) ha già costruito l'invito**: le prime tre righe dei
-criteri sotto sono soddisfatte (collezione propria, niente lettura di tutti i documenti utente,
-niente concessione senza invito accettato — vedi `docs/planning/US-087-review.md`). **Resta solo
-l'ultima**: ricollegare la lettura vera di calendario e schede a un invito accettato, deliberatamente
-lasciata fuori da US-087 per non riaprire anche il tema delle categorie di consenso (US-092). Questa
-storia ora è solo quel pezzo, non il modello intero.
+**Status:** ↪ ASSORBITA da US-087 per il modello — **ma resta un residuo aperto** (**verificata il 2026-10-18**). I criteri 1-3 sono soddisfatti da US-087 (`invites`, `invite_codes`; `planning/US-087-review.md`). Non lo sono i criteri 4-5: `getSharedSessions`/`getSharedScheduledWorkouts` (`firestore_service.dart:436-520`) leggono ancora `users.calendarSharedWith`, negato dalle regole, e `friend_detail_screen.dart` mostra solo nome e data. La lettura vera di calendario e schede su un invito accettato non c'è, e si decide insieme al consenso per categoria di US-092 (branch `feature/US-092-client-consent`, non ancora mergiato). Storia ridotta a quel pezzo.
 
 > ⚠️ **Aperta il 2026-08-10**, come conseguenza dichiarata di US-018. La condivisione con gli amici **oggi non funziona**, e le regole pubblicate la lasciano chiusa deliberatamente.
 >
@@ -2305,7 +2347,7 @@ aspetta le categorie di consenso di US-092? Deciderlo prima di scrivere le regol
 
 **Epic:** EP-003 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — ⚠️ **riprodotta dall'utente il 2026-08-10 creando un esercizio, ma lo stack è andato perso** (buffer del `logcat` ruotato). Cercandola è stata trovata e corretta **US-097**, che è un difetto diverso nello stesso percorso: non chiudere questa senza vedere lo stack di `_dependents.isEmpty`
+**Status:** ⬜ TODO — ⚠️ **riprodotta dall'utente il 2026-08-10 creando un esercizio, ma lo stack è andato perso** (buffer del `logcat` ruotato). Cercandola è stata trovata e corretta **US-097**, che è un difetto diverso nello stesso percorso: non chiudere questa senza vedere lo stack di `_dependents.isEmpty` · **verificata il 2026-10-18**: nessun commit dopo il 2026-08-10 la tocca, e `grep` su `lib/`, `test/` e `docs/` non trova altro che questa voce. Da allora l'interfaccia è stata in gran parte riscritta (Immersivo): il percorso che la sollevava potrebbe non esistere più, ma non è una prova. Non chiudibile leggendo il codice.
 
 > ⚠️ **Segnalata dall'utente il 2026-08-10** con uno screenshot:
 >
@@ -2433,7 +2475,7 @@ Dopo questa storia: una piramide `4x(15-12-10-8)` con carichi `45-50-55-60` si i
 
 **Epic:** EP-016 | **Priority:** MEDIUM | **Story Points:** 5
 **Depends on:** US-083 | **Blocks:** US-085
-**Status:** ✅ DONE — implementato campo `superSetGroup` in `WorkoutTemplateExercise` con test in `test/planned_sets_test.dart`
+**Status:** 🟡 PARZIALE — **c'è il modello, non il comportamento.** Il campo `superSetGroup` (`workout.dart:177,221,250`) è serializzato, salvato in Isar (`local_workout_template.dart:27`, `workout_mapper.dart:28,76`) e coperto da `test/planned_sets_test.dart:128-167` e `test/workout_mapper_test.dart` (commit `4a84041`, 2026-08-14, insieme a US-083). **Verificato il 2026-10-18**: nessuna schermata crea, mostra o esegue un gruppo — in `lib/src/ui/` `superSetGroup` compare solo in `workout_creator_screen.dart:1160`, dove viene ricopiato invariato (`a746d2d`). I criteri sul comportamento (alternare gli esercizi un giro per volta, recupero a fine giro) non sono soddisfatti: la voce era segnata `✅ DONE` con le caselle spuntate. La seconda voce di questa storia, duplicata e contraddittoria (`⬜ TODO`), è stata tolta il 2026-10-18.
 
 **Story**
 Come atleta la cui scheda dice «Superserie: Crunch + Crunch inversi»,
@@ -2444,39 +2486,16 @@ così da eseguirli come sono scritti invece di uno dopo l'altro.
 Dopo questa storia: due o più esercizi si raggruppano, l'allenamento li propone alternati e il recupero si prende alla fine del giro, non fra i due.
 
 **Acceptance Criteria**
-- [x] Due o più esercizi si possono raggruppare, e il gruppo ha un nome (superserie, circuito)
-- [x] Durante l'allenamento il gruppo si esegue alternando gli esercizi, un giro per volta
-- [x] Il recupero del gruppo vale alla fine del giro, non fra un esercizio e l'altro
+- [ ] Due o più esercizi si possono raggruppare, e il gruppo ha un nome (superserie, circuito) — ⚠️ solo a livello di dati (`superSetGroup: 'A'`): nessuna interfaccia per raggrupparli
+- [ ] Durante l'allenamento il gruppo si esegue alternando gli esercizi, un giro per volta — ❌ nessuna schermata usa `superSetGroup`
+- [ ] Il recupero del gruppo vale alla fine del giro, non fra un esercizio e l'altro — ❌ `recuperoDellaSerie` (`active_session_screen.dart:87`) cerca per posizione, non per gruppo
 - [x] Un esercizio non raggruppato si comporta esattamente come prima
-- [x] Le schede esistenti, che non hanno gruppi, si aprono identichedi questa storia si apre senza perdere niente**, con un test che parte dai dati nel formato vecchio
+- [x] Le schede esistenti, che non hanno gruppi, si aprono identiche, e la migrazione di questa storia si apre senza perdere niente, con un test che parte dai dati nel formato vecchio — `test/planned_sets_migration_test.dart` _(la riga era corrotta, ripristinata il 2026-10-18)_
 - [ ] Il volume e le statistiche esistenti danno gli stessi numeri sulle schede semplici, con un test che lo dimostra
-- [ ] I modelli Isar e i mapper sono aggiornati insieme, e la sincronizzazione locale non si rompe
+- [ ] I modelli Isar e i mapper sono aggiornati insieme, e la sincronizzazione locale non si rompe — Isar e mapper sì (`workout_mapper_test.dart:44-93,179-202`); ⚠️ «la sincronizzazione locale non si rompe» non è dimostrata
 
 **Note**
 ⚠️ Cinque punti su otto sono migrazione e retrocompatibilità, non modello. Il rischio più grande è **cancellare dati senza accorgersene**, che è esattamente cosa è successo in US-066: undici campi diventati quattro e i dati salvati invisibili, senza che niente fallisse.
-
----
-
-#### US-084: Superserie, circuiti ed esercizi accoppiati
-
-**Epic:** EP-016 | **Priority:** MEDIUM | **Story Points:** 5
-**Depends on:** US-083 | **Blocks:** US-085
-**Status:** ⬜ TODO — ⚠️ **non delegabile** (modello dati)
-
-**Story**
-Come atleta la cui scheda dice «Superserie: Crunch + Crunch inversi»,
-voglio che l'app sappia che quei due esercizi si fanno insieme,
-così da eseguirli come sono scritti invece di uno dopo l'altro.
-
-**Demonstrates**
-Dopo questa storia: due o più esercizi si raggruppano, l'allenamento li propone alternati e il recupero si prende alla fine del giro, non fra i due.
-
-**Acceptance Criteria**
-- [ ] Due o più esercizi si possono raggruppare, e il gruppo ha un nome (superserie, circuito)
-- [ ] Durante l'allenamento il gruppo si esegue alternando gli esercizi, un giro per volta
-- [ ] Il recupero del gruppo vale alla fine del giro, non fra un esercizio e l'altro
-- [ ] Un esercizio non raggruppato si comporta esattamente come prima
-- [ ] Le schede esistenti, che non hanno gruppi, si aprono identiche
 
 ---
 
@@ -2484,7 +2503,7 @@ Dopo questa storia: due o più esercizi si raggruppano, l'allenamento li propone
 
 **Epic:** EP-016 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-083, US-084 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessun importatore in `lib/` (`grep` vuoto); `SchedePalestra.md` è in radice. Dipende da US-084, che è solo a livello di modello: le superserie delle schede reali non si possono né mostrare né eseguire, quindi l'importazione completa («piramidi, superserie e recuperi») resta bloccata da lì.
 
 > È la prova che EP-016 è servita a qualcosa: le quattro schede di `SchedePalestra.md` entrano nell'app **senza semplificazioni**, e l'elenco di ciò che eventualmente non entra è dichiarato riga per riga.
 
@@ -2586,7 +2605,7 @@ da pianificare di nuovo.
 
 **Epic:** EP-017 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-087 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — 🚧 **richiede due dipendenze nuove: da approvare prima di iniziare**
+**Status:** ⬜ TODO — 🚧 **richiede due dipendenze nuove: da approvare prima di iniziare** · **verificata il 2026-10-18**: nessun pacchetto QR/scanner in `pubspec.yaml`, nessun codice. Il cancello (due dipendenze nuove, permesso fotocamera) è intatto.
 
 > ⚠️ **Cancello esplicito.** Mostrare un QR code e leggerlo con la fotocamera richiede due pacchetti che il progetto non ha, e aggiungere dipendenze è una decisione che si chiede prima. Va anche verificato il permesso fotocamera su Android, che oggi l'app non domanda.
 >
@@ -2613,7 +2632,7 @@ Dopo questa storia: due telefoni vicini si legano inquadrando uno schermo.
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-086, US-087 | **Blocks:** US-090, US-091
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna schermata lato trainer (il ruolo si sceglie solo in `profile_screen.dart` e `register_screen.dart`); `acceptedRelationshipsProvider` (`invite_provider.dart:25`) dà già i legami accettati su cui costruire l'elenco. ⚠️ Il criterio «quando si è allenato l'ultima volta» legge le sessioni di un altro utente: su `main` le regole lo negano (`firestore.rules:90-95`, solo `eMio()`); le regole di lettura per consenso sono in US-092, branch `feature/US-092-client-consent` non ancora mergiato. Senza quelle l'elenco può mostrare i clienti ma non la loro attività.
 
 **Story**
 Come trainer con dieci clienti,
@@ -2636,7 +2655,7 @@ Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo al
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-083, US-089 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: niente di scritto. Dipende da US-083 (✅) e US-089. Il modello delle serie c'è, ma il raggruppamento per superserie no (US-084 è solo dati): «tutto ciò che US-083 e US-084 permettono» è meno di quanto la storia presume. Mancano anche le regole di scrittura sulle schede di un cliente: `programs` e `workouts` sono solo `eMio()` (`firestore.rules:76-87`).
 
 > Dipende da **US-083**, non per comodità: è il punto in cui il modello delle serie diventa la differenza fra un'app usabile per lavoro e una no.
 
@@ -2661,7 +2680,7 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-089, US-092 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna schermata. Dipende da US-089 e US-092 (quest'ultima in review su `feature/US-092-client-consent`, non mergiata).
 
 > Le quattro categorie sono state scelte dall'utente il 2026-08-10: **allenamenti e date, carichi e progressi, peso e misure, note e sensazioni.** Dipende da US-092 e non il contrario: il consenso esiste prima di ciò che ne approfitta.
 
@@ -3022,7 +3041,7 @@ Dopo questa storia: `flutter analyze` è pulito, e ogni cosa che è stata trovat
 
 **Epic:** EP-014 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 🟡 IN CORSO — implementata il 2026-08-12, resta da confermare sull'APK
+**Status:** ↪ SUPERATA da US-112 — il cassetto non esiste più. **Verificata il 2026-10-18**: `app_drawer.dart` è stato rimosso da `main` (`45ce743`, 2026-10-17) dopo che il redesign Immersivo l'aveva sostituito con la barra inferiore di `main_screen.dart`. I criteri 1-4 erano già soddisfatti da `1dc50ae` (2026-08-12); l'ultimo («il menu si legge come un elenco, non come una tavolozza») non ha più un menu da guardare.
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11 provando l'APK**, e verificato con uno screenshot dal dispositivo: «non sono sicuro che abbia senso mettere ogni funzione che aggiungiamo anche nel menu hamburger».
 >
@@ -3104,7 +3123,7 @@ così da sapere che sto chiudendo il riepilogo e non altro.
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 🟡 IN CORSO — implementata il 2026-08-11 (`a50e825`), resta solo la conferma sull'APK
+**Status:** ✅ DONE (nei fatti) — implementata in `a50e825` (2026-08-11), backlog allineato da `d792b24`. **Verificata il 2026-10-18** dopo il recupero del redesign Immersivo: `esercizioFinito` esiste ancora (`active_session_screen.dart:65-68`), 4 test in `test/esercizio_finito_test.dart`. ⚠️ Resta la conferma sull'APK: nessuno l'ha guardata su un dispositivo dopo `a50e825`.
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11 provando l'APK**: «quando finisco un esercizio rimane sempre in corso».
 >
@@ -3127,7 +3146,7 @@ così da sapere a colpo d'occhio a che punto sono dell'allenamento.
 
 **Epic:** EP-010 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** —  _(nessuna)_ | **Blocks:** —  _(nessuna)_
-**Status:** 🟡 IN CORSO — implementata il 2026-08-11 (`a50e825`), resta solo la conferma sull'APK
+**Status:** ✅ DONE (nei fatti) — implementata in `a50e825` (2026-08-11), backlog allineato da `d792b24`. **Verificata il 2026-10-18** dopo il recupero del redesign Immersivo: il dialogo di chiusura ha tre scelte (annulla / altra data / adesso, `active_session_screen.dart:270-300`) e data e ora si chiedono solo con «altra data». ⚠️ Nessun test (la schermata non si monta: debito US-009) e conferma sull'APK ancora aperta.
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11**: «la fase per terminare chiede più volte le stesse cose».
 >
@@ -3150,7 +3169,7 @@ così da non rispondere due volte alla stessa domanda prima di vedere il riepilo
 
 **Epic:** EP-010 | **Priority:** MEDIUM | **Story Points:** 3
 **Depends on:** US-049 (✅), US-107 (🟡) | **Blocks:** —  _(nessuna)_
-**Status:** 🟡 IN CORSO — implementata il 2026-08-12, resta la conferma sull'APK
+**Status:** ✅ DONE (nei fatti, **in una forma diversa**) — `178d26a` (2026-08-13) aggiunse l'elenco degli esercizi allo scontrino. **Verificata il 2026-10-18**: lo scontrino dentellato (`WorkoutReceipt`) non è più istanziato da nessuna schermata, solo dichiarato in `workout_receipt.dart`; l'elenco degli esercizi con le serie finite sul totale vive ora nel riepilogo Immersivo (`workout_summary_screen.dart:306-338`, dati veri da `WorkoutSummary.of`, un esercizio senza serie non compare). Il criterio «il bordo dentellato resta quello di US-049» non ha più oggetto. ⚠️ Conferma sull'APK aperta; `workout_receipt.dart` è codice morto (già segnalato in `HANDOFF.md` 2d).
 
 > ⚠️ **Segnalato dall'utente il 2026-08-11**: lo scontrino è «molto carino» ma povero. «Forse aggiungerei altre informazioni dentro per renderlo più corposo.»
 >
@@ -3210,7 +3229,7 @@ così da non trovarmi davanti a caratteri che sembrano un errore di sistema.
 
 **Epic:** EP-008 | **Priority:** LOW | **Story Points:** 3
 **Depends on:** US-001 | **Blocks:** US-003
-**Status:** ⬜ TODO
+**Status:** ⏸ ACCANTONATA (EP-008) — **verificata il 2026-10-18**: nessun lavoro fatto. `LocalSessionStore` non esiste; `dashboard_provider.dart` e `sync_provider.dart` importano ancora `package:isar`. Il costo del rinvio è cresciuto: US-111 ha portato Isar su cinque entità, non solo le sessioni, e la storia va ristimata alla ripresa.
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -3233,7 +3252,7 @@ Dopo questa storia: `dashboard_provider` e `sync_provider` non importano più `p
 
 **Epic:** EP-008 | **Priority:** LOW | **Story Points:** 5
 **Depends on:** US-002 | **Blocks:** US-004
-**Status:** ⬜ TODO
+**Status:** ⏸ ACCANTONATA (EP-008) — **verificata il 2026-10-18**: nessun lavoro fatto. Il blocco dichiarato in `deploy_web.yml` (interi a 64 bit nel codice generato da Isar) non è stato rieseguito in questa sessione. La cartella `web/` esiste, il resto no.
 
 **Story**
 Come atleta che usa GymFlow dal browser,
@@ -3258,7 +3277,7 @@ Dopo questa storia: `flutter build web --release` completa con successo e la das
 
 **Epic:** EP-008 | **Priority:** LOW | **Story Points:** 2
 **Depends on:** US-003, US-039 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO
+**Status:** ⏸ ACCANTONATA (EP-008) — **verificata il 2026-10-18**: nessun lavoro fatto. `deploy_web.yml` è ancora sospeso (`workflow_dispatch`, commento di US-039).
 
 **Story**
 Come sviluppatore del team GymFlow,
@@ -3397,6 +3416,19 @@ così da non doverne verificare la vivezza ogni volta che tocco quella zona.
 ---
 
 ## Change Log
+
+### 2026-10-18 — Riordino: lo Status riverificato nel codice
+
+Le 44 storie `⬜ TODO` / `🟡 IN CORSO` sono state riverificate contro `lib/`, `test/`, `docs/planning/` e `git log` (US-092 esclusa). Il risultato è nella sezione «Stato verificato nel codice», in testa al file, e nello Status di ogni storia.
+
+**Cambiato:**
+- **US-084**: tolta la voce duplicata `⬜ TODO`. La voce `✅ DONE` che restava aveva le caselle spuntate per comportamenti che nessuna schermata ha (`superSetGroup` esiste nel modello, nel mapper e in Isar, ma `lib/src/ui/` lo ricopia soltanto): ora è `🟡 PARZIALE`.
+- **Chiuse nei fatti**: US-010, US-015, US-064 (riformulata), US-106, US-107, US-108.
+- **Superate**: US-011, US-019, US-035, US-037, US-103. **Assorbita con residuo**: US-080. **Accantonate**: US-002, US-003, US-004.
+- **Parziali**: US-016, US-048, US-051, US-053, US-055, US-056, US-058, US-060, US-063, US-067, US-084 — le caselle dicono cosa c'è e cosa no.
+
+**Trovato strada facendo, non sistemato (questa sessione non tocca il codice):** gli obiettivi predefiniti di `goals_provider.dart` mostrano dati inventati a chi non ne ha creati (US-055); `calculateTotalDistance`, `calculateAveragePace` e `calculateAverageRPE` non hanno chiamanti (US-060); `WorkoutReceipt` è codice morto (US-108); lo Status di US-112 dice `IN REVIEW` ma il codice è già in `main` (`45ce743`) — non toccata, ha modifiche su un altro branch.
+
 
 **2026-08-06** — Scritti in anticipo i mandati di **US-073, US-047, US-049 e US-050**, pronti da assegnare a esecutori diversi. Ogni piano ha ora una sezione **«Fedeltà al mockup»** con i valori esatti convertiti in dp: è la cosa che mancava a US-042, che ha prodotto una grafica che il disegno approvato non prevede. Il processo per il lavoro parallelo è in [`DELEGA.md`](DELEGA.md).
 
