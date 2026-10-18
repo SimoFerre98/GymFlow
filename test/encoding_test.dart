@@ -26,6 +26,13 @@ void main() {
     r'Ã¨': 'e accentata',
     r'Ã©': 'e acuta',
     r'Ã ': 'a accentata',
+    // `à` sono i byte C3 A0: letti come Latin-1 danno `Ã` e uno spazio **non
+    // separabile** (U+00A0), non uno spazio normale. La riga qui sopra cerca
+    // lo spazio normale e per questo non vide mai «AttivitÃ  Allenamento» e
+    // «IntensitÃ  Media», rimasti nella scheda Dati fino al 2026-10-18, quando
+    // si sono visti su uno screenshot del telefono. Il carattere e scritto
+    // come escape perche, a occhio, le due righe sono identiche.
+    'Ã\u00A0': 'a accentata (spazio non separabile)',
     r'Ã¬': 'i accentata',
     r'Ã²': 'o accentata',
     r'Ã¹': 'u accentata',
