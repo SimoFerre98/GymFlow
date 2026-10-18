@@ -12,6 +12,7 @@ import '../../core/providers/localization_provider.dart';
 import '../../core/theme/app_palette.dart';
 import '../../core/theme/immersivo_tokens.dart';
 import '../../core/utils/statistics_helper.dart';
+import '../widgets/back_pill.dart';
 import '../widgets/timer_aurora.dart';
 /// Lato del cerchio e dell'icona dentro una card di traguardo.
 const double _kDiametroIconaBadge = 50;
@@ -100,11 +101,12 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Raggiunta da un riquadro della Home (Parte 3), non da uno
-                // spingimento sentito come tale: stesso trattamento senza
-                // BackPill delle altre destinazioni raggiunte cosi.
+                // Raggiunta da un riquadro della Home. Qui c'era scritto che
+                // non serviva la pillola «indietro», ma sul telefono non si
+                // tornava piu: tutte le altre destinazioni dei riquadri ce
+                // l'hanno, e questa non fa eccezione.
                 Padding(
-                  padding: EdgeInsets.fromLTRB(t.spacing.lg, t.spacing.sm, t.spacing.lg, 0),
+                  padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
                   child: _buildHeader(context, loc, t, scheme),
                 ),
                 Expanded(child: _buildBody(context, loc, userId, t)),
@@ -123,6 +125,8 @@ class _GamificationScreenState extends ConsumerState<GamificationScreen> {
   ) {
     return Row(
       children: [
+        BackPill(label: loc.t('home')),
+        SizedBox(width: t.spacing.md),
         Text(
           loc.t('achievements_title').toUpperCase(),
           style: t.typography.title?.copyWith(color: scheme.onSurface),

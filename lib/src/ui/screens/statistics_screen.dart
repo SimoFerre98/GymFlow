@@ -107,7 +107,7 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(t.spacing.lg, t.spacing.sm, t.spacing.lg, 0),
+              padding: EdgeInsets.fromLTRB(t.spacing.md, t.spacing.sm, t.spacing.md, 0),
               child: _buildHeader(context, loc, t, scheme, sessionsAsync.valueOrNull ?? const []),
             ),
             Expanded(
@@ -135,6 +135,12 @@ class _StatisticsScreenState extends riverpod.ConsumerState<StatisticsScreen> {
     const iconBoxSide = _kHeaderIconBoxSide;
     return Row(
       children: [
+        // Segnalato dall'utente sul telefono: da qui non si tornava indietro.
+        // La schermata si apre dal riquadro «Dati» della Home, non e piu una
+        // scheda della barra, e le altre destinazioni di quei riquadri hanno
+        // tutte la pillola.
+        BackPill(label: loc.t('home')),
+        SizedBox(width: t.spacing.md),
         Text(
           loc.t('data_tab').toUpperCase(),
           style: t.typography.title?.copyWith(color: scheme.onSurface),
