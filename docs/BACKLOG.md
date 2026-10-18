@@ -2631,7 +2631,7 @@ Dopo questa storia: due telefoni vicini si legano inquadrando uno schermo.
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-086, US-087 | **Blocks:** US-090, US-091
-**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna schermata lato trainer (il ruolo si sceglie solo in `profile_screen.dart` e `register_screen.dart`); `acceptedRelationshipsProvider` (`invite_provider.dart:25`) dà già i legami accettati su cui costruire l'elenco. ⚠️ Il criterio «quando si è allenato l'ultima volta» legge le sessioni di un altro utente: su `main` le regole lo negano (`firestore.rules:90-95`, solo `eMio()`); le regole di lettura per consenso sono in US-092, branch `feature/US-092-client-consent` non ancora mergiato. Senza quelle l'elenco può mostrare i clienti ma non la loro attività.
+**Status:** 🔵 IN PROGRESS — piano in `docs/planning/US-089.md` (2026-10-19). Il criterio 4 è stato **riscritto** il 2026-10-19, con l'utente: la forma originale (una query sola, `whereIn` a gruppi di dieci) non regge con le regole di US-092, che costruiscono il percorso di *un* consenso per volta, ed era inesatta (perdeva il cliente fermo da più tempo). Soglia «troppo tempo»: 7 giorni. Ingresso: riquadro «CLIENTI» in Home, solo per i trainer.
 
 **Story**
 Come trainer con dieci clienti,
@@ -2645,7 +2645,7 @@ Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo al
 - [ ] L'elenco mostra i clienti con un legame accettato e attivo
 - [ ] Per ciascuno si vede quando si è allenato l'ultima volta
 - [ ] Chi non si allena da troppo tempo si distingue a colpo d'occhio
-- [ ] L'elenco regge dieci clienti senza una query per ciascuno, e le query con `whereIn` si suddividono a gruppi di dieci: **non si troncano**
+- [ ] L'elenco regge dieci clienti, e venticinque, **senza troncare**: una lettura per cliente con consenso (`limit(1)`, una sola volta all'apertura, in parallelo) e un'unica query per i legami. _Riscritto il 2026-10-19: la formulazione originale («senza una query per ciascuno», `whereIn` a gruppi di dieci) non è applicabile con le regole di US-092._
 - [ ] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota
 
 ---
