@@ -2631,7 +2631,7 @@ Dopo questa storia: due telefoni vicini si legano inquadrando uno schermo.
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-086, US-087 | **Blocks:** US-090, US-091
-**Status:** 🔵 IN PROGRESS — piano in `docs/planning/US-089.md` (2026-10-19). Il criterio 4 è stato **riscritto** il 2026-10-19, con l'utente: la forma originale (una query sola, `whereIn` a gruppi di dieci) non regge con le regole di US-092, che costruiscono il percorso di *un* consenso per volta, ed era inesatta (perdeva il cliente fermo da più tempo). Soglia «troppo tempo»: 7 giorni. Ingresso: riquadro «CLIENTI» in Home, solo per i trainer.
+**Status:** 🔵 IN PROGRESS — piano in `docs/planning/US-089.md` (2026-10-19). Il criterio 4 è stato **riscritto** il 2026-10-19, con l'utente: la forma originale (una query sola, `whereIn` a gruppi di dieci) è inesatta: con un limite perde il cliente fermo da più tempo, senza costa lo storico di tutti. _(La prima stesura aggiungeva «le regole la negano»: era falso, la `whereIn` passa se tutti hanno concesso; corretto il 2026-10-19, vedi `planning/US-089.md`.)_ Soglia «troppo tempo»: 7 giorni. Ingresso: riquadro «CLIENTI» in Home, solo per i trainer.
 
 **Story**
 Come trainer con dieci clienti,
@@ -2645,7 +2645,7 @@ Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo al
 - [ ] L'elenco mostra i clienti con un legame accettato e attivo
 - [ ] Per ciascuno si vede quando si è allenato l'ultima volta
 - [ ] Chi non si allena da troppo tempo si distingue a colpo d'occhio
-- [ ] L'elenco regge dieci clienti, e venticinque, **senza troncare**: una lettura per cliente con consenso (`limit(1)`, una sola volta all'apertura, in parallelo) e un'unica query per i legami. _Riscritto il 2026-10-19: la formulazione originale («senza una query per ciascuno», `whereIn` a gruppi di dieci) non è applicabile con le regole di US-092._
+- [ ] L'elenco regge dieci clienti, e venticinque, **senza troncare**: una lettura per cliente con consenso (`limit(1)`, una sola volta all'apertura, in parallelo) e un'unica query per i legami. _Riscritto il 2026-10-19: la formulazione originale («senza una query per ciascuno», `whereIn` a gruppi di dieci) è inesatta per un elenco ordinato per inattività, vedi `planning/US-089.md`._
 - [ ] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota
 
 ---
