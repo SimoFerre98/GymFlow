@@ -178,7 +178,13 @@ class ProgramCard extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        _Stat(value: '$days', label: loc.t('days_label'), color: scheme.onSurface),
+        // «1 giorni» era scritto cosi nella vecchia card: con un solo giorno
+        // l'etichetta e al singolare.
+        _Stat(
+          value: '$days',
+          label: loc.t(days == 1 ? 'day_label_one' : 'days_label'),
+          color: scheme.onSurface,
+        ),
         if (when != null) ...[
           SizedBox(width: t.spacing.xl),
           // Dati, non azioni: stesso colore dei dati vitali, mai quello delle

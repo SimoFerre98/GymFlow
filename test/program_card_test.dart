@@ -120,6 +120,19 @@ void main() {
       expect(find.text('GIORNI'), findsOneWidget);
     });
 
+    testWidgets('con un solo giorno l etichetta e al singolare', (tester) async {
+      await tester.pumpWidget(host(scheda(giorni: 1)));
+      expect(find.text('GIORNO'), findsOneWidget);
+      expect(find.text('GIORNI'), findsNothing);
+    });
+
+    testWidgets('con piu giorni, o nessuno, resta al plurale', (tester) async {
+      await tester.pumpWidget(host(scheda(giorni: 0)));
+      expect(find.text('GIORNI'), findsOneWidget);
+      await tester.pumpWidget(host(scheda(giorni: 2)));
+      expect(find.text('GIORNI'), findsOneWidget);
+    });
+
     testWidgets('con le date mostra la settimana su quelle totali e la barra', (tester) async {
       await tester.pumpWidget(host(scheda(inizio: inizio, fine: fine), oggi: DateTime(2026, 10, 20)));
       expect(find.text('3/8'), findsOneWidget);
