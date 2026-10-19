@@ -82,6 +82,21 @@ Nessuno sul codice.
 - La composizione (chi leggere, cosa fare se le regole negano) sta dietro un'interfaccia
   (`ClientOverviewSource`) per poterla provare senza Firebase: non prevista nel piano.
 
+## Prova sul telefono (2026-10-19)
+
+Fatta da me, con l'APK installato sopra l'app esistente, collegato a un account con ruolo trainer. Visto:
+- Il riquadro **CLIENTI** compare nella Home (e solo per il trainer: la prova che un atleta non lo vede è nei
+  test, non l'ho vista perché il telefono ha un solo account).
+- L'elenco mostra **un cliente** con il trattamento del «fermo da troppo tempo»: striscia e bordo nel colore
+  dell'attenzione, la frase «Fermo da 36 giorni» e il numero grande con «GIORNI FA». Nel log **nessun errore
+  di permessi né di indice**: la query `limit(1)` con `orderBy` funziona con le regole e l'indice di
+  produzione, e il cliente ha concesso gli allenamenti.
+- «← Home» riporta alla Home.
+
+**Non visto**: «Allenamenti non condivisi», «Nessun allenamento ancora», oggi/ieri, lo stato vuoto, l'errore
+con «Riprova», il gesto «tira per aggiornare», un elenco con più clienti. Sono provati dai test e dalla sorgente
+finta, non su questo telefono. La conferma dell'aspetto resta all'utente.
+
 ## Fuori scope rilevato
 Nessuno nuovo. Restano quelli già noti: scheda cliente (US-090/091), indici non versionati, `secondary`
 del tema chiaro.
