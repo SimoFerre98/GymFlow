@@ -73,6 +73,15 @@ class ProgramCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _header(context, loc, t, scheme),
+                    // Da chi arriva, se non e del cliente stesso (US-113). Mai una
+                    // riga vuota: con l'autore ma senza nome dice «dal tuo trainer».
+                    if (program.authorId != null) ...[
+                      SizedBox(height: t.spacing.xs),
+                      Text(
+                        _scrittaDa(loc).toUpperCase(),
+                        style: t.typography.eyebrow?.copyWith(color: scheme.tertiary),
+                      ),
+                    ],
                     if (program.description != null && program.description!.isNotEmpty) ...[
                       SizedBox(height: t.spacing.sm),
                       Text(
@@ -105,6 +114,13 @@ class ProgramCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// «Scritta da Tina», o «Scritta dal tuo trainer» se il nome non c'e.
+  String _scrittaDa(Localization loc) {
+    final nome = program.authorName?.trim();
+    if (nome == null || nome.isEmpty) return loc.t('program_written_by_unknown');
+    return loc.t('program_written_by').replaceFirst('%s', nome);
   }
 
   Widget _header(BuildContext context, Localization loc, ImmersivoTokens t, ColorScheme scheme) {

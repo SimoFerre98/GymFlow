@@ -23,6 +23,8 @@ void main() {
   });
 
   WorkoutProgram scheda({
+    String? autore,
+    String? nomeAutore,
     String name = 'Forza 5x5',
     bool attiva = false,
     int colore = 0xFFE91E63,
@@ -41,6 +43,8 @@ void main() {
     startDate: inizio,
     endDate: fine,
     color: colore,
+    authorId: autore,
+    authorName: nomeAutore,
   );
 
   // 8 settimane esatte: lunedi 5 ottobre -> domenica 29 novembre 2026.
@@ -110,6 +114,35 @@ void main() {
       expect(find.text('ATTIVA'), findsOneWidget);
       await tester.pumpWidget(host(scheda(attiva: false)));
       expect(find.text('ATTIVA'), findsNothing);
+    });
+  });
+
+  group('da chi arriva (US-113)', () {
+    testWidgets('una scheda del trainer dice chi l ha scritta', (tester) async {
+      await tester.pumpWidget(host(scheda(autore: 't', nomeAutore: 'Tina')));
+      expect(find.text('SCRITTA DA TINA'), findsOneWidget);
+    });
+
+    testWidgets('con l autore ma senza nome non lascia una riga vuota', (tester) async {
+      await tester.pumpWidget(host(scheda(autore: 't')));
+      expect(find.text('SCRITTA DAL TUO TRAINER'), findsOneWidget);
+      await tester.pumpWidget(host(scheda(autore: 't', nomeAutore: '   ')));
+      expect(find.text('SCRITTA DAL TUO TRAINER'), findsOneWidget);
+    });
+
+    testWidgets('una scheda del cliente non dice niente', (tester) async {
+      await tester.pumpWidget(host(scheda()));
+      expect(find.textContaining('SCRITTA DA'), findsNothing);
+    });
+
+    testWidgets('anche con un nome lunghissimo non va in overflow', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        host(scheda(autore: 't', nomeAutore: 'Un Nome Molto Lungo Di Un Allenatore Che Non Finisce Mai', attiva: true)),
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 
