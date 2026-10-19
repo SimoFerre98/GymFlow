@@ -74,7 +74,7 @@ void main() {
     testWidgets('gli interruttori partono spenti: non si concede per inerzia', (tester) async {
       await apriIlFoglio(tester);
 
-      expect(valoriDegliInterruttori(tester), [false, false]);
+      expect(valoriDegliInterruttori(tester), [false, false, false]);
     });
 
     testWidgets('accettare senza toccare nulla restituisce un legame senza dati', (tester) async {
@@ -91,7 +91,7 @@ void main() {
 
       await tester.tap(find.byType(ImmersivoSwitch).first);
       await tester.pump();
-      expect(valoriDegliInterruttori(tester), [true, false]);
+      expect(valoriDegliInterruttori(tester), [true, false, false]);
 
       await tester.tap(find.text('Accetta'));
       await tester.pumpAndSettle();
@@ -104,9 +104,9 @@ void main() {
     testWidgets('accendere solo peso e misure concede solo quelle', (tester) async {
       await apriIlFoglio(tester);
 
-      await tester.tap(find.byType(ImmersivoSwitch).last);
+      await tester.tap(find.byType(ImmersivoSwitch).at(1));
       await tester.pump();
-      expect(valoriDegliInterruttori(tester), [false, true]);
+      expect(valoriDegliInterruttori(tester), [false, true, false]);
 
       await tester.tap(find.text('Accetta'));
       await tester.pumpAndSettle();
@@ -114,6 +114,42 @@ void main() {
       final grants = await risultato;
       expect(grants?.sessions, isFalse);
       expect(grants?.measurements, isTrue);
+    });
+
+    testWidgets('il terzo permesso, Schede, dice cosa concede e cosa no', (tester) async {
+      await apriIlFoglio(tester);
+
+      expect(find.text('Schede'), findsOneWidget);
+      // Dice che scrive **nuove** schede e solo le sue, che non tocca le altre, e
+      // che arrivano spente: sono le tre cose che il cliente deve sapere.
+      expect(find.textContaining('nuove schede'), findsOneWidget);
+      expect(find.textContaining('solo quelle che ha scritto lui'), findsOneWidget);
+      expect(find.textContaining('arrivano spente'), findsOneWidget);
+    });
+
+    testWidgets('accendere solo Schede concede solo la scrittura, non la lettura', (tester) async {
+      await apriIlFoglio(tester);
+
+      await tester.tap(find.byType(ImmersivoSwitch).last);
+      await tester.pump();
+      expect(valoriDegliInterruttori(tester), [false, false, true]);
+
+      await tester.tap(find.text('Accetta'));
+      await tester.pumpAndSettle();
+
+      final grants = await risultato;
+      expect(grants?.programs, isTrue);
+      expect(grants?.sessions, isFalse);
+      expect(grants?.measurements, isFalse);
+    });
+
+    testWidgets('la frase sui dati che restano privati non promette più che nessuno li modifichi', (tester) async {
+      await apriIlFoglio(tester);
+
+      // US-092 diceva «nessuno può modificare i tuoi dati»: con il permesso di
+      // scrittura non è più vero, e la frase nuova non lo dice.
+      expect(find.textContaining('nessuno può modificare'), findsNothing);
+      expect(find.textContaining('già scritte'), findsWidgets);
     });
 
     testWidgets('si può ripensarci prima di confermare: acceso e spento torna a niente', (
@@ -177,7 +213,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(ImmersivoSwitch).last);
+      await tester.tap(find.byType(ImmersivoSwitch).at(1));
       expect(chiamate, [(ConsentCategory.measurements, true)]);
 
       await tester.tap(find.byType(ImmersivoSwitch).first);
@@ -185,6 +221,10 @@ void main() {
         (ConsentCategory.measurements, true),
         (ConsentCategory.sessions, true),
       ]);
+
+      await tester.tap(find.byType(ImmersivoSwitch).last);
+      expect(chiamate.last, (ConsentCategory.programs, true));
+      expect(chiamate, hasLength(3), reason: 'ogni tocco muove una sola categoria');
     });
 
     testWidgets('mostra lo stato che riceve, anche acceso', (tester) async {

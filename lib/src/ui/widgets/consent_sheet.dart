@@ -9,6 +9,7 @@ import 'package:gymflow/src/ui/widgets/immersivo_switch.dart';
 String consentCategoryTitleKey(ConsentCategory category) => switch (category) {
   ConsentCategory.sessions => 'consent_sessions_title',
   ConsentCategory.measurements => 'consent_measurements_title',
+  ConsentCategory.programs => 'consent_programs_title',
 };
 
 /// Cosa il trainer vedrebbe, in parole: è ciò che il cliente legge prima di
@@ -16,7 +17,13 @@ String consentCategoryTitleKey(ConsentCategory category) => switch (category) {
 String consentCategoryDescriptionKey(ConsentCategory category) => switch (category) {
   ConsentCategory.sessions => 'consent_sessions_desc',
   ConsentCategory.measurements => 'consent_measurements_desc',
+  ConsentCategory.programs => 'consent_programs_desc',
 };
+
+/// Il riassunto, in una riga: «Vede: … · Può scrivere le tue schede». Le frasi
+/// vengono da [consentSummaryKeys], che le compone.
+String consentSummaryText(Localization loc, ConsentGrants grants) =>
+    consentSummaryKeys(grants).map(loc.t).join(' · ');
 
 /// Una categoria di consenso: cosa è, cosa apre, e l'interruttore.
 ///

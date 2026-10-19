@@ -23,7 +23,7 @@
 
 > **Riordino fatto leggendo `lib/`, `test/`, `docs/planning/` e il `git log` di `main` (`42320d9`), non fidandosi degli Status scritti prima.** Le 44 storie che erano `⬜ TODO` o `🟡 IN CORSO` sono state riverificate una per una — US-092 esclusa, che aveva modifiche su un altro branch e poi è stata mergiata (2026-10-19) — e ogni Status riporta ora la prova (file, riga, commit). Il motivo: il processo formale è stato saltato più volte (`HANDOFF.md` sezione 2) e il backlog non era più uno specchio del codice.
 >
-> **Conteggio vero: 111 storie** (la voce duplicata e contraddittoria di US-084 è stata tolta) — **73** `✅ DONE`, **11** `🟡 PARZIALE`, **16** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **3** `⏸ ACCANTONATA`, **2** `🔍 IN REVIEW` _(aggiornato il 2026-10-19 con la chiusura di US-092, US-112 e US-089)_. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
+> **Conteggio vero: 114 storie** (111 più US-113, US-114 e US-115, nate dalla divisione di US-090; la voce duplicata di US-084 è stata tolta) — **74** `✅ DONE`, **11** `🟡 PARZIALE`, **17** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **1** `↪ DIVISA` (US-090), **3** `⏸ ACCANTONATA`, **2** `🔍 IN REVIEW` _(aggiornato il 2026-10-19 con la chiusura di US-092, US-112, US-089 e US-113)_. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
 >
 > **Gli Status nuovi:** `✅ DONE (nei fatti)` = il codice c'è e i criteri sono soddisfatti, magari senza che nessuno l'avesse scritto qui; restano solo le conferme che richiedono un dispositivo, dichiarate. `🟡 PARZIALE` = una parte è fatta e le caselle dicono quale; non sostituisce `🟡 IN CORSO`, che non esiste più. `↪ SUPERATA` / `↪ ASSORBITA` = la storia descrive qualcosa che l'app non ha più (direzione Immersivo, cassetto rimosso, inviti al posto degli amici). `⏸ ACCANTONATA` = EP-008, nessun lavoro fatto.
 >
@@ -58,8 +58,9 @@
 | EP-015 | US-069 | MEDIUM | ⬜ | primo avvio guidato, per intero |
 | EP-016 | US-085 | HIGH | ⬜ | importatore delle quattro schede; bloccata dalla parte mancante di US-084 |
 | EP-016 | US-084 | MEDIUM | 🟡 | c'è solo il campo `superSetGroup`: manca raggruppare, eseguire alternando, recuperare a fine giro |
-| EP-017 | US-090 | HIGH | ⬜ | il trainer scrive la scheda di un cliente (dopo US-089; regole di scrittura da fondare) |
-| EP-017 | US-091 | HIGH | ⬜ | andamento del cliente (dopo US-089; il consenso di US-092 è fatto) |
+| EP-017 | US-114 | HIGH | ⬜ | il trainer scrive la prima scheda di un cliente: i due creatori vanno resi capaci di scrivere per conto di un altro (US-113 ha fondato permesso e regole) |
+| EP-017 | US-115 | MEDIUM | ⬜ | riusare una scheda per un altro cliente, e accorgersi se il cliente la modifica (dopo US-114) |
+| EP-017 | US-091 | HIGH | ⬜ | andamento del cliente: US-089 e il consenso di US-092 sono fatti, manca la schermata |
 | EP-017 | US-088 | MEDIUM | ⬜ | QR code: due dipendenze nuove da approvare prima di iniziare |
 
 **Chiuse nei fatti da questo riordino:** US-089 (mergiata il 2026-10-19), US-092 (mergiata il 2026-10-19), US-112 (mergiata il 2026-10-17, Status non aggiornato), US-010, US-015, US-064 (riformulata: colore per programma), US-106, US-107, US-108. **Superate o assorbite:** US-011, US-019, US-035, US-037, US-103, e US-080 per il modello. **Accantonate:** US-002, US-003, US-004 (EP-008, Web).
@@ -2653,7 +2654,7 @@ Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo al
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-083, US-089 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — **verificata il 2026-10-18**: niente di scritto. Dipende da US-083 (✅) e US-089. Il modello delle serie c'è, ma il raggruppamento per superserie no (US-084 è solo dati): «tutto ciò che US-083 e US-084 permettono» è meno di quanto la storia presume. Mancano anche le regole di scrittura sulle schede di un cliente: `programs` e `workouts` sono solo `eMio()` (`firestore.rules:76-87`).
+**Status:** ↪ DIVISA il 2026-10-19 in **US-113** (permesso e regole), **US-114** (la prima scheda) e **US-115** (riuso e modifiche del cliente). Stimata 5 punti, ne vale circa 21: il consenso di US-092 è solo di lettura, mancano un permesso di scrittura, un campo «da chi arriva» nei modelli e nella cache locale, e i due creatori di schede scrivono solo per l'utente connesso. Decisioni con l'utente: il permesso è un **terzo interruttore a parte** (spento di default), la scheda del trainer arriva **inattiva** e la attiva il cliente. I criteri qui sotto passano alle tre storie.
 
 > Dipende da **US-083**, non per comodità: è il punto in cui il modello delle serie diventa la differenza fra un'app usabile per lavoro e una no.
 
@@ -2671,6 +2672,75 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 - [ ] Il cliente può eseguirla; se la modifica, il trainer se ne accorge
 - [ ] Il trainer riusa una scheda già scritta come modello per un altro cliente
 - [ ] Un trainer **non** può scrivere la scheda di chi non lo ha invitato, con un test che lo dimostra
+
+---
+
+#### US-113: Il cliente concede le sue schede al trainer, e il trainer scrive solo quelle
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** US-092 | **Blocks:** US-114, US-115
+**Status:** ✅ DONE — mergiata in `main` il 2026-10-19 (squash dal branch `feature/US-113-trainer-write-consent`). ⚠️ **Non delegabile** (regole Firestore). Piano e review in `docs/planning/US-113.md` / `US-113-review.md`. **Regole pubblicate il 2026-10-19** su `gymflow-d5d09` (ruleset `5f08c13d…`, identico a `firestore.rules`, verificato dall'API). **L'app si apre sopra i dati esistenti con lo schema Isar nuovo, senza errori** (provato sul telefono, 2026-10-19). **Non visto su un telefono**: il foglio a tre interruttori e la riga «scritta da» con una scheda del trainer (serve l'account cliente, e US-114 per avere una scheda scritta da un trainer). Prima parte di US-090.
+
+> **Perché per prime le regole.** Il consenso di US-092 è di sola lettura: nessuna regola lascia a un trainer scrivere su `programs` e `workouts` di un cliente. Questa storia fonda il permesso e le regole **prima** di qualunque schermata, e li prova con l'emulatore: è il criterio 5 di US-090, «un trainer non scrive la scheda di chi non lo ha invitato, con un test che lo dimostra».
+>
+> **Decisioni del 2026-10-19:** il permesso è un **terzo interruttore a parte** («Schede»), spento di default, perché leggere i dati e scrivere le schede sono cose diverse; la scheda del trainer arriva **inattiva** e la attiva il cliente, perché attivarne una disattiva le altre del cliente e il trainer non deve poterlo fare.
+
+**Story**
+Come cliente di un trainer,
+voglio decidere se può scrivere nuove schede per me, e sapere da chi arriva ciascuna,
+così da farmi preparare gli allenamenti senza dargli il controllo di quelli che ho già.
+
+**Demonstrates**
+Dopo questa storia: il cliente ha un interruttore «Schede»; con quello acceso le regole lasciano al trainer creare, e poi modificare e cancellare, **solo** ciò che ha scritto lui; nella lista del cliente ogni scheda del trainer dice da chi arriva.
+
+**Acceptance Criteria**
+- [x] Il foglio di consenso e il dettaglio del legame hanno un terzo interruttore «Schede», **spento di default**, con parole che dicono cosa concede e cosa no — _provato come widget; da confermare sull'APK_
+- [x] Un trainer con il permesso può creare una scheda e i suoi giorni a nome del cliente, e la scheda nasce **sempre inattiva**; senza il permesso non può (test) — _provato sull'emulatore_
+- [x] Il trainer legge, modifica e cancella **solo ciò che ha scritto lui**, mai le altre schede del cliente (test) — _provato sull'emulatore_
+- [x] Un trainer non scrive nulla per chi non lo ha invitato, e smette di poterlo fare con la revoca del permesso o lo scioglimento del legame (test) — _provato sull'emulatore, anche con il consenso rimasto_
+- [x] Un cliente non può far passare una scheda propria per «scritta da un trainer», né cambiare l'autore di una che ha ricevuto (test) — _provato sull'emulatore_
+- [x] Nella lista del cliente una scheda del trainer dice **da chi arriva** — _provato come widget; da confermare sull'APK_
+- [x] L'autore sopravvive alla cache locale: andata e ritorno dei mappatori e dello schema Isar, e un cliente che modifica la scheda ricevuta non la perde — _provato sui mappatori; **Isar con dati veri da confermare su un telefono**_
+- [x] La frase «nessuno può modificare i tuoi dati» del foglio di consenso è riscritta, perché non è più vera
+
+---
+
+#### US-114: Il trainer scrive la prima scheda di un cliente
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** US-089, US-113 | **Blocks:** US-115
+**Status:** ⬜ TODO — seconda parte di US-090. Il lavoro grosso è rendere `ProgramCreatorScreen` (608 righe) e `WorkoutCreatorScreen` (1186) capaci di scrivere per conto di un cliente: oggi usano `AuthService().currentUser.uid` come proprietario e `saveProgram` con `isActive: true` disattiva gli altri programmi **dell'utente**, cosa che per un trainer le regole negano e che comunque non deve fare.
+
+**Story**
+Come trainer,
+voglio scrivere la scheda di un cliente dal mio telefono,
+così da consegnargliela senza carta e senza messaggi.
+
+**Acceptance Criteria**
+- [ ] Dall'elenco dei clienti si apre un cliente e si vede «Scrivi una scheda» **solo** se ha concesso il permesso; altrimenti una riga che spiega perché non c'è
+- [ ] Il trainer compone la scheda con i giorni e le serie che i due creatori già permettono, a nome del cliente e con sé come autore
+- [ ] La scheda compare al cliente **inattiva** e con il nome del trainer; il trainer non tocca le altre schede del cliente
+- [ ] Il trainer rivede e corregge una scheda che ha scritto, e non vede né modifica le altre del cliente
+- [ ] Se il permesso viene revocato a metà, il salvataggio fallisce con un messaggio chiaro e nulla resta a metà (scheda senza giorni)
+
+---
+
+#### US-115: Riusare una scheda per un altro cliente, e accorgersi se il cliente la modifica
+
+**Epic:** EP-017 | **Priority:** MEDIUM | **Story Points:** 5
+**Depends on:** US-114 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — terza parte di US-090.
+
+**Story**
+Come trainer con più clienti,
+voglio partire da una scheda già scritta per prepararne un'altra, e sapere se il cliente ha cambiato quella che gli ho dato,
+così da non riscrivere tutto e da correggere su ciò che fa davvero.
+
+**Acceptance Criteria**
+- [ ] Il trainer copia una scheda che ha scritto su un altro cliente, che la riceve inattiva e con il suo nome; l'originale non cambia
+- [ ] La copia non porta con sé nulla di personale del primo cliente
+- [ ] Se il cliente modifica la scheda ricevuta, il trainer lo vede (cosa e quando), con il permesso `Schede`
+- [ ] Chi ha revocato il permesso non risulta più modificabile dal trainer, e la copia verso di lui è negata
 
 ---
 

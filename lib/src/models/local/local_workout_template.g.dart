@@ -18,39 +18,49 @@ const LocalWorkoutTemplateSchema = CollectionSchema(
   name: r'LocalWorkoutTemplate',
   id: -1268422865019406931,
   properties: {
-    r'category': PropertySchema(
+    r'authorId': PropertySchema(
       id: 0,
+      name: r'authorId',
+      type: IsarType.string,
+    ),
+    r'authorName': PropertySchema(
+      id: 1,
+      name: r'authorName',
+      type: IsarType.string,
+    ),
+    r'category': PropertySchema(
+      id: 2,
       name: r'category',
       type: IsarType.string,
     ),
     r'description': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'description',
       type: IsarType.string,
     ),
     r'exercises': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'exercises',
       type: IsarType.objectList,
       target: r'LocalWorkoutTemplateExercise',
     ),
     r'firestoreId': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'firestoreId',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'name',
       type: IsarType.string,
     ),
     r'parentProgramId': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'parentProgramId',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'userId',
       type: IsarType.string,
     )
@@ -105,6 +115,18 @@ int _localWorkoutTemplateEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.authorId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.authorName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.category.length * 3;
   {
     final value = object.description;
@@ -144,18 +166,20 @@ void _localWorkoutTemplateSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.category);
-  writer.writeString(offsets[1], object.description);
+  writer.writeString(offsets[0], object.authorId);
+  writer.writeString(offsets[1], object.authorName);
+  writer.writeString(offsets[2], object.category);
+  writer.writeString(offsets[3], object.description);
   writer.writeObjectList<LocalWorkoutTemplateExercise>(
-    offsets[2],
+    offsets[4],
     allOffsets,
     LocalWorkoutTemplateExerciseSchema.serialize,
     object.exercises,
   );
-  writer.writeString(offsets[3], object.firestoreId);
-  writer.writeString(offsets[4], object.name);
-  writer.writeString(offsets[5], object.parentProgramId);
-  writer.writeString(offsets[6], object.userId);
+  writer.writeString(offsets[5], object.firestoreId);
+  writer.writeString(offsets[6], object.name);
+  writer.writeString(offsets[7], object.parentProgramId);
+  writer.writeString(offsets[8], object.userId);
 }
 
 LocalWorkoutTemplate _localWorkoutTemplateDeserialize(
@@ -165,20 +189,22 @@ LocalWorkoutTemplate _localWorkoutTemplateDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = LocalWorkoutTemplate();
-  object.category = reader.readString(offsets[0]);
-  object.description = reader.readStringOrNull(offsets[1]);
+  object.authorId = reader.readStringOrNull(offsets[0]);
+  object.authorName = reader.readStringOrNull(offsets[1]);
+  object.category = reader.readString(offsets[2]);
+  object.description = reader.readStringOrNull(offsets[3]);
   object.exercises = reader.readObjectList<LocalWorkoutTemplateExercise>(
-        offsets[2],
+        offsets[4],
         LocalWorkoutTemplateExerciseSchema.deserialize,
         allOffsets,
         LocalWorkoutTemplateExercise(),
       ) ??
       [];
-  object.firestoreId = reader.readStringOrNull(offsets[3]);
+  object.firestoreId = reader.readStringOrNull(offsets[5]);
   object.id = id;
-  object.name = reader.readString(offsets[4]);
-  object.parentProgramId = reader.readStringOrNull(offsets[5]);
-  object.userId = reader.readString(offsets[6]);
+  object.name = reader.readString(offsets[6]);
+  object.parentProgramId = reader.readStringOrNull(offsets[7]);
+  object.userId = reader.readString(offsets[8]);
   return object;
 }
 
@@ -190,10 +216,14 @@ P _localWorkoutTemplateDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
       return (reader.readObjectList<LocalWorkoutTemplateExercise>(
             offset,
             LocalWorkoutTemplateExerciseSchema.deserialize,
@@ -201,13 +231,13 @@ P _localWorkoutTemplateDeserializeProp<P>(
             LocalWorkoutTemplateExercise(),
           ) ??
           []) as P;
-    case 3:
-      return (reader.readStringOrNull(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -481,6 +511,318 @@ extension LocalWorkoutTemplateQueryWhere
 
 extension LocalWorkoutTemplateQueryFilter on QueryBuilder<LocalWorkoutTemplate,
     LocalWorkoutTemplate, QFilterCondition> {
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'authorId',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'authorId',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'authorId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+          QAfterFilterCondition>
+      authorIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+          QAfterFilterCondition>
+      authorIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'authorId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'authorId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'authorName',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'authorName',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'authorName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+          QAfterFilterCondition>
+      authorNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+          QAfterFilterCondition>
+      authorNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'authorName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
+      QAfterFilterCondition> authorNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'authorName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate,
       QAfterFilterCondition> categoryEqualTo(
     String value, {
@@ -1526,6 +1868,34 @@ extension LocalWorkoutTemplateQueryLinks on QueryBuilder<LocalWorkoutTemplate,
 extension LocalWorkoutTemplateQuerySortBy
     on QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QSortBy> {
   QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      sortByAuthorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      sortByAuthorIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      sortByAuthorName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      sortByAuthorNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
       sortByCategory() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'category', Sort.asc);
@@ -1612,6 +1982,34 @@ extension LocalWorkoutTemplateQuerySortBy
 
 extension LocalWorkoutTemplateQuerySortThenBy
     on QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QSortThenBy> {
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      thenByAuthorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      thenByAuthorIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      thenByAuthorName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
+      thenByAuthorNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.desc);
+    });
+  }
+
   QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QAfterSortBy>
       thenByCategory() {
     return QueryBuilder.apply(this, (query) {
@@ -1714,6 +2112,20 @@ extension LocalWorkoutTemplateQuerySortThenBy
 extension LocalWorkoutTemplateQueryWhereDistinct
     on QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QDistinct> {
   QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QDistinct>
+      distinctByAuthorId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'authorId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QDistinct>
+      distinctByAuthorName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'authorName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, LocalWorkoutTemplate, QDistinct>
       distinctByCategory({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'category', caseSensitive: caseSensitive);
@@ -1762,6 +2174,20 @@ extension LocalWorkoutTemplateQueryProperty on QueryBuilder<
   QueryBuilder<LocalWorkoutTemplate, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, String?, QQueryOperations>
+      authorIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'authorId');
+    });
+  }
+
+  QueryBuilder<LocalWorkoutTemplate, String?, QQueryOperations>
+      authorNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'authorName');
     });
   }
 

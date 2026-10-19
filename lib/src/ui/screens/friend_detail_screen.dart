@@ -176,7 +176,7 @@ class _ConsentSection extends ConsumerWidget {
           )
         else ...[
           Text(
-            loc.t(consentSummaryKey(consent.grants)),
+            consentSummaryText(loc, consent.grants),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),

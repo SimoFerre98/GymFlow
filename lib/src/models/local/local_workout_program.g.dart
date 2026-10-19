@@ -18,53 +18,63 @@ const LocalWorkoutProgramSchema = CollectionSchema(
   name: r'LocalWorkoutProgram',
   id: -6454330828894328231,
   properties: {
-    r'color': PropertySchema(
+    r'authorId': PropertySchema(
       id: 0,
+      name: r'authorId',
+      type: IsarType.string,
+    ),
+    r'authorName': PropertySchema(
+      id: 1,
+      name: r'authorName',
+      type: IsarType.string,
+    ),
+    r'color': PropertySchema(
+      id: 2,
       name: r'color',
       type: IsarType.long,
     ),
     r'createdAt': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'description': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'description',
       type: IsarType.string,
     ),
     r'endDate': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'endDate',
       type: IsarType.dateTime,
     ),
     r'firestoreId': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'firestoreId',
       type: IsarType.string,
     ),
     r'isActive': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'isActive',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'name',
       type: IsarType.string,
     ),
     r'startDate': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'startDate',
       type: IsarType.dateTime,
     ),
     r'userId': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'userId',
       type: IsarType.string,
     ),
     r'workoutIds': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'workoutIds',
       type: IsarType.stringList,
     )
@@ -117,6 +127,18 @@ int _localWorkoutProgramEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.authorId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.authorName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.description;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -146,16 +168,18 @@ void _localWorkoutProgramSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.color);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.description);
-  writer.writeDateTime(offsets[3], object.endDate);
-  writer.writeString(offsets[4], object.firestoreId);
-  writer.writeBool(offsets[5], object.isActive);
-  writer.writeString(offsets[6], object.name);
-  writer.writeDateTime(offsets[7], object.startDate);
-  writer.writeString(offsets[8], object.userId);
-  writer.writeStringList(offsets[9], object.workoutIds);
+  writer.writeString(offsets[0], object.authorId);
+  writer.writeString(offsets[1], object.authorName);
+  writer.writeLong(offsets[2], object.color);
+  writer.writeDateTime(offsets[3], object.createdAt);
+  writer.writeString(offsets[4], object.description);
+  writer.writeDateTime(offsets[5], object.endDate);
+  writer.writeString(offsets[6], object.firestoreId);
+  writer.writeBool(offsets[7], object.isActive);
+  writer.writeString(offsets[8], object.name);
+  writer.writeDateTime(offsets[9], object.startDate);
+  writer.writeString(offsets[10], object.userId);
+  writer.writeStringList(offsets[11], object.workoutIds);
 }
 
 LocalWorkoutProgram _localWorkoutProgramDeserialize(
@@ -165,17 +189,19 @@ LocalWorkoutProgram _localWorkoutProgramDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = LocalWorkoutProgram();
-  object.color = reader.readLong(offsets[0]);
-  object.createdAt = reader.readDateTime(offsets[1]);
-  object.description = reader.readStringOrNull(offsets[2]);
-  object.endDate = reader.readDateTimeOrNull(offsets[3]);
-  object.firestoreId = reader.readStringOrNull(offsets[4]);
+  object.authorId = reader.readStringOrNull(offsets[0]);
+  object.authorName = reader.readStringOrNull(offsets[1]);
+  object.color = reader.readLong(offsets[2]);
+  object.createdAt = reader.readDateTime(offsets[3]);
+  object.description = reader.readStringOrNull(offsets[4]);
+  object.endDate = reader.readDateTimeOrNull(offsets[5]);
+  object.firestoreId = reader.readStringOrNull(offsets[6]);
   object.id = id;
-  object.isActive = reader.readBool(offsets[5]);
-  object.name = reader.readString(offsets[6]);
-  object.startDate = reader.readDateTimeOrNull(offsets[7]);
-  object.userId = reader.readString(offsets[8]);
-  object.workoutIds = reader.readStringList(offsets[9]) ?? [];
+  object.isActive = reader.readBool(offsets[7]);
+  object.name = reader.readString(offsets[8]);
+  object.startDate = reader.readDateTimeOrNull(offsets[9]);
+  object.userId = reader.readString(offsets[10]);
+  object.workoutIds = reader.readStringList(offsets[11]) ?? [];
   return object;
 }
 
@@ -187,24 +213,28 @@ P _localWorkoutProgramDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
-    case 1:
-      return (reader.readDateTime(offset)) as P;
-    case 2:
       return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
     case 3:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
-    case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readBool(offset)) as P;
     case 8:
       return (reader.readString(offset)) as P;
     case 9:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
       return (reader.readStringList(offset) ?? []) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -476,6 +506,314 @@ extension LocalWorkoutProgramQueryWhere
 
 extension LocalWorkoutProgramQueryFilter on QueryBuilder<LocalWorkoutProgram,
     LocalWorkoutProgram, QFilterCondition> {
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'authorId',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'authorId',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'authorId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'authorId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'authorId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'authorId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'authorName',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'authorName',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'authorName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'authorName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'authorName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'authorName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
+      authorNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'authorName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterFilterCondition>
       colorEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1617,6 +1955,34 @@ extension LocalWorkoutProgramQueryLinks on QueryBuilder<LocalWorkoutProgram,
 extension LocalWorkoutProgramQuerySortBy
     on QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QSortBy> {
   QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      sortByAuthorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      sortByAuthorIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      sortByAuthorName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      sortByAuthorNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
       sortByColor() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'color', Sort.asc);
@@ -1745,6 +2111,34 @@ extension LocalWorkoutProgramQuerySortBy
 
 extension LocalWorkoutProgramQuerySortThenBy
     on QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QSortThenBy> {
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      thenByAuthorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      thenByAuthorIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      thenByAuthorName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
+      thenByAuthorNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.desc);
+    });
+  }
+
   QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QAfterSortBy>
       thenByColor() {
     return QueryBuilder.apply(this, (query) {
@@ -1889,6 +2283,20 @@ extension LocalWorkoutProgramQuerySortThenBy
 extension LocalWorkoutProgramQueryWhereDistinct
     on QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QDistinct> {
   QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QDistinct>
+      distinctByAuthorId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'authorId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QDistinct>
+      distinctByAuthorName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'authorName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, LocalWorkoutProgram, QDistinct>
       distinctByColor() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'color');
@@ -1964,6 +2372,20 @@ extension LocalWorkoutProgramQueryProperty
   QueryBuilder<LocalWorkoutProgram, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, String?, QQueryOperations>
+      authorIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'authorId');
+    });
+  }
+
+  QueryBuilder<LocalWorkoutProgram, String?, QQueryOperations>
+      authorNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'authorName');
     });
   }
 

@@ -57,10 +57,14 @@ smentito qui.
   non una query sola. **Correzione da non ripetere**: la prima stesura del piano diceva che le regole negano la
   `whereIn` su più clienti; **è falso** (passa se tutti hanno concesso, negata se anche uno no). La ragione per
   cui non la usiamo è che con un limite perde il cliente fermo da più tempo.
-- **US-090 è stata divisa il 2026-10-19 in US-113, US-114, US-115** (stimata 5 punti, ne vale ~21). US-113 fonda
-  il permesso di scrittura sulle schede (terzo interruttore «Schede», spento di default), le regole e il campo
-  «da chi arriva»; US-114 la schermata del trainer; US-115 il riuso e le modifiche del cliente. La scheda del
-  trainer arriva al cliente **inattiva** e la attiva lui.
+- **US-090 è stata divisa il 2026-10-19 in US-113, US-114, US-115** (stimata 5 punti, ne vale ~21).
+  **US-113 è mergiata** (permesso di scrittura sulle schede: terzo interruttore «Schede» spento di default,
+  regole **già pubblicate**, campo `authorId`/`authorName` su schede e giorni, anche nella cache Isar; l'app si
+  apre sopra i dati esistenti senza errori). **Restano US-114** (la schermata con cui il trainer scrive la
+  scheda: i due creatori scrivono ancora solo per l'utente connesso) e **US-115** (riuso e modifiche del
+  cliente). La scheda del trainer arriva al cliente **inattiva** e la attiva lui. Da fare in US-114: mostrare
+  «scritta da» ricavando il nome dall'invito accettato e non da `authorName`, che lo scrive il trainer e nessuna
+  regola può verificare.
 - **`docs/BACKLOG.md` è stato riordinato il 2026-10-18** (`fc0dc9b`): ogni storia aperta è stata
   riverificata nel codice e porta la prova. Dei 44 `TODO` ne restano davvero aperti circa 28; vedere la
   tabella in testa al file. Il resto del HANDOFF che parla di storie «aperte» può essere più vecchio.

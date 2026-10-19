@@ -12,6 +12,10 @@ class LocalWorkoutTemplate {
   String? parentProgramId;
   late String category;
   List<LocalWorkoutTemplateExercise> exercises = [];
+
+  /// Chi ha scritto il giorno, se non e il proprietario (US-113).
+  String? authorId;
+  String? authorName;
 }
 @Embedded()
 class LocalWorkoutTemplateExercise {

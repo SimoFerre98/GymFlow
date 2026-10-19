@@ -15,4 +15,9 @@ class LocalWorkoutProgram {
   DateTime? startDate;
   DateTime? endDate;
   late int color;
+
+  /// Chi ha scritto la scheda, se non e il proprietario (US-113). Nullabili: Isar
+  /// aggiunge una proprieta nullabile a una collezione esistente senza migrazione.
+  String? authorId;
+  String? authorName;
 }
