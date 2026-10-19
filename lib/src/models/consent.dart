@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Le due categorie che un cliente può concedere al proprio trainer (US-092).
+/// Le categorie che un cliente può concedere al proprio trainer.
 ///
-/// Sono due e non quattro perché una regola Firestore concede o nega un
-/// documento intero, mai i suoi campi: `sessions/{id}` contiene insieme date,
-/// carichi, ripetizioni, RPE e note, e non c'è modo di mostrarne una parte.
-/// Solo le misure corporee vivono in una raccolta a sé.
+/// **Due di lettura** (US-092), non quattro: una regola Firestore concede o nega
+/// un documento intero, mai i suoi campi, e `sessions/{id}` contiene insieme
+/// date, carichi, ripetizioni, RPE e note. Solo le misure corporee vivono in una
+/// raccolta a sé.
+///
+/// **Una di scrittura** (US-113): [programs], a parte, perché leggere i dati e
+/// scrivere le schede sono cose diverse e il cliente le decide separatamente.
 ///
 /// [key] è il nome che le regole leggono in `grants`: cambiarlo qui senza
 /// cambiare `firestore.rules` chiude l'accesso in silenzio.
@@ -14,7 +17,11 @@ enum ConsentCategory {
   sessions,
 
   /// Peso e misure corporee nel tempo.
-  measurements;
+  measurements,
+
+  /// Scrivere **nuove** schede per il cliente, e modificare solo quelle che ha
+  /// scritto lui. Non è lettura: non apre le altre schede del cliente.
+  programs;
 
   String get key => name;
 }
@@ -25,7 +32,7 @@ enum ConsentCategory {
 /// esattamente `true`, vale `false`. Un dato malformato non deve mai
 /// trasformarsi in una concessione.
 class ConsentGrants {
-  const ConsentGrants({this.sessions = false, this.measurements = false});
+  const ConsentGrants({this.sessions = false, this.measurements = false, this.programs = false});
 
   /// Niente concesso: lo stato di partenza, e quello dopo uno scioglimento.
   static const ConsentGrants none = ConsentGrants();
@@ -33,9 +40,14 @@ class ConsentGrants {
   final bool sessions;
   final bool measurements;
 
+  /// Il trainer può scrivere nuove schede. Un consenso scritto prima di US-113 non
+  /// ha la chiave e si legge come spento.
+  final bool programs;
+
   bool isGranted(ConsentCategory category) => switch (category) {
     ConsentCategory.sessions => sessions,
     ConsentCategory.measurements => measurements,
+    ConsentCategory.programs => programs,
   };
 
   /// Le categorie concesse, nell'ordine in cui si mostrano.
@@ -44,11 +56,15 @@ class ConsentGrants {
       if (isGranted(category)) category,
   ];
 
-  bool get isNone => !sessions && !measurements;
+  bool get isNone => !sessions && !measurements && !programs;
 
   ConsentGrants withGrant(ConsentCategory category, bool value) => switch (category) {
-    ConsentCategory.sessions => ConsentGrants(sessions: value, measurements: measurements),
-    ConsentCategory.measurements => ConsentGrants(sessions: sessions, measurements: value),
+    ConsentCategory.sessions =>
+      ConsentGrants(sessions: value, measurements: measurements, programs: programs),
+    ConsentCategory.measurements =>
+      ConsentGrants(sessions: sessions, measurements: value, programs: programs),
+    ConsentCategory.programs =>
+      ConsentGrants(sessions: sessions, measurements: measurements, programs: value),
   };
 
   Map<String, bool> toMap() => {
@@ -60,25 +76,39 @@ class ConsentGrants {
     return ConsentGrants(
       sessions: map[ConsentCategory.sessions.key] == true,
       measurements: map[ConsentCategory.measurements.key] == true,
+      programs: map[ConsentCategory.programs.key] == true,
     );
   }
 
   @override
   bool operator ==(Object other) =>
-      other is ConsentGrants && other.sessions == sessions && other.measurements == measurements;
+      other is ConsentGrants &&
+      other.sessions == sessions &&
+      other.measurements == measurements &&
+      other.programs == programs;
 
   @override
-  int get hashCode => Object.hash(sessions, measurements);
+  int get hashCode => Object.hash(sessions, measurements, programs);
 }
 
-/// La chiave di localizzazione della frase che dice, in parole, cosa vede il
-/// trainer. Funzione pura e non un `switch` dentro un widget: è ciò che il
-/// cliente legge per sapere cosa ha concesso, e dev'essere verificabile.
-String consentSummaryKey(ConsentGrants grants) {
-  if (grants.sessions && grants.measurements) return 'consent_summary_both';
-  if (grants.sessions) return 'consent_summary_sessions';
-  if (grants.measurements) return 'consent_summary_measurements';
-  return 'consent_summary_none';
+/// Le chiavi di localizzazione delle frasi che dicono, in parole, cosa può fare il
+/// trainer: prima cosa **vede**, poi se può **scrivere** le schede. Funzione pura
+/// e non uno `switch` dentro un widget: è ciò che il cliente legge per sapere
+/// cosa ha concesso, e dev'essere verificabile.
+///
+/// Con tre permessi le combinazioni sono otto: non si elencano più a mano, si
+/// compongono. Mai vuota: senza nulla di concesso dice che non vede niente.
+List<String> consentSummaryKeys(ConsentGrants grants) {
+  final frasi = <String>[
+    if (grants.sessions && grants.measurements)
+      'consent_summary_both'
+    else if (grants.sessions)
+      'consent_summary_sessions'
+    else if (grants.measurements)
+      'consent_summary_measurements',
+    if (grants.programs) 'consent_summary_programs',
+  ];
+  return frasi.isEmpty ? const ['consent_summary_none'] : frasi;
 }
 
 /// Il consenso di un cliente verso un trainer (US-092).

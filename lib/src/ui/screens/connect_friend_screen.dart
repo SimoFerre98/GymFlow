@@ -500,7 +500,7 @@ class _ConnectFriendScreenState extends ConsumerState<ConnectFriendScreen> {
                                   ),
                                 ),
                                 Text(
-                                  loc.t(consentSummaryKey(grants)),
+                                  consentSummaryText(loc, grants),
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: scheme.onSurfaceVariant,
                                   ),
