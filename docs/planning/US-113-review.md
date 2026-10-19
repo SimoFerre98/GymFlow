@@ -79,6 +79,19 @@ gymflow-d5d09`. Verifica con `firestore-tests/verify-deploy.mjs`, che confronta 
 (provato con le 74 prove prima di pubblicare). **Non provate in produzione con un client vero**: finché non
 esiste la schermata del trainer (US-114) nessun client scrive per conto di un cliente.
 
+## Prova sul telefono (2026-10-19)
+
+Fatta da me, con l'APK che unisce US-089 e US-113 installato **sopra** l'app esistente (`firstInstallTime`
+invariato, 10/9). Visto:
+- L'app si apre con lo schema Isar nuovo, **nessun errore** nel log e nessun crash; la scheda «corsa» c'è
+  ancora, con ATTIVA e il conto alla rovescia aggiornato (da 14 a 13 giorni).
+- Non posso dire se i dati locali siano stati conservati o ricaricati da Firestore dalla sincronizzazione:
+  per l'utente è lo stesso, ma non sono la stessa prova.
+
+**Non visto**: il foglio di consenso a tre interruttori e la riga «scritta da» con una scheda del trainer.
+Il telefono è collegato all'account trainer: servono l'account cliente, e US-114 per avere una scheda scritta
+da un trainer.
+
 ## Fuori scope rilevato
 Nessuno nuovo.
 
