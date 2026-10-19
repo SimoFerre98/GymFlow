@@ -2679,7 +2679,7 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** US-092 | **Blocks:** US-114, US-115
-**Status:** 🔵 IN PROGRESS — ⚠️ **non delegabile** (regole Firestore). Piano in `docs/planning/US-113.md`. Prima parte di US-090.
+**Status:** 🔍 IN REVIEW — ⚠️ **non delegabile** (regole Firestore). Piano e review in `docs/planning/US-113.md` / `US-113-review.md`. **Regole non ancora pubblicate**: serve il via libera al deploy. **Mai visto su un telefono**: la cache Isar con dati veri e il foglio a tre interruttori sono da confermare sull'APK. Prima parte di US-090.
 
 > **Perché per prime le regole.** Il consenso di US-092 è di sola lettura: nessuna regola lascia a un trainer scrivere su `programs` e `workouts` di un cliente. Questa storia fonda il permesso e le regole **prima** di qualunque schermata, e li prova con l'emulatore: è il criterio 5 di US-090, «un trainer non scrive la scheda di chi non lo ha invitato, con un test che lo dimostra».
 >
@@ -2694,14 +2694,14 @@ così da farmi preparare gli allenamenti senza dargli il controllo di quelli che
 Dopo questa storia: il cliente ha un interruttore «Schede»; con quello acceso le regole lasciano al trainer creare, e poi modificare e cancellare, **solo** ciò che ha scritto lui; nella lista del cliente ogni scheda del trainer dice da chi arriva.
 
 **Acceptance Criteria**
-- [ ] Il foglio di consenso e il dettaglio del legame hanno un terzo interruttore «Schede», **spento di default**, con parole che dicono cosa concede e cosa no
-- [ ] Un trainer con il permesso può creare una scheda e i suoi giorni a nome del cliente, e la scheda nasce **sempre inattiva**; senza il permesso non può (test)
-- [ ] Il trainer legge, modifica e cancella **solo ciò che ha scritto lui**, mai le altre schede del cliente (test)
-- [ ] Un trainer non scrive nulla per chi non lo ha invitato, e smette di poterlo fare con la revoca del permesso o lo scioglimento del legame (test)
-- [ ] Un cliente non può far passare una scheda propria per «scritta da un trainer», né cambiare l'autore di una che ha ricevuto (test)
-- [ ] Nella lista del cliente una scheda del trainer dice **da chi arriva**
-- [ ] L'autore sopravvive alla cache locale: andata e ritorno dei mappatori e dello schema Isar, e un cliente che modifica la scheda ricevuta non la perde
-- [ ] La frase «nessuno può modificare i tuoi dati» del foglio di consenso è riscritta, perché non è più vera
+- [x] Il foglio di consenso e il dettaglio del legame hanno un terzo interruttore «Schede», **spento di default**, con parole che dicono cosa concede e cosa no — _provato come widget; da confermare sull'APK_
+- [x] Un trainer con il permesso può creare una scheda e i suoi giorni a nome del cliente, e la scheda nasce **sempre inattiva**; senza il permesso non può (test) — _provato sull'emulatore_
+- [x] Il trainer legge, modifica e cancella **solo ciò che ha scritto lui**, mai le altre schede del cliente (test) — _provato sull'emulatore_
+- [x] Un trainer non scrive nulla per chi non lo ha invitato, e smette di poterlo fare con la revoca del permesso o lo scioglimento del legame (test) — _provato sull'emulatore, anche con il consenso rimasto_
+- [x] Un cliente non può far passare una scheda propria per «scritta da un trainer», né cambiare l'autore di una che ha ricevuto (test) — _provato sull'emulatore_
+- [x] Nella lista del cliente una scheda del trainer dice **da chi arriva** — _provato come widget; da confermare sull'APK_
+- [x] L'autore sopravvive alla cache locale: andata e ritorno dei mappatori e dello schema Isar, e un cliente che modifica la scheda ricevuta non la perde — _provato sui mappatori; **Isar con dati veri da confermare su un telefono**_
+- [x] La frase «nessuno può modificare i tuoi dati» del foglio di consenso è riscritta, perché non è più vera
 
 ---
 
