@@ -2654,7 +2654,7 @@ Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo al
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 5
 **Depends on:** US-083, US-089 | **Blocks:** —  _(nessuna)_
-**Status:** ⬜ TODO — **verificata il 2026-10-18**: niente di scritto. Dipende da US-083 (✅) e US-089. Il modello delle serie c'è, ma il raggruppamento per superserie no (US-084 è solo dati): «tutto ciò che US-083 e US-084 permettono» è meno di quanto la storia presume. Mancano anche le regole di scrittura sulle schede di un cliente: `programs` e `workouts` sono solo `eMio()` (`firestore.rules:76-87`).
+**Status:** ↪ DIVISA il 2026-10-19 in **US-113** (permesso e regole), **US-114** (la prima scheda) e **US-115** (riuso e modifiche del cliente). Stimata 5 punti, ne vale circa 21: il consenso di US-092 è solo di lettura, mancano un permesso di scrittura, un campo «da chi arriva» nei modelli e nella cache locale, e i due creatori di schede scrivono solo per l'utente connesso. Decisioni con l'utente: il permesso è un **terzo interruttore a parte** (spento di default), la scheda del trainer arriva **inattiva** e la attiva il cliente. I criteri qui sotto passano alle tre storie.
 
 > Dipende da **US-083**, non per comodità: è il punto in cui il modello delle serie diventa la differenza fra un'app usabile per lavoro e una no.
 
@@ -2672,6 +2672,75 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 - [ ] Il cliente può eseguirla; se la modifica, il trainer se ne accorge
 - [ ] Il trainer riusa una scheda già scritta come modello per un altro cliente
 - [ ] Un trainer **non** può scrivere la scheda di chi non lo ha invitato, con un test che lo dimostra
+
+---
+
+#### US-113: Il cliente concede le sue schede al trainer, e il trainer scrive solo quelle
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** US-092 | **Blocks:** US-114, US-115
+**Status:** 🔵 IN PROGRESS — ⚠️ **non delegabile** (regole Firestore). Piano in `docs/planning/US-113.md`. Prima parte di US-090.
+
+> **Perché per prime le regole.** Il consenso di US-092 è di sola lettura: nessuna regola lascia a un trainer scrivere su `programs` e `workouts` di un cliente. Questa storia fonda il permesso e le regole **prima** di qualunque schermata, e li prova con l'emulatore: è il criterio 5 di US-090, «un trainer non scrive la scheda di chi non lo ha invitato, con un test che lo dimostra».
+>
+> **Decisioni del 2026-10-19:** il permesso è un **terzo interruttore a parte** («Schede»), spento di default, perché leggere i dati e scrivere le schede sono cose diverse; la scheda del trainer arriva **inattiva** e la attiva il cliente, perché attivarne una disattiva le altre del cliente e il trainer non deve poterlo fare.
+
+**Story**
+Come cliente di un trainer,
+voglio decidere se può scrivere nuove schede per me, e sapere da chi arriva ciascuna,
+così da farmi preparare gli allenamenti senza dargli il controllo di quelli che ho già.
+
+**Demonstrates**
+Dopo questa storia: il cliente ha un interruttore «Schede»; con quello acceso le regole lasciano al trainer creare, e poi modificare e cancellare, **solo** ciò che ha scritto lui; nella lista del cliente ogni scheda del trainer dice da chi arriva.
+
+**Acceptance Criteria**
+- [ ] Il foglio di consenso e il dettaglio del legame hanno un terzo interruttore «Schede», **spento di default**, con parole che dicono cosa concede e cosa no
+- [ ] Un trainer con il permesso può creare una scheda e i suoi giorni a nome del cliente, e la scheda nasce **sempre inattiva**; senza il permesso non può (test)
+- [ ] Il trainer legge, modifica e cancella **solo ciò che ha scritto lui**, mai le altre schede del cliente (test)
+- [ ] Un trainer non scrive nulla per chi non lo ha invitato, e smette di poterlo fare con la revoca del permesso o lo scioglimento del legame (test)
+- [ ] Un cliente non può far passare una scheda propria per «scritta da un trainer», né cambiare l'autore di una che ha ricevuto (test)
+- [ ] Nella lista del cliente una scheda del trainer dice **da chi arriva**
+- [ ] L'autore sopravvive alla cache locale: andata e ritorno dei mappatori e dello schema Isar, e un cliente che modifica la scheda ricevuta non la perde
+- [ ] La frase «nessuno può modificare i tuoi dati» del foglio di consenso è riscritta, perché non è più vera
+
+---
+
+#### US-114: Il trainer scrive la prima scheda di un cliente
+
+**Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
+**Depends on:** US-089, US-113 | **Blocks:** US-115
+**Status:** ⬜ TODO — seconda parte di US-090. Il lavoro grosso è rendere `ProgramCreatorScreen` (608 righe) e `WorkoutCreatorScreen` (1186) capaci di scrivere per conto di un cliente: oggi usano `AuthService().currentUser.uid` come proprietario e `saveProgram` con `isActive: true` disattiva gli altri programmi **dell'utente**, cosa che per un trainer le regole negano e che comunque non deve fare.
+
+**Story**
+Come trainer,
+voglio scrivere la scheda di un cliente dal mio telefono,
+così da consegnargliela senza carta e senza messaggi.
+
+**Acceptance Criteria**
+- [ ] Dall'elenco dei clienti si apre un cliente e si vede «Scrivi una scheda» **solo** se ha concesso il permesso; altrimenti una riga che spiega perché non c'è
+- [ ] Il trainer compone la scheda con i giorni e le serie che i due creatori già permettono, a nome del cliente e con sé come autore
+- [ ] La scheda compare al cliente **inattiva** e con il nome del trainer; il trainer non tocca le altre schede del cliente
+- [ ] Il trainer rivede e corregge una scheda che ha scritto, e non vede né modifica le altre del cliente
+- [ ] Se il permesso viene revocato a metà, il salvataggio fallisce con un messaggio chiaro e nulla resta a metà (scheda senza giorni)
+
+---
+
+#### US-115: Riusare una scheda per un altro cliente, e accorgersi se il cliente la modifica
+
+**Epic:** EP-017 | **Priority:** MEDIUM | **Story Points:** 5
+**Depends on:** US-114 | **Blocks:** —  _(nessuna)_
+**Status:** ⬜ TODO — terza parte di US-090.
+
+**Story**
+Come trainer con più clienti,
+voglio partire da una scheda già scritta per prepararne un'altra, e sapere se il cliente ha cambiato quella che gli ho dato,
+così da non riscrivere tutto e da correggere su ciò che fa davvero.
+
+**Acceptance Criteria**
+- [ ] Il trainer copia una scheda che ha scritto su un altro cliente, che la riceve inattiva e con il suo nome; l'originale non cambia
+- [ ] La copia non porta con sé nulla di personale del primo cliente
+- [ ] Se il cliente modifica la scheda ricevuta, il trainer lo vede (cosa e quando), con il permesso `Schede`
+- [ ] Chi ha revocato il permesso non risulta più modificabile dal trainer, e la copia verso di lui è negata
 
 ---
 
