@@ -2679,7 +2679,7 @@ Dopo questa storia: il trainer compone una scheda con piramidi e superserie, la 
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 8
 **Depends on:** US-092 | **Blocks:** US-114, US-115
-**Status:** 🔍 IN REVIEW — ⚠️ **non delegabile** (regole Firestore). Piano e review in `docs/planning/US-113.md` / `US-113-review.md`. **Regole non ancora pubblicate**: serve il via libera al deploy. **Mai visto su un telefono**: la cache Isar con dati veri e il foglio a tre interruttori sono da confermare sull'APK. Prima parte di US-090.
+**Status:** 🔍 IN REVIEW — ⚠️ **non delegabile** (regole Firestore). Piano e review in `docs/planning/US-113.md` / `US-113-review.md`. **Regole pubblicate il 2026-10-19** su `gymflow-d5d09` (ruleset `5f08c13d…`, identico a `firestore.rules`, verificato dall'API; precedente `de1ea62f…`). **Mai visto su un telefono**: la cache Isar con dati veri e il foglio a tre interruttori sono da confermare sull'APK. Prima parte di US-090.
 
 > **Perché per prime le regole.** Il consenso di US-092 è di sola lettura: nessuna regola lascia a un trainer scrivere su `programs` e `workouts` di un cliente. Questa storia fonda il permesso e le regole **prima** di qualunque schermata, e li prova con l'emulatore: è il criterio 5 di US-090, «un trainer non scrive la scheda di chi non lo ha invitato, con un test che lo dimostra».
 >

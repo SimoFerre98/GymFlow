@@ -1,9 +1,9 @@
 # Review US-113
 
-**Verdetto: APPROVATA CON RISERVE** — nessun rilievo bloccante sul codice. Le riserve sono tre condizioni
-prima di dire «finita»: il **deploy delle regole** (non fatto, serve il tuo sì), la **cache Isar con dati
-veri su un telefono** (non provata: il telefono non è raggiungibile), e due rilievi di sicurezza di
-poco conto che trovi sotto.
+**Verdetto: APPROVATA CON RISERVE** — nessun rilievo bloccante sul codice. Le riserve sono due: la **cache
+Isar con dati veri su un telefono** (non provata: il telefono non è raggiungibile) e due rilievi di
+sicurezza di poco conto che trovi sotto. **Il deploy delle regole è fatto** (2026-10-19, dopo il tuo
+via libera): vedi «Deploy».
 
 La review è un'**autoverifica**. Sono partito dal diff (`git diff main...HEAD`, 22 file) e ho **rotto di
 proposito** regole, modelli, mappatori e interfaccia: ogni controllo nuovo ha almeno un test che diventa
@@ -68,6 +68,16 @@ Nessuno sul codice.
 7. Nessun codice dell'app scrive ancora schede per un cliente: ci sono il permesso, le regole e il campo. Le
    scritture del trainer sono provate con scritture equivalenti dell'emulatore, non con il Dart che le farà
    (US-114).
+
+## Deploy (2026-10-19)
+
+Autorizzato esplicitamente dall'utente. Comando: `firebase deploy --only firestore:gymflow:rules --project
+gymflow-d5d09`. Verifica con `firestore-tests/verify-deploy.mjs`, che confronta il ruleset attivo con
+`firestore.rules` per intero: la release `cloud.firestore/gymflow` punta al ruleset
+`5f08c13d-0063-4319-a0ff-867fecf04295` (17648 caratteri), **identico** al file locale; era
+`de1ea62f-2f1c-4226-87bf-00aa6ae2942b`. Le regole sono rimaste compatibili con tutto ciò che l'app fa oggi
+(provato con le 74 prove prima di pubblicare). **Non provate in produzione con un client vero**: finché non
+esiste la schermata del trainer (US-114) nessun client scrive per conto di un cliente.
 
 ## Fuori scope rilevato
 Nessuno nuovo.
