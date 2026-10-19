@@ -51,6 +51,16 @@ smentito qui.
   `US-092-review.md`. **Il lato trainer non esiste ancora**: l'elenco dei clienti (US-089), la scheda
   scritta dal trainer (US-090, richiede regole di scrittura nuove) e l'andamento (US-091) sono le
   prossime storie, in quest'ordine.
+- **US-089 (elenco dei clienti del trainer) è mergiata (2026-10-19)**: riquadro «CLIENTI» in Home solo per chi
+  ha il ruolo trainer, con l'ultimo allenamento di ciascuno e chi è fermo da più di 7 giorni in evidenza. Vista
+  sul telefono con un cliente vero. Il criterio 4 è stato **riscritto**: una lettura per cliente con consenso,
+  non una query sola. **Correzione da non ripetere**: la prima stesura del piano diceva che le regole negano la
+  `whereIn` su più clienti; **è falso** (passa se tutti hanno concesso, negata se anche uno no). La ragione per
+  cui non la usiamo è che con un limite perde il cliente fermo da più tempo.
+- **US-090 è stata divisa il 2026-10-19 in US-113, US-114, US-115** (stimata 5 punti, ne vale ~21). US-113 fonda
+  il permesso di scrittura sulle schede (terzo interruttore «Schede», spento di default), le regole e il campo
+  «da chi arriva»; US-114 la schermata del trainer; US-115 il riuso e le modifiche del cliente. La scheda del
+  trainer arriva al cliente **inattiva** e la attiva lui.
 - **`docs/BACKLOG.md` è stato riordinato il 2026-10-18** (`fc0dc9b`): ogni storia aperta è stata
   riverificata nel codice e porta la prova. Dei 44 `TODO` ne restano davvero aperti circa 28; vedere la
   tabella in testa al file. Il resto del HANDOFF che parla di storie «aperte» può essere più vecchio.

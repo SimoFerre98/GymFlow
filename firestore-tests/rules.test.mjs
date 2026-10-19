@@ -29,6 +29,8 @@ import {
   getDocs,
   deleteDoc,
   writeBatch,
+  orderBy,
+  limit,
 } from 'firebase/firestore';
 
 const PROJECT_ID = 'demo-gymflow-test';
@@ -690,6 +692,104 @@ test('dati: un estraneo, o il trainer di un altro cliente, non legge niente', as
   const t = testEnv.authenticatedContext('t');
   await assertFails(sessioniDi(t, 'd'));
   await assertFails(misureDi(t, 'd'));
+});
+
+test('elenco clienti (US-089): l ultima sessione con orderBy e limit(1) passa con il consenso, non senza', async () => {
+  // E' la query esatta di `FirestoreService.getLastSessionStart`: una per
+  // cliente. Non perche le regole neghino una `whereIn` (la permettono, vedi
+  // le prove qui sotto) ma perche solo cosi l'ultima sessione di ciascuno e
+  // esatta.
+  await legameTrainerCliente({ sessions: true });
+  await seed('sessions/s-nuova', { userId: 'c', workoutName: 'Ieri', startTime: '2026-10-18T09:00:00.000' });
+  await seed('sessions/s-vecchia', { userId: 'c', workoutName: 'Anno scorso', startTime: '2025-01-01T09:00:00.000' });
+  const t = testEnv.authenticatedContext('t');
+
+  const ultima = await assertSucceeds(
+    getDocs(
+      query(
+        collection(t.firestore(), 'sessions'),
+        where('userId', '==', 'c'),
+        orderBy('startTime', 'desc'),
+        limit(1),
+      ),
+    ),
+  );
+  assert.equal(ultima.size, 1);
+  assert.equal(ultima.docs[0].data().startTime, '2026-10-18T09:00:00.000');
+
+  // Con le sessioni spente la stessa query e' negata, non vuota.
+  const c = testEnv.authenticatedContext('c');
+  await assertSucceeds(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), {
+      'grants.sessions': false,
+      updatedAt: Timestamp.now(),
+    }),
+  );
+  await assertFails(
+    getDocs(
+      query(
+        collection(t.firestore(), 'sessions'),
+        where('userId', '==', 'c'),
+        orderBy('startTime', 'desc'),
+        limit(1),
+      ),
+    ),
+  );
+});
+
+test('elenco clienti (US-089): una whereIn su clienti che hanno tutti concesso PASSA, ma con un limite perde il piu fermo', async () => {
+  // Il piano di US-089 aveva scritto che le regole la negassero: era falso, e
+  // questa prova l'ha scoperto. La scelta di una lettura per cliente resta,
+  // ma per un altro motivo: una query unica ordinata e con un limite
+  // restituisce le sessioni piu recenti **di tutti**, e il cliente fermo da
+  // piu tempo — proprio quello che il trainer cerca — non compare per niente.
+  await legameTrainerCliente({ sessions: true });
+  for (const [id, quando] of [['d', '2026-10-10T09:00:00.000'], ['e', '2025-12-01T09:00:00.000']]) {
+    await seed(`invites/inv-${id}`, invitoTrainer({ toUserId: id, toDisplayName: id, status: 'accepted' }));
+    await seed(`consents/t_${id}`, consenso({ sessions: true }, { clientUserId: id, inviteId: `inv-${id}` }));
+    await seed(`sessions/s-${id}`, { userId: id, workoutName: `di ${id}`, startTime: quando });
+  }
+  await seed('sessions/s-c-ultima', { userId: 'c', workoutName: 'di c', startTime: '2026-10-18T09:00:00.000' });
+  const t = testEnv.authenticatedContext('t');
+
+  // Passa, senza limite: le regole non lo impediscono.
+  const tutte = await assertSucceeds(
+    getDocs(query(collection(t.firestore(), 'sessions'), where('userId', 'in', ['c', 'd', 'e']))),
+  );
+  assert.ok(tutte.size >= 3);
+
+  // Ma con ordine e limite — l'unico modo di non scaricare tutto lo storico —
+  // il cliente 'e', fermo da dicembre, **manca**: sembrerebbe «mai allenato».
+  const ultime = await assertSucceeds(
+    getDocs(
+      query(
+        collection(t.firestore(), 'sessions'),
+        where('userId', 'in', ['c', 'd', 'e']),
+        orderBy('startTime', 'desc'),
+        limit(2),
+      ),
+    ),
+  );
+  const presenti = new Set(ultime.docs.map((d) => d.data().userId));
+  assert.ok(!presenti.has('e'), 'il cliente piu fermo non compare: la query unica e inesatta');
+});
+
+test('elenco clienti (US-089): una whereIn che include anche chi NON ha concesso e negata', async () => {
+  // Il caso che conta per la sicurezza: se bastasse un cliente consenziente per
+  // far passare l'elenco, il trainer leggerebbe anche le sessioni di chi non
+  // gli ha concesso niente.
+  await legameTrainerCliente({ sessions: true });
+  await seed('sessions/s-x', { userId: 'x', workoutName: 'di x', startTime: Timestamp.now() });
+  const t = testEnv.authenticatedContext('t');
+
+  await assertFails(
+    getDocs(query(collection(t.firestore(), 'sessions'), where('userId', 'in', ['c', 'x']))),
+  );
+  // E anche una mista ma con il consenso spento per uno dei due.
+  await seed('consents/t_x', consenso({ sessions: false }, { clientUserId: 'x', inviteId: 'inv1' }));
+  await assertFails(
+    getDocs(query(collection(t.firestore(), 'sessions'), where('userId', 'in', ['c', 'x']))),
+  );
 });
 
 test('dati: il trainer non puo leggere le sessioni di tutti senza dire di chi', async () => {

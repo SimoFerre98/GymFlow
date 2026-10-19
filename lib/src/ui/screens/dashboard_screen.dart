@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import '../../core/theme/immersivo_tokens.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/profile_provider.dart';
 import '../../core/utils/statistics_helper.dart';
 import '../../models/workout_program.dart';
 import '../../models/workout.dart'; // WorkoutTemplate
@@ -20,6 +21,7 @@ import '../../core/providers/goals_provider.dart';
 import '../../models/scheduled_workout.dart';
 import '../../models/session.dart';
 import '../../models/user_goal.dart';
+import 'clients_screen.dart';
 import 'connect_friend_screen.dart';
 import 'gamification_screen.dart';
 import 'goals_screen.dart';
@@ -333,7 +335,7 @@ class _HomeBody extends riverpod.ConsumerWidget {
                   ),
                 ),
               SizedBox(height: t.spacing.lg),
-              _ShortcutRow(loc: loc),
+              HomeShortcutRow(loc: loc),
               SizedBox(height: t.spacing.lg),
             ],
           ),
@@ -672,12 +674,16 @@ class _NumberedRow extends StatelessWidget {
 ///
 /// Griglia, non riga scorrevole: tutte le destinazioni visibili insieme,
 /// nessuna nascosta a scorrimento orizzontale finche non ci si inciampa.
-class _ShortcutRow extends StatelessWidget {
-  const _ShortcutRow({required this.loc});
+class HomeShortcutRow extends riverpod.ConsumerWidget {
+  const HomeShortcutRow({super.key, required this.loc});
   final Localization loc;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, riverpod.WidgetRef ref) {
     final t = context.immersivo;
+    // Solo a profilo **gia caricato** e di un trainer: nel dubbio il riquadro non
+    // c'e. Un atleta vede la Home identica a prima (criterio di US-086), e un
+    // lampo del riquadro mentre il profilo arriva sarebbe una piccola bugia.
+    final eTrainer = ref.watch(currentUserProfileProvider).valueOrNull?.role.isTrainer ?? false;
     final destinazioni = <_Shortcut>[
       _Shortcut(
         icon: Icons.bar_chart_rounded,
@@ -704,6 +710,12 @@ class _ShortcutRow extends StatelessWidget {
         label: loc.t('connect_friend'),
         builder: (_) => const ConnectFriendScreen(),
       ),
+      if (eTrainer)
+        _Shortcut(
+          icon: Icons.groups_outlined,
+          label: loc.t('clients_title'),
+          builder: (_) => const ClientsScreen(),
+        ),
     ];
     return GridView.count(
       crossAxisCount: _kShortcutColumns,

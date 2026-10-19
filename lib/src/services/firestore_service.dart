@@ -9,6 +9,7 @@ import 'package:gymflow/src/models/workout_program.dart';
 import 'package:gymflow/src/models/body_measurement.dart';
 import 'package:gymflow/src/models/user_profile.dart';
 import 'package:gymflow/src/models/invite.dart';
+import 'package:gymflow/src/core/utils/client_overview.dart' show ClientReadDenied;
 import 'package:gymflow/src/models/consent.dart';
 import 'package:rxdart/rxdart.dart';
 class FirestoreService {
@@ -222,6 +223,60 @@ class FirestoreService {
     } on FirebaseException catch (e) {
       if (e.code != 'permission-denied') rethrow;
       await inviteRef.update(revoked);
+    }
+  }
+
+  // --- Elenco clienti del trainer (US-089) ---
+  //
+  // Letture singole e non ascolti: la schermata si apre, legge, e si
+  // aggiorna a richiesta. Dieci ascoltatori aperti per un elenco che si guarda
+  // un momento costerebbero più di dieci letture.
+
+  /// I legami accettati di [userId], in entrambe le direzioni (una lettura).
+  Future<List<Invite>> getAcceptedRelationships(String userId) async {
+    final risposte = await Future.wait([
+      _db.collection('invites').where('fromUserId', isEqualTo: userId).get(),
+      _db.collection('invites').where('toUserId', isEqualTo: userId).get(),
+    ]);
+    return [
+      for (final snapshot in risposte)
+        for (final doc in snapshot.docs)
+          if (Invite.fromMap(doc.data(), doc.id).status == InviteStatus.accepted)
+            Invite.fromMap(doc.data(), doc.id),
+    ];
+  }
+
+  /// I consensi che ho **ricevuto** io, da trainer (una lettura). Le regole
+  /// lasciano leggere un consenso al trainer che vi compare.
+  Future<List<Consent>> getConsentsOfTrainer(String trainerUserId) async {
+    final snapshot = await _db
+        .collection('consents')
+        .where('trainerUserId', isEqualTo: trainerUserId)
+        .get();
+    return snapshot.docs.map((d) => Consent.fromMap(d.data(), d.id)).toList();
+  }
+
+  /// L'inizio dell'ultima sessione di [userId], o `null` se non ne ha.
+  ///
+  /// **Una lettura, `limit(1)`**: è la stessa forma di `getUserSessions`
+  /// (`userId` + ordine su `startTime`), quindi l'indice composto c'è già.
+  /// Per un utente diverso da me le regole la permettono solo se mi ha
+  /// concesso la categoria `sessions`; altrimenti lancia [ClientReadDenied], che
+  /// chi chiama distingue da un errore di rete.
+  Future<DateTime?> getLastSessionStart(String userId) async {
+    try {
+      final snapshot = await _db
+          .collection('sessions')
+          .where('userId', isEqualTo: userId)
+          .orderBy('startTime', descending: true)
+          .limit(1)
+          .get();
+      if (snapshot.docs.isEmpty) return null;
+      final valore = snapshot.docs.first.data()['startTime'];
+      return valore is String ? DateTime.tryParse(valore) : null;
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') throw const ClientReadDenied();
+      rethrow;
     }
   }
 

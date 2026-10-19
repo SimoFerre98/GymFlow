@@ -23,7 +23,7 @@
 
 > **Riordino fatto leggendo `lib/`, `test/`, `docs/planning/` e il `git log` di `main` (`42320d9`), non fidandosi degli Status scritti prima.** Le 44 storie che erano `⬜ TODO` o `🟡 IN CORSO` sono state riverificate una per una — US-092 esclusa, che aveva modifiche su un altro branch e poi è stata mergiata (2026-10-19) — e ogni Status riporta ora la prova (file, riga, commit). Il motivo: il processo formale è stato saltato più volte (`HANDOFF.md` sezione 2) e il backlog non era più uno specchio del codice.
 >
-> **Conteggio vero: 111 storie** (la voce duplicata e contraddittoria di US-084 è stata tolta) — **72** `✅ DONE`, **11** `🟡 PARZIALE`, **17** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **3** `⏸ ACCANTONATA`, **2** `🔍 IN REVIEW` _(aggiornato il 2026-10-19 con la chiusura di US-092 e US-112)_. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
+> **Conteggio vero: 111 storie** (la voce duplicata e contraddittoria di US-084 è stata tolta) — **73** `✅ DONE`, **11** `🟡 PARZIALE`, **16** `⬜ TODO`, **5** `↪ SUPERATA`, **1** `↪ ASSORBITA` (con un residuo aperto), **3** `⏸ ACCANTONATA`, **2** `🔍 IN REVIEW` _(aggiornato il 2026-10-19 con la chiusura di US-092, US-112 e US-089)_. Ricontare con `grep "^\*\*Status:\*\*" docs/BACKLOG.md`.
 >
 > **Gli Status nuovi:** `✅ DONE (nei fatti)` = il codice c'è e i criteri sono soddisfatti, magari senza che nessuno l'avesse scritto qui; restano solo le conferme che richiedono un dispositivo, dichiarate. `🟡 PARZIALE` = una parte è fatta e le caselle dicono quale; non sostituisce `🟡 IN CORSO`, che non esiste più. `↪ SUPERATA` / `↪ ASSORBITA` = la storia descrive qualcosa che l'app non ha più (direzione Immersivo, cassetto rimosso, inviti al posto degli amici). `⏸ ACCANTONATA` = EP-008, nessun lavoro fatto.
 >
@@ -58,12 +58,11 @@
 | EP-015 | US-069 | MEDIUM | ⬜ | primo avvio guidato, per intero |
 | EP-016 | US-085 | HIGH | ⬜ | importatore delle quattro schede; bloccata dalla parte mancante di US-084 |
 | EP-016 | US-084 | MEDIUM | 🟡 | c'è solo il campo `superSetGroup`: manca raggruppare, eseguire alternando, recuperare a fine giro |
-| EP-017 | US-089 | HIGH | ⬜ | elenco dei clienti; le regole di lettura di US-092 sono già pubblicate |
 | EP-017 | US-090 | HIGH | ⬜ | il trainer scrive la scheda di un cliente (dopo US-089; regole di scrittura da fondare) |
 | EP-017 | US-091 | HIGH | ⬜ | andamento del cliente (dopo US-089; il consenso di US-092 è fatto) |
 | EP-017 | US-088 | MEDIUM | ⬜ | QR code: due dipendenze nuove da approvare prima di iniziare |
 
-**Chiuse nei fatti da questo riordino:** US-092 (mergiata il 2026-10-19), US-112 (mergiata il 2026-10-17, Status non aggiornato), US-010, US-015, US-064 (riformulata: colore per programma), US-106, US-107, US-108. **Superate o assorbite:** US-011, US-019, US-035, US-037, US-103, e US-080 per il modello. **Accantonate:** US-002, US-003, US-004 (EP-008, Web).
+**Chiuse nei fatti da questo riordino:** US-089 (mergiata il 2026-10-19), US-092 (mergiata il 2026-10-19), US-112 (mergiata il 2026-10-17, Status non aggiornato), US-010, US-015, US-064 (riformulata: colore per programma), US-106, US-107, US-108. **Superate o assorbite:** US-011, US-019, US-035, US-037, US-103, e US-080 per il modello. **Accantonate:** US-002, US-003, US-004 (EP-008, Web).
 
 | Epic | Title | Stories | Story Points | Scope |
 |---|---|---|---|---|
@@ -2631,7 +2630,7 @@ Dopo questa storia: due telefoni vicini si legano inquadrando uno schermo.
 
 **Epic:** EP-017 | **Priority:** HIGH | **Story Points:** 3
 **Depends on:** US-086, US-087 | **Blocks:** US-090, US-091
-**Status:** ⬜ TODO — **verificata il 2026-10-18**: nessuna schermata lato trainer (il ruolo si sceglie solo in `profile_screen.dart` e `register_screen.dart`); `acceptedRelationshipsProvider` (`invite_provider.dart:25`) dà già i legami accettati su cui costruire l'elenco. ⚠️ Il criterio «quando si è allenato l'ultima volta» legge le sessioni di un altro utente: su `main` le regole lo negano (`firestore.rules:90-95`, solo `eMio()`); le regole di lettura per consenso sono in US-092, branch `feature/US-092-client-consent` non ancora mergiato. Senza quelle l'elenco può mostrare i clienti ma non la loro attività.
+**Status:** ✅ DONE — mergiata in `main` il 2026-10-19 (squash dal branch `feature/US-089-trainer-clients`). Piano e review in `docs/planning/US-089.md` / `US-089-review.md`. Il criterio 4 è stato **riscritto** con l'utente (una query sola è inesatta: con un limite perde il cliente fermo da più tempo, senza costa lo storico di tutti → una lettura per cliente con consenso); la prima stesura aggiungeva «le regole negano la `whereIn`», falso e corretto. Soglia «troppo tempo»: 7 giorni. Ingresso: riquadro «CLIENTI» in Home, solo per i trainer. **Vista sul telefono con un cliente vero** (bordo rosso, «Fermo da 36 giorni», nessun errore di permessi o di indice); gli altri stati (non condivisi, vuoto, oggi/ieri, errore, tira-per-aggiornare) sono provati dai test e non ancora visti su un telefono.
 
 **Story**
 Come trainer con dieci clienti,
@@ -2642,11 +2641,11 @@ così da sapere con chi devo occuparmi oggi senza aprirli uno per uno.
 Dopo questa storia: il trainer apre l'app e vede i suoi clienti, con l'ultimo allenamento di ciascuno.
 
 **Acceptance Criteria**
-- [ ] L'elenco mostra i clienti con un legame accettato e attivo
-- [ ] Per ciascuno si vede quando si è allenato l'ultima volta
-- [ ] Chi non si allena da troppo tempo si distingue a colpo d'occhio
-- [ ] L'elenco regge dieci clienti senza una query per ciascuno, e le query con `whereIn` si suddividono a gruppi di dieci: **non si troncano**
-- [ ] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota
+- [x] L'elenco mostra i clienti con un legame accettato e attivo — _provato sulla funzione e sulla schermata; dati veri da confermare sull'APK_
+- [x] Per ciascuno si vede quando si è allenato l'ultima volta — _provato; query provata sull'emulatore; dati veri da confermare sull'APK_
+- [x] Chi non si allena da troppo tempo si distingue a colpo d'occhio — _provato (7 giorni no, 8 sì); aspetto da confermare sull'APK_
+- [x] L'elenco regge dieci clienti, e venticinque, **senza troncare**: una lettura per cliente con consenso (`limit(1)`, una sola volta all'apertura, in parallelo) e un'unica query per i legami. _Riscritto il 2026-10-19: la formulazione originale («senza una query per ciascuno», `whereIn` a gruppi di dieci) è inesatta per un elenco ordinato per inattività, vedi `planning/US-089.md`._
+- [x] Un trainer senza clienti vede un messaggio che spiega come invitarne uno, non una schermata vuota — _provato come widget; aspetto da confermare sull'APK_
 
 ---
 
