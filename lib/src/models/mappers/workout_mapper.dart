@@ -9,7 +9,9 @@ extension WorkoutTemplateToLocal on WorkoutTemplate {
       ..name = name
       ..description = description
       ..parentProgramId = parentProgramId
-      ..category = category.name;
+      ..category = category.name
+      ..authorId = authorId
+      ..authorName = authorName;
     local.exercises = exercises.map((e) => e.toLocal()).toList();
     return local;
   }
@@ -55,6 +57,8 @@ extension LocalWorkoutTemplateToDomain on LocalWorkoutTemplate {
         (t) => t.name == category,
         orElse: () => ExerciseType.strength,
       ),
+      authorId: authorId,
+      authorName: authorName,
     );
   }
 }

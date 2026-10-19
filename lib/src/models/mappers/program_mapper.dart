@@ -12,7 +12,9 @@ extension WorkoutProgramToLocal on WorkoutProgram {
       ..createdAt = createdAt
       ..startDate = startDate
       ..endDate = endDate
-      ..color = color;
+      ..color = color
+      ..authorId = authorId
+      ..authorName = authorName;
   }
 }
 extension LocalWorkoutProgramToDomain on LocalWorkoutProgram {
@@ -28,6 +30,8 @@ extension LocalWorkoutProgramToDomain on LocalWorkoutProgram {
       startDate: startDate,
       endDate: endDate,
       color: color,
+      authorId: authorId,
+      authorName: authorName,
     );
   }
 }

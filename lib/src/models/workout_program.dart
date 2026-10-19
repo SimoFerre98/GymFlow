@@ -9,6 +9,19 @@ class WorkoutProgram {
   final DateTime? startDate;
   final DateTime? endDate;
   final int color; // Color value
+  /// Chi ha scritto la scheda, se non e il proprietario: il trainer del cliente
+  /// (US-113). **Assente** per ciò che scrive il proprietario.
+  ///
+  /// `toMap()` lo **omette** quando e nullo, e non scrive mai `authorId: null`:
+  /// le schermate costruiscono un oggetto nuovo a ogni salvataggio e fanno
+  /// `update(toMap())`, e una chiave nulla cancellerebbe l'autore di una scheda
+  /// ricevuta — e le regole, che vietano di cambiarlo, negherebbero il salvataggio
+  /// al cliente che la modifica.
+  final String? authorId;
+
+  /// Il nome dell'autore, copiato alla scrittura: mostrarlo non deve richiedere
+  /// di leggere il profilo di un altro utente. Presente solo con [authorId].
+  final String? authorName;
   WorkoutProgram({
     required this.id,
     required this.userId,
@@ -20,6 +33,8 @@ class WorkoutProgram {
     this.startDate,
     this.endDate,
     this.color = 0xFF2196F3, // Default Blue
+    this.authorId,
+    this.authorName,
   });
   Map<String, dynamic> toMap() {
     return {
@@ -33,6 +48,8 @@ class WorkoutProgram {
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'color': color,
+      if (authorId != null) 'authorId': authorId,
+      if (authorId != null && authorName != null) 'authorName': authorName,
     };
   }
   factory WorkoutProgram.fromMap(Map<String, dynamic> map, String id) {
@@ -51,6 +68,8 @@ class WorkoutProgram {
           ? DateTime.tryParse(map['endDate'])
           : null,
       color: map['color'] ?? 0xFF2196F3,
+      authorId: map['authorId'],
+      authorName: map['authorName'],
     );
   }
   WorkoutProgram copyWith({
@@ -64,6 +83,8 @@ class WorkoutProgram {
     DateTime? startDate,
     DateTime? endDate,
     int? color,
+    String? authorId,
+    String? authorName,
   }) {
     return WorkoutProgram(
       id: id ?? this.id,
@@ -76,6 +97,8 @@ class WorkoutProgram {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       color: color ?? this.color,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
     );
   }
 }

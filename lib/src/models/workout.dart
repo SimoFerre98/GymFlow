@@ -324,6 +324,19 @@ class WorkoutTemplate {
   final String? parentProgramId;
   final List<WorkoutTemplateExercise> exercises;
   final ExerciseType category;
+  /// Chi ha scritto la scheda, se non e il proprietario: il trainer del cliente
+  /// (US-113). **Assente** per ciò che scrive il proprietario.
+  ///
+  /// `toMap()` lo **omette** quando e nullo, e non scrive mai `authorId: null`:
+  /// le schermate costruiscono un oggetto nuovo a ogni salvataggio e fanno
+  /// `update(toMap())`, e una chiave nulla cancellerebbe l'autore di una scheda
+  /// ricevuta — e le regole, che vietano di cambiarlo, negherebbero il salvataggio
+  /// al cliente che la modifica.
+  final String? authorId;
+
+  /// Il nome dell'autore, copiato alla scrittura: mostrarlo non deve richiedere
+  /// di leggere il profilo di un altro utente. Presente solo con [authorId].
+  final String? authorName;
   /// Tipo di allenamento ricavato dalla categoria della scheda.
   WorkoutType get workoutType => WorkoutType.fromString(category.name);
   WorkoutTemplate({
@@ -334,6 +347,8 @@ class WorkoutTemplate {
     this.parentProgramId,
     required this.exercises,
     required this.category,
+    this.authorId,
+    this.authorName,
   });
   // Serialization
   Map<String, dynamic> toMap() {
@@ -345,6 +360,8 @@ class WorkoutTemplate {
       'parentProgramId': parentProgramId,
       'exercises': exercises.map((e) => e.toMap()).toList(),
       'category': category.toString().split('.').last,
+      if (authorId != null) 'authorId': authorId,
+      if (authorId != null && authorName != null) 'authorName': authorName,
     };
   }
   factory WorkoutTemplate.fromMap(Map<String, dynamic> map, String id) {
@@ -383,6 +400,8 @@ class WorkoutTemplate {
       parentProgramId: map['parentProgramId'],
       exercises: parsedExercises,
       category: Exercise.fromMap({'type': map['category']}, '').type,
+      authorId: map['authorId'],
+      authorName: map['authorName'],
     );
   }
   WorkoutTemplate copyWith({
@@ -393,6 +412,8 @@ class WorkoutTemplate {
     String? parentProgramId,
     List<WorkoutTemplateExercise>? exercises,
     ExerciseType? category,
+    String? authorId,
+    String? authorName,
   }) {
     return WorkoutTemplate(
       id: id ?? this.id,
@@ -402,6 +423,8 @@ class WorkoutTemplate {
       parentProgramId: parentProgramId ?? this.parentProgramId,
       exercises: exercises ?? this.exercises,
       category: category ?? this.category,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
     );
   }
 }
