@@ -29,6 +29,7 @@ import {
   getDocs,
   deleteDoc,
   writeBatch,
+  deleteField,
 } from 'firebase/firestore';
 
 const PROJECT_ID = 'demo-gymflow-test';
@@ -335,7 +336,7 @@ const consenso = (grants = {}, overrides = {}) => ({
   trainerUserId: 't',
   clientUserId: 'c',
   inviteId: 'inv1',
-  grants: { sessions: false, measurements: false, ...grants },
+  grants: { sessions: false, measurements: false, programs: false, ...grants },
   updatedAt: Timestamp.now(),
   ...overrides,
 });
@@ -732,6 +733,259 @@ test('dati: un legame fra amici accettato non apre le sessioni ne le misure', as
   await assertFails(sessioniDi(t, 'c'));
   await assertFails(misureDi(t, 'c'));
 });
+
+// ── US-113: il trainer scrive solo ciò che ha scritto lui ─────────────────
+//
+// Il terzo permesso (`grants.programs`) lascia al trainer creare schede e giorni
+// a nome del cliente, **inattive**, e poi leggere, modificare e cancellare
+// **solo quelle**. Le altre schede del cliente non le vede.
+
+const raccolte = ['programs', 'workouts'];
+
+/** Una scheda scritta dal trainer 't' per il cliente 'c'. */
+const scritta = (raccolta, overrides = {}) =>
+  raccolta === 'programs'
+    ? { userId: 'c', authorId: 't', authorName: 'Tina', name: 'Forza', workoutIds: [], isActive: false, color: 4280391411, ...overrides }
+    : { userId: 'c', authorId: 't', authorName: 'Tina', name: 'Lunedi', parentProgramId: 'p1', exercises: [], category: 'strength', ...overrides };
+
+/** Una scheda del cliente, senza autore: e' sua e di nessun altro. */
+const propria = (raccolta, overrides = {}) =>
+  raccolta === 'programs'
+    ? { userId: 'c', name: 'Mia', workoutIds: [], isActive: true, color: 4280391411, ...overrides }
+    : { userId: 'c', name: 'Mio giorno', exercises: [], category: 'strength', ...overrides };
+
+/** Un legame accettato con il permesso di scrittura, e tre schede: del trainer, del cliente, di un altro trainer. */
+async function legameConSchede(raccolta, { programs = true, statoInvito = 'accepted' } = {}) {
+  await legameTrainerCliente({ programs }, { statoInvito });
+  await seed(`${raccolta}/del-trainer`, scritta(raccolta));
+  await seed(`${raccolta}/del-cliente`, propria(raccolta));
+  await seed(`${raccolta}/di-un-altro`, scritta(raccolta, { authorId: 't2', authorName: 'Altro' }));
+}
+
+const sueSchede = (ctx, raccolta) =>
+  getDocs(
+    query(collection(ctx.firestore(), raccolta), where('userId', '==', 'c'), where('authorId', '==', 't')),
+  );
+
+for (const raccolta of raccolte) {
+  test(`${raccolta}: con il permesso il trainer crea a nome del cliente, con se stesso come autore`, async () => {
+    await legameTrainerCliente({ programs: true });
+    const t = testEnv.authenticatedContext('t');
+    await assertSucceeds(setDoc(doc(t.firestore(), `${raccolta}/nuova`), scritta(raccolta)));
+  });
+
+  test(`${raccolta}: senza il permesso il trainer non crea, nemmeno con sessioni e misure concesse`, async () => {
+    await legameTrainerCliente({ programs: false, sessions: true, measurements: true });
+    const t = testEnv.authenticatedContext('t');
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/nuova`), scritta(raccolta)));
+  });
+
+  test(`${raccolta}: un estraneo senza alcun legame non crea per il cliente`, async () => {
+    await legameTrainerCliente({ programs: true });
+    const x = testEnv.authenticatedContext('x');
+    await assertFails(setDoc(doc(x.firestore(), `${raccolta}/nuova`), scritta(raccolta, { authorId: 'x' })));
+  });
+
+  test(`${raccolta}: il trainer non si finge un altro autore, ne omette di esserlo`, async () => {
+    await legameTrainerCliente({ programs: true });
+    const t = testEnv.authenticatedContext('t');
+    // Autore diverso da chi scrive.
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/a`), scritta(raccolta, { authorId: 't2' })));
+    // Nessun autore: scriverebbe «come» il cliente.
+    const senza = scritta(raccolta);
+    delete senza.authorId;
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/b`), senza));
+  });
+
+  test(`${raccolta}: il trainer non crea per se stesso con un autore, e non scrive su un utente senza consenso`, async () => {
+    await legameTrainerCliente({ programs: true });
+    const t = testEnv.authenticatedContext('t');
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/s`), scritta(raccolta, { userId: 't' })));
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/d`), scritta(raccolta, { userId: 'd' })));
+  });
+
+  test(`${raccolta}: il trainer legge solo ciò che ha scritto, mai le altre schede del cliente`, async () => {
+    await legameConSchede(raccolta);
+    const t = testEnv.authenticatedContext('t');
+    await assertSucceeds(getDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    await assertFails(getDoc(doc(t.firestore(), `${raccolta}/del-cliente`)));
+    await assertFails(getDoc(doc(t.firestore(), `${raccolta}/di-un-altro`)));
+
+    // La query che l'app fara': per cliente **e** per autore. Restituisce una sola scheda.
+    const risultato = await assertSucceeds(sueSchede(t, raccolta));
+    assert.equal(risultato.size, 1);
+    assert.equal(risultato.docs[0].id, 'del-trainer');
+    // Senza il filtro sull'autore le regole non possono provare che ogni risultato e' suo.
+    await assertFails(
+      getDocs(query(collection(t.firestore(), raccolta), where('userId', '==', 'c'))),
+    );
+  });
+
+  test(`${raccolta}: il trainer modifica solo ciò che ha scritto`, async () => {
+    await legameConSchede(raccolta);
+    const t = testEnv.authenticatedContext('t');
+    await assertSucceeds(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { name: 'Forza v2' }));
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/del-cliente`), { name: 'Rubata' }));
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/di-un-altro`), { name: 'Rubata' }));
+  });
+
+  test(`${raccolta}: il trainer non cambia proprietario ne autore di ciò che ha scritto`, async () => {
+    await legameConSchede(raccolta);
+    const t = testEnv.authenticatedContext('t');
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { userId: 't' }));
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { authorId: 't2' }));
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { authorId: deleteField() }));
+  });
+
+  test(`${raccolta}: il trainer cancella solo ciò che ha scritto`, async () => {
+    await legameConSchede(raccolta);
+    const t = testEnv.authenticatedContext('t');
+    await assertFails(deleteDoc(doc(t.firestore(), `${raccolta}/del-cliente`)));
+    await assertFails(deleteDoc(doc(t.firestore(), `${raccolta}/di-un-altro`)));
+    await assertSucceeds(deleteDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+  });
+
+  test(`${raccolta}: spento il permesso il trainer non fa più nulla, nemmeno sulle sue`, async () => {
+    await legameConSchede(raccolta);
+    const t = testEnv.authenticatedContext('t');
+    const c = testEnv.authenticatedContext('c');
+    await assertSucceeds(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { name: 'prima' }));
+
+    await assertSucceeds(
+      updateDoc(doc(c.firestore(), 'consents/t_c'), { 'grants.programs': false, updatedAt: Timestamp.now() }),
+    );
+    await assertFails(getDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    await assertFails(sueSchede(t, raccolta));
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { name: 'dopo' }));
+    await assertFails(deleteDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/nuova`), scritta(raccolta)));
+  });
+
+  test(`${raccolta}: se il legame è sciolto ma il consenso resta, il trainer non fa più nulla`, async () => {
+    // La cintura: non ci si affida al fatto che qualcuno ricordi di cancellare il consenso.
+    await legameConSchede(raccolta);
+    const t = testEnv.authenticatedContext('t');
+    await assertSucceeds(updateDoc(doc(t.firestore(), 'invites/inv1'), { status: 'revoked' }));
+    await assertFails(getDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    await assertFails(updateDoc(doc(t.firestore(), `${raccolta}/del-trainer`), { name: 'dopo' }));
+    await assertFails(deleteDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    await assertFails(setDoc(doc(t.firestore(), `${raccolta}/nuova`), scritta(raccolta)));
+  });
+
+  test(`${raccolta}: ciò che il trainer ha scritto resta al cliente dopo lo scioglimento`, async () => {
+    await legameConSchede(raccolta);
+    const c = testEnv.authenticatedContext('c');
+    const batch = writeBatch(c.firestore());
+    batch.update(doc(c.firestore(), 'invites/inv1'), { status: 'revoked' });
+    batch.delete(doc(c.firestore(), 'consents/t_c'));
+    await assertSucceeds(batch.commit());
+
+    const t = testEnv.authenticatedContext('t');
+    await assertFails(getDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    // Al cliente restano tutte, e sono sue: le legge, le modifica, le cancella.
+    await assertSucceeds(getDoc(doc(c.firestore(), `${raccolta}/del-trainer`)));
+    await assertSucceeds(updateDoc(doc(c.firestore(), `${raccolta}/del-trainer`), { name: 'Mia ora' }));
+    await assertSucceeds(deleteDoc(doc(c.firestore(), `${raccolta}/del-trainer`)));
+  });
+
+  test(`${raccolta}: il cliente non fabbrica un autore, non lo cambia, e non perde ciò che ha ricevuto`, async () => {
+    await legameConSchede(raccolta);
+    const c = testEnv.authenticatedContext('c');
+    // Una scheda propria che si spaccia per scritta da un trainer.
+    await assertFails(setDoc(doc(c.firestore(), `${raccolta}/finta`), scritta(raccolta)));
+    // Una scheda propria normale, senza autore: come prima.
+    await assertSucceeds(setDoc(doc(c.firestore(), `${raccolta}/ok`), propria(raccolta)));
+    // L'autore di una scheda ricevuta non si cambia, non si toglie.
+    await assertFails(updateDoc(doc(c.firestore(), `${raccolta}/del-trainer`), { authorId: 'c' }));
+    await assertFails(updateDoc(doc(c.firestore(), `${raccolta}/del-trainer`), { authorId: deleteField() }));
+    // Ma la modifica, la legge e la cancella: e sua.
+    await assertSucceeds(updateDoc(doc(c.firestore(), `${raccolta}/del-trainer`), { name: 'Rinominata da me' }));
+    await assertSucceeds(getDoc(doc(c.firestore(), `${raccolta}/del-trainer`)));
+    await assertSucceeds(deleteDoc(doc(c.firestore(), `${raccolta}/del-trainer`)));
+  });
+
+  test(`${raccolta}: il cliente vede insieme le sue e quelle del trainer con la query di sempre`, async () => {
+    await legameConSchede(raccolta);
+    const c = testEnv.authenticatedContext('c');
+    const tutte = await assertSucceeds(
+      getDocs(query(collection(c.firestore(), raccolta), where('userId', '==', 'c'))),
+    );
+    assert.equal(tutte.size, 3);
+  });
+
+  test(`${raccolta}: un consenso senza il permesso di scrittura non apre niente`, async () => {
+    await legameConSchede(raccolta, { programs: false });
+    const t = testEnv.authenticatedContext('t');
+    await assertFails(getDoc(doc(t.firestore(), `${raccolta}/del-trainer`)));
+    await assertFails(sueSchede(t, raccolta));
+  });
+}
+
+test('programs: il trainer crea sempre inattiva e non cambia l attivazione', async () => {
+  await legameConSchede('programs');
+  const t = testEnv.authenticatedContext('t');
+  // Attivare una scheda disattiva le altre del cliente: e' una decisione sua.
+  await assertFails(setDoc(doc(t.firestore(), 'programs/attiva'), scritta('programs', { isActive: true })));
+  await assertFails(updateDoc(doc(t.firestore(), 'programs/del-trainer'), { isActive: true }));
+  // Il cliente invece attiva quella ricevuta.
+  const c = testEnv.authenticatedContext('c');
+  await assertSucceeds(updateDoc(doc(c.firestore(), 'programs/del-trainer'), { isActive: true }));
+  // E dopo che l'ha attivata, il trainer non la riporta indietro.
+  await assertFails(updateDoc(doc(t.firestore(), 'programs/del-trainer'), { isActive: false }));
+});
+
+test('consenso: un consenso a due chiavi, scritto prima di US-113, si aggiorna ancora e si estende', async () => {
+  await legameTrainerCliente();
+  // Come lo avrebbe scritto US-092: nessuna chiave `programs`.
+  await seed('consents/t_c', consenso({}, { grants: { sessions: true, measurements: false } }));
+  const c = testEnv.authenticatedContext('c');
+  const t = testEnv.authenticatedContext('t');
+
+  await assertSucceeds(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), { 'grants.measurements': true, updatedAt: Timestamp.now() }),
+  );
+  await assertSucceeds(sessioniDi(t, 'c'));
+  // E si estende al nuovo permesso con la scrittura a percorso dell'app.
+  await assertSucceeds(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), { 'grants.programs': true, updatedAt: Timestamp.now() }),
+  );
+  await assertSucceeds(setDoc(doc(t.firestore(), 'programs/nuova'), scritta('programs')));
+});
+
+test('consenso: il trainer non si concede da solo il permesso di scrittura', async () => {
+  await legameTrainerCliente({ programs: false });
+  const t = testEnv.authenticatedContext('t');
+  await assertFails(
+    updateDoc(doc(t.firestore(), 'consents/t_c'), { 'grants.programs': true, updatedAt: Timestamp.now() }),
+  );
+  await assertFails(setDoc(doc(t.firestore(), 'programs/nuova'), scritta('programs')));
+});
+
+test('consenso: i permessi sono solo quelli noti, e booleani', async () => {
+  await legameTrainerCliente();
+  const c = testEnv.authenticatedContext('c');
+  await assertFails(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), { 'grants.altro': true, updatedAt: Timestamp.now() }),
+  );
+  await assertFails(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), { 'grants.programs': 'si', updatedAt: Timestamp.now() }),
+  );
+});
+
+test('i permessi sono indipendenti: scrivere le schede non apre la lettura di sessioni e misure', async () => {
+  await legameTrainerCliente({ programs: true });
+  await seed('sessions/s-extra', { userId: 'c', workoutName: 'X', startTime: Timestamp.now() });
+  const t = testEnv.authenticatedContext('t');
+  await assertFails(sessioniDi(t, 'c'));
+  await assertFails(misureDi(t, 'c'));
+  // E concedere le sessioni non apre la scrittura.
+  const c = testEnv.authenticatedContext('c');
+  await assertSucceeds(
+    updateDoc(doc(c.firestore(), 'consents/t_c'), { 'grants.programs': false, 'grants.sessions': true, updatedAt: Timestamp.now() }),
+  );
+  await assertFails(setDoc(doc(t.firestore(), 'programs/nuova'), scritta('programs')));
+});
+
 
 // Prova che il test gira davvero contro l'emulatore, non contro un progetto
 // vero: un id progetto "demo-*" e' l'unico che l'SDK accetta senza credenziali

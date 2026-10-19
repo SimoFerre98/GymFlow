@@ -23,6 +23,12 @@
 // categoria (vedi `consents` piu' sotto). Tutto il resto resta owner-only, e
 // il trainer non scrive mai nulla sui dati del cliente.
 //
+// **US-113 apre la scrittura di una cosa sola**: `programs` e `workouts` del
+// cliente, e solo con il permesso `programs` che il cliente concede a parte.
+// Il trainer le crea **inattive**, con se stesso come autore (`authorId`), e
+// poi legge, modifica e cancella **soltanto ciò che ha scritto lui**: le altre
+// schede del cliente non le vede e non le tocca.
+//
 // Come si legge una regola qui:
 //   - le collezioni di primo livello appartengono a chi ha scritto `userId`
 //     dentro il documento, ed è il campo su cui l'app filtra tutte le query;
@@ -84,6 +90,47 @@ service cloud.firestore {
                .data.status == 'accepted';
     }
 
+    // ── Le schede scritte da un trainer (US-113) ────────────────────────────
+    //
+    // `authorId` e assente per ciò che scrive il proprietario. `get(...)` con un
+    // valore predefinito: un documento scritto prima di US-113 non ha la chiave,
+    // e un campo mancante in una regola e un errore, cioe un rifiuto.
+
+    // Il documento esistente l'ha scritto il trainer che chiede, e il cliente gli
+    // ha concesso di scrivere le schede (e il legame esiste ancora).
+    function scrittoDalTrainer() {
+      return autenticato()
+          && resource.data.get('authorId', null) == request.auth.uid
+          && consensoDi(resource.data.userId, 'programs');
+    }
+
+    // Il documento che si sta creando non dichiara un autore: lo scrive chi lo
+    // possiede. Impedisce al cliente di far passare una scheda propria per
+    // «scritta da un trainer».
+    function senzaAutore() {
+      return request.resource.data.get('authorId', null) == null;
+    }
+
+    // L'autore non cambia mai dopo la creazione, per nessuno: ne il cliente ne il
+    // trainer possono riscriverlo o toglierlo.
+    function autoreInvariato() {
+      return request.resource.data.get('authorId', null)
+          == resource.data.get('authorId', null);
+    }
+
+    // Il trainer crea per un cliente: dichiara se stesso come autore, scrive per
+    // un altro utente, e quell'utente gli ha concesso di scrivere le schede.
+    function creatoPerConto() {
+      return autenticato()
+          && request.resource.data.get('authorId', null) == request.auth.uid
+          && request.resource.data.userId is string
+          // Ridondante per costruzione — un consenso verso se stessi non puo
+          // esistere, perche un invito a se stessi e negato — ma dichiara
+          // l'intenzione: il trainer scrive per un altro, mai per se stesso.
+          && request.resource.data.userId != request.auth.uid
+          && consensoDi(request.resource.data.userId, 'programs');
+    }
+
     // ── Il profilo, e le misure corporee che gli stanno sotto ──────────────
     //
     // Qui il proprietario e' il **nome del documento**, non un campo.
@@ -109,18 +156,25 @@ service cloud.firestore {
 
     // ── Le collezioni di primo livello, possedute tramite `userId` ─────────
 
+    // I giorni di una scheda. Stesse regole di `programs`, senza l'attivazione.
     match /workouts/{workoutId} {
-      allow read: if eMio();
-      allow create: if loCreoMio();
-      allow update: if eMio() && proprietarioInvariato();
-      allow delete: if eMio();
+      allow read: if eMio() || scrittoDalTrainer();
+      allow create: if (loCreoMio() && senzaAutore()) || creatoPerConto();
+      allow update: if (eMio() && proprietarioInvariato() && autoreInvariato())
+          || (scrittoDalTrainer() && proprietarioInvariato() && autoreInvariato());
+      allow delete: if eMio() || scrittoDalTrainer();
     }
 
+    // Il trainer crea **sempre inattiva** e non cambia mai `isActive`: attivare
+    // una scheda disattiva le altre del cliente, ed e una scelta sua.
     match /programs/{programId} {
-      allow read: if eMio();
-      allow create: if loCreoMio();
-      allow update: if eMio() && proprietarioInvariato();
-      allow delete: if eMio();
+      allow read: if eMio() || scrittoDalTrainer();
+      allow create: if (loCreoMio() && senzaAutore())
+          || (creatoPerConto() && request.resource.data.isActive == false);
+      allow update: if (eMio() && proprietarioInvariato() && autoreInvariato())
+          || (scrittoDalTrainer() && proprietarioInvariato() && autoreInvariato()
+              && request.resource.data.isActive == resource.data.isActive);
+      allow delete: if eMio() || scrittoDalTrainer();
     }
 
     // Le sessioni le scrive solo il proprietario. Le legge anche il suo
@@ -239,11 +293,16 @@ service cloud.firestore {
     // Lo scrive **solo il cliente**. Se potesse scriverlo il trainer, il
     // consenso sarebbe un'autoconcessione.
 
+    // `programs` (US-113) e **facoltativo**: un consenso scritto prima di US-113 non
+    // ha la chiave, e pretenderla renderebbe ogni consenso gia salvato non piu
+    // aggiornabile. Si legge come spento.
     function grantsValidi() {
       return request.resource.data.grants is map
-          && request.resource.data.grants.keys().hasOnly(['sessions', 'measurements'])
+          && request.resource.data.grants.keys().hasOnly(['sessions', 'measurements', 'programs'])
           && request.resource.data.grants.sessions is bool
-          && request.resource.data.grants.measurements is bool;
+          && request.resource.data.grants.measurements is bool
+          && (!('programs' in request.resource.data.grants)
+              || request.resource.data.grants.programs is bool);
     }
 
     match /consents/{consentId} {
